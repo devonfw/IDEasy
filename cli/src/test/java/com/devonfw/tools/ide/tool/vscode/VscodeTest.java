@@ -22,7 +22,12 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.process.ProcessResultImpl;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.tool.plugin.AbstractPluginBasedCommandlet;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Test of {@link Vscode} class.
@@ -74,7 +79,6 @@ class VscodeTest extends AbstractIdeContextTest {
     commandlet.run();
 
     assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin");
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin mockedPlugin (1/1)'.");
 
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("mockedPlugin"))).exists();
@@ -124,7 +128,7 @@ class VscodeTest extends AbstractIdeContextTest {
 
     assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.92.1");
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode in version 1.92.1");
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin mockedPlugin (1/1)'.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin");
   }
 
   @Test
@@ -270,8 +274,8 @@ class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that {@code VSCODE_OPTIONS} is honoured by appending its tokens as additional command-line arguments when starting the IDE (analogue to the
-   * global {@code IDE_OPTIONS} used for IDEasy itself, see issue #788).
+   * Tests that {@code VSCODE_OPTIONS} is honoured by appending its tokens as additional command-line arguments when starting the IDE (analogue to the global
+   * {@code IDE_OPTIONS} used for IDEasy itself, see issue #788).
    */
   @Test
   void testRunAddsVscodeOptions() {
@@ -363,6 +367,36 @@ class VscodeTest extends AbstractIdeContextTest {
     assertThat(excludedEditions).contains("vscode", "vscodium");
   }
 
+  @Test
+  void testPluginPurgeRequiredOnMajorVersionChangeOnly() {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode vscodeCommandlet = new Vscode(context);
+    ToolEdition edition = new ToolEdition(PROJECT_VSCODE, PROJECT_VSCODE);
+
+    ToolEditionAndVersion installed = new ToolEditionAndVersion(edition);
+    installed.setResolvedVersion(VersionIdentifier.of("1.90.0"));
+    ToolEditionAndVersion requestedMajor = new ToolEditionAndVersion(edition);
+    requestedMajor.setResolvedVersion(VersionIdentifier.of("2.90.0"));
+    ToolInstallRequest majorVersionChange = new ToolInstallRequest(true);
+    majorVersionChange.setInstalled(installed);
+    majorVersionChange.setRequested(requestedMajor);
+
+    ToolEditionAndVersion requestedMinor = new ToolEditionAndVersion(edition);
+    requestedMinor.setResolvedVersion(VersionIdentifier.of("1.91.0"));
+    ToolInstallRequest minorVersionChange = new ToolInstallRequest(true);
+    minorVersionChange.setInstalled(installed);
+    minorVersionChange.setRequested(requestedMinor);
+
+    // act
+    boolean purgeOnMajor = vscodeCommandlet.isPluginPurgeRequired(majorVersionChange);
+    boolean purgeOnMinor = vscodeCommandlet.isPluginPurgeRequired(minorVersionChange);
+
+    // assert
+    assertThat(purgeOnMajor).isTrue();
+    assertThat(purgeOnMinor).isFalse();
+  }
+
   /**
    * Test double for {@link Vscode} that captures CLI arguments passed to {@link #runTool(ProcessContext, ProcessMode, List)} so tests can assert command
    * construction without spawning an external process.
@@ -386,7 +420,7 @@ class VscodeTest extends AbstractIdeContextTest {
       return new ProcessResultImpl("code", "code", 0, List.of());
     }
 
-    /** Exposes the protected {@link com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet#installPlugins(Collection, ProcessContext)} for testing. */
+    /** Exposes the protected {@link AbstractPluginBasedCommandlet#installPlugins(Collection, ProcessContext)} for testing. */
     public void installPluginsForTest(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
       installPlugins(plugins, pc);
     }

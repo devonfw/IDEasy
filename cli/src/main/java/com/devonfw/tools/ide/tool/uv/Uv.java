@@ -12,8 +12,7 @@ import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.python.PythonUvListEntry;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -21,9 +20,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * {@link ToolCommandlet} for <a href="https://docs.astral.sh/uv/">uv</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://docs.astral.sh/uv/">uv</a>.
  */
-public class Uv extends LocalToolCommandlet {
+public class Uv extends AbstractLocalToolCommandlet {
 
 
   /**

@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollectorAdapter;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -121,8 +121,8 @@ public abstract class Property<V> {
   }
 
   /**
-   * @return {@code true} if this property is required (if argument is not present the {@link Commandlet} cannot be invoked), {@code false} otherwise (if
-   *     optional).
+   * @return {@code true} if this property is required (if argument is not present the {@link AbstractCommandlet} cannot be invoked), {@code false} otherwise
+   *     (if optional).
    */
   public boolean isRequired() {
 
@@ -159,7 +159,7 @@ public abstract class Property<V> {
 
   /**
    * Determines if this {@link Property} is multi-valued and accepts any number of values. A multi-valued {@link Property} needs to be the last {@link Property}
-   * of a {@link Commandlet}.
+   * of a {@link AbstractCommandlet}.
    *
    * @return {@code true} if multi-valued, {@code false} otherwise.
    */
@@ -304,10 +304,10 @@ public abstract class Property<V> {
    *
    * @param valueAsString the new {@link #getValue() value} as {@link String}.
    * @param context the {@link IdeContext}
-   * @param commandlet the {@link Commandlet} owning this property.
+   * @param commandlet the {@link AbstractCommandlet} owning this property.
    * @return {@code true} if the value has been assigned successfully, {@code false} otherwise (an error occurred).
    */
-  public final boolean assignValueAsString(String valueAsString, IdeContext context, Commandlet commandlet) {
+  public final boolean assignValueAsString(String valueAsString, IdeContext context, AbstractCommandlet commandlet) {
 
     try {
       setValueAsString(valueAsString, context);
@@ -356,11 +356,11 @@ public abstract class Property<V> {
   /**
    * @param args the {@link CliArguments} already {@link CliArguments#current() pointing} the {@link CliArgument} to apply.
    * @param context the {@link IdeContext}.
-   * @param commandlet the {@link Commandlet} owning this property.
+   * @param commandlet the {@link AbstractCommandlet} owning this property.
    * @param collector the {@link CompletionCandidateCollector}.
    * @return {@code true} if it matches, {@code false} otherwise.
    */
-  public boolean apply(CliArguments args, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+  public boolean apply(CliArguments args, IdeContext context, AbstractCommandlet commandlet, CompletionCandidateCollector collector) {
 
     return apply(this.name, args, context, commandlet, collector);
   }
@@ -369,11 +369,11 @@ public abstract class Property<V> {
    * @param normalizedName the {@link #getName() name} or potentially a normalized form of it (see {@link KeywordProperty}).
    * @param args the {@link CliArguments} already {@link CliArguments#current() pointing} the {@link CliArgument} to apply.
    * @param context the {@link IdeContext}.
-   * @param commandlet the {@link Commandlet} owning this property.
+   * @param commandlet the {@link AbstractCommandlet} owning this property.
    * @param collector the {@link CompletionCandidateCollector}.
    * @return {@code true} if it matches, {@code false} otherwise.
    */
-  protected boolean apply(String normalizedName, CliArguments args, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+  protected boolean apply(String normalizedName, CliArguments args, IdeContext context, AbstractCommandlet commandlet, CompletionCandidateCollector collector) {
 
     CliArgument argument = args.current();
     if (argument.isCompletion()) {
@@ -418,11 +418,11 @@ public abstract class Property<V> {
    * @param lookahead - {@code true} if the given {@code argValue} is taken as lookahead from the next value, {@code false} otherwise.
    * @param args the {@link CliArguments}.
    * @param context the {@link IdeContext}.
-   * @param commandlet the {@link Commandlet} owning this {@link Property}.
+   * @param commandlet the {@link AbstractCommandlet} owning this {@link Property}.
    * @param collector the {@link CompletionCandidateCollector}.
    * @return {@code true} if it matches, {@code false} otherwise.
    */
-  protected boolean applyValue(String argValue, boolean lookahead, CliArguments args, IdeContext context, Commandlet commandlet,
+  protected boolean applyValue(String argValue, boolean lookahead, CliArguments args, IdeContext context, AbstractCommandlet commandlet,
       CompletionCandidateCollector collector) {
 
     boolean success = assignValueAsString(argValue, context, commandlet);
@@ -450,10 +450,10 @@ public abstract class Property<V> {
    * @param argument the {@link CliArgument CLI argument}.
    * @param args the {@link CliArguments}.
    * @param context the {@link IdeContext}.
-   * @param commandlet the {@link Commandlet} owning this {@link Property}.
+   * @param commandlet the {@link AbstractCommandlet} owning this {@link Property}.
    * @param collector the {@link CompletionCandidateCollector}.
    */
-  protected void complete(String normalizedName, CliArgument argument, CliArguments args, IdeContext context, Commandlet commandlet,
+  protected void complete(String normalizedName, CliArgument argument, CliArguments args, IdeContext context, AbstractCommandlet commandlet,
       CompletionCandidateCollector collector) {
 
     String arg = argument.get();
@@ -492,10 +492,10 @@ public abstract class Property<V> {
    *
    * @param arg the {@link CliArgument#get() CLI argument}.
    * @param context the {@link IdeContext}.
-   * @param commandlet the {@link Commandlet} owning this {@link Property}.
+   * @param commandlet the {@link AbstractCommandlet} owning this {@link Property}.
    * @param collector the {@link CompletionCandidateCollector}.
    */
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+  protected void completeValue(String arg, IdeContext context, AbstractCommandlet commandlet, CompletionCandidateCollector collector) {
 
   }
 

@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -26,6 +26,15 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
 
   /** {@link VersionIdentifier} "*!" that will resolve to the latest snapshot. */
   public static final VersionIdentifier LATEST_UNSTABLE = VersionIdentifier.of("*!");
+
+  /** The zero-based index of the major version segment (e.g. {@code 1} in {@code 1.90.0}). */
+  public static final int MAJOR_SEGMENT = 0;
+
+  /** The zero-based index of the minor version segment (e.g. {@code 90} in {@code 1.90.0}). */
+  public static final int MINOR_SEGMENT = 1;
+
+  /** The zero-based index of the fix version segment (e.g. {@code 0} in {@code 1.90.0}). */
+  public static final int FIX_SEGMENT = 2;
 
   private final VersionSegment start;
 
@@ -78,8 +87,8 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
    *
    * @param version the version pattern to resolve
    * @param versions the
-   *     {@link com.devonfw.tools.ide.tool.repository.ToolRepository#getSortedVersions(String, String, ToolCommandlet) available versions, sorted in descending
-   *     order}.
+   *     {@link com.devonfw.tools.ide.tool.repository.ToolRepository#getSortedVersions(String, String, AbstractToolCommandlet) available versions, sorted in
+   *     descending order}.
    * @return the resolved version
    */
   public static VersionIdentifier resolveVersionPattern(GenericVersionRange version, List<VersionIdentifier> versions) {
