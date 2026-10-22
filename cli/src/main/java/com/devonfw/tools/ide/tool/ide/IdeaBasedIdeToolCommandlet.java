@@ -45,25 +45,30 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
   }
 
   @Override
-  public boolean installPlugin(ToolPluginDescriptor plugin, final Step step, ProcessContext pc) {
+  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
-    // In case of plugins with a custom repo url
-    boolean customRepo = plugin.url() != null;
+    // Marketplace plugin -> install directly without starting the IDE.
+    if (plugin.url() == null) {
+      IdeaPluginDownloader pluginDownloader =
+          new IdeaPluginDownloader(this.context, this);
+      return pluginDownloader.installPlugin(plugin, step, pc);
+    }
+
+    // Custom repository plugin -> keep using the IDE CLI.
     List<String> args = new ArrayList<>();
     args.add("installPlugins");
     args.add(plugin.id().replace("+", " "));
-    if (customRepo) {
-      args.add(plugin.url());
-    }
+    args.add(plugin.url());
+
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT, args);
+
     if (result.isSuccessful()) {
       IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
       step.success();
       return true;
-    } else {
-      step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
-      return false;
     }
+
+    return false;
   }
 
   /**
@@ -88,23 +93,34 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
 
     String variableName = getName().toUpperCase(Locale.ROOT).replace("-", "_") + VM_ARGS_ENV_SUFFIX;
     String userVmArgsContent = this.context.getVariables().get(variableName);
-    if (userVmArgsContent == null || userVmArgsContent.isEmpty()) {
-      return super.runTool(pc, processMode, args);
+
+    String[] userVmArgs = new String[0];
+    if ((userVmArgsContent != null) && !userVmArgsContent.isEmpty()) {
+      userVmArgs = userVmArgsContent.trim().split("\\s+");
     }
-    String[] userVmArgs = userVmArgsContent.trim().split("\\s+");
 
     String prefix = getIdeProductPrefix();
     Path defaultVmOptionsPath = resolveDefaultVmOptionsPath(this.getToolPath(), prefix);
+    if ((prefix == null) || (defaultVmOptionsPath == null)) {
+      return super.runTool(pc, processMode, args);
+    }
+
     String defaultVmArgsContent = this.context.getFileAccess().readFileContent(defaultVmOptionsPath);
     if (defaultVmArgsContent == null || defaultVmArgsContent.isEmpty()) {
       LOG.debug("Default {} jvm options not found at: {}", getName(), defaultVmOptionsPath);
       return super.runTool(pc, processMode, args);
     }
+
     String[] defaultVmArgs = defaultVmArgsContent.trim().split("\\s+");
+    String pluginsPathArg = "-Didea.plugins.path="
+        + getPluginsInstallationPath().toAbsolutePath();
+    String[] additionalVmArgs = new String[userVmArgs.length + 1];
+    System.arraycopy(userVmArgs, 0, additionalVmArgs, 0, userVmArgs.length);
+    additionalVmArgs[userVmArgs.length] = pluginsPathArg;
 
     String userOptionsFileName = "." + prefix + VM_OPTIONS_FILE_EXTENSION;
     Path confPath = getIdeMetadataPath().resolve(userOptionsFileName);
-    this.context.getFileAccess().writeFileContent(mergeVmArgs(defaultVmArgs, userVmArgs), confPath, true);
+    this.context.getFileAccess().writeFileContent(mergeVmArgs(defaultVmArgs, additionalVmArgs), confPath, true);
 
     pc.withEnvVar(prefix.toUpperCase() + VM_OPTIONS_ENV_SUFFIX, confPath.toAbsolutePath().toString());
     return super.runTool(pc, processMode, args);
