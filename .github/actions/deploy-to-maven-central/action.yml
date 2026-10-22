@@ -1,0 +1,98 @@
+# Shared "download the native artifacts and deploy to Apache Maven Central" pipeline, used by both
+# release.yml (mode: release) and nightly-build.yml (mode: snapshot).
+#
+# This is a composite action (not a reusable workflow) on purpose: a workflow_call job cannot also
+# carry its own steps, but the release job still needs release-only steps (checksums, version bump,
+# git push, gh release create) that run in the SAME job AFTER the deploy, relying on its side effects
+# (rewritten .mvn/maven.config, created tag, populated cli/target/). Embedding the shared steps as
+# composite-action steps keeps those side effects in the caller job's working directory.
+#
+# Composite actions cannot read secrets directly; the caller passes them in as inputs.
+name: Deploy to Maven Central
+description: >-
+  Checks out the repo, sets up JDK, downloads the native build artifacts, and runs
+  `mvn deploy -Passembly,msi,pkg,deploy` to publish to Apache Maven Central.
+
+inputs:
+  mode:
+    description: Use release to sign and commit/tag the release version, or snapshot to deploy unsigned as-is.
+    required: true
+  release_version:
+    description: The official release version (release mode only; e.g. 2026.10.001).
+    required: false
+  snapshot_version:
+    description: The -SNAPSHOT version as read from .mvn/maven.config.
+    required: true
+  checkout_token:
+    description: Token for the checkout (use a push token when the job later pushes). Defaults to GITHUB_TOKEN.
+    required: false
+  build_user:
+    description: Git commit author name (release mode only).
+    required: false
+  build_user_email:
+    description: Git commit author email (release mode only).
+    required: false
+  gpg_private_key:
+    description: Base64-encoded GPG private key (release mode only).
+    required: false
+  gpg_passphrase:
+    description: GPG private key passphrase (release mode only).
+    required: false
+  sonatype_username:
+    description: Sonatype (Maven Central) username.
+    required: true
+  sonatype_password:
+    description: Sonatype (Maven Central) password/token.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+      with:
+        submodules: recursive
+        token: ${{ inputs.checkout_token || github.token }}
+    - name: Set up JDK
+      uses: actions/setup-java@v5
+      with:
+        distribution: 'temurin'
+        java-version: '25'
+        cache: 'maven'
+    - name: Import GPG key
+      if: inputs.mode == 'release'
+      shell: bash
+      env:
+        GPG_PRIVATE_KEY: ${{ inputs.gpg_private_key }}
+      run: |
+        echo "${GPG_PRIVATE_KEY}" | base64 --decode | gpg --batch --import
+        gpg --list-secret-keys
+    - name: Download native artifacts
+      uses: actions/download-artifact@v8
+      with:
+        path: ./cli/target/
+    - name: Build and deploy to Apache Maven Central
+      shell: bash
+      env:
+        MODE: ${{ inputs.mode }}
+        RELEASE_VERSION: ${{ inputs.release_version }}
+        SNAPSHOT_VERSION: ${{ inputs.snapshot_version }}
+        BUILD_USER: ${{ inputs.build_user }}
+        BUILD_USER_EMAIL: ${{ inputs.build_user_email }}
+        GPG_PASSPHRASE: ${{ inputs.gpg_passphrase }}
+        SONATYPE_USERNAME: ${{ inputs.sonatype_username }}
+        SONATYPE_PASSWORD: ${{ inputs.sonatype_password }}
+      run: |
+        if [ "${MODE}" = "release" ]; then
+          sed -i "s/${SNAPSHOT_VERSION}/${RELEASE_VERSION}/" .mvn/maven.config
+          git config --global user.email "${BUILD_USER_EMAIL}"
+          git config --global user.name "${BUILD_USER}"
+          git add -f .mvn/maven.config
+          git commit -m "set release version to ${RELEASE_VERSION}"
+          git tag -a "release/${RELEASE_VERSION}" -m "tagged version ${RELEASE_VERSION}"
+          export GPG_TTY=$TTY
+          mkdir -p ./cli/target/
+          mvn --settings .mvn/settings.xml -B -ntp deploy -Passembly,msi,pkg,deploy -pl -:ide-macos-installer -pl -:ide-windows-installer -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase="${GPG_PASSPHRASE}"
+        else
+          mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -pl -:ide-macos-installer -pl -:ide-windows-installer -Passembly,msi,pkg,deploy deploy
+        fi

@@ -1,0 +1,74 @@
+name: Resolve version
+
+# Reusable resolution of the version(s) from .mvn/maven.config, shared by release.yml (mode: release)
+# and nightly-build.yml (mode: snapshot) so the single source of truth is parsed exactly once and every
+# downstream job of the caller refers to the same value(s).
+#
+# .mvn/maven.config holds a single line: -Drevision=<version>-SNAPSHOT
+#   - mode: release  -> release_version  = <version>           (SNAPSHOT stripped)
+#                        snapshot_version = <version>-SNAPSHOT  (for rewriting maven.config later)
+#   - mode: snapshot -> snapshot_version = <version>-SNAPSHOT  (deployed as-is)
+#                        build_version    = <version>-<MM_DD_HH>-SNAPSHOT (baked into the native images
+#                                       so "ide -v" identifies the nightly). This format is a contract
+#                                       with IdeasyCommandlet.PATTERN_IDEASY_SNAPSHOT_VERSION - do NOT
+#                                       change it.
+#
+# All three outputs are always declared; each mode fills the ones it needs and leaves the rest empty.
+# Resolving here (and once) also guarantees that, for a snapshot build, every matrix leg of
+# build-natives shares a single timestamp instead of each computing its own.
+
+on:
+  workflow_call:
+    inputs:
+      mode:
+        description: release for an official release or snapshot for a nightly SNAPSHOT release.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  resolve-version:
+    name: Resolve version
+    runs-on: ubuntu-latest
+    outputs:
+      release_version: ${{ steps.resolve.outputs.release_version }}
+      snapshot_version: ${{ steps.resolve.outputs.snapshot_version }}
+      build_version: ${{ steps.resolve.outputs.build_version }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Resolve version from .mvn/maven.config
+        id: resolve
+        shell: bash
+        env:
+          MODE: ${{ inputs.mode }}
+        run: |
+          maven_config="$(cat .mvn/maven.config)"
+          snapshot_version="${maven_config/#*-Drevision=}"
+          snapshot_version="${snapshot_version/ */}"
+          if [ -z "${snapshot_version}" ]; then
+            echo "ERROR: could not resolve the version from .mvn/maven.config." >&2
+            exit 1
+          fi
+          release_version=""
+          build_version=""
+          if [ "${MODE}" = "release" ]; then
+            release_version="${snapshot_version/-SNAPSHOT/}"
+            if [ -z "${release_version}" ]; then
+              echo "ERROR: could not resolve the release version from ${snapshot_version}." >&2
+              exit 1
+            fi
+            echo "Releasing ${release_version} (from ${snapshot_version})"
+          elif [ "${MODE}" = "snapshot" ]; then
+            # MM_DD_HH must match IdeasyCommandlet.PATTERN_IDEASY_SNAPSHOT_VERSION
+            # (YYYY.MM.NNN-MM_DD_HH...-SNAPSHOT).
+            build_version="${snapshot_version/-SNAPSHOT/-$(date +%m_%d_%H)-SNAPSHOT}"
+            echo "Releasing snapshot ${snapshot_version} (native build version ${build_version})"
+          else
+            echo "ERROR: unknown mode '${MODE}' (expected 'release' or 'snapshot')." >&2
+            exit 1
+          fi
+          echo "release_version=${release_version}" >> "$GITHUB_OUTPUT"
+          echo "snapshot_version=${snapshot_version}" >> "$GITHUB_OUTPUT"
+          echo "build_version=${build_version}" >> "$GITHUB_OUTPUT"

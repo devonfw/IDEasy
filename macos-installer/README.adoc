@@ -13,8 +13,8 @@ The build runs on a macOS host (macOS GitHub runners). It needs:
 
 === Steps to Build the PKG Package
 
-See the `Build MacOS PKG` step in `.github/workflows/release.yml` (and `nightly-build.yml`);
-it runs `./macos-installer/build-pkg.sh` **from the repository root** with `RELEASE_VERSION`
+See the `Build MacOS PKG` step in `.github/workflows/build-natives.yml` (shared by `release.yml` and
+`nightly-build.yml`); it runs `./macos-installer/build-pkg.sh` **from the repository root** with `RELEASE_VERSION`
 provided via `env`. The script assumes the repository root as working directory (it builds
 `documentation/` and `cli/` and copies their outputs into `macos-installer/`), so do not run
 it from inside `macos-installer/` — that fails with `cd: documentation: No such file or directory`.
