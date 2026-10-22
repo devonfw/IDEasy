@@ -96,18 +96,37 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests the release of a gradle project. The {@code gradle.properties} declares {@code version=1.0.0-SNAPSHOT}.
+   */
+  @Test
+  void testReleaseGradle() {
+
+    IdeTestContext context = newReleaseContext(false);
+    context.setAnswers("yes", "yes");
+    context.setCwd(context.getWorkspacePath().resolve("gradle"), context.getWorkspacePath().toString(), context.getIdeHome());
+    ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
+
+    releaseCommandlet.run();
+
+    assertThat(context).log().hasEntries(
+        IdeLogEntry.ofInfo("gradle clean publish"),
+        IdeLogEntry.ofInfo("Successfully released version 1.0.0."));
+    Path gradleProperties = context.getWorkspacePath().resolve("gradle").resolve("gradle.properties");
+    assertThat(context.getFileAccess().readFileContent(gradleProperties)).isEqualTo("version=1.0.1-SNAPSHOT\n\ngroup=com.devonfw\n");
+  }
+
+  /**
    * Tests that the release fails gracefully if a build descriptor is found but its {@link com.devonfw.tools.ide.tool.BuildTool} does not support releasing
-   * (its {@link com.devonfw.tools.ide.tool.BuildTool#getProjectVersion(java.nio.file.Path) getProjectVersion} returns {@code null}), e.g. a gradle project
-   * (only maven currently supports releasing).
+   * (its {@link com.devonfw.tools.ide.tool.BuildTool#getProjectVersion(java.nio.file.Path) getProjectVersion} returns {@code null}), e.g. an npm project.
    */
   @Test
   void testReleaseWithUnsupportedBuildToolThrowsException() {
 
     IdeTestContext context = newReleaseContext(false);
-    context.setCwd(context.getWorkspacePath().resolve("gradle"), context.getWorkspacePath().toString(), context.getIdeHome());
+    context.setCwd(context.getWorkspacePath().resolve("npm"), context.getWorkspacePath().toString(), context.getIdeHome());
     ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
 
     CliException exception = assertThrows(CliException.class, releaseCommandlet::run);
-    assertThat(exception).hasMessageContaining("gradle").hasMessageContaining("does not support releasing");
+    assertThat(exception).hasMessageContaining("npm").hasMessageContaining("does not support releasing");
   }
 }
