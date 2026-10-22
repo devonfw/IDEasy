@@ -60,7 +60,7 @@ public class Yarn extends NpmBasedCommandlet implements BuildTool {
     try {
       version = MAPPER.readTree(packageJson.toFile()).get("version");
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to read " + packageJson, e);
+      throw new CliException("Failed to read " + packageJson, e);
     }
     if ((version == null) || !version.isTextual()) {
       throw new CliException("Could not find 'version' in " + packageJson);
