@@ -96,9 +96,29 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that the release fails gracefully if a build descriptor is found but its {@link com.devonfw.tools.ide.tool.BuildTool} does not support releasing
-   * (its {@link com.devonfw.tools.ide.tool.BuildTool#getProjectVersion(java.nio.file.Path) getProjectVersion} returns {@code null}), e.g. a gradle project
-   * (only maven currently supports releasing).
+   * Tests the release of an npm project. The {@code package.json} declares {@code "version": "1.0.0-SNAPSHOT"}.
+   */
+  @Test
+  void testReleaseNpm() {
+
+    IdeTestContext context = newReleaseContext(false);
+    context.setAnswers("yes", "yes");
+    Path npmProject = context.getWorkspacePath().resolve("npm");
+    context.setCwd(npmProject, context.getWorkspacePath().toString(), context.getIdeHome());
+    ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
+
+    releaseCommandlet.run();
+
+    assertThat(context).log().hasEntries(
+        IdeLogEntry.ofInfo("npm --prefix " + npmProject + " version 1.0.0 --no-git-tag-version --allow-same-version"),
+        IdeLogEntry.ofInfo("npm publish"),
+        IdeLogEntry.ofInfo("npm --prefix " + npmProject + " version 1.0.1-SNAPSHOT --no-git-tag-version --allow-same-version"),
+        IdeLogEntry.ofInfo("Successfully released version 1.0.0."));
+  }
+
+  /**
+   * Tests that the release fails gracefully if a build descriptor is found but its build tool does not support releasing (does not implement
+   * {@link com.devonfw.tools.ide.tool.BuildTool}), e.g. a gradle project (only maven currently supports releasing).
    */
   @Test
   void testReleaseWithUnsupportedBuildToolThrowsException() {
