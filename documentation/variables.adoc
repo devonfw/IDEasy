@@ -47,4 +47,5 @@ See also link:https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/
 |`INTELLIJ_VM_ARGS`|e.g. `-Xms128m -Xmx2048m`|Support for extension or overwrite of default IntelliJ JVM options.
 |`PYCHARM_VM_ARGS`|e.g. `-Xms128m -Xmx2048m`|Support for extension or overwrite of default Pycharm JVM options.
 |`ANDROID_STUDIO_VM_ARGS`|e.g. `-Xms128m -Xmx2048m`|Support for extension or overwrite of default Android Studio JVM options.
+|`VSCODE_PROFILE_ENABLED`|`false`|Feature toggle to isolate VSCode via a named profile `ideasy-«project»-«workspace»` instead of a separate user-data folder (see https://github.com/devonfw/IDEasy/issues/2058[#2058]). If enabled, the user settings from the link:settings.adoc[settings] are merged into that profile once VSCode has created it. Limitation: VSCode reads application-scoped settings (e.g. `update.mode` or telemetry settings) only from your default profile, which IDEasy does not modify. Hence, these settings are not applied in profile mode.
 |=======================

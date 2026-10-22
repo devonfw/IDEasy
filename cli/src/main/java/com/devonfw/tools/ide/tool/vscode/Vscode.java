@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.vscode;
 
 import static com.devonfw.tools.ide.version.VersionIdentifier.MAJOR_SEGMENT;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -15,7 +16,9 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.json.JsonMapping;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -24,6 +27,7 @@ import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * {@link AbstractToolCommandlet} for <a href="https://code.visualstudio.com/">vscode</a>.
@@ -37,6 +41,9 @@ public class Vscode extends AbstractIdeToolCommandlet {
 
   /** The {@link Path} of the legacy VSCode user-data folder relative to the workspace, still used by the workspace templates in the settings. */
   private static final Path LEGACY_USER_DATA = Path.of(".vscode", ".userdata");
+
+  /** The name of the folder inside the VSCode user-data folder containing the user settings of the default profile. */
+  private static final String FOLDER_USER = "User";
 
   /**
    * The constructor.
@@ -143,7 +150,65 @@ public class Vscode extends AbstractIdeToolCommandlet {
   public Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
 
     // the settings still provide the user settings template in the legacy location inside the workspace
-    return Map.of(workspaceFolder.resolve(LEGACY_USER_DATA), getUserDataPath());
+    Path legacyUserData = workspaceFolder.resolve(LEGACY_USER_DATA);
+    Path userData = getUserDataPath();
+    if (isProfileEnabled()) {
+      Path profilePath = getProfilePath();
+      if (profilePath != null) {
+        // redirects are applied to the already redirected parent, so the user settings are redirected from the user-data folder to the profile
+        return Map.of(legacyUserData, userData, userData.resolve(FOLDER_USER), profilePath);
+      }
+    }
+    return Map.of(legacyUserData, userData);
+  }
+
+  private boolean isProfileEnabled() {
+
+    return Boolean.TRUE.equals(IdeVariables.VSCODE_PROFILE_ENABLED.get(this.context));
+  }
+
+  /**
+   * @return the {@link Path} to the default VSCode user-data folder that VSCode uses if no {@code --user-data-dir} is given.
+   */
+  private Path getDefaultUserDataPath() {
+
+    String folderName = EDITION_VSCODIUM.equals(getConfiguredEdition()) ? "VSCodium" : "Code";
+    Path userHome = this.context.getUserHome();
+    SystemInfo systemInfo = this.context.getSystemInfo();
+    if (systemInfo.isWindows()) {
+      return userHome.resolve("AppData").resolve("Roaming").resolve(folderName);
+    } else if (systemInfo.isMac()) {
+      return userHome.resolve("Library").resolve("Application Support").resolve(folderName);
+    }
+    return userHome.resolve(".config").resolve(folderName);
+  }
+
+  /**
+   * @return the {@link Path} to the folder of the {@link #getProfileName() IDEasy profile} inside the {@link #getDefaultUserDataPath() default user-data
+   *     folder} or {@code null} if VSCode has not yet created that profile. VSCode stores the profiles with a generated id in its {@code storage.json} so the
+   *     folder is only known after VSCode created the profile (see #2471 and #2568).
+   */
+  private Path getProfilePath() {
+
+    Path userPath = getDefaultUserDataPath().resolve(FOLDER_USER);
+    Path storageFile = userPath.resolve("globalStorage").resolve("storage.json");
+    if (!Files.isRegularFile(storageFile)) {
+      return null;
+    }
+    String profileName = getProfileName();
+    try {
+      JsonNode profiles = JsonMapping.create().readTree(storageFile.toFile()).path("userDataProfiles");
+      for (JsonNode profile : profiles) {
+        if (profileName.equals(profile.path("name").asText())) {
+          return userPath.resolve("profiles").resolve(profile.path("location").asText());
+        }
+      }
+    } catch (IOException e) {
+      LOG.warn("Failed to read VSCode profiles from {}", storageFile, e);
+      return null;
+    }
+    LOG.info("VSCode profile {} does not exist yet, user settings will be applied to it with the next start of VSCode.", profileName);
+    return null;
   }
 
   @Override
@@ -153,7 +218,7 @@ public class Vscode extends AbstractIdeToolCommandlet {
       pc.withEnvVar("DONT_PROMPT_WSL_INSTALL", "1");
     }
     pc.addArg("--new-window");
-    if (Boolean.TRUE.equals(IdeVariables.VSCODE_PROFILE_ENABLED.get(this.context))) {
+    if (isProfileEnabled()) {
       // Use a named profile (not --user-data-dir) so VS Code keeps its IPC lock at the default location.
       // This lets the OS-level vscode:// protocol handler (OAuth callbacks e.g. GitHub/Copilot) find the
       // already-running IDEasy window. Each project and workspace gets its own profile for isolated auth and settings.

@@ -268,6 +268,50 @@ class VscodeTest extends AbstractIdeContextTest {
     assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS)).exists();
   }
 
+  /**
+   * Tests that with the feature toggle {@code VSCODE_PROFILE_ENABLED} enabled the user settings template {@code .vscode/.userdata/User} is merged into the
+   * folder of the IDEasy profile inside the default VS Code user-data-dir that VS Code actually uses in profile mode (see #2568).
+   */
+  @Test
+  void testConfigureWorkspaceMergesUserSettingsTemplateIntoProfileIfFeatureToggleEnabled() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_PROFILE_ENABLED", "true");
+    Path defaultUserData = context.getUserHome().resolve(".config/Code");
+    String profileName = "ideasy-" + context.getProjectName() + "-" + context.getWorkspaceName();
+    context.getFileAccess().writeFileContent("{\"userDataProfiles\":[{\"location\":\"-other\",\"name\":\"other\"},{\"location\":\"-6ab4c0e5\",\"name\":\""
+        + profileName + "\"}]}", defaultUserData.resolve("User/globalStorage/storage.json"), true);
+    Vscode commandlet = new Vscode(context);
+    // act
+    commandlet.configureWorkspace();
+    // assert
+    assertThat(defaultUserData.resolve("User/profiles/-6ab4c0e5/settings.json")).exists().content().contains("\"telemetry.telemetryLevel\": \"off\"");
+    assertThat(defaultUserData.resolve("User/profiles/-other")).doesNotExist();
+    assertThat(defaultUserData.resolve("User/settings.json")).doesNotExist();
+    assertThat(context.getWorkspacePath().resolve(".vscode/.userdata")).doesNotExist();
+  }
+
+  /**
+   * Tests that with the feature toggle {@code VSCODE_PROFILE_ENABLED} enabled the user settings template is still merged into the IDEasy user-data folder if
+   * VS Code has not yet created the IDEasy profile, without creating anything in the default VS Code user-data-dir (see #2568).
+   */
+  @Test
+  void testConfigureWorkspaceMergesUserSettingsTemplateIntoUserDataFolderIfProfileIsMissing() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("VSCODE_PROFILE_ENABLED", "true");
+    Vscode commandlet = new Vscode(context);
+    // act
+    commandlet.configureWorkspace();
+    // assert
+    assertThat(getUserDataPath(context).resolve("User/settings.json")).exists().content().contains("\"update.mode\": \"none\"");
+    assertThat(context.getUserHome().resolve(".config/Code")).doesNotExist();
+  }
+
   private static Path getUserDataPath(IdeTestContext context) {
 
     return context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve(context.getWorkspaceName()).resolve("config");
