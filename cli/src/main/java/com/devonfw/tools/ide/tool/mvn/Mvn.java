@@ -188,7 +188,7 @@ public class Mvn extends MavenCommandlet implements BuildTool {
   private String retrievePassword(String option, String input) {
 
     ProcessResult result;
-    if (option.equals("--encrypt-master-password") || !Files.exists(Path.of(SETTINGS_SECURITY_FILE))) {
+    if (option.equals("--encrypt-master-password")) {
       result = runTool(this.context.newProcess(), ProcessMode.DEFAULT_CAPTURE, List.of(option, input));
     } else {
       result = runTool(this.context.newProcess(), ProcessMode.DEFAULT_CAPTURE, List.of(option, input,
