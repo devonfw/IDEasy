@@ -2,7 +2,8 @@ package com.devonfw.tools.ide.url.model.file;
 
 import java.nio.file.Files;
 
-import org.jline.utils.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.url.model.AbstractUrlArtifactWithParent;
 import com.devonfw.tools.ide.url.model.folder.AbstractUrlFolder;
@@ -15,6 +16,8 @@ import com.devonfw.tools.ide.url.model.folder.UrlFolder;
  */
 public abstract class AbstractUrlFile<P extends AbstractUrlFolder<?>> extends AbstractUrlArtifactWithParent<P>
     implements UrlFile<P> {
+
+  private static final Logger LOG = LoggerFactory.getLogger(DirectoryMerger.class);
 
   /**
    * {@code true} if modified and changes are unsaved, {@code false} otherwise.
@@ -56,7 +59,7 @@ public abstract class AbstractUrlFile<P extends AbstractUrlFolder<?>> extends Ab
   public void save() {
 
     if (this.modified) {
-      Log.debug("Saving {}", getPath());
+      LOG.debug("Saving {}", getPath());
       doSave();
       this.modified = false;
     }

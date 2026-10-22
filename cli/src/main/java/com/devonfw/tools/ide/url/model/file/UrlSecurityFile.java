@@ -6,7 +6,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import org.jline.utils.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.json.JsonMapping;
@@ -22,6 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * {@link UrlFile} with the security information for an {@link UrlEdition}.
  */
 public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?, ?>> {
+
+  private static final Logger LOG = LoggerFactory.getLogger(DirectoryMerger.class);
 
   /** {@link #getName() Name} of security file. */
   public static final String SECURITY_JSON = "security.json";
@@ -70,7 +73,7 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
   public void doSave() {
 
     if ((this.security == null || this.security.getIssues().isEmpty()) && !Files.exists(getPath())) {
-      Log.debug("Skipping save for {} (no warnings and file doesn't exist)", getPath());
+      LOG.debug("Skipping save for {} (no warnings and file doesn't exist)", getPath());
       return;
     }
 
