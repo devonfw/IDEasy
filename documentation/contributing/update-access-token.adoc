@@ -26,7 +26,8 @@ Click on `Generate new token` to create a new token.
 * choose `Only select repositories` and select the repositories our actions need to access (`IDEasy` and `ide-urls`).
 +
 image::../images/AccessToken2.png["New fine-grained personal access token"]
-. In `Repository permissions` select `Read and write` for `Contents` (and `Metadata`).
+. In `Repository permissions` select `Read and write` for `Contents` and `Pull requests` (and `Metadata`).
+The `Pull requests` permission is required by `.github/workflows/pr-assignee-reconcile.yml`: it changes the assignees of PRs (REST API), otherwise every assignee change fails with a 403 that is only logged.
 +
 image::../images/AccessToken3.png["Repository permissions"]
 . In `Organization permissions` select `Read` for `Members`.

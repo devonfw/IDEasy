@@ -43,7 +43,7 @@ test('classifyStatus: unconfigured columns are unmanaged (left alone)', () => {
 test('Team Review, field set + reviewer assigned -> reviewer sole assignee, field untouched', () => {
   const r = computeTarget(pr({ author: 'A', assignees: ['A', 'R'], reviewer: 'R', statusName: 'Team Review' }), CFG);
   assert.equal(r.kind, COLUMNS.TEAM_REVIEW);
-  assert.equal(r.target, 'R');
+  assert.deepEqual(r.targets, ['R']);
   assert.equal(r.setField, null);
 });
 
@@ -51,13 +51,13 @@ test('Team Review, field set but reviewer NOT assigned -> auto-reassign reviewer
   // Author moved the card back to Team Review after resolving comments; the
   // reviewer was unassigned in "In progress". The field still remembers R.
   const r = computeTarget(pr({ author: 'A', assignees: ['A'], reviewer: 'R', statusName: 'Team Review' }), CFG);
-  assert.equal(r.target, 'R');
+  assert.deepEqual(r.targets, ['R']);
   assert.equal(r.setField, null);
 });
 
 test('Team Review, field set to R1 but a different person self-assigned -> field wins + flag', () => {
   const r = computeTarget(pr({ author: 'A', assignees: ['A', 'R2'], reviewer: 'R1', statusName: 'Team Review' }), CFG);
-  assert.equal(r.target, 'R1');
+  assert.deepEqual(r.targets, ['R1']);
   assert.match(r.anomaly, /R2/);
   assert.equal(r.setField, null);
 });
@@ -65,26 +65,26 @@ test('Team Review, field set to R1 but a different person self-assigned -> field
 test('Team Review, field empty + single self-assigner -> assign them AND auto-fill field', () => {
   const r = computeTarget(pr({ author: 'A', assignees: ['A', 'M'], reviewer: '', statusName: 'Team Review' }), CFG);
   assert.equal(r.kind, COLUMNS.TEAM_REVIEW);
-  assert.equal(r.target, 'M');
+  assert.deepEqual(r.targets, ['M']);
   assert.equal(r.setField, 'M');
 });
 
 test('Team Review, field empty + no reviewer yet -> keep author, silent, no field write', () => {
   const r = computeTarget(pr({ author: 'A', assignees: ['A'], reviewer: '', statusName: 'Team Review' }), CFG);
-  assert.equal(r.target, 'A');
+  assert.deepEqual(r.targets, ['A']);
   assert.equal(r.setField, null);
   assert.equal(r.anomaly, null);
 });
 
 test('Team Review, field empty + author unassigned -> reassign author, no field write', () => {
   const r = computeTarget(pr({ author: 'A', assignees: [], reviewer: '', statusName: 'Team Review' }), CFG);
-  assert.equal(r.target, 'A');
+  assert.deepEqual(r.targets, ['A']);
   assert.equal(r.setField, null);
 });
 
 test('Team Review, field empty + multiple self-assigners -> ambiguous, keep author, no field write', () => {
   const r = computeTarget(pr({ author: 'A', assignees: ['B', 'C', 'A'], reviewer: '', statusName: 'Team Review' }), CFG);
-  assert.equal(r.target, 'A');
+  assert.deepEqual(r.targets, ['A']);
   assert.match(r.anomaly, /multiple reviewers/);
   assert.equal(r.setField, null);
 });
@@ -94,24 +94,24 @@ test('Team Review, field empty + multiple self-assigners -> ambiguous, keep auth
 test('Author-only columns -> author sole assignee, reviewer field left alone', () => {
   const r = computeTarget(pr({ author: 'A', assignees: ['A', 'krystynaShatkovska'], reviewer: 'R', statusName: '🏗 In progress' }), CFG);
   assert.equal(r.kind, COLUMNS.AUTHOR_ONLY);
-  assert.equal(r.target, 'A');
+  assert.deepEqual(r.targets, ['A']);
   assert.equal(r.setField, null);
 });
 
-// --- Final review: the card is handed to the fixed final reviewer (PO/PL) ---
+// --- Final review: the fixed final reviewer (PO/PL) is assigned next to the author ---
 
-test('Final review column -> final reviewer is sole assignee (handed from author), field untouched', () => {
+test('Final review column -> final reviewer AND author assigned, others removed, field untouched', () => {
   const r = computeTarget(pr({ author: 'A', assignees: ['A', 'krystynaShatkovska'], reviewer: 'R', statusName: '👀 In review' }), CFG);
   assert.equal(r.kind, COLUMNS.FINAL_REVIEW);
-  assert.equal(r.target, 'hohwille');
+  assert.deepEqual(r.targets, ['hohwille', 'A']);
   assert.equal(r.setField, null);
 });
 
 test('Final review column -> final reviewer assigned even when already the author', () => {
-  // hohwille authored the PR and put it in final review: the card stays with
-  // the single assignee (hohwille), no-op diff.
+  // hohwille authored the PR and put it in final review: final reviewer and
+  // author are the same person, so the card keeps the single assignee hohwille.
   const r = computeTarget(pr({ author: 'hohwille', assignees: ['hohwille'], reviewer: 'R', statusName: '👀 In review' }), CFG);
-  assert.equal(r.target, 'hohwille');
+  assert.deepEqual(r.targets, ['hohwille']);
   assert.equal(r.setField, null);
   assert.equal(r.anomaly, null);
 });
@@ -119,7 +119,7 @@ test('Final review column -> final reviewer assigned even when already the autho
 test('Unmanaged columns -> no target (skip), reviewer field left alone', () => {
   const r = computeTarget(pr({ author: 'MeShehi', assignees: ['majeteSil', 'MeShehi'], reviewer: 'majeteSil', statusName: '✅ Done' }), CFG);
   assert.equal(r.kind, COLUMNS.UNMANAGED);
-  assert.equal(r.target, null);
+  assert.equal(r.targets, null);
   assert.equal(r.setField, null);
 });
 
@@ -131,7 +131,7 @@ test('Unmanaged columns -> no target (skip), reviewer field left alone', () => {
 test('takeover flag -> card is skipped (author-only column)', () => {
   const r = computeTarget(pr({ author: 'A', assignees: ['B'], reviewer: '', statusName: '👀 In review', takeover: true }), CFG);
   assert.equal(r.kind, COLUMNS.TAKEOVER);
-  assert.equal(r.target, null);
+  assert.equal(r.targets, null);
   assert.equal(r.setField, null);
   assert.equal(r.anomaly, null);
 });
@@ -139,19 +139,19 @@ test('takeover flag -> card is skipped (author-only column)', () => {
 test('takeover flag -> card is skipped (Team Review, reviewer field set)', () => {
   const r = computeTarget(pr({ author: 'A', assignees: ['R'], reviewer: 'R', statusName: 'Team Review', takeover: true }), CFG);
   assert.equal(r.kind, COLUMNS.TAKEOVER);
-  assert.equal(r.target, null);
+  assert.equal(r.targets, null);
   assert.equal(r.setField, null);
 });
 
 test('takeover flag -> card is skipped (unmanaged column)', () => {
   const r = computeTarget(pr({ author: 'A', assignees: ['B'], reviewer: '', statusName: '🆕 New', takeover: true }), CFG);
   assert.equal(r.kind, COLUMNS.TAKEOVER);
-  assert.equal(r.target, null);
+  assert.equal(r.targets, null);
 });
 
 test('author-only, author unassigned + one self-assigner -> still targets author, anomaly suggests the Takeover flag', () => {
   const r = computeTarget(pr({ author: 'A', assignees: ['B'], reviewer: '', statusName: '🏗 In progress' }), CFG);
-  assert.equal(r.target, 'A');
+  assert.deepEqual(r.targets, ['A']);
   assert.equal(r.setField, null);
   assert.match(r.anomaly, /Takeover/);
 });
@@ -159,20 +159,27 @@ test('author-only, author unassigned + one self-assigner -> still targets author
 // --- computeDiff ----------------------------------------------------------
 
 test('computeDiff: no-op when already at target', () => {
-  const d = computeDiff(['Hiepiscus'], 'Hiepiscus');
+  const d = computeDiff(['Hiepiscus'], ['Hiepiscus']);
   assert.deepEqual(d, { toAdd: [], toRemove: [], changed: false });
 });
 
 test('computeDiff: swaps author out and reviewer in (Team Review handoff)', () => {
-  const d = computeDiff(['Hiepiscus'], 'majeteSil');
+  const d = computeDiff(['Hiepiscus'], ['majeteSil']);
   assert.deepEqual(d.toRemove, ['Hiepiscus']);
   assert.deepEqual(d.toAdd, ['majeteSil']);
   assert.equal(d.changed, true);
 });
 
 test('computeDiff: unassigns the extra assignee (In review -> author only)', () => {
-  const d = computeDiff(['samuelkos17', 'krystynaShatkovska'], 'samuelkos17');
+  const d = computeDiff(['samuelkos17', 'krystynaShatkovska'], ['samuelkos17']);
   assert.deepEqual(d.toAdd, []);
+  assert.deepEqual(d.toRemove, ['krystynaShatkovska']);
+  assert.equal(d.changed, true);
+});
+
+test('computeDiff: multiple targets (In review -> final reviewer + author)', () => {
+  const d = computeDiff(['samuelkos17', 'krystynaShatkovska'], ['hohwille', 'samuelkos17']);
+  assert.deepEqual(d.toAdd, ['hohwille']);
   assert.deepEqual(d.toRemove, ['krystynaShatkovska']);
   assert.equal(d.changed, true);
 });

@@ -44,11 +44,11 @@
 //                            (default: "Team Review")
 //   AUTHOR_ONLY_COLUMNS      comma-separated Status options forced to
 //                            "author only" (default: "🏗 In progress")
-//   FINAL_REVIEW_COLUMN      Status option whose PRs are handed to the fixed
-//                            final reviewer instead of the author
+//   FINAL_REVIEW_COLUMN      Status option whose PRs are assigned to the fixed
+//                            final reviewer in addition to the author
 //                            (default: "👀 In review")
 //   FINAL_REVIEWER           the login of the PO/PL who does the final reviews;
-//                            the sole assignee of FINAL_REVIEW_COLUMN PRs
+//                            assigned next to the author on FINAL_REVIEW_COLUMN PRs
 //                            (default: "hohwille")
 //   TAKEOVER_LABEL           PR label that exempts a PR from reconciliation
 //                            (default: "takeover"). (A board field cannot be
@@ -344,7 +344,7 @@ async function readPrItems(boardId, reviewerFieldName, takeoverLabel) {
 // Reconciliation
 // ---------------------------------------------------------------------------
 
-// Add the target first and only then remove the others, so a failed add
+// Add the targets first and only then remove the others, so a failed add
 // (e.g. a hand-typed typo in the Team Reviewer field) can never leave the
 // card with zero assignees.
 async function applyAssignees(repo, number, toAdd, toRemove) {
@@ -403,7 +403,7 @@ mutation ($input: UpdateProjectV2ItemFieldValueInput!) {
 }
 
 async function main() {
-  const login = process.env.GH_ACCOUNT || process.env.GH_ORG || 'devonfw';
+  const login = process.env.GH_ACCOUNT || 'devonfw';
   const title = process.env.BOARD_TITLE || 'IDEasy board';
   const teamReviewColumn = process.env.TEAM_REVIEW_COLUMN || 'Team Review';
   const reviewerFieldName = process.env.REVIEWER_FIELD || 'Team Reviewer';
@@ -416,8 +416,8 @@ async function main() {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
-  // The "final review" column hands the card to the fixed final reviewer (the
-  // PO/PL who does the final reviews) instead of keeping the author.
+  // The "final review" column assigns the fixed final reviewer (the PO/PL who
+  // does the final reviews) next to the author.
   const finalReviewColumn = process.env.FINAL_REVIEW_COLUMN || '👀 In review';
   const finalReviewer = process.env.FINAL_REVIEWER || 'hohwille';
   const dryRun = (process.env.DRY_RUN ?? 'true').toLowerCase() !== 'false';
@@ -465,14 +465,14 @@ async function main() {
       );
       continue;
     }
-    const diff = computeDiff(pr.assignees, target.target);
+    const diff = computeDiff(pr.assignees, target.targets);
     const willFillField = target.setField !== null && reviewerField !== null;
     if (!diff.changed && !willFillField) {
       continue;
     }
 
     changes++;
-    const who = target.target ? ` -> ${target.target}` : ' -> (none)';
+    const who = target.targets?.length ? ` -> ${target.targets.join(', ')}` : ' -> (none)';
     const verb = dryRun ? 'WOULD SET' : 'SET';
     console.log(
       `[reconcile] #${pr.number} [${pr.statusName}] ${pr.assignees.join(', ') || '(none)'}${who} ` +

@@ -8,9 +8,8 @@ name: Reconcile PR assignees
 #     self-assign habit), the reviewer is assigned and their login is recorded
 #     in the field. Because the field persists, moving a card back to
 #     "Team Review" re-assigns the same reviewer without a re-self-assign.
-#   - In "👀 In review" a PR has exactly one assignee: the fixed final reviewer
-#     (FINAL_REVIEWER, the PO/PL who does the final reviews); the card is handed
-#     from its author to the final reviewer here.
+#   - In "👀 In review" a PR has exactly two assignees: the fixed final reviewer
+#     (FINAL_REVIEWER, the PO/PL who does the final reviews) and the author.
 #   - In "🏗 In progress" a PR has exactly one assignee: the author.
 #   - Every other column (New / Research / Refinement / Done) is left untouched.
 #   - A PR with the TAKEOVER label (default "takeover") is exempted entirely:
@@ -38,19 +37,15 @@ on:
         type: choice
         default: 'true'
         options: [ 'true', 'false' ]
-  concurrency:
-    group: pr-assignee-reconcile
-    cancel-in-progress: false
 
+concurrency:
+  group: pr-assignee-reconcile
+  cancel-in-progress: false
+
+# The built-in GITHUB_TOKEN is only used by actions/checkout; all API calls go
+# through ACTION_PUSH_TOKEN (GH_TOKEN below), so least privilege suffices here.
 permissions:
   contents: read
-  # The Projects permission is named "repository-projects" (there is no
-  # "projects" key); its values are read/write/none ("write-all" only exists
-  # for the "contents" scope). "write" grants the write:project scope that
-  # the Team Reviewer field write (updateProjectV2ItemFieldValue) needs.
-  repository-projects: write
-  issues: write
-  pull-requests: write
 
 env:
   # Token used for the API calls. The board lookup (organization { projectsV2 })
@@ -69,8 +64,8 @@ env:
   # option names EXACTLY (matched literally), so if a column is renamed on the
   # board these must be updated too.
   AUTHOR_ONLY_COLUMNS: '🏗 In progress'
-  # The "final review" column: its PRs are handed to the fixed final reviewer
-  # (FINAL_REVIEWER, the PO/PL who does the final reviews) instead of the author.
+  # The "final review" column: its PRs are assigned to the fixed final reviewer
+  # (FINAL_REVIEWER, the PO/PL who does the final reviews) and the author.
   # Both values match the board's Status / login exactly and are updated if the
   # column is renamed or the reviewer changes.
   FINAL_REVIEW_COLUMN: '👀 In review'
