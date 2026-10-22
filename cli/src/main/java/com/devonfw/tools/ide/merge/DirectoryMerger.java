@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.jline.utils.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,10 +121,10 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
 
     if (Files.isDirectory(update)) {
       if (!Files.isDirectory(workspace)) {
-        Log.warn("Workspace is missing directory: {}", workspace);
+        LOG.warn("Workspace is missing directory: {}", workspace);
         return;
       }
-      Log.trace("Traversing directory: {}", update);
+      LOG.trace("Traversing directory: {}", update);
       try (Stream<Path> childStream = Files.list(update)) {
         Iterator<Path> iterator = childStream.iterator();
         while (iterator.hasNext()) {
@@ -138,12 +137,12 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
       }
 
     } else if (Files.exists(workspace)) {
-      Log.debug("Start merging of changes from workspace back to file: {}", update);
+      LOG.debug("Start merging of changes from workspace back to file: {}", update);
       FileMerger merger = getMerger(workspace);
-      Log.trace("Using merger {}", merger.getClass().getSimpleName());
+      LOG.trace("Using merger {}", merger.getClass().getSimpleName());
       merger.inverseMerge(workspace, variables, addNewProperties, update);
     } else {
-      Log.warn("No such file or directory: {}", update);
+      LOG.warn("No such file or directory: {}", update);
     }
   }
 
