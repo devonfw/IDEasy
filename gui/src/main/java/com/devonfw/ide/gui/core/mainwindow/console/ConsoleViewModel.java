@@ -164,4 +164,3 @@ public class ConsoleViewModel {
     return lineCount;
   }
 }
-
