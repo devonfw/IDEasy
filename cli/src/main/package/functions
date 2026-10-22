@@ -351,7 +351,7 @@ _ide_path_segment()
   if [[ "${path}" != "${base}"/* ]]; then
     return
   fi
-  relative_path="${path#${base}/}"
+  relative_path="${path#"${base}"/}"
   _ide_path_segment_result="${relative_path%%/*}"
 }
 
