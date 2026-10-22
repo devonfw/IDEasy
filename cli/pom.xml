@@ -216,8 +216,8 @@
                   <directory>../documentation/images</directory>
                   <filtering>false</filtering>
                   <includes>
-                    <include>ideasy.png</include>
-                    <include>ideasy.ico</include>
+                    <include>icon.png</include>
+                    <include>icon.ico</include>
                   </includes>
                 </resource>
               </resources>
