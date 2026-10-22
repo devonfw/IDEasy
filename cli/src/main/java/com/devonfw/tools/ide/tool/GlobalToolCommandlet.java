@@ -139,8 +139,8 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
   protected ToolInstallation doInstall(ToolInstallRequest request) {
 
     VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
-    if (this.context.getSystemInfo().isLinux()) {
-      // on Linux global tools are typically installed via the package manager of the OS
+    if (isPackageManagerBasedInstallation()) {
+      // global tools are typically installed via the package manager of the OS (e.g. apt on Linux, Homebrew on macOS)
       // if a global tool implements getNativePackages() to return at least one NativePackage, then we will install this way.
       List<PackageManagerCommand> commands = getInstallPackageManagerCommands(resolvedVersion);
       if (!commands.isEmpty()) {
@@ -202,7 +202,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
   @Override
   protected VersionIdentifier resolveVersionForInstall(String edition, GenericVersionRange version) {
 
-    if (this.context.getSystemInfo().isLinux() && !getNativePackages().isEmpty()) {
+    if (isPackageManagerBasedInstallation() && !getNativePackages().isEmpty()) {
       if (version instanceof VersionIdentifier versionIdentifier && !versionIdentifier.isPattern()) {
         return versionIdentifier;
       }
@@ -220,6 +220,17 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
    */
   protected List<NativePackage> getNativePackages() {
     return List.of();
+  }
+
+  /**
+   * @return {@code true} if this tool is installed via the OS native package manager (see {@link #getNativePackages()}), so that the install, version
+   *     resolution and installed-version detection flows of this class go through the package manager instead of the standard installer/artifact flow.
+   *     <p>
+   *     By default this is the case on Linux only, as that is where global tools are typically installed via the package manager of the OS. Subclasses may
+   *     override this to support the package manager on further operating systems.
+   */
+  protected boolean isPackageManagerBasedInstallation() {
+    return this.context.getSystemInfo().isLinux();
   }
 
   /**
@@ -301,8 +312,8 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
   @Override
   protected EditionAndVersion computeInstalledEditionAndVersion() {
 
-    if (this.context.getSystemInfo().isLinux()) {
-      // on Linux global tools are typically installed via the package manager of the OS
+    if (isPackageManagerBasedInstallation()) {
+      // global tools are typically installed via the package manager of the OS
       VersionIdentifier version = getNativePackageVersion();
       return (version != null) ? new EditionAndVersion(this.tool, version) : null;
     }
