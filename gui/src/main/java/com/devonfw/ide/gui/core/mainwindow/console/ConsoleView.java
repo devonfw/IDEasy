@@ -102,6 +102,7 @@ public class ConsoleView {
     private final TextArea textArea = new TextArea();
     public LogEntryCell() {
       textArea.setEditable(false);
+    textArea.setWrapText(true);
     }
 
     @Override
