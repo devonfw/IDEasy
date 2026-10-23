@@ -11,8 +11,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 
-import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +23,7 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.BuildToolHelper;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
