@@ -32,7 +32,7 @@ class KubeLinterUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(get(urlMatching("/repos/stackrox/kube-linter/releases")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("KubeLinterUrlUpdater").resolve("kube-linter-releases.json"), wmRuntimeInfo))));
 
-    stubFor(any(urlMatching("/stackrox/kube-linter/releases/download/v0\\.8\\.3/kube-linter.*"))
+    stubFor(any(urlMatching("/stackrox/kube-linter/releases/download/[^/]*/kube-linter.*"))
         .willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
