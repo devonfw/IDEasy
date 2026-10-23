@@ -221,6 +221,12 @@ class DockerTest extends AbstractIdeContextTest {
         // keep the test sandboxed instead of touching the real /Applications folder
         return context.getUserHome().resolve("Applications");
       }
+
+      @Override
+      protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
+        // never run a real package manager (e.g. brew uninstall --cask) from a test
+        return false;
+      }
     };
   }
 
