@@ -73,7 +73,7 @@ public class NpmRepository extends ArtifactToolRepository<NpmArtifact, NpmArtifa
       List<VersionIdentifier> versions = new ArrayList<>(versionSet.size());
       for (String version : versionSet) {
         try {
-          VersionIdentifier parsedVersion = VersionIdentifier.of(version);
+          VersionIdentifier parsedVersion = VersionIdentifier.ofRequired(version);
           if (parsedVersion != null) {
             versions.add(parsedVersion);
           } else {
