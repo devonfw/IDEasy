@@ -8,8 +8,7 @@ container that contains an **automatically provisioned IDEasy workspace**, so th
 agent can safely perform development tasks, run tests, and prepare commits/PRs
 **without affecting your host environment**.
 
-The idea is modelled on the [pi.dev sandbox](https://github.com/capgemini/pi.dev)
-(a devonfw/Capgemini sibling of IDEasy). Full documentation:
+ Full documentation:
 [`documentation/docker-sandbox.adoc`](../documentation/docker-sandbox.adoc).
 
 ## What you get

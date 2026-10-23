@@ -15,11 +15,6 @@
 #
 # [EXPERIMENTAL] Targets technically skilled users. No warranty or support.
 #
-# Modelled on the pi.dev sandbox (a devonfw/Capgemini sibling of IDEasy):
-#   * the working directory (your git repo) is mounted into the container
-#   * your host Git identity is passed in (commits use your author/committer)
-#   * host SSH keys / SSH agents are NOT mounted into the container
-#   * corporate CA trust is honoured via NODE_EXTRA_CA_CERTS when provided
 #
 # Layout:
 #   container IDEasy root : /projects               (baked into the image)

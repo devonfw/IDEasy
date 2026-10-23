@@ -20,9 +20,7 @@ against your git repository.
 
 The goal is to let AI coding agents such as *Claude Code*, *GitHub Copilot CLI*
 or *OpenAI Codex* safely perform development tasks, execute tests and prepare
-commits/pull requests **without affecting the host environment**. The model is
-based on the `pi.dev` sandbox (`capgemini/pi.dev`), a devonfw/Capgemini sibling of
-IDEasy.
+commits/pull requests **without affecting the host environment**.
 
 The implementation lives in the `docker-sandbox/` folder of this repository:
 

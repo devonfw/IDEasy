@@ -11,7 +11,7 @@
 
 > **Security**
 > Replace every `<TOKEN>` / `<ENDPOINT>` below with your own values. Never paste a
-> live token into a file you commit. The bundle `docker-sandbox/capgemini-ca.pem`
+> live token into a file you commit.
 > is git-ignored on purpose — keep it local only.
 
 ---
@@ -69,7 +69,7 @@ injected, and the corporate CA is trusted.
 ```bash
 cd <wsl-path>/workspaces/main/IDEasy
 
-CA="$(pwd)/docker-sandbox/capgemini-ca.pem"
+CA="$(pwd)/docker-sandbox/ca.pem"
 
 docker run --rm --init \
   -e NODE_EXTRA_CA_CERTS=/etc/ssl/ideasy-ca/ca-bundle.pem \
@@ -191,7 +191,6 @@ Step 3 is the gating test: if it passes, the rest confirm quality and security.
 |---|---|
 | `cannot attach stdin to a TTY-enabled container` | You used `-i -t` without a TTY. Use the `-p` form (Step 3). |
 | `Self-signed certificate detected` | The CA bundle is missing or wrong. Rebuild it from the endpoint chain (intermediate + root) and re-verify with `openssl verify -CAfile <bundle> <leaf>` → `OK`. |
-| `Is a directory` warning | The source file for the CA mount does not exist as a **file** — Docker created a directory. Ensure `capgemini-ca.pem` is a real file. |
 | Agent cannot authenticate | Credentials not passed. Use `--api-key` or `--env ANTHROPIC_AUTH_TOKEN=...`; IDEasy scrubs ambient `ANTHROPIC_*` variables, so they must be injected at start. |
 | Windows path errors in `docker run` | Run from WSL; keep container paths Unix-style. |
 | `unrecognized_model` warning | Non-blocking. Clear by mapping the model via `behavesAs` / `modelOverrides` in the settings repo. |
