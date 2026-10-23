@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.net.URL;
-
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
@@ -21,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.ide.gui.UIBasedApplicationTest;
 import com.devonfw.ide.gui.core.context.TaskManager;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
-import com.devonfw.ide.gui.core.helper.FxHelper;
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
 import com.devonfw.ide.gui.core.progress.TaskListViewModel;
 import com.devonfw.ide.gui.core.progress.TaskViewModel;
@@ -73,7 +71,7 @@ public class TaskWindowTest extends UIBasedApplicationTest {
     //Why use interact here instead of e.g. FxHelper.runFxSafe? -> runFxSafe executes the code asynchronously on the UI thread without waiting for the result,
     //therefore swallowing any errors. This assertion never fails if we use runFxSafe
     interact(() -> {
-      TaskOverviewWindow testWindow = TaskOverviewWindow.getInstance(taskManager);
+      TaskOverviewWindow testWindow = TaskOverviewWindow.getInstance(taskListViewModel);
       testWindow.show();
 
       assertThat(testWindow.getStage().isShowing()).isTrue();
