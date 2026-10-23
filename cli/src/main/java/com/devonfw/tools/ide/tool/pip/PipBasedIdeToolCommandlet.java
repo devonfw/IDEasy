@@ -168,7 +168,7 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     if (PackageManagerRequest.TYPE_INSTALL.equals(type)) {
       String version = plugin.version();
       if ((version != null) && !version.isBlank()) {
-        request.setVersion(VersionIdentifier.of(version));
+        request.setVersion(VersionIdentifier.ofRequired(version));
       }
     }
     return runPackageManager(request);

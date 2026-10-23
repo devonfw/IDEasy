@@ -53,7 +53,7 @@ public class VersionProperty extends Property<VersionIdentifier> {
   @Override
   public VersionIdentifier parse(String valueAsString, IdeContext context) {
 
-    return VersionIdentifier.of(valueAsString);
+    return VersionIdentifier.ofRequired(valueAsString);
   }
 
   @Override
@@ -61,7 +61,7 @@ public class VersionProperty extends Property<VersionIdentifier> {
 
     AbstractToolCommandlet tool = commandlet.getToolForCompletion();
     if (tool != null) {
-      completeVersion(VersionIdentifier.of(arg), tool, context, commandlet, collector);
+      completeVersion(VersionIdentifier.ofRequired(arg), tool, context, commandlet, collector);
     }
   }
 

@@ -39,10 +39,9 @@ class KubeCtlTest extends AbstractIdeContextTest {
 
   /**
    * Verifies that the installed version of KubeCtl is determined by running {@code kubectl version --client} (and not by delegating to
-   * {@link com.devonfw.tools.ide.tool.docker.Docker}). The kubectl-specific logic lives in the
-   * {@code computeInstalledEditionAndVersion()} hook, which the final cached
-   * {@code getInstalledEditionAndVersion()} invokes directly; only if the kubectl command itself is not available does the
-   * {@code super} call fall through to the Docker delegate.
+   * {@link com.devonfw.tools.ide.tool.docker.Docker}). The kubectl-specific logic lives in the {@code computeInstalledEditionAndVersion()} hook, which the
+   * final cached {@code getInstalledEditionAndVersion()} invokes directly; only if the kubectl command itself is not available does the {@code super} call fall
+   * through to the Docker delegate.
    */
   @Test
   void testGetInstalledVersionComesFromKubectlVersionClient() {
@@ -62,14 +61,14 @@ class KubeCtlTest extends AbstractIdeContextTest {
     // assert: version is parsed from the kubectl output and edition is the kubectl tool itself, not the Docker delegate
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("kubectl");
-    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("1.29.3"));
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired("1.29.3"));
     // the version must have come from invoking "kubectl version --client"
     Mockito.verify(this.processContext).runAndGetOutput("kubectl", "version", "--client");
   }
 
   /**
-   * Verifies that the edition is still reported (the tool name) while the version is {@code null} when the output of
-   * {@code kubectl version --client} does not contain a recognizable client version.
+   * Verifies that the edition is still reported (the tool name) while the version is {@code null} when the output of {@code kubectl version --client} does not
+   * contain a recognizable client version.
    */
   @Test
   void testGetInstalledVersionIsNullWhenNoVersionFoundInOutput() {

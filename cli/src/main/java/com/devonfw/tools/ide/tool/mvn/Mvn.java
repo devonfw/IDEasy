@@ -11,6 +11,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -361,7 +363,7 @@ public class Mvn extends MavenCommandlet implements BuildTool {
     String content = this.context.getFileAccess().readFileContent(mavenConfig);
     for (String token : content.split("\\s+")) {
       if (token.startsWith(REVISION_FLAG)) {
-        return VersionIdentifier.of(token.substring(REVISION_FLAG.length()));
+        return VersionIdentifier.ofRequired(token.substring(REVISION_FLAG.length()));
       }
     }
     throw new CliException("Could not find '" + REVISION_FLAG + "' in " + mavenConfig);

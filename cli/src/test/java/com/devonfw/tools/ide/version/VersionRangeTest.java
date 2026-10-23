@@ -32,8 +32,8 @@ class VersionRangeTest extends Assertions {
     VersionRange versionRange = VersionRange.of(range);
 
     // assert
-    assertThat(versionRange.getMin()).isEqualTo(VersionIdentifier.of(min));
-    assertThat(versionRange.getMax()).isEqualTo(VersionIdentifier.of(max));
+    assertThat(versionRange.getMin()).isEqualTo(VersionIdentifier.ofRequired(min));
+    assertThat(versionRange.getMax()).isEqualTo(VersionIdentifier.ofRequired(max));
     assertThat(versionRange.getBoundaryType()).isEqualTo(boundaryType);
     if ((min == null) && (max == null)) {
       assertThat(versionRange).isSameAs(VersionRange.UNBOUNDED);
@@ -129,7 +129,7 @@ class VersionRangeTest extends Assertions {
 
   private void checkContains(String range, String version, boolean contains) {
 
-    assertThat(VersionRange.of(range).contains(VersionIdentifier.of(version))).as("%s contains %s", range, version).isEqualTo(contains);
+    assertThat(VersionRange.of(range).contains(VersionIdentifier.ofRequired(version))).as("%s contains %s", range, version).isEqualTo(contains);
   }
 
   /** Test of {@link VersionRange#compareTo(VersionRange)} and testing if versions are compared to be the same. */

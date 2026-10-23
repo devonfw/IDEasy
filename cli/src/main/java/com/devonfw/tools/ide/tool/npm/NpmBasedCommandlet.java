@@ -57,8 +57,8 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
   }
 
   /**
-   * @return the {@link Path} where the npm package of this tool is actually installed - the per-project global npm prefix (see
-   *     {@link Npm#NPM_GLOBAL_FOLDER}) - and not the {@code software/node} runtime path that {@link #getToolPath() getToolPath()} reports (see
+   * @return the {@link Path} where the npm package of this tool is actually installed - the per-project global npm prefix (see {@link Npm#NPM_GLOBAL_FOLDER}) -
+   *     and not the {@code software/node} runtime path that {@link #getToolPath() getToolPath()} reports (see
    *     <a href="https://github.com/devonfw/IDEasy/issues/352">issue #352</a>).
    */
   @Override
@@ -105,7 +105,7 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
         }
       }
       if (parsedVersion != null) {
-        return VersionIdentifier.of(parsedVersion);
+        return VersionIdentifier.ofRequired(parsedVersion);
       }
     } else {
       LOG.debug("The npm package {} for tool {} is not installed.", npmPackage, this.tool);

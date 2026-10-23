@@ -232,12 +232,12 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context) {
       @Override
       protected EditionAndVersion computeInstalledEditionAndVersion() {
-        return new EditionAndVersion("ideasy", VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT"));
+        return new EditionAndVersion("ideasy", VersionIdentifier.ofRequired("2025.04.002-04_17_02-SNAPSHOT"));
       }
 
       @Override
       public VersionIdentifier getLatestVersion() {
-        return VersionIdentifier.of("2025.04.002-20250417.024201-5");
+        return VersionIdentifier.ofRequired("2025.04.002-20250417.024201-5");
       }
     };
 
@@ -261,12 +261,12 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context) {
       @Override
       protected EditionAndVersion computeInstalledEditionAndVersion() {
-        return new EditionAndVersion("ideasy", VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT"));
+        return new EditionAndVersion("ideasy", VersionIdentifier.ofRequired("2025.04.002-04_17_02-SNAPSHOT"));
       }
 
       @Override
       public VersionIdentifier getLatestVersion() {
-        return VersionIdentifier.of("2026.05.001-20260519.032313-17");
+        return VersionIdentifier.ofRequired("2026.05.001-20260519.032313-17");
       }
     };
 

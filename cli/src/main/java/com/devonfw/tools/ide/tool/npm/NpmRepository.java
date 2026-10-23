@@ -67,7 +67,7 @@ public class NpmRepository extends ArtifactToolRepository<NpmArtifact, NpmArtifa
       Set<String> versionSet = npmJs.versions().getVersionMap().keySet();
       List<VersionIdentifier> versions = new ArrayList<>(versionSet.size());
       for (String version : versionSet) {
-        versions.add(VersionIdentifier.of(version));
+        versions.add(VersionIdentifier.ofRequired(version));
       }
       return versions;
     } catch (JsonProcessingException e) {

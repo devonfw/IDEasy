@@ -6,6 +6,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Set;
 
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +35,7 @@ public class Python extends AbstractLocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Python.class);
 
-  private static final VersionIdentifier PYTHON_MIN_VERSION = VersionIdentifier.of("3.8.2");
+  private static final VersionIdentifier PYTHON_MIN_VERSION = VersionIdentifier.ofRequired("3.8.2");
 
   /** The folder created by {@code uv venv} inside the software folder before it is renamed to the python installation. */
   static final String VENV_FOLDER = ".venv";
@@ -129,7 +131,7 @@ public class Python extends AbstractLocalToolCommandlet {
         String value = keyAndValue[1].trim();
         // uv only writes the minor version (e.g. "3.13") for its own interpreters what is too imprecise for us
         if (value.chars().filter(c -> c == '.').count() >= 2) {
-          return VersionIdentifier.of(value);
+          return VersionIdentifier.ofRequired(value);
         }
         LOG.debug("Ignoring imprecise version {} from {}.", value, pyvenvCfg);
       }
@@ -161,7 +163,7 @@ public class Python extends AbstractLocalToolCommandlet {
       version = version.substring(lastSpace + 1);
     }
     if (!version.isEmpty() && Character.isDigit(version.charAt(0))) {
-      return VersionIdentifier.of(version);
+      return VersionIdentifier.ofRequired(version);
     }
     LOG.debug("Could not parse version from output '{}' of {}.", output, binPath);
     return null;
