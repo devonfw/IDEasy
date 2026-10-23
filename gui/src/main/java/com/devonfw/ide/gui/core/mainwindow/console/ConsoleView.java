@@ -14,6 +14,9 @@ import javafx.scene.control.TextArea;
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 
+import static com.devonfw.tools.ide.log.IdeLogLevel.ERROR;
+import static com.devonfw.tools.ide.log.IdeLogLevel.WARNING;
+
 /**
  * View of the console
  */
@@ -114,6 +117,14 @@ public class ConsoleView {
         setStyle(BASE_STYLE);
         textArea.setStyle(BASE_STYLE);
       } else {
+        if(entry.level()==ERROR){
+          textArea.setStyle(ERROR_BG);
+          setStyle(ERROR_STYLE);
+        }
+        if(entry.level()==WARNING){
+          textArea.setStyle(WARNING_BG);
+          setStyle(WARNING_STYLE);
+        }
         textArea.setText(entry.displayValue());
         textArea.setStyle(getStyleForEntry(entry));
 
