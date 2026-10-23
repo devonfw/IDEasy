@@ -9,9 +9,13 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextArea;
 
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
+
+import static com.devonfw.tools.ide.log.IdeLogLevel.ERROR;
+import static com.devonfw.tools.ide.log.IdeLogLevel.WARNING;
 
 /**
  * View of the console
@@ -98,15 +102,33 @@ public class ConsoleView {
     private static final String ERROR_BG = "-fx-background-color: #fff0f0;";
     private static final String WARNING_BG = "-fx-background-color: #fff8e0;";
 
+    private final TextArea textArea = new TextArea();
+    public LogEntryCell() {
+      textArea.setEditable(false);
+    textArea.setWrapText(true);
+    }
+
     @Override
     protected void updateItem(IdeLogEntry entry, boolean empty) {
-
       super.updateItem(entry, empty);
       if (empty || entry == null) {
-        setText(null);
+        textArea.setText(null);
+        setGraphic(null);
         setStyle(BASE_STYLE);
+        textArea.setStyle(BASE_STYLE);
       } else {
-        setText(entry.displayValue());
+        if(entry.level()==ERROR){
+          textArea.setStyle(ERROR_BG);
+          setStyle(ERROR_STYLE);
+        }
+        if(entry.level()==WARNING){
+          textArea.setStyle(WARNING_BG);
+          setStyle(WARNING_STYLE);
+        }
+        textArea.setText(entry.displayValue());
+        textArea.setStyle(getStyleForEntry(entry));
+
+        setGraphic(textArea);
         setStyle(getStyleForEntry(entry));
       }
     }
