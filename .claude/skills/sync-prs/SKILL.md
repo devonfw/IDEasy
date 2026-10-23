@@ -1,6 +1,8 @@
 ---
+name: sync-prs
 description: Sweep all open non-draft pull requests — bring each branch up to date with its base and auto-resolve changelog-only conflicts
 model: opus
+disable-model-invocation: true
 ---
 
 The user asked to sync every open, non-draft pull request of the `devonfw/IDEasy` repository: bring
@@ -32,7 +34,8 @@ each branch up to date with its base and auto-resolve conflicts that are limited
 
 - Determine EXACTLY which files conflict. GitHub does not list them, so reproduce the merge locally:
   1. `gh pr checkout <n>` (handles fork remotes and branch tracking).
-  2. `git fetch origin <baseRef>` then `git merge origin/<baseRef>` (do not commit yet).
+  2. `git fetch upstream <baseRef>` then `git merge upstream/<baseRef>` (do not commit yet; see the
+     remote convention in `AGENTS.md`, `origin` is the fork).
   3. `git diff --name-only --diff-filter=U` → the set of conflicted files.
 - **If the ONLY conflicted file is `CHANGELOG.adoc`:** resolve it, `git add CHANGELOG.adoc`, complete
   the merge, and `git push`.
