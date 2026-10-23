@@ -99,7 +99,8 @@ public class ConsoleView {
     private static final String ERROR_BG = "-fx-background-color: #fff0f0;";
     private static final String WARNING_BG = "-fx-background-color: #fff8e0;";
 
-private final TextArea textArea= new TextArea();
+    private final TextArea textArea = new TextArea();
+
     @Override
     protected void updateItem(IdeLogEntry entry, boolean empty) {
       textArea.setEditable(false);
