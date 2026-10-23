@@ -80,18 +80,22 @@ public class GuiStateManager {
    * Creates the state manager for the given root directory using the supplied {@link NlsService} context.
    *
    * @param ideRoot the root directory of IDEasy. If <code>null</code>, the IDE_ROOT environment variable is used.
-   * @param nlsContext the {@link IdeContext} handed to the {@link NlsService}, or {@code null} to derive one from the GUI start context (production default).
-   *        Injecting an isolated context (for example an {@link com.devonfw.tools.ide.context.IdeTestContext}) keeps the GUI test independent from the real
-   *        user home and the {@code IDE_OPTIONS} environment variable.
+   * @param nlsContext the {@link IdeContext} handed to the {@link NlsService}, or {@code null} to derive one from the GUI start context (production
+   *     default). Injecting an isolated context (for example an {@link com.devonfw.tools.ide.context.IdeTestContext}) keeps the GUI test independent from the
+   *     real user home and the {@code IDE_OPTIONS} environment variable.
    */
   public GuiStateManager(String ideRoot, IdeContext nlsContext) {
 
-    this.ideRootDir = Path.of(ideRoot != null ? ideRoot : System.getenv(IdeVariables.IDE_ROOT.getName()));
-    if (!Files.exists(ideRootDir)) {
-      throw new IllegalArgumentException("Root directory does not exist");
+    String root = ideRoot != null ? ideRoot : System.getenv(IdeVariables.IDE_ROOT.getName());
+    if (root == null) {
+      throw new IllegalArgumentException("Root directory is null");
     }
-    if (!Files.isDirectory(ideRootDir)) {
-      LOG.warn("Root directory '{}' is not a directory", ideRootDir);
+
+    this.ideRootDir = Path.of(root);
+    if (!Files.exists(this.ideRootDir)) {
+      throw new IllegalArgumentException("Root directory does not exist");
+    } else if (!Files.isDirectory(this.ideRootDir)) {
+      throw new IllegalArgumentException("Root directory is not a directory");
     }
 
     //This specific ordering needs to be kept
