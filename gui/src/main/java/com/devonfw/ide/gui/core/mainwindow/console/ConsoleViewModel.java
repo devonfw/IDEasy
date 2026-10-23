@@ -164,3 +164,4 @@ public class ConsoleViewModel {
     return lineCount;
   }
 }
+167
