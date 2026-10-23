@@ -38,12 +38,13 @@ abstract class EnvironmentVariablesMap extends AbstractEnvironmentVariables {
     if (value == null) {
       LOG.trace("{}: Variable {} is undefined.", getSource(), name);
     } else {
-      LOG.trace("{}: Variable {}={}", getSource(), name, value);
+      // the value is deliberately not logged since the variable may be a secret
+      LOG.trace("{}: Variable {} is defined.", getSource(), name);
       WindowsPathSyntax pathSyntax = this.context.getPathSyntax();
       if (pathSyntax != null) {
         String normalized = pathSyntax.normalize(value);
         if (!value.equals(normalized)) {
-          LOG.trace("Normalized {} using {} to {}", value, pathSyntax, normalized);
+          LOG.trace("Normalized value of variable {} using {}", name, pathSyntax);
           value = normalized;
         }
       }
