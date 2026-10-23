@@ -144,7 +144,7 @@ public class Docker extends GlobalToolCommandlet {
 
     if (this.context.getSystemInfo().isMac()) {
       // the cask of the installed edition has to be removed, regardless of which edition is configured
-      String cask = EDITION_RANCHER.equals(getInstalledEdition()) ? "rancher" : "docker";
+      String cask = EDITION_RANCHER.equals(getInstalledEdition()) ? EDITION_RANCHER : EDITION_DOCKER;
       return List.of(new NativePackage(NativePackageManager.BREW_CASK, List.of(cask)).uninstall());
     }
     return super.getUninstallPackageManagerCommands();
@@ -167,9 +167,9 @@ public class Docker extends GlobalToolCommandlet {
 
     if (this.context.getSystemInfo().isLinux()) {
       ToolEdition edition = requested.getEdition();
-      if (!"rancher".equals(edition.edition())) {
+      if (!EDITION_RANCHER.equals(edition.edition())) {
         LOG.warn("Docker Desktop is not yet supported by IDEasy on Linux, installing Rancher Desktop instead.");
-        requested.replaceEdition(new ToolEdition(this.tool, "rancher"));
+        requested.replaceEdition(new ToolEdition(this.tool, EDITION_RANCHER));
       }
     }
     return requested;
@@ -219,7 +219,7 @@ public class Docker extends GlobalToolCommandlet {
       if (version == null) {
         version = getNativePackageVersion();
       }
-      return new EditionAndVersion("rancher", version);
+      return new EditionAndVersion(EDITION_RANCHER, version);
     }
 
     // Docker Desktop: the edition is always "docker" (matching getWindowsRegistryAppNames()); on Windows it is
@@ -239,7 +239,7 @@ public class Docker extends GlobalToolCommandlet {
       LOG.error("Couldn't get installed version of " + this.getName());
     }
 
-    return new EditionAndVersion("docker", version);
+    return new EditionAndVersion(EDITION_DOCKER, version);
   }
 
   @Override
