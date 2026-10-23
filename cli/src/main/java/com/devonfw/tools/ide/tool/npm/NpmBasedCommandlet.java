@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.npm;
 
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
@@ -72,6 +73,25 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
   }
 
   /**
+   * {@inheritDoc}
+   * <p>
+   * The per-project global npm prefix is created by the first global package installation and is therefore not part of the {@link IdeContext#getPath() PATH}
+   * snapshot taken when the context was created. So it is searched explicitly before falling back to the {@link IdeContext#getPath() PATH}.
+   */
+  @Override
+  protected Path getBinaryExecutable() {
+
+    Path npmGlobalBin = Npm.getGlobalNpmBin(this.context);
+    if (npmGlobalBin != null) {
+      Path binary = this.context.getPath().findBinary(npmGlobalBin.resolve(getBinaryName()));
+      if (Files.exists(binary, LinkOption.NOFOLLOW_LINKS)) {
+        return binary;
+      }
+    }
+    return super.getBinaryExecutable();
+  }
+
+  /**
    * Uninstalls the npm package and, since npm-based tools install their package into the shared per-project global npm prefix (see
    * {@link Npm#NPM_GLOBAL_FOLDER}), prunes that folder again if the uninstallation no longer leaves a package behind (see
    * <a href="https://github.com/devonfw/IDEasy/issues/352">issue #352</a>).
@@ -92,8 +112,9 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
         .setProcessMode(ProcessMode.DEFAULT_CAPTURE);
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI)
         .withExitCodeAcceptor(rc -> true); // if the tool is not installed npm list will end with exit code 1
+    this.context.setEnvironmentOfInstalledTools(pc);
     request.setProcessContext(pc);
-    ProcessResult result = runPackageManager(request);
+    ProcessResult result = runPackageManager(request, true);
     if (result.isSuccessful()) {
       List<String> versions = result.getOut();
       String parsedVersion = null;
