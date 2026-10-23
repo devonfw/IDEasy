@@ -214,6 +214,12 @@ class DockerTest extends AbstractIdeContextTest {
       protected EditionAndVersion computeInstalledEditionAndVersion() {
         return new EditionAndVersion(installedEdition, VersionIdentifier.of("1.0.0"));
       }
+
+      @Override
+      protected Path getMacApplicationsPath() {
+        // keep the test sandboxed instead of touching the real /Applications folder
+        return context.getUserHome().resolve("Applications");
+      }
     };
   }
 
