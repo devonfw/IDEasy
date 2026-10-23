@@ -100,10 +100,12 @@ public class ConsoleView {
     private static final String WARNING_BG = "-fx-background-color: #fff8e0;";
 
     private final TextArea textArea = new TextArea();
-    textArea.setEditable(false);
+    public LogEntryCell() {
+      textArea.setEditable(false);
+    }
+
     @Override
     protected void updateItem(IdeLogEntry entry, boolean empty) {
-
       super.updateItem(entry, empty);
       if (empty || entry == null) {
         textArea.setText(null);
