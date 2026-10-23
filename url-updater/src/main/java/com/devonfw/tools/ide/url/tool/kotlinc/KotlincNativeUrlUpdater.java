@@ -12,9 +12,6 @@ import com.devonfw.tools.ide.url.updater.GithubUrlReleaseUpdater;
  */
 public class KotlincNativeUrlUpdater extends GithubUrlReleaseUpdater {
 
-  /** The prefix of a Kotlin GitHub release name (e.g. {@code Kotlin 2.4.21}). */
-  private static final String KOTLIN_RELEASE_NAME_PREFIX = "Kotlin ";
-
   /**
    * The Constructor.
    */
@@ -53,13 +50,9 @@ public class KotlincNativeUrlUpdater extends GithubUrlReleaseUpdater {
   }
 
   @Override
-  public String mapVersion(String version) {
+  protected String getVersionPrefixToRemove() {
 
-    // GitHub release names are of the form "Kotlin 2.4.21", so strip the "Kotlin " prefix to get the version
-    if (version.regionMatches(true, 0, KOTLIN_RELEASE_NAME_PREFIX, 0, KOTLIN_RELEASE_NAME_PREFIX.length())) {
-      version = version.substring(KOTLIN_RELEASE_NAME_PREFIX.length());
-    }
-    return super.mapVersion(version);
+    return "Kotlin ";
   }
 
   @Override
