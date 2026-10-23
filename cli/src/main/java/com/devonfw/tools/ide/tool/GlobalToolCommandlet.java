@@ -362,6 +362,13 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
     return Map.of(this.tool, getWindowsRegistryAppName());
   }
 
+  private String getInstalledWindowsRegistryAppName() {
+
+    String installedEdition = getInstalledEdition();
+    String appName = (installedEdition == null) ? null : getWindowsRegistryAppNames().get(installedEdition);
+    return (appName == null) ? getWindowsRegistryAppName() : appName;
+  }
+
   @Override
   protected EditionAndVersion computeInstalledEditionAndVersion() {
 
@@ -416,7 +423,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
   @Override
   public void uninstall() {
     if (this.context.getSystemInfo().isWindows()) {
-      WindowsHelper.get(this.context).uninstallApplication(getWindowsRegistryAppName());
+      WindowsHelper.get(this.context).uninstallApplication(getInstalledWindowsRegistryAppName());
     } else if (this.context.getSystemInfo().isLinux() && !getNativePackages().isEmpty()) {
       runWithPackageManager(false, getUninstallPackageManagerCommands(), NativePackageAction.UNINSTALL);
     } else if (this.context.getSystemInfo().isMac()) {
@@ -465,10 +472,10 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
 
   /**
    * @return the {@link Path} to the *.app bundle of this tool as found in one of the well-known macOS application folders, or {@code null} if
-   *     {@link #getMacApplicationName() unknown} or not found there.
+   *     {@link #getMacApplicationName(String) unknown} or not found there.
    */
   private Path findMacApplicationBundle() {
-    String appName = getMacApplicationName();
+    String appName = getMacApplicationName(getInstalledEdition());
     if (appName == null) {
       return null;
     }
@@ -490,5 +497,14 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
    */
   public String getMacApplicationName() {
     return null;
+  }
+
+  /**
+   * @param edition the {@link #getInstalledEdition() installed edition} or {@code null} if unknown.
+   * @return the name (without the ".app" suffix) of the application bundle of the given edition. By default this is {@link #getMacApplicationName()}. Override
+   *     for tools with multiple editions that use different application bundles on macOS.
+   */
+  public String getMacApplicationName(String edition) {
+    return getMacApplicationName();
   }
 }
