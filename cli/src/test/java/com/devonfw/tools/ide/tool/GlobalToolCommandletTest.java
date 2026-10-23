@@ -604,4 +604,21 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
         "Couldn't automatically uninstall " + TOOL_NAME + " on macOS. Please uninstall it manually, e.g. by moving it from the Applications folder to the "
             + "Trash");
   }
+
+  /**
+   * Verifies that global tools can be invoked without an IDEasy project.
+   */
+  @Test
+  void testIdeHomeIsNotRequired() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    AsyncInstallerToolCommandlet commandlet = new AsyncInstallerToolCommandlet(context);
+
+    // act
+    boolean ideHomeRequired = commandlet.isIdeHomeRequired();
+
+    // assert
+    assertThat(ideHomeRequired).isFalse();
+  }
 }
