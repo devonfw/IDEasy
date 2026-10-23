@@ -11,15 +11,20 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InOrder;
+import org.mockito.Mockito;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.CapturingProcessContextMock;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsAppInstallation;
 import com.devonfw.tools.ide.os.WindowsHelperMock;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -28,9 +33,204 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 class GlobalToolCommandletTest extends AbstractIdeContextTest {
 
+  private static final String DUMMY_BINARY = "dummy";
+
   private static final String TOOL_NAME = "docker";
 
   private static final String TOOL_VERSION = "1.21.0";
+
+  /**
+   * Tests that on macOS the installation path is resolved from the app bundle in the applications folder and its executable folder is registered.
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  @DisabledOnOs(OS.WINDOWS)
+  void testGetInstallationPathFindsMacApp(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    Path applicationsPath = tempDir.resolve("Applications");
+    Path appPath = applicationsPath.resolve("Dummy.app");
+    Path appBinPath = createMacApp(context, appPath);
+    GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
+
+    // act
+    Path result = globalTool.getInstallationPath("default", VersionIdentifier.of("1.0"));
+
+    // assert
+    assertThat(result).isEqualTo(appPath);
+    assertThat(context.getPath().getPath(DUMMY_BINARY)).isEqualTo(appBinPath);
+  }
+
+  /**
+   * Tests that the applications folder is only searched on macOS and not on other operating systems.
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  @DisabledOnOs(OS.WINDOWS)
+  void testGetInstallationPathDoesNotSearchApplicationsOnLinux(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    Path applicationsPath = tempDir.resolve("Applications");
+    createMacApp(context, applicationsPath.resolve("Dummy.app"));
+    GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
+
+    // act & assert
+    assertThat(globalTool.getInstallationPath("default", VersionIdentifier.of("1.0"))).isNull();
+    assertThat(context.getPath().getPath(DUMMY_BINARY)).isNull();
+  }
+
+  /**
+   * Tests that a known macOS app bundle is detected even if {@code Contents/MacOS} does not contain the expected binary.
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  @DisabledOnOs(OS.WINDOWS)
+  void testGetInstallationPathFindsMacAppWithoutBinary(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    Path applicationsPath = tempDir.resolve("Applications");
+    Path appPath = applicationsPath.resolve("Dummy.app");
+    Files.createDirectories(appPath);
+    GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
+
+    // act
+    Path result = globalTool.getInstallationPath("default", VersionIdentifier.of("1.0"));
+
+    // assert
+    assertThat(result).isEqualTo(appPath);
+    assertThat(context.getPath().getPath(DUMMY_BINARY)).isNull();
+  }
+
+  /**
+   * Tests that a macOS DMG is extracted and its application bundle is installed with a logged privileged move instead of executing the DMG.
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  @DisabledOnOs(OS.WINDOWS)
+  void testInstallMacDmgExtractsAndMovesApplication(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    ProcessContext processContext = Mockito.mock(ProcessContext.class, Mockito.RETURNS_SELF);
+    IdeTestContext context = newMacDmgContext(tempDir, processContext);
+    createMacApp(context, getMountedAppPath(tempDir, "Dummy.app"));
+    Path applicationsPath = tempDir.resolve("Applications");
+    Files.createDirectories(applicationsPath);
+    GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
+    Path dmg = tempDir.resolve("Dummy.dmg");
+    Path extractedApp = context.getTempPath().resolve(DUMMY_BINARY).resolve("Dummy.app");
+    Path targetApp = applicationsPath.resolve("Dummy.app");
+
+    // act
+    globalTool.installMacDmg(dmg);
+
+    // assert
+    assertThat(context).logAtInteraction().hasMessageContaining("sudo /bin/mv " + extractedApp + " " + targetApp);
+    Mockito.verify(processContext).executable("sudo");
+    Mockito.verify(processContext, Mockito.never()).executable(dmg);
+    assertThat(extractedApp.getParent()).doesNotExist();
+  }
+
+  /**
+   * Tests that an already installed application bundle is removed before the new one is moved into the applications folder and that both privileged
+   * commands are logged before they are executed.
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  @DisabledOnOs(OS.WINDOWS)
+  void testInstallMacDmgReplacesExistingApplication(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    ProcessContext processContext = Mockito.mock(ProcessContext.class, Mockito.RETURNS_SELF);
+    IdeTestContext context = newMacDmgContext(tempDir, processContext);
+    createMacApp(context, getMountedAppPath(tempDir, "Dummy App.app"));
+    Path applicationsPath = tempDir.resolve("Applications");
+    Path targetApp = applicationsPath.resolve("Dummy App.app");
+    Files.createDirectories(targetApp);
+    GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
+    Path extractedApp = context.getTempPath().resolve(DUMMY_BINARY).resolve("Dummy App.app");
+    String rmCommand = "sudo /bin/rm -rf " + targetApp;
+    String mvCommand = "sudo /bin/mv " + extractedApp + " " + targetApp;
+
+    // act
+    globalTool.installMacDmg(tempDir.resolve("Dummy.dmg"));
+
+    // assert
+    assertThat(context).logAtInteraction().hasEntries("We need to run the following command(s):", rmCommand, mvCommand,
+        "This will require root permissions!");
+    InOrder inOrder = Mockito.inOrder(processContext);
+    inOrder.verify(processContext).addArgs(List.of("/bin/rm", "-rf", targetApp.toString()));
+    inOrder.verify(processContext).addArgs(List.of("/bin/mv", extractedApp.toString(), targetApp.toString()));
+  }
+
+  private IdeTestContext newMacDmgContext(Path tempDir, ProcessContext processContext) {
+
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setIdeHome(tempDir);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    context.setProcessContext(processContext);
+    context.getFileAccess().mkdirs(context.getTempPath());
+    return context;
+  }
+
+  private Path getMountedAppPath(Path tempDir, String appName) {
+
+    return tempDir.resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME).resolve(appName);
+  }
+
+  private Path createMacApp(IdeTestContext context, Path appPath) throws IOException {
+
+    Path appBinPath = appPath.resolve("Contents").resolve("MacOS");
+    Path binary = appBinPath.resolve(DUMMY_BINARY);
+    Files.createDirectories(appBinPath);
+    Files.writeString(binary, "test");
+    context.getFileAccess().makeExecutable(binary);
+    return appBinPath;
+  }
+
+  private static class GlobalToolDummyCommandlet extends GlobalToolCommandlet {
+
+    private final Path applicationsPath;
+
+    GlobalToolDummyCommandlet(IdeContext context, Path applicationsPath) {
+
+      super(context, DUMMY_BINARY, Set.of(Tag.TEST));
+      this.applicationsPath = applicationsPath;
+    }
+
+    @Override
+    protected String getBinaryName() {
+
+      return DUMMY_BINARY;
+    }
+
+    @Override
+    protected Path getMacApplicationsPath() {
+
+      return this.applicationsPath;
+    }
+
+    @Override
+    public String getMacApplicationName() {
+
+      return "Dummy";
+    }
+  }
 
   /**
    * Dummy {@link GlobalToolCommandlet} that simulates a background GUI installer (e.g. Rancher Desktop on Windows). Only {@code doInstall} is overridden so the
@@ -181,31 +381,42 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     protected String getBinaryName() {
       return TOOL_NAME;
     }
+
+    @Override
+    protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
+      // apt is not on the PATH on Windows/macOS build machines, so pretend it is available to make the test OS-independent
+      return true;
+    }
   }
 
   /**
-   * Verifies that {@link GlobalToolCommandlet#getUninstallPackageManagerCommands()} correctly derives uninstall commands from
-   * {@link GlobalToolCommandlet#getNativePackages()}.
+   * Verifies that calling {@link GlobalToolCommandlet#uninstall()} on Linux executes the uninstall commands via package manager. Uses a mock
+   * {@link ProcessContext} to capture executed commands without actually running them.
    */
   @Test
-  void testGetUninstallPackageManagerCommandsDerivesFromNativePackages() {
+  void testUninstallExecutesPackageManagerCommandsAndLogsThem() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.setSystemInfo(SystemInfoMock.LINUX_X64);
     PackageManagedToolCommandlet commandlet = new PackageManagedToolCommandlet(context);
 
-    // act
-    List<PackageManagerCommand> uninstallCommands = commandlet.getUninstallPackageManagerCommands();
+    // Create a mock ProcessContext that captures commands but doesn't execute them
+    CapturingProcessContextMock mockProcessContext = new CapturingProcessContextMock(context);
+    context.setProcessContext(mockProcessContext);
 
-    // assert: exactly one command for APT
-    assertThat(uninstallCommands).hasSize(1);
-    PackageManagerCommand cmd = uninstallCommands.getFirst();
-    assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.APT);
-    // The uninstall command includes the package removal and the cleanup command
-    assertThat(cmd.commands()).containsExactly(
-        "sudo apt -y autoremove --purge mytool",
-        "sudo rm -f /etc/apt/sources.list.d/mytool.list");
+    // act
+    commandlet.uninstall();
+
+    // assert: verify the commands were captured by our mock (no actual execution)
+    List<String> executedCommands = mockProcessContext.getExecutedCommands();
+    assertThat(executedCommands).hasSize(2);
+    assertThat(executedCommands.get(0)).contains("sudo apt -y autoremove --purge mytool");
+    assertThat(executedCommands.get(1)).contains("sudo rm -f /etc/apt/sources.list.d/mytool.list");
+    assertThat(context).log().hasEntries(
+        IdeLogEntry.ofInteraction("sudo apt -y autoremove --purge mytool"),
+        IdeLogEntry.ofInteraction("sudo rm -f /etc/apt/sources.list.d/mytool.list"),
+        IdeLogEntry.ofSuccess("Successfully uninstalled mytool"));
   }
 
   /**
