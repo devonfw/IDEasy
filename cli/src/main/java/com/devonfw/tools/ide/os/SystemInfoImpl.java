@@ -87,7 +87,7 @@ public class SystemInfoImpl implements SystemInfo {
 
     super();
     this.osName = osName;
-    this.osVersion = VersionIdentifier.of(osVersion);
+    this.osVersion = VersionIdentifier.ofRequired(osVersion);
     this.architectureName = architectureName;
     this.os = OperatingSystem.ofName(this.osName);
     this.architecture = detectArchitecture(this.architectureName);

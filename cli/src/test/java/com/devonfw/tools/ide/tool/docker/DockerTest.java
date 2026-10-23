@@ -27,8 +27,8 @@ class DockerTest extends AbstractIdeContextTest {
   private static final String PLUTIL_MAC_COMMAND = "plutil -extract CFBundleShortVersionString raw /Applications/Docker.app/Contents/Info.plist";
 
   /**
-   * Creates a minimal {@link IdeTestContext} that returns a mocked {@link ProcessContext} from {@code createProcessContext()}
-   * (which is what {@code newProcess()} delegates to), so no real process is started.
+   * Creates a minimal {@link IdeTestContext} that returns a mocked {@link ProcessContext} from {@code createProcessContext()} (which is what
+   * {@code newProcess()} delegates to), so no real process is started.
    *
    * @param processContext the {@link ProcessContext} to use.
    * @return the {@link IdeTestContext}.
@@ -61,9 +61,9 @@ class DockerTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Verifies that the edition of a (non-rancher) Docker Desktop installation is reported as {@code "docker"} — the consistent
-   * name used by {@link Docker#getWindowsRegistryAppNames()} — and not the previously hard-coded, non-existent edition
-   * {@code "desktop"}. The version is resolved from the per-OS source (here the Linux {@code apt list} output).
+   * Verifies that the edition of a (non-rancher) Docker Desktop installation is reported as {@code "docker"} — the consistent name used by
+   * {@link Docker#getWindowsRegistryAppNames()} — and not the previously hard-coded, non-existent edition {@code "desktop"}. The version is resolved from the
+   * per-OS source (here the Linux {@code apt list} output).
    */
   @Test
   void testDockerDesktopEditionIsDockerOnLinux() {
@@ -81,13 +81,13 @@ class DockerTest extends AbstractIdeContextTest {
     // assert
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("docker");
-    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("20.10.5"));
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired("20.10.5"));
     Mockito.verify(processContext).runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", APT_LIST_COMMAND);
   }
 
   /**
-   * Verifies that on macOS the version of a Docker Desktop installation is resolved from the {@code Docker.app} bundle
-   * (via {@code plutil}), so the returned version is not {@code null}, while the edition stays the consistent {@code "docker"}.
+   * Verifies that on macOS the version of a Docker Desktop installation is resolved from the {@code Docker.app} bundle (via {@code plutil}), so the returned
+   * version is not {@code null}, while the edition stays the consistent {@code "docker"}.
    */
   @Test
   void testDockerDesktopEditionAndVersionOnMac() {
@@ -105,13 +105,13 @@ class DockerTest extends AbstractIdeContextTest {
     // assert
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("docker");
-    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("4.44.0"));
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired("4.44.0"));
     Mockito.verify(processContext).runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", PLUTIL_MAC_COMMAND);
   }
 
   /**
-   * Verifies that on macOS the lookup degrades gracefully (no exception) when the Docker Desktop app is not present: the
-   * {@code plutil} call yields no usable output, so the version is {@code null} while the edition stays {@code "docker"}.
+   * Verifies that on macOS the lookup degrades gracefully (no exception) when the Docker Desktop app is not present: the {@code plutil} call yields no usable
+   * output, so the version is {@code null} while the edition stays {@code "docker"}.
    */
   @Test
   void testDockerDesktopOnMacIsGracefulWhenAppMissing() {
@@ -134,8 +134,8 @@ class DockerTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Verifies that when the installed runtime is Rancher Desktop, the edition is reported as {@code "rancher"} and the version
-   * comes from {@code rdctl version} (not from {@code apt list}).
+   * Verifies that when the installed runtime is Rancher Desktop, the edition is reported as {@code "rancher"} and the version comes from {@code rdctl version}
+   * (not from {@code apt list}).
    */
   @Test
   void testRancherDesktopEditionAndVersion() {
@@ -153,13 +153,13 @@ class DockerTest extends AbstractIdeContextTest {
     // assert
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("rancher");
-    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("1.13.0"));
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired("1.13.0"));
     Mockito.verify(processContext).runAndGetSingleOutput("rdctl", "version");
   }
 
   /**
-   * Verifies that on Windows the version of a Docker Desktop installation is read from the Windows registry (via
-   * {@code super}), and the edition is the consistent {@code "docker"} (not the previously hard-coded {@code "desktop"}).
+   * Verifies that on Windows the version of a Docker Desktop installation is read from the Windows registry (via {@code super}), and the edition is the
+   * consistent {@code "docker"} (not the previously hard-coded {@code "desktop"}).
    */
   @Test
   void testDockerDesktopEditionAndVersionOnWindows() {
@@ -177,7 +177,7 @@ class DockerTest extends AbstractIdeContextTest {
     // assert
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("docker");
-    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("4.44.0"));
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired("4.44.0"));
   }
 
   /**

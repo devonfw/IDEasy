@@ -51,8 +51,8 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
 
   /**
    * @return the {@link Path} where the installed artifact of this tool actually lives, as reported in the install success message. Defaults to
-   *     {@link #getToolPath() tool path}, which for package-manager based tools is the runtime tool's path and not the location where the managed package
-   *     is actually installed (e.g. a global npm package lives in the per-project npm prefix, not in {@code software/node}).
+   *     {@link #getToolPath() tool path}, which for package-manager based tools is the runtime tool's path and not the location where the managed package is
+   *     actually installed (e.g. a global npm package lives in the per-project npm prefix, not in {@code software/node}).
    */
   protected Path getInstalledLocation() {
 
@@ -406,7 +406,7 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
     Path repoPath = getInstalledSoftwareRepoPath(toolPath, true);
 
     if (repoPath != null) {
-      VersionIdentifier version = VersionIdentifier.of(repoPath.getFileName().toString());
+      VersionIdentifier version = VersionIdentifier.ofRequired(repoPath.getFileName().toString());
       return new EditionAndVersion(getEditionFromSoftwareRepoPath(repoPath), version);
     }
     return computeInstalledEditionAndVersionFromLocalSoftwareFolder();
@@ -477,7 +477,7 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
       }
     }
     String version = this.context.getFileAccess().readFileContent(toolVersionFile).trim();
-    return VersionIdentifier.of(version);
+    return VersionIdentifier.ofRequired(version);
   }
 
   /**

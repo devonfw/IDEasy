@@ -339,7 +339,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
       }
       String version = queryNativePackageVersion(nativePackage);
       if ((version != null) && !version.isBlank()) {
-        return VersionIdentifier.of(version.trim());
+        return VersionIdentifier.ofRequired(version.trim());
       }
     }
     return null;
@@ -374,7 +374,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
       for (Map.Entry<String, String> entry : getWindowsRegistryAppNames().entrySet()) {
         WindowsAppInstallation installation = WindowsHelper.get(this.context).getAppInstallationFromRegistry(entry.getValue());
         if (installation != null) {
-          return new EditionAndVersion(entry.getKey(), VersionIdentifier.of(installation.version()));
+          return new EditionAndVersion(entry.getKey(), VersionIdentifier.ofRequired(installation.version()));
         }
       }
     }

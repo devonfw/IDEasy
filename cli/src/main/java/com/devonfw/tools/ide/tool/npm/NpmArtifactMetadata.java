@@ -26,7 +26,7 @@ public class NpmArtifactMetadata implements UrlDownloadFileMetadata {
   NpmArtifactMetadata(NpmArtifact npmArtifact, String tool, String edition) {
 
     this.npmArtifact = npmArtifact;
-    this.version = VersionIdentifier.of(npmArtifact.getVersion());
+    this.version = VersionIdentifier.ofRequired(npmArtifact.getVersion());
     this.tool = tool;
     this.edition = edition;
   }

@@ -134,7 +134,7 @@ class StatusCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
-    context.setProjectVersion(VersionIdentifier.of("2025.01.001-beta"));
+    context.setProjectVersion(VersionIdentifier.ofRequired("2025.01.001-beta"));
     VersionIdentifier targetVersion = new IdeMigrator().getTargetVersion();
     StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
 

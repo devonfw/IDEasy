@@ -63,7 +63,7 @@ public class Gui extends AbstractCommandlet {
 
     ToolInstallRequest javaToolInstallRequest = new ToolInstallRequest(mavenToolInstallRequest);
     javaToolInstallRequest.setRequested(
-        new ToolEditionAndVersion(VersionIdentifier.of("25.*"))
+        new ToolEditionAndVersion(VersionIdentifier.ofRequired("25.*"))
     );
 
     ToolInstallation mvnToolInstallation = mvn.installTool(mavenToolInstallRequest);
@@ -156,12 +156,11 @@ public class Gui extends AbstractCommandlet {
       """;
 
   /**
-   * The GUI is launched as a plain {@code java} process without a native app bundle. On macOS this makes the Dock and menu bar show the executable's
-   * filename "java" instead of "IDEasy" (see issue #2206). Merely renaming/symlinking the bare executable is not reliable: without a real bundle,
-   * LaunchServices may still fall back to the underlying JDK's own identity. Instead, we wrap the launch in a minimal {@code .app} bundle: a proper
-   * {@code Info.plist} declaring our own {@code CFBundleName}/{@code CFBundleIdentifier}, with {@code Contents/MacOS/IDEasy} as a symlink pointing
-   * directly at the real java executable (not a wrapper script - an intermediate {@code exec} would replace the process image and lose the bundle
-   * identity again).
+   * The GUI is launched as a plain {@code java} process without a native app bundle. On macOS this makes the Dock and menu bar show the executable's filename
+   * "java" instead of "IDEasy" (see issue #2206). Merely renaming/symlinking the bare executable is not reliable: without a real bundle, LaunchServices may
+   * still fall back to the underlying JDK's own identity. Instead, we wrap the launch in a minimal {@code .app} bundle: a proper {@code Info.plist} declaring
+   * our own {@code CFBundleName}/{@code CFBundleIdentifier}, with {@code Contents/MacOS/IDEasy} as a symlink pointing directly at the real java executable (not
+   * a wrapper script - an intermediate {@code exec} would replace the process image and lose the bundle identity again).
    *
    * @param javaInstallation the {@link ToolInstallation} of the java tool used to launch the GUI.
    * @return the executable to pass to Maven's {@code exec:exec} goal in order to launch the GUI.

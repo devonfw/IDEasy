@@ -23,6 +23,7 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.BuildToolHelper;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
@@ -361,7 +362,7 @@ public class Mvn extends MavenCommandlet implements BuildTool {
     String content = this.context.getFileAccess().readFileContent(mavenConfig);
     for (String token : content.split("\\s+")) {
       if (token.startsWith(REVISION_FLAG)) {
-        return VersionIdentifier.of(token.substring(REVISION_FLAG.length()));
+        return VersionIdentifier.ofRequired(token.substring(REVISION_FLAG.length()));
       }
     }
     throw new CliException("Could not find '" + REVISION_FLAG + "' in " + mavenConfig);
