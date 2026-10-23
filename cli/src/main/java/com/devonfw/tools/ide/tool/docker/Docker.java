@@ -82,7 +82,17 @@ public class Docker extends GlobalToolCommandlet {
   @Override
   protected List<NativePackage> getNativePackages() {
 
-    if (isDockerDesktopEditionConfigured()) {
+    return getNativePackages(getConfiguredEdition());
+  }
+
+  /**
+   * @param edition the edition to get the {@link NativePackage}s for. Use the {@link #getConfiguredEdition() configured edition} to install and the
+   *     {@link #getInstalledEdition() installed edition} to uninstall.
+   * @return the {@link List} of {@link NativePackage}s of the given edition.
+   */
+  private List<NativePackage> getNativePackages(String edition) {
+
+    if (EDITION_DOCKER.equals(edition)) {
 
       List<Path> artifactPaths = (this.downloadedDebPackageForDocker == null) ? List.of() : List.of(this.downloadedDebPackageForDocker);
 
@@ -147,7 +157,12 @@ public class Docker extends GlobalToolCommandlet {
       String cask = EDITION_RANCHER.equals(getInstalledEdition()) ? EDITION_RANCHER : EDITION_DOCKER;
       return List.of(new NativePackage(NativePackageManager.BREW_CASK, List.of(cask)).uninstall());
     }
-    return super.getUninstallPackageManagerCommands();
+    // the packages of the installed edition have to be removed, regardless of which edition is configured
+    String installedEdition = getInstalledEdition();
+    if (installedEdition == null) {
+      return super.getUninstallPackageManagerCommands();
+    }
+    return getNativePackages(installedEdition).stream().map(NativePackage::uninstall).toList();
   }
 
   @Override

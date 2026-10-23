@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.tool.docker;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -224,6 +225,29 @@ class DockerTest extends AbstractIdeContextTest {
   }
 
   /**
+   * A {@link Docker} with the given configured and installed edition.
+   *
+   * @param context the {@link IdeTestContext}.
+   * @param configuredEdition the edition returned by {@link Docker#getConfiguredEdition()}.
+   * @param installedEdition the installed edition.
+   * @return the {@link Docker}.
+   */
+  private Docker dockerWithEditions(IdeTestContext context, String configuredEdition, String installedEdition) {
+
+    return new Docker(context) {
+      @Override
+      public String getConfiguredEdition() {
+        return configuredEdition;
+      }
+
+      @Override
+      protected EditionAndVersion computeInstalledEditionAndVersion() {
+        return new EditionAndVersion(installedEdition, VersionIdentifier.of("1.0.0"));
+      }
+    };
+  }
+
+  /**
    * Verifies that on Windows the uninstall uses the registry name of the installed edition and not the one of Docker Desktop.
    */
   @Test
@@ -266,6 +290,30 @@ class DockerTest extends AbstractIdeContextTest {
     // assert
     assertThat(rancherBundle).doesNotExist();
     assertThat(dockerBundle).exists();
+  }
+
+  /**
+   * Verifies that on Linux the native packages to uninstall depend on the installed edition and not on the configured edition.
+   */
+  @Test
+  void testUninstallCommandsOnLinuxUsePackagesOfInstalledEdition() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+
+    // act
+    List<PackageManagerCommand> rancherInstalled = dockerWithEditions(context, "docker", "rancher").getUninstallPackageManagerCommands();
+    List<PackageManagerCommand> dockerInstalled = dockerWithEditions(context, "rancher", "docker").getUninstallPackageManagerCommands();
+
+    // assert
+    assertThat(commandText(rancherInstalled)).contains("rancher-desktop").doesNotContain("docker-desktop");
+    assertThat(commandText(dockerInstalled)).contains("docker-desktop").doesNotContain("rancher-desktop");
+  }
+
+  private static String commandText(List<PackageManagerCommand> commands) {
+
+    return commands.stream().flatMap(command -> command.commands().stream()).collect(Collectors.joining("\n"));
   }
 
   /**
