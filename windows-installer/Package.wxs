@@ -73,10 +73,29 @@
         Return="ignore"
     />
 
+    <!-- Removal of the _ide folder after ide uninstall has finished.
+         Runs deferred and is awaited by msiexec, so the uninstall is complete
+         when Windows reports success. -->
+    <SetProperty
+        Id="RemoveIdeDirectory"
+        Value='"[SystemFolder]cmd.exe" /c "if exist &quot;[INSTALLFOLDER]..\..&quot; rmdir /s /q &quot;[INSTALLFOLDER]..\..&quot;"'
+        Before="RemoveIdeDirectory"
+        Sequence="execute"
+    />
+    <CustomAction
+        Id="RemoveIdeDirectory"
+        BinaryRef="Wix4UtilCA_X64"
+        DllEntry="WixQuietExec"
+        Execute="deferred"
+        Impersonate="yes"
+        Return="check"
+    />
+
     <!-- Specifying when Custom Actions should run -->
     <InstallExecuteSequence>
       <Custom Action="RunInstallAction" Condition="NOT Installed" Before="InstallFinalize"/>
       <Custom Action='RunUninstallAction' Condition="Installed AND NOT UPGRADINGPRODUCTCODE" After="InstallInitialize"/>
+      <Custom Action="RemoveIdeDirectory" Condition="Installed AND NOT UPGRADINGPRODUCTCODE" After="RemoveFiles"/>
     </InstallExecuteSequence>
 
     <!-- Open documentation URL from FirstStepsDialog -->
