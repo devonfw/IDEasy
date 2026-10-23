@@ -604,4 +604,5 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
         "Couldn't automatically uninstall " + TOOL_NAME + " on macOS. Please uninstall it manually, e.g. by moving it from the Applications folder to the "
             + "Trash");
   }
+
 }
