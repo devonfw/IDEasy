@@ -375,15 +375,15 @@ class VscodeTest extends AbstractIdeContextTest {
     ToolEdition edition = new ToolEdition(PROJECT_VSCODE, PROJECT_VSCODE);
 
     ToolEditionAndVersion installed = new ToolEditionAndVersion(edition);
-    installed.setResolvedVersion(VersionIdentifier.of("1.90.0"));
+    installed.setResolvedVersion(VersionIdentifier.ofRequired("1.90.0"));
     ToolEditionAndVersion requestedMajor = new ToolEditionAndVersion(edition);
-    requestedMajor.setResolvedVersion(VersionIdentifier.of("2.90.0"));
+    requestedMajor.setResolvedVersion(VersionIdentifier.ofRequired("2.90.0"));
     ToolInstallRequest majorVersionChange = new ToolInstallRequest(true);
     majorVersionChange.setInstalled(installed);
     majorVersionChange.setRequested(requestedMajor);
 
     ToolEditionAndVersion requestedMinor = new ToolEditionAndVersion(edition);
-    requestedMinor.setResolvedVersion(VersionIdentifier.of("1.91.0"));
+    requestedMinor.setResolvedVersion(VersionIdentifier.ofRequired("1.91.0"));
     ToolInstallRequest minorVersionChange = new ToolInstallRequest(true);
     minorVersionChange.setInstalled(installed);
     minorVersionChange.setRequested(requestedMinor);

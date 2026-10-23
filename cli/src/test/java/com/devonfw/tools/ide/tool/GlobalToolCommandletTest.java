@@ -58,7 +58,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
 
     // act
-    Path result = globalTool.getInstallationPath("default", VersionIdentifier.of("1.0"));
+    Path result = globalTool.getInstallationPath("default", VersionIdentifier.ofRequired("1.0"));
 
     // assert
     assertThat(result).isEqualTo(appPath);
@@ -83,7 +83,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
 
     // act & assert
-    assertThat(globalTool.getInstallationPath("default", VersionIdentifier.of("1.0"))).isNull();
+    assertThat(globalTool.getInstallationPath("default", VersionIdentifier.ofRequired("1.0"))).isNull();
     assertThat(context.getPath().getPath(DUMMY_BINARY)).isNull();
   }
 
@@ -106,7 +106,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
 
     // act
-    Path result = globalTool.getInstallationPath("default", VersionIdentifier.of("1.0"));
+    Path result = globalTool.getInstallationPath("default", VersionIdentifier.ofRequired("1.0"));
 
     // assert
     assertThat(result).isEqualTo(appPath);
@@ -145,8 +145,8 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that an already installed application bundle is removed before the new one is moved into the applications folder and that both privileged
-   * commands are logged before they are executed.
+   * Tests that an already installed application bundle is removed before the new one is moved into the applications folder and that both privileged commands
+   * are logged before they are executed.
    *
    * @param tempDir the temporary directory.
    * @throws IOException on test setup failure.

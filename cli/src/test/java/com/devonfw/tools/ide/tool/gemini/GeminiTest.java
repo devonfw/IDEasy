@@ -73,7 +73,7 @@ public class GeminiTest extends AbstractIdeContextTest {
 
     List<VersionIdentifier> versions = context.getNpmRepository().getSortedVersions(commandlet.getName(), null, commandlet);
 
-    assertThat(versions).contains(VersionIdentifier.of("0.61.0"));
+    assertThat(versions).contains(VersionIdentifier.ofRequired("0.61.0"));
     assertThat(context).logAtWarning().hasMessageContaining("Skipping invalid npm version '0.0.8888888888'");
   }
 }
