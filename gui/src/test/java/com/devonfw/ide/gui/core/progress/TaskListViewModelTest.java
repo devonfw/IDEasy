@@ -8,15 +8,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.ide.gui.HeadlessApplicationTest;
+import com.devonfw.ide.gui.UIBasedApplicationTest;
 import com.devonfw.ide.gui.core.context.TaskManager;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 
 /**
- * Tests for the {@link TaskListViewModel}. We extend {@link HeadlessApplicationTest}, because the view model mirrors the {@link TaskManager} onto the JavaFX
+ * Tests for the {@link TaskListViewModel}. We extend {@link UIBasedApplicationTest}, because the view model mirrors the {@link TaskManager} onto the JavaFX
  * thread.
  */
-class TaskListViewModelTest extends HeadlessApplicationTest {
+class TaskListViewModelTest extends UIBasedApplicationTest {
 
   private GuiEventBus eventBus;
 
