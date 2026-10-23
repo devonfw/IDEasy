@@ -18,7 +18,7 @@ import javafx.stage.Stage;
 
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.ide.gui.HeadlessApplicationTest;
+import com.devonfw.ide.gui.UIBasedApplicationTest;
 import com.devonfw.ide.gui.core.context.TaskManager;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.helper.FxHelper;
@@ -29,7 +29,7 @@ import com.devonfw.ide.gui.core.progress.TaskViewModel;
 /**
  * Tests for the TaskOverviewWindow. We check whether the window is displayed correctly and whether it properly reacts to changes in the TaskManager.
  */
-public class TaskWindowTest extends HeadlessApplicationTest {
+public class TaskWindowTest extends UIBasedApplicationTest {
 
   private ListView<TaskViewModel> taskList;
 
@@ -58,12 +58,22 @@ public class TaskWindowTest extends HeadlessApplicationTest {
   }
 
   /**
+   * Adds a task to the manager and waits for the FX thread to process it.
+   */
+  private void addTask(ProgressBarTask task) {
+    taskManager.addTask(task);
+    waitForFxEvents();
+  }
+
+  /**
    * We check, whether our implementation of {@link TaskOverviewWindow#show()} actually displays the window.
    */
   @Test
   void isWindowShown() {
-    FxHelper.runFxSafe(() -> {
-      TaskOverviewWindow testWindow = TaskOverviewWindow.getInstance(taskListViewModel);
+    //Why use interact here instead of e.g. FxHelper.runFxSafe? -> runFxSafe executes the code asynchronously on the UI thread without waiting for the result,
+    //therefore swallowing any errors. This assertion never fails if we use runFxSafe
+    interact(() -> {
+      TaskOverviewWindow testWindow = TaskOverviewWindow.getInstance(taskManager);
       testWindow.show();
 
       assertThat(testWindow.getStage().isShowing()).isTrue();
@@ -74,8 +84,7 @@ public class TaskWindowTest extends HeadlessApplicationTest {
   void shouldShowTaskWhenTaskAdded() {
 
     ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Test Task");
-    taskManager.addTask(task);
-    waitForFxEvents();
+    addTask(task);
 
     assertThat(taskList.getItems()).extracting(TaskViewModel::getTask).contains(task);
   }
@@ -84,8 +93,7 @@ public class TaskWindowTest extends HeadlessApplicationTest {
   void shouldNotShowTaskWhenTaskRemoved() {
 
     ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Test Task");
-    taskManager.addTask(task);
-    waitForFxEvents();
+    addTask(task);
 
     assertThat(taskList.getItems()).extracting(TaskViewModel::getTask).contains(task);
 
@@ -105,12 +113,9 @@ public class TaskWindowTest extends HeadlessApplicationTest {
     ProgressBarTask task2 = new ProgressBarTask(taskManager, "task-2", "Test Task 2");
     ProgressBarTask task3 = new ProgressBarTask(taskManager, "task-3", "Test Task 3");
 
-    taskManager.addTask(task1);
-    waitForFxEvents();
-    taskManager.addTask(task2);
-    waitForFxEvents();
-    taskManager.addTask(task3);
-    waitForFxEvents();
+    addTask(task1);
+    addTask(task2);
+    addTask(task3);
 
     assertThat(taskList.getItems()).extracting(TaskViewModel::getTask).containsExactly(task1, task2, task3);
   }
@@ -121,7 +126,7 @@ public class TaskWindowTest extends HeadlessApplicationTest {
   @Test
   void reusesExistingWindow() {
 
-    FxHelper.runFxSafe(() -> {
+    interact(() -> {
 
       TaskOverviewWindow testWindow1 = TaskOverviewWindow.getInstance(taskListViewModel);
       testWindow1.show();
@@ -129,9 +134,9 @@ public class TaskWindowTest extends HeadlessApplicationTest {
       TaskOverviewWindow testWindow2 = TaskOverviewWindow.getInstance(taskListViewModel);
       testWindow2.show();
 
-      assertThat(testWindow1.equals(testWindow2)).isTrue().as("Window instances differentiate");
-      assertThat(testWindow1.getStage().isShowing()).isTrue().as("Window is not showing");
-      assertThat(testWindow1.getStage().isFocused()).isTrue().as("Window is not focused");
+      assertThat(testWindow1.equals(testWindow2)).as("Window instances differentiate").isTrue();
+      assertThat(testWindow1.getStage().isShowing()).as("Window is not showing").isTrue();
+      assertThat(testWindow1.getStage().isFocused()).as("Window is not focused").isTrue();
     });
   }
 
@@ -152,8 +157,7 @@ public class TaskWindowTest extends HeadlessApplicationTest {
   void testTaskProgressUpdatesProperly() {
 
     ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Test Task", 100, "Units", 1);
-    taskManager.addTask(task);
-    waitForFxEvents();
+    addTask(task);
 
     assertThat(taskList.getItems()).extracting(TaskViewModel::getTask).as("Task should be in the list").contains(task);
 
@@ -230,14 +234,14 @@ public class TaskWindowTest extends HeadlessApplicationTest {
   @Test
   void testNullReferenceNode() {
 
-    FxHelper.runFxSafe(() -> {
+    interact(() -> {
       TaskOverviewWindow nullRefWindow = TaskOverviewWindow.getInstance(taskListViewModel);
       nullRefWindow.showRelativeToReferenceNode(null);
 
       Rectangle2D screenMeasures = Screen.getPrimary().getVisualBounds();
 
-      double expectedPositionX = screenMeasures.getWidth() / 2 - nullRefWindow.getStage().getScene().getWidth() / 2;
-      double expectedPositionY = screenMeasures.getHeight() / 2 - nullRefWindow.getStage().getScene().getHeight() / 2;
+      double expectedPositionX = screenMeasures.getWidth() / 2 - nullRefWindow.getStage().getWidth() / 2;
+      double expectedPositionY = screenMeasures.getHeight() / 2 - nullRefWindow.getStage().getHeight() / 2;
 
       assertThat(nullRefWindow.getStage().getX()).as("Window should be in the expected X position").isEqualTo(expectedPositionX);
       assertThat(nullRefWindow.getStage().getY()).as("Window should be in the expected Y position").isEqualTo(expectedPositionY);

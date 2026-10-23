@@ -1,20 +1,24 @@
 package com.devonfw.ide.gui.core.context;
 
 
-import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
+import java.util.Objects;
+
+import com.devonfw.ide.gui.core.event.GuiEventBus;
+import com.devonfw.ide.gui.core.event.console.LogEvent;
+import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
 
 /// Listener class that listens to internal ideasy output, e.g. output from commandlets that are run.
 public class IdeGuiLogListener extends IdeLogListenerBuffer {
 
-  private final ConsoleController consoleController;
+  private final GuiEventBus eventBus;
 
-  /// @param consoleController the console controller to output messages to
-  public IdeGuiLogListener(ConsoleController consoleController) {
+  /// @param eventBus to send the logs to
+  public IdeGuiLogListener(GuiEventBus eventBus) {
 
     super();
-    this.consoleController = consoleController;
+    this.eventBus = Objects.requireNonNull(eventBus);
   }
 
   @Override
@@ -25,10 +29,10 @@ public class IdeGuiLogListener extends IdeLogListenerBuffer {
       super.onLog(level, message, rawMessage, args, error);
     }
 
-    if (this.consoleController != null && message != null) {
-      this.consoleController.appendOutput(level, message);
+    if (this.eventBus != null && message != null) {
+      this.eventBus.sendEvent(new LogEvent(new IdeLogEntry(level, message)));
       if (error != null) {
-        this.consoleController.appendOutput(IdeLogLevel.ERROR, "  Error: " + error.getMessage());
+        this.eventBus.sendEvent(new LogEvent(new IdeLogEntry(IdeLogLevel.ERROR, "  Error: " + error.getMessage())));
       }
     }
     return true; // continue processing (also log to standard output if needed)
