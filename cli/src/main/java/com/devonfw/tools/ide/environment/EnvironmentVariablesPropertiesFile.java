@@ -208,7 +208,8 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
           }
           writer.append(newLine.toString());
           writer.append(NEWLINE);
-          String name = line.getName();
+          // the migrated name: a legacy line such as MAVEN_VERSION was written as MVN_VERSION
+          String name = newLine.getName();
           if (name != null) {
             this.modifiedVariables.remove(name);
           }
