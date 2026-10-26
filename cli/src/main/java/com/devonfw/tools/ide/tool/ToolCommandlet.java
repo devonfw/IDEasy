@@ -54,6 +54,37 @@ public interface ToolCommandlet extends Commandlet, Tags {
   }
 
   /**
+   * @return the installed edition and version of this tool or {@code null} if not installed.
+   */
+  EditionAndVersion getInstalledEditionAndVersion();
+
+  /**
+   * @return the installed version of this tool or {@code null} if not installed.
+   */
+  default VersionIdentifier getInstalledVersion() {
+
+    EditionAndVersion editionAndVersion = getInstalledEditionAndVersion();
+    return (editionAndVersion != null) ? editionAndVersion.version() : null;
+  }
+
+  /**
+   * @return the installed edition of this tool or {@code null} if not installed.
+   */
+  default String getInstalledEdition() {
+
+    EditionAndVersion editionAndVersion = getInstalledEditionAndVersion();
+    return (editionAndVersion != null) ? editionAndVersion.edition() : null;
+  }
+
+  /**
+   * @return {@code true} if this tool is installed, {@code false} otherwise.
+   */
+  default boolean isInstalled() {
+
+    return getInstalledVersion() != null;
+  }
+
+  /**
    * @return the execution directory where the tool will be executed. Will be {@code null} by default leading to execution in the users current working
    *     directory where IDEasy was called.
    */

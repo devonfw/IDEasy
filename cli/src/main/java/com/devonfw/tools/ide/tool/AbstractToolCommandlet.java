@@ -818,6 +818,7 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
    *
    * @return the {@link EditionAndVersion} or {@code null} if not installed.
    */
+  @Override
   public final EditionAndVersion getInstalledEditionAndVersion() {
 
     return this.installedEditionAndVersion.get();
@@ -837,27 +838,19 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
   /**
    * @return the currently installed {@link VersionIdentifier version} of this tool or {@code null} if not installed.
    */
+  @Override
   public final VersionIdentifier getInstalledVersion() {
 
-    EditionAndVersion ev = getInstalledEditionAndVersion();
-    return (ev != null) ? ev.version() : null;
-  }
-
-  /**
-   * @return {@code true} if this tool is installed, {@code false} otherwise.
-   */
-  public boolean isInstalled() {
-
-    return getInstalledVersion() != null;
+    return ToolCommandlet.super.getInstalledVersion();
   }
 
   /**
    * @return the installed edition of this tool or {@code null} if not installed.
    */
+  @Override
   public final String getInstalledEdition() {
 
-    EditionAndVersion ev = getInstalledEditionAndVersion();
-    return (ev != null) ? ev.edition() : null;
+    return ToolCommandlet.super.getInstalledEdition();
   }
 
   /** Invalidates the cached installed edition and version so the next call to {@link #getInstalledEditionAndVersion()} recomputes the result. */

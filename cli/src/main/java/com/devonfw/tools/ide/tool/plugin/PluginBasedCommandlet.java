@@ -28,11 +28,6 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
   PluginManager getPluginManager();
 
   /**
-   * @return the installed edition of the tool owning the plugins or {@code null} if not installed (see {@code AbstractToolCommandlet#getInstalledEdition()}).
-   */
-  String getInstalledEdition();
-
-  /**
    * @return the {@link Path} to the folder with the plugin configuration files inside the settings. The default implementation is shared by all plugin-capable
    *     tools (see {@link AbstractPluginBasedCommandlet} and {@link com.devonfw.tools.ide.tool.pip.PipBasedIdeToolCommandlet}).
    */
