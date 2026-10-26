@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class ClaudeUrlUpdater extends GithubUrlReleaseUpdater {
 
-  private static final VersionIdentifier MIN_CLAUDE_VID = VersionIdentifier.of("2.1.117");
+  private static final VersionIdentifier MIN_CLAUDE_VID = VersionIdentifier.ofRequired("2.1.117");
 
   /**
    * The Constructor.

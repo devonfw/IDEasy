@@ -32,8 +32,8 @@ class VersionRangeTest extends Assertions {
     VersionRange versionRange = VersionRange.of(range);
 
     // assert
-    assertThat(versionRange.getMin()).isEqualTo(VersionIdentifier.ofRequired(min));
-    assertThat(versionRange.getMax()).isEqualTo(VersionIdentifier.ofRequired(max));
+    assertThat(versionRange.getMin()).isEqualTo(VersionIdentifier.ofOptional(min));
+    assertThat(versionRange.getMax()).isEqualTo(VersionIdentifier.ofOptional(max));
     assertThat(versionRange.getBoundaryType()).isEqualTo(boundaryType);
     if ((min == null) && (max == null)) {
       assertThat(versionRange).isSameAs(VersionRange.UNBOUNDED);

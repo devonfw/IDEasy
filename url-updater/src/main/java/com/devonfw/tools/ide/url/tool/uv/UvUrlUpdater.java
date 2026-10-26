@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class UvUrlUpdater extends GithubUrlTagUpdater {
 
-  private static final VersionIdentifier MIN_VID = VersionIdentifier.of("0.5.25");
+  private static final VersionIdentifier MIN_VID = VersionIdentifier.ofRequired("0.5.25");
 
   /**
    * The Constructor.
@@ -48,7 +48,7 @@ public class UvUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String mapVersion(String version) {
-    if (VersionIdentifier.of(version).isLess(MIN_VID)) {
+    if (VersionIdentifier.ofOptional(version).isLess(MIN_VID)) {
       return null;
     }
     return super.mapVersion(version);

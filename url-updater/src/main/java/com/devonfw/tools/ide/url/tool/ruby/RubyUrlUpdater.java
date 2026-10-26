@@ -32,7 +32,7 @@ public class RubyUrlUpdater extends GithubUrlReleaseUpdater {
   }
 
   // Older RubyInstaller releases are ignored because releases before 2.5.3-1 use unsupported legacy tag naming.
-  private static final VersionIdentifier MIN_RUBY_VID = VersionIdentifier.of("2.5.3-1");
+  private static final VersionIdentifier MIN_RUBY_VID = VersionIdentifier.ofRequired("2.5.3-1");
 
   @Override
   public String getTool() {

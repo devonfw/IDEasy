@@ -8,7 +8,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class JasyptUrlUpdater extends MavenBasedUrlUpdater {
 
-  public static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("1.9.3");
+  public static final VersionIdentifier MIN_VERSION = VersionIdentifier.ofRequired("1.9.3");
 
   @Override
   public String getTool() {
@@ -32,7 +32,7 @@ public class JasyptUrlUpdater extends MavenBasedUrlUpdater {
   @Override
   public boolean isValidVersion(String version) {
 
-    VersionIdentifier artifactVersion = VersionIdentifier.of(version);
+    VersionIdentifier artifactVersion = VersionIdentifier.ofRequired(version);
     if (artifactVersion != null) {
       return artifactVersion.isGreaterOrEqual(MIN_VERSION);
     }

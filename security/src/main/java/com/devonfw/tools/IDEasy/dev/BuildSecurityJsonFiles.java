@@ -183,17 +183,17 @@ public class BuildSecurityJsonFiles implements Runnable {
         LOG.error("Vulnerability {} has no interval of affected versions or single affected version.", id);
         return null;
       }
-      VersionIdentifier singleAffectedVersion = VersionIdentifier.of(singleVersion);
+      VersionIdentifier singleAffectedVersion = VersionIdentifier.ofOptional(singleVersion);
       return VersionRange.of(singleAffectedVersion, singleAffectedVersion, BoundaryType.CLOSED);
     } else {
       VersionIdentifier min;
       boolean leftExclusive;
       if (startIncluding != null) {
         assert (startExcluding == null);
-        min = VersionIdentifier.of(startIncluding);
+        min = VersionIdentifier.ofOptional(startIncluding);
         leftExclusive = false;
       } else if (startExcluding != null) {
-        min = VersionIdentifier.of(startExcluding);
+        min = VersionIdentifier.ofOptional(startExcluding);
         leftExclusive = true;
       } else {
         min = null;
@@ -203,10 +203,10 @@ public class BuildSecurityJsonFiles implements Runnable {
       boolean rightExclusive;
       if (endIncluding != null) {
         assert (endExcluding == null);
-        max = VersionIdentifier.of(endIncluding);
+        max = VersionIdentifier.ofOptional(endIncluding);
         rightExclusive = false;
       } else if (endExcluding != null) {
-        max = VersionIdentifier.of(endExcluding);
+        max = VersionIdentifier.ofOptional(endExcluding);
         rightExclusive = true;
       } else {
         max = null;
