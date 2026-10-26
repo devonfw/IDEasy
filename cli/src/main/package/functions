@@ -456,7 +456,7 @@ _ide_title()
     fi
   fi
   printf '\033]0;%s\007' "${title}"
-  return "${exit_code}"
+  return "${_exit_code}"
 }
 
 # Git Bash rewrites the window title on every prompt through an escape sequence in PS1 (see
