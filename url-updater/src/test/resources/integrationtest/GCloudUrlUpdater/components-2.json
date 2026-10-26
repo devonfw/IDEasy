@@ -1,0 +1,12 @@
+{
+  "components": [
+    {
+      "id": "core",
+      "version": {
+        "version_string": "2026.10.23"
+      }
+    }
+  ],
+  "schema_version": 2,
+  "version": "590.0.1"
+}
