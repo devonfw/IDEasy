@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.IdeasyCommandlet;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.tool.ToolInstallTracker;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -85,6 +86,9 @@ public class InstallCommandlet extends AbstractCommandlet {
       version = commandlet.getConfiguredVersion();
     }
     ToolInstallRequest request = ToolInstallRequest.ofDirect();
+    // Track tools installed during this process so a shared dependency (e.g. a tool transitively required by two of the installed tool's dependencies)
+    // is not CVE-checked and installed redundantly - see https://github.com/devonfw/IDEasy/issues/945
+    request.setTracker(new ToolInstallTracker());
     request.setRequested(new ToolEditionAndVersion(version));
     ToolInstallation installation = commandlet.install(request);
     if (versionIdentifier != null) {

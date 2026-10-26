@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -302,5 +303,53 @@ class InstallCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtWarning().hasMessage("Cannot download java in version " + targetVersion
         + " because we are offline. Continuing with already installed version " + installedVersion + ".");
   }
-}
 
+  /**
+   * <code>ide install</code> of a tool whose dependency graph references the same tool both directly and transitively (a diamond) must run the CVE check for
+   * that shared dependency only once, not once per reference. This reproduces
+   * <a href="https://github.com/devonfw/IDEasy/issues/2740">#2740</a>
+   * (<code>ide install ng</code> with <code>node</code> CVE-checked both via <code>ng → node</code> and via <code>ng → npm → node</code>). Here
+   * <code>mvn</code> stands in for <code>ng</code>: <code>mvn</code> depends on <code>java</code> (the direct reference) and on <code>node</code>, which
+   * itself depends on <code>java</code> (the transitive reference). Without a process-wide tracker on the install path the CVE check for <code>java</code>
+   * ran twice.
+   */
+  @Test
+  void testInstallCommandletDoesNotRunCveCheckTwiceForSharedDependency() {
+
+    // arrange - the 'update' project provides offline-installable java (17.0.6) and node (v18.19.1) fixtures; drive 'ide install' on it.
+    IdeTestContext context = newContext("update");
+    // make 'mvn' a diamond root: it depends on 'java' directly and on 'node' (transitively reaching 'java' again).
+    String mvnDeps = """
+        {
+          "[3.0,4.0)": [
+            { "tool": "java", "versionRange": "[8,)" },
+            { "tool": "node", "versionRange": "[18.0.0,)" }
+          ]
+        }
+        """;
+    context.getFileAccess().writeFileContent(mvnDeps, context.getUrlsPath().resolve("mvn").resolve("mvn").resolve("dependencies.json"));
+    // 'node' depends on 'java' in a range containing the project's java version (17.0.6), so the transitive reference resolves to the same java.
+    String nodeDeps = """
+        {
+          "[18.0.0,)": [
+            { "tool": "java", "versionRange": "[8,)" }
+          ]
+        }
+        """;
+    context.getFileAccess().writeFileContent(nodeDeps, context.getUrlsPath().resolve("node").resolve("node").resolve("dependencies.json"));
+    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
+    install.tool.setValueAsString("mvn", context);
+    install.version.setValueAsString("3.2.1", context);
+
+    // act
+    install.run();
+
+    // assert
+    assertThat(context.getSoftwarePath().resolve("mvn")).exists();
+    long cveCheckCount = context.getTestStartContext().getEntries().stream()
+        .filter(e -> e.level() == IdeLogLevel.SUCCESS)
+        .filter(e -> e.message().contains("No CVEs found for version 17.0.6 of tool java"))
+        .count();
+    assertThat(cveCheckCount).as("the CVE check of the shared dependency 'java' must run once per process, not once per reference").isEqualTo(1);
+  }
+}
