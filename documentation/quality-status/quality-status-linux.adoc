@@ -9,19 +9,24 @@ Automatically generated open issue overview for Linux.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 230
+*Total Issues:* 203
 
-* OS-specific: 3
+* OS-specific: 4
 
 * Multi-OS: 2
 
-* Cross-platform: 225
+* Cross-platform: 197
 
 == Linux Specific Issues
 
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
+2+^| *0-10 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/2726[#2726]
+| Docker Desktop installation fails on Linux
+
 2+^| *90+ days*
 
 | link:https://github.com/devonfw/IDEasy/issues/1352[#1352]
