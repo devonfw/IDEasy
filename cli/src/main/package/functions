@@ -439,7 +439,9 @@ _icd_completion()
 # shown to keep the title short.
 _ide_title()
 {
-  local title="ideasy" workspace repository _ide_path_segment_result
+  local _exit_code=$?
+  local title="ideasy"
+  local workspace repository _ide_path_segment_result
   if [ -n "${IDE_HOME:-}" ]; then
     title="${title}>${IDE_HOME##*/}"
     _ide_path_segment "${PWD}" "${IDE_HOME}/workspaces"
@@ -454,6 +456,7 @@ _ide_title()
     fi
   fi
   printf '\033]0;%s\007' "${title}"
+  return "${exit_code}"
 }
 
 # Git Bash rewrites the window title on every prompt through an escape sequence in PS1 (see
