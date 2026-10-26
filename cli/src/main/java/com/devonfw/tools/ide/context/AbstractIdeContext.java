@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -18,7 +17,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.FileHandler;
 import java.util.logging.LogManager;
@@ -181,17 +179,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private WindowsHelper windowsHelper;
 
-  /** The replacement used to mask a secret in log output. */
-  private static final String SECRET_MASK = "********";
-
-  /** Minimum length of a value to be masked as a secret in log output. Masking a very short value would corrupt unrelated log messages. */
-  private static final int SECRET_MIN_LENGTH = 3;
-
   private final Map<String, String> privacyMap;
-
-  private final Set<String> secrets;
-
-  private final Set<String> secretVariables;
 
   private Path bash;
 
@@ -213,8 +201,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     this.startContext = startContext;
     this.startContext.setArgFormatter(this);
     this.privacyMap = new HashMap<>();
-    this.secrets = new HashSet<>();
-    this.secretVariables = new HashSet<>();
     this.systemInfo = SystemInfoImpl.INSTANCE;
     if (isTest()) {
       configureJavaUtilLogging(null);
@@ -1053,39 +1039,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
       result = PrivacyUtil.removeSensitivePathInformation(result);
     }
-    // Secrets are masked independent of the privacy mode: a value the user entered as a secret or that belongs to a
-    // variable marked as secret must never appear in any log output. This is done here since formatArgument is the
-    // single place all log arguments pass through, so no individual log statement can be forgotten.
-    for (String secret : this.secrets) {
-      result = result.replace(secret, SECRET_MASK);
-    }
     return result;
-  }
-
-  @Override
-  public void addSecretVariable(String name) {
-
-    if ((name != null) && !name.isEmpty()) {
-      this.secretVariables.add(name);
-    }
-  }
-
-  @Override
-  public void addSecretValue(String name, String value) {
-
-    if (this.secretVariables.contains(name)) {
-      addSecret(value);
-    }
-  }
-
-  /**
-   * @param secret the secret value to mask in all log output. Ignored if {@code null} or shorter than {@link #SECRET_MIN_LENGTH}.
-   */
-  protected void addSecret(String secret) {
-
-    if ((secret != null) && (secret.length() >= SECRET_MIN_LENGTH)) {
-      this.secrets.add(secret);
-    }
   }
 
   /**
@@ -1132,8 +1086,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    * @param message the question to ask.
    * @param defaultValue the value to return if the user accepts the default (by entering an empty value) or {@code null} to re-ask until a value is
    *     entered.
-   * @param secret - {@code true} to read the input in a masked way (see {@link #readSecretLine()}) and to mask it in the log output, {@code false} to read
-   *     it as plain text.
+   * @param secret - {@code true} to read the input in a masked way (see {@link #readSecretLine()}), {@code false} to read it as plain text.
    * @return the entered value or the default value.
    */
   private String ask(String message, String defaultValue, boolean secret) {
@@ -1152,15 +1105,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       // for a secret the input is not trimmed so that a leading or trailing whitespace that is part of the password or a pasted token is preserved
       String input = secret ? readSecretLine() : readLine().trim();
       if (!input.isEmpty()) {
-        if (secret) {
-          addSecret(input);
-        }
         return input;
       } else {
         if (defaultValue != null) {
-          if (secret) {
-            addSecret(defaultValue);
-          }
           return defaultValue;
         }
       }
