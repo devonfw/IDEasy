@@ -13,7 +13,6 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.devonfw.tools.ide.tool.ToolInstallRequest;
 
 /**
  * {@link Commandlet} for tools that support plugin management.
@@ -34,7 +33,10 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
   /**
    * @return {@code true} if the reset and reinstallation of the plugins is forced for the current run via the {@code --force-plugin-reinstall} flag.
    */
-  boolean isForcePluginReinstall();
+  default boolean isForcePluginReinstall() {
+
+    return getForcePluginReinstall().isTrue();
+  }
 
   /**
    * Determines whether all installed plugins of this tool have to be purged (reset and reinstalled) as part of the installation. A purge is required if the
@@ -160,19 +162,6 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
   default void deleteAllPlugins() {
 
     getContext().getFileAccess().delete(getPluginsInstallationPath());
-  }
-
-  /**
-   * Resets all installed plugins if the tool is not yet installed or the reset is forced via the {@code --force-plugin-reinstall} flag. The default
-   * implementation is shared by all plugin-capable tools.
-   *
-   * @param request the {@link ToolInstallRequest}.
-   */
-  default void resetPluginsIfNeeded(ToolInstallRequest request) {
-
-    if (!request.isAlreadyInstalled() || getForcePluginReinstall().isTrue()) {
-      getPluginManager().resetPlugins();
-    }
   }
 
   /**
