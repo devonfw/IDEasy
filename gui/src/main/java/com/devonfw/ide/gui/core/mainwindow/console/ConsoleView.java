@@ -1,5 +1,8 @@
 package com.devonfw.ide.gui.core.mainwindow.console;
 
+import static com.devonfw.tools.ide.log.IdeLogLevel.ERROR;
+import static com.devonfw.tools.ide.log.IdeLogLevel.WARNING;
+
 import java.text.MessageFormat;
 
 import javafx.collections.ListChangeListener.Change;
@@ -13,9 +16,6 @@ import javafx.scene.control.TextArea;
 
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
-
-import static com.devonfw.tools.ide.log.IdeLogLevel.ERROR;
-import static com.devonfw.tools.ide.log.IdeLogLevel.WARNING;
 
 /**
  * View of the console
