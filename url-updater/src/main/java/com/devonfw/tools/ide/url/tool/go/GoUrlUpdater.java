@@ -90,4 +90,3 @@ public class GoUrlUpdater extends GithubUrlTagUpdater {
 
 
 }
-
