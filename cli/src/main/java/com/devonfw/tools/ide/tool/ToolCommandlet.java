@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool;
 
-
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tags;
 
