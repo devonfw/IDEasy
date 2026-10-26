@@ -20,6 +20,9 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
 
   private final PluginManager pluginManager;
 
+  /** {@link FlagProperty} to force the reset and reinstallation of plugins as configured in the project settings. */
+  public FlagProperty forcePluginReinstall;
+
   /**
    * The constructor.
    *
@@ -36,7 +39,7 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   @Override
   protected void initProperties() {
 
-    add(new FlagProperty("--force-plugin-reinstall"));
+    this.forcePluginReinstall = add(new FlagProperty("--force-plugin-reinstall"));
     super.initProperties();
   }
 
@@ -49,11 +52,22 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
     return this.pluginManager;
   }
 
+  /**
+   * @return {@code true} if the reset and reinstallation of the plugins is forced for the current run via the {@code --force-plugin-reinstall} flag.
+   */
+  @Override
+  public boolean isForcePluginReinstall() {
+
+    return this.forcePluginReinstall.isTrue();
+  }
+
   @Override
   protected void postInstall(ToolInstallRequest request) {
 
     super.postInstall(request);
-    resetPluginsIfNeeded(request);
+    if (isPluginPurgeRequired(request)) {
+      this.pluginManager.resetPlugins(request);
+    }
     this.context.getFileAccess().mkdirs(getPluginsInstallationPath());
     installPlugins(getPlugins().getPlugins(), request.getProcessContext());
   }

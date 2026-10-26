@@ -39,6 +39,9 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
 
   private final PluginManager pluginManager;
 
+  /** {@link FlagProperty} to force the reset and reinstallation of plugins as configured in the project settings. */
+  public FlagProperty forcePluginReinstall;
+
   /**
    * The constructor.
    *
@@ -54,8 +57,17 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
 
   @Override
   protected void initProperties() {
-    add(new FlagProperty("--force-plugin-reinstall"));
+    this.forcePluginReinstall = add(new FlagProperty("--force-plugin-reinstall"));
     super.initProperties();
+  }
+
+  /**
+   * @return {@code true} if the reset and reinstallation of the plugins is forced for the current run via the {@code --force-plugin-reinstall} flag.
+   */
+  @Override
+  public boolean isForcePluginReinstall() {
+
+    return this.forcePluginReinstall.isTrue();
   }
 
   @Override
@@ -97,8 +109,11 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
   protected void postInstall(ToolInstallRequest request) {
 
     super.postInstall(request);
+
     configureWorkspace();
-    resetPluginsIfNeeded(request);
+    if (isPluginPurgeRequired(request)) {
+      this.pluginManager.resetPlugins(request);
+    }
     installPlugins(getPlugins().getPlugins(), request.getProcessContext());
   }
 
@@ -106,12 +121,11 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
   public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
     ProcessResult result = runPluginPackageManager(PackageManagerRequest.TYPE_INSTALL, plugin, pc);
     if (result.isSuccessful()) {
-      IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
-      step.success();
+      step.success("Successfully installed plugin: {}", plugin.name());
       return true;
     }
     result.log(IdeLogLevel.DEBUG, IdeLogLevel.ERROR);
-    step.error("Failed to install plugin {} ({}): exit code war {}", plugin.name(), plugin.id(), result.getExitCode());
+    step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
     return false;
   }
 
