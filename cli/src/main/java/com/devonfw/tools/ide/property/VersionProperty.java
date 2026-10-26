@@ -61,7 +61,7 @@ public class VersionProperty extends Property<VersionIdentifier> {
 
     AbstractToolCommandlet tool = commandlet.getToolForCompletion();
     if (tool != null) {
-      completeVersion(VersionIdentifier.ofRequired(arg), tool, context, commandlet, collector);
+      completeVersion(VersionIdentifier.ofOptional(arg), tool, context, commandlet, collector);
     }
   }
 
