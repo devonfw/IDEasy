@@ -23,7 +23,12 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.process.ProcessResultImpl;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.tool.plugin.AbstractPluginBasedCommandlet;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Test of {@link Vscode} class.
@@ -75,7 +80,6 @@ class VscodeTest extends AbstractIdeContextTest {
     commandlet.run();
 
     assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin");
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin mockedPlugin (1/1)'.");
 
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("mockedPlugin"))).exists();
@@ -125,7 +129,7 @@ class VscodeTest extends AbstractIdeContextTest {
 
     assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.92.1");
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode in version 1.92.1");
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin mockedPlugin (1/1)'.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin");
   }
 
   @Test
@@ -271,8 +275,9 @@ class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that with an explicit {@code --project} folder {@link Vscode#configureToolArgs(ProcessContext, ProcessMode, List)} appends the selected folder
-   * ({@link com.devonfw.tools.ide.tool.ide.IdeToolCommandlet#getOpenPath()}) to the launch arguments instead of the managed workspace path, while the
+   * Tests that with an explicit {@code --project} folder
+   * {@link Vscode#configureToolArgs(ProcessContext, ProcessMode, List)} appends the selected folder
+   * ({@link AbstractIdeToolCommandlet#getOpenPath()}) to the launch arguments instead of the managed workspace path, while the
    * {@code --user-data-dir} / {@code --profile} stay on the {@code main} profile (sharing is decided behavior, see #2393).
    */
   @Test
@@ -318,9 +323,9 @@ class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that an invalid explicit {@code --project} folder (a non-existing folder or a regular file) aborts the VS Code launch with a
-   * {@link CliException} via {@link com.devonfw.tools.ide.tool.ide.IdeToolCommandlet#validateOpenPath()}. Mirrors the IntelliJ-specific
-   * {@code testGetOpenPathInvalidPathThrows}, since both share the same validation path.
+   * Tests that an invalid explicit {@code --project} folder (a non-existing folder or a regular file) aborts the VS Code launch with a {@link CliException}
+   * via {@link AbstractIdeToolCommandlet#validateOpenPath()}. Mirrors the IntelliJ-specific {@code testGetOpenPathInvalidPathThrows}, since both share the same
+   * validation path.
    */
   @Test
   void testValidateOpenPathForVscodeThrowsOnInvalidProject() {
@@ -434,6 +439,36 @@ class VscodeTest extends AbstractIdeContextTest {
     assertThat(excludedEditions).contains("vscode", "vscodium");
   }
 
+  @Test
+  void testPluginPurgeRequiredOnMajorVersionChangeOnly() {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode vscodeCommandlet = new Vscode(context);
+    ToolEdition edition = new ToolEdition(PROJECT_VSCODE, PROJECT_VSCODE);
+
+    ToolEditionAndVersion installed = new ToolEditionAndVersion(edition);
+    installed.setResolvedVersion(VersionIdentifier.of("1.90.0"));
+    ToolEditionAndVersion requestedMajor = new ToolEditionAndVersion(edition);
+    requestedMajor.setResolvedVersion(VersionIdentifier.of("2.90.0"));
+    ToolInstallRequest majorVersionChange = new ToolInstallRequest(true);
+    majorVersionChange.setInstalled(installed);
+    majorVersionChange.setRequested(requestedMajor);
+
+    ToolEditionAndVersion requestedMinor = new ToolEditionAndVersion(edition);
+    requestedMinor.setResolvedVersion(VersionIdentifier.of("1.91.0"));
+    ToolInstallRequest minorVersionChange = new ToolInstallRequest(true);
+    minorVersionChange.setInstalled(installed);
+    minorVersionChange.setRequested(requestedMinor);
+
+    // act
+    boolean purgeOnMajor = vscodeCommandlet.isPluginPurgeRequired(majorVersionChange);
+    boolean purgeOnMinor = vscodeCommandlet.isPluginPurgeRequired(minorVersionChange);
+
+    // assert
+    assertThat(purgeOnMajor).isTrue();
+    assertThat(purgeOnMinor).isFalse();
+  }
+
   /**
    * Test double for {@link Vscode} that captures CLI arguments passed to {@link #runTool(ProcessContext, ProcessMode, List)} so tests can assert command
    * construction without spawning an external process.
@@ -457,7 +492,7 @@ class VscodeTest extends AbstractIdeContextTest {
       return new ProcessResultImpl("code", "code", 0, List.of());
     }
 
-    /** Exposes the protected {@link com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet#installPlugins(Collection, ProcessContext)} for testing. */
+    /** Exposes the protected {@link AbstractPluginBasedCommandlet#installPlugins(Collection, ProcessContext)} for testing. */
     public void installPluginsForTest(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
       installPlugins(plugins, pc);
     }

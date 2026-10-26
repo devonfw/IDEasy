@@ -21,10 +21,10 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Tests that the {@code «IDE»_PROPERTIES} environment variables ({@code IDEA_PROPERTIES}, {@code STUDIO_PROPERTIES},
- * {@code PYCHARM_PROPERTIES}) point at the {@link IdeToolCommandlet#getOpenPath() folder being opened} rather than unconditionally at the managed
+ * {@code PYCHARM_PROPERTIES}) point at the {@link AbstractIdeToolCommandlet#getOpenPath() folder being opened} rather than unconditionally at the managed
  * workspace. This is the "two-phase wiring" of #2494: {@code setEnvironment} (shell env / install phase) and {@code runTool} (launch) must agree on the
  * opened folder. Because the {@code --project} flag is remembered on the commandlet before the ensure-install step runs {@code setEnvironment}
- * (see {@link IdeToolCommandlet#extractProjectOption}), {@code getOpenPath()} is already the correct folder in both phases.
+ * (see {@link AbstractIdeToolCommandlet#extractProjectOption}), {@code getOpenPath()} is already the correct folder in both phases.
  */
 class IdeaPropertiesRetargetTest extends AbstractIdeContextTest {
 
@@ -66,7 +66,7 @@ class IdeaPropertiesRetargetTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(commandletName);
-    IdeToolCommandlet commandlet = buildIde(context, commandletName);
+    AbstractIdeToolCommandlet commandlet = buildIde(context, commandletName);
     Path external = context.getIdeHome().resolve("external-project").normalize();
     commandlet.project.setValue(external);
     RecordingEnvironment env = new RecordingEnvironment();
@@ -78,13 +78,13 @@ class IdeaPropertiesRetargetTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Builds the concrete {@link IdeToolCommandlet} for the given commandlet name.
+   * Builds the concrete {@link AbstractIdeToolCommandlet} for the given commandlet name.
    *
    * @param context the {@link IdeContext}.
    * @param commandletName the commandlet name.
    * @return the built commandlet.
    */
-  private static IdeToolCommandlet buildIde(IdeTestContext context, String commandletName) {
+  private static AbstractIdeToolCommandlet buildIde(IdeTestContext context, String commandletName) {
 
     return switch (commandletName) {
       case "intellij" -> new Intellij(context);

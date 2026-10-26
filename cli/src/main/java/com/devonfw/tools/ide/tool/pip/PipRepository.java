@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.json.JsonMapping;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.repository.AbstractToolRepository;
 import com.devonfw.tools.ide.tool.repository.ArtifactToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -40,7 +40,7 @@ public class PipRepository extends ArtifactToolRepository<PipArtifact, PipArtifa
   }
 
   @Override
-  protected PipArtifact resolveArtifact(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
+  protected PipArtifact resolveArtifact(String tool, String edition, VersionIdentifier version, AbstractToolCommandlet toolCommandlet) {
 
     if (toolCommandlet instanceof PipBasedCommandlet pip) {
       String name = pip.getPackageName();

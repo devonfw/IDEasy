@@ -15,13 +15,12 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 
 /**
- * Test of the {@code --project} flag and the {@link IdeToolCommandlet#getOpenPath() open path} foundation of
- * {@link IdeToolCommandlet}.
+ * Test of the {@code --project} flag and the {@link AbstractIdeToolCommandlet#getOpenPath() open path} foundation of {@link AbstractIdeToolCommandlet}.
  */
 class IdeToolCommandletProjectTest extends AbstractIdeContextTest {
 
   /**
-   * Tests that {@link IdeToolCommandlet#getOpenPath()} returns an explicitly configured absolute {@code --project} path.
+   * Tests that {@link AbstractIdeToolCommandlet#getOpenPath()} returns an explicitly configured absolute {@code --project} path.
    */
   @Test
   void testGetOpenPathAbsoluteProject() {
@@ -57,7 +56,7 @@ class IdeToolCommandletProjectTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that without a {@code --project} flag {@link IdeToolCommandlet#getOpenPath()} falls back to the
+   * Tests that without a {@code --project} flag {@link AbstractIdeToolCommandlet#getOpenPath()} falls back to the
    * {@link com.devonfw.tools.ide.context.IdeContext#getWorkspacePath() workspace path} (regression guard).
    */
   @Test
@@ -94,7 +93,7 @@ class IdeToolCommandletProjectTest extends AbstractIdeContextTest {
   /**
    * Tests that the {@code --project} flag is consumed by IDEasy and not passed through to the IDE binary. The flag arrives in the multi-valued passthrough
    * {@code args} of the tool commandlet, so IDEasy extracts and remembers it instead of forwarding it to the IDE. As of {@code #2492} the IntelliJ launch
-   * arguments also point at the selected folder ({@link IdeToolCommandlet#getOpenPath()}) instead of the managed workspace.
+   * arguments also point at the selected folder ({@link AbstractIdeToolCommandlet#getOpenPath()}) instead of the managed workspace.
    */
   @Test
   void testIntellijRunWithProjectFlagConsumedByIdeasy() {

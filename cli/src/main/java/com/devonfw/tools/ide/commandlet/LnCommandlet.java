@@ -13,12 +13,12 @@ import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.PathProperty;
 
 /**
- * // * Link creation {@link Commandlet} similar to {@code ln -s}.
+ * // * Link creation {@link AbstractCommandlet} similar to {@code ln -s}.
  * <p>
  * It tries to create a true symbolic link first. On Windows, symlink creation may be restricted due to missing privileges. In that case, IDEasy will create a
  * hard link as an alternative (file-only, same volume) to avoid the Git-Bash behavior of silently copying files.
  */
-public final class LnCommandlet extends Commandlet {
+public final class LnCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(LnCommandlet.class);
 

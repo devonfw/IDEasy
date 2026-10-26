@@ -6,13 +6,13 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.completion.AutoCompletionRegistry;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 
 
 /**
  * Abstract base class for Maven-compatible tool commandlets.
  */
-public abstract class MavenCommandlet extends LocalToolCommandlet {
+public abstract class MavenCommandlet extends AbstractLocalToolCommandlet {
 
 
   /**

@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.vscode;
 
+import static com.devonfw.tools.ide.version.VersionIdentifier.MAJOR_SEGMENT;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -18,15 +20,15 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
+import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
- * {@link ToolCommandlet} for <a href="https://code.visualstudio.com/">vscode</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://code.visualstudio.com/">vscode</a>.
  */
-public class Vscode extends IdeToolCommandlet {
+public class Vscode extends AbstractIdeToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Vscode.class);
 
@@ -72,11 +74,10 @@ public class Vscode extends IdeToolCommandlet {
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, extensionsCommands);
     if (result.isSuccessful()) {
       if (versionSpecified) {
-        IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {} with version: {}", plugin.name(), plugin.version());
+        step.success("Successfully installed plugin: {} with version: {}", plugin.name(), plugin.version());
       } else {
-        IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
+        step.success("Successfully installed plugin: {}", plugin.name());
       }
-      step.success();
       return true;
     }
     if (versionSpecified) {
@@ -110,9 +111,15 @@ public class Vscode extends IdeToolCommandlet {
     super.configureWorkspace();
   }
 
+  @Override
+  public int getIncompatibleVersionSegmentIndex() {
+
+    return MAJOR_SEGMENT;
+  }
+
   /**
-   * Removes the legacy user-data folder from the workspace that VSCode does not read anymore (see #2142 and #2509). If the actual user-data folder does not
-   * yet exist, the legacy folder is moved there to preserve its content, otherwise it is backed up.
+   * Removes the legacy user-data folder from the workspace that VSCode does not read anymore (see #2142 and #2509). If the actual user-data folder does not yet
+   * exist, the legacy folder is moved there to preserve its content, otherwise it is backed up.
    */
   private void cleanupLegacyUserData() {
 
@@ -133,7 +140,7 @@ public class Vscode extends IdeToolCommandlet {
   }
 
   @Override
-  protected Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
+  public Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
 
     // the settings still provide the user settings template in the legacy location inside the workspace
     return Map.of(workspaceFolder.resolve(LEGACY_USER_DATA), getUserDataPath());

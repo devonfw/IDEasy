@@ -28,8 +28,8 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.IdeasyCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.repository.AbstractToolRepository;
 import com.devonfw.tools.ide.tool.repository.ArtifactToolRepository;
 import com.devonfw.tools.ide.url.model.file.UrlChecksums;
@@ -99,7 +99,7 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
   }
 
   @Override
-  protected MvnArtifact resolveArtifact(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
+  protected MvnArtifact resolveArtifact(String tool, String edition, VersionIdentifier version, AbstractToolCommandlet toolCommandlet) {
     MvnArtifact artifact;
     if (toolCommandlet instanceof MvnBasedLocalToolCommandlet mvnBasedTool) {
       artifact = mvnBasedTool.getArtifact(edition);
@@ -169,9 +169,8 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
   /**
    * Resolves the classifier for a Maven snapshot on ARM64.
    * <p>
-   * Snapshot metadata is inspected to determine whether the ARM64 artifact exists.
-   * If it is unavailable but a x64 artifact exists, the x64 artifact is used as fallback.
-   * Release artifacts are not changed here and are attempted as ARM64 first.
+   * Snapshot metadata is inspected to determine whether the ARM64 artifact exists. If it is unavailable but a x64 artifact exists, the x64 artifact is used as
+   * fallback. Release artifacts are not changed here and are attempted as ARM64 first.
    *
    * @param artifact the artifact being resolved.
    * @param classifier the originally resolved classifier.
@@ -349,7 +348,7 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
   }
 
   @Override
-  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, ToolCommandlet toolCommandlet) {
+  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, AbstractToolCommandlet toolCommandlet) {
 
     MvnArtifact artifact = resolveArtifact(tool, edition, null, toolCommandlet);
     return resolveVersion(artifact, version);
@@ -495,7 +494,7 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
   }
 
   @Override
-  protected MvnArtifactMetadata getMetadata(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
+  protected MvnArtifactMetadata getMetadata(String tool, String edition, VersionIdentifier version, AbstractToolCommandlet toolCommandlet) {
 
     return super.getMetadata(tool, edition, version, toolCommandlet);
   }

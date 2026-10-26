@@ -1,263 +1,35 @@
 package com.devonfw.tools.ide.tool.ide;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.common.Tag;
+import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.environment.ExtensibleEnvironmentVariables;
-import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
-import com.devonfw.tools.ide.merge.xml.XmlMerger;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.property.FolderProperty;
-import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolInstallRequest;
-import com.devonfw.tools.ide.tool.eclipse.Eclipse;
-import com.devonfw.tools.ide.tool.extra.ExtraToolInstallation;
-import com.devonfw.tools.ide.tool.extra.ExtraTools;
-import com.devonfw.tools.ide.tool.extra.ExtraToolsMapper;
-import com.devonfw.tools.ide.tool.intellij.Intellij;
-import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
-import com.devonfw.tools.ide.tool.vscode.Vscode;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 
 /**
- * {@link ToolCommandlet} for an IDE (integrated development environment) such as {@link Eclipse}, {@link Vscode}, or {@link Intellij}.
+ * {@link Commandlet} interface for IDE-specific features that are independent of the installation mechanism (binary vs. package manager).
+ * <p>
+ * This allows tools installed via package managers (like pip for Spyder) to still benefit from IDEasy's IDE features such as workspace configuration, metadata
+ * management, and repository import.
  */
-public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
-
-  private static final Logger LOG = LoggerFactory.getLogger(IdeToolCommandlet.class);
-
-  private static final String OPTIONS_ENV_SUFFIX = "_OPTIONS";
-
-  /** The {@code --project} flag consumed by IDEasy to select the folder the IDE opens instead of the default workspace. */
-  private static final String PROJECT_OPTION = "--project";
-
-  private final Map<String, Set<Path>> extraSdkMap;
-
-  /** The {@link FolderProperty} for the optional {@code --project} flag. */
-  protected FolderProperty project;
+public interface IdeToolCommandlet extends LocalToolCommandlet {
 
   /**
-   * The constructor.
-   *
-   * @param context the {@link IdeContext}.
-   * @param tool the {@link #getName() tool name}.
-   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
+   * @return the {@link IdeWorkspaceConfigurer} that configures the workspace of this IDE. Needed so that the default {@link #configureWorkspace()} of this
+   *     interface can delegate the shared workspace configuration logic to a single implementation.
    */
-  public IdeToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
-
-    super(context, tool, tags);
-    assert (hasIde(tags));
-    this.extraSdkMap = new HashMap<>();
-  }
-
-  @Override
-  protected void initProperties() {
-
-    // mustExist=false on purpose: the value is only set in extractProjectOption() (after CLI validation), so the property's own
-    // exists/is-directory check would never fire anyway; validateOpenPath() is the real guard for the opened folder
-    this.project = add(new FolderProperty("--project", false, null, false));
-    super.initProperties();
-  }
-
-  private boolean hasIde(Set<Tag> tags) {
-
-    for (Tag tag : tags) {
-      if (tag.isAncestorOf(Tag.IDE) || (tag == Tag.IDE)) {
-        return true;
-      }
-    }
-    throw new IllegalStateException("Tags of IdeTool has to be connected with tag IDE: " + tags);
-  }
-
-  @Override
-  protected final void doRun() {
-    super.doRun();
-  }
-
-  @Override
-  public ProcessResult runTool(List<String> args) {
-
-    List<String> effectiveArgs = extractProjectOption(args);
-    addIdeOptions(effectiveArgs);
-    return runTool(ProcessMode.BACKGROUND, null, effectiveArgs);
-  }
+  IdeWorkspaceConfigurer getWorkspaceConfigurer();
 
   /**
-   * Extracts the optional {@code --project} flag from the given launch arguments and remembers its folder value via {@link #project}, returning the
-   * remaining arguments that should be passed through to the IDE. Because the remaining trailing arguments of an IDE command are passed verbatim to the IDE
-   * binary, this flag is consumed by IDEasy and never passed through to the IDE.
-   *
-   * @param args the raw command-line arguments to launch this IDE.
-   * @return a copy of {@code args} with the {@code --project} flag and its value removed (if present).
+   * Configures (initializes or updates) the workspace for this IDE using the templates from the settings. The default implementation is shared by all IDEs,
+   * whether installed as binary (see {@link AbstractIdeToolCommandlet}) or via a package manager (see
+   * {@link com.devonfw.tools.ide.tool.pip.PipBasedIdeToolCommandlet}).
    */
-  private List<String> extractProjectOption(List<String> args) {
+  default void configureWorkspace() {
 
-    List<String> effectiveArgs = new ArrayList<>(args);
-    int optionIndex = effectiveArgs.indexOf(PROJECT_OPTION);
-    if (optionIndex < 0) {
-      return effectiveArgs;
-    }
-    int valueIndex = optionIndex + 1;
-    if (valueIndex >= effectiveArgs.size()) {
-      throw new CliException("Missing folder argument for the " + PROJECT_OPTION + " option of command '" + this.tool + "'.");
-    }
-    this.project.setValue(Path.of(effectiveArgs.get(valueIndex)));
-    effectiveArgs.remove(valueIndex); // remove the value first so the option index stays valid
-    effectiveArgs.remove(optionIndex);
-    return effectiveArgs;
-  }
-
-  /**
-   * Appends the tokens of {@code «IDE»_OPTIONS} (e.g. {@code INTELLIJ_OPTIONS}) to the given {@code args}. This is the per-tool analogue of the global
-   * {@code IDE_OPTIONS} and only applies when actually starting the IDE (not for internal calls like plugin installation or repository import).
-   *
-   * @param args the command-line arguments to launch this IDE, extended in place.
-   */
-  private void addIdeOptions(List<String> args) {
-
-    String variableName = EnvironmentVariables.getToolVariablePrefix(this.tool) + OPTIONS_ENV_SUFFIX;
-    String options = this.context.getVariables().get(variableName);
-    if ((options != null) && !options.isBlank()) {
-      for (String option : options.trim().split("\\s+")) {
-        args.add(option);
-      }
-    }
-  }
-
-  @Override
-  public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
-
-    validateOpenPath();
-    if ((processMode != null) && processMode.isBackground() && !hasExplicitProject()) {
-      configureWorkspace();
-    }
-    return super.runTool(pc, processMode, args);
-  }
-
-  /**
-   * @return the {@link Path} that this IDE launch will open. This is the single source of truth for "which folder does this launch open?": it returns the
-   *     {@link #project explicit {@code --project} folder} (relative paths resolved against the current working directory) if the flag was given, or the
-   *     {@link IdeContext#getWorkspacePath() workspace path} otherwise (today's default behavior). The IDE-specific property environment variables
-   *     (e.g. {@code IDEA_PROPERTIES}) point at this same folder so the shell env and the launch agree: the opened project's own properties file when a
-   *     {@code --project} folder was given, the managed workspace's otherwise.
-   */
-  public Path getOpenPath() {
-
-    Path resolved = this.project.getValue();
-    if (resolved == null) {
-      return this.context.getWorkspacePath();
-    }
-    if (!resolved.isAbsolute()) {
-      Path cwd = this.context.getCwd();
-      resolved = (cwd != null) ? cwd.resolve(resolved) : resolved;
-    }
-    return resolved.normalize();
-  }
-
-  /**
-   * Validates the {@link #getOpenPath() folder to open} if an explicit {@code --project} flag was given. Aborts the launch (throwing a
-   * {@link CliException}) when the folder does not exist or is not a directory, so the IDE is never started in such a case.
-   */
-  protected void validateOpenPath() {
-
-    if (this.project.getValue() == null) {
-      return; // no explicit folder - use the default workspace as before
-    }
-    Path openPath = getOpenPath();
-    if (!Files.exists(openPath)) {
-      throw new CliException("Cannot open project " + openPath + " because this folder does not exist.");
-    }
-    if (!Files.isDirectory(openPath)) {
-      throw new CliException("Cannot open project " + openPath + " because this path is not a folder.");
-    }
-  }
-
-  @Override
-  protected void postInstall(ToolInstallRequest request) {
-    if (!hasExplicitProject()) {
-      // an explicit --project launch opens an external folder that must not be written into, so skip the workspace configuration
-      // (template merge and extra-SDK sync); a plain `ide install` keeps merging into the managed workspace as today
-      configureWorkspace();
-    }
-    super.postInstall(request);
-  }
-
-  /**
-   * @return {@code true} if an explicit {@code --project} folder was given for this run, i.e. the launch opens an external folder that IDEasy must not
-   *     write into. Such launches skip the workspace configuration ({@link #configureWorkspace() template merge and extra-SDK sync}) on every call site of
-   *     the launch path (the {@link #runTool} seam and the {@link #postInstall postInstall} of the launch's ensure-install step); a plain
-   *     {@code ide install} (no flag) still merges into the managed workspace.
-   */
-  private boolean hasExplicitProject() {
-
-    return this.project.getValue() != null;
-  }
-
-  /**
-   * @return the {@link Path} to the IDE-specific metadata folder for the {@link IdeContext#getWorkspaceName() current workspace}, located at
-   *     {@code $IDE_HOME/.ide/«ide»/«workspace»}. Unlike {@link IdeContext#getWorkspacePath() the workspace path} (which holds the projects to open), this
-   *     folder keeps IDE-specific metadata (e.g. {@code .vmoptions} or {@code *.properties} files) out of the workspace so it stays clean and independent of
-   *     the IDE being used.
-   */
-  protected Path getIdeMetadataPath() {
-
-    return this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve(getName()).resolve(this.context.getWorkspaceName());
-  }
-
-  /**
-   * Configure (initialize or update) the workspace for this IDE using the templates from the settings.
-   */
-  public void configureWorkspace() {
-
-    FileAccess fileAccess = this.context.getFileAccess();
-    Path workspaceFolder = this.context.getWorkspacePath();
-    if (!fileAccess.isExpectedFolder(workspaceFolder)) {
-      LOG.warn("Current workspace does not exist: {}", workspaceFolder);
-      return; // should actually never happen...
-    }
-    Step step = this.context.newStep("Configuring workspace " + workspaceFolder.getFileName() + " for IDE " + this.tool);
-    step.run(() -> doMergeWorkspaceStep(step, workspaceFolder));
-  }
-
-  private void doMergeWorkspaceStep(Step step, Path workspaceFolder) {
-
-    int errors = 0;
-    Map<Path, Path> redirects = getWorkspaceRedirects(workspaceFolder);
-    errors = mergeWorkspace(this.context.getUserHomeIde(), workspaceFolder, redirects, errors);
-    errors = mergeWorkspace(this.context.getSettingsPath(), workspaceFolder, redirects, errors);
-    errors = mergeWorkspace(this.context.getConfPath(), workspaceFolder, redirects, errors);
-
-    synchronizeExtraToolInstallations();
-
-    if (errors == 0) {
-      step.success();
-    } else {
-      step.error("Your workspace configuration failed with {} error(s) - see log above.\n"
-          + "This is either a configuration error in your settings git repository or a bug in IDEasy.\n"
-          + "Please analyze the above errors with your team or IDE-admin and try to fix the problem.", errors);
-      this.context.askToContinue(
-          "In order to prevent you from being blocked, you can start your IDE anyhow but some configuration may not be in sync.");
-    }
+    getWorkspaceConfigurer().configureWorkspace(this::getWorkspaceRedirects);
   }
 
   /**
@@ -266,29 +38,24 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
    *     templates shall be merged to instead as values. Allows to keep IDE-specific data out of the workspace (e.g. in {@link #getIdeMetadataPath()}) without
    *     changing the structure of the workspace templates in the settings. By default, nothing is redirected.
    */
-  protected Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
+  default Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
 
     return Map.of();
   }
 
-  private int mergeWorkspace(Path configFolder, Path workspaceFolder, Map<Path, Path> redirects, int errors) {
+  /**
+   * @return the {@link Path} to the IDE-specific metadata folder for the current workspace, located at {@code $IDE_HOME/.ide/«toolName»/«workspace»}. Unlike
+   *     {@link IdeContext#getWorkspacePath() the workspace path} (which holds the projects to open), this folder keeps IDE-specific metadata (e.g.
+   *     {@code .vmoptions} or {@code *.properties} files) out of the workspace so it stays clean and independent of the IDE being used.
+   *
+   *     <p>
+   *     The default implementation is shared by all IDEs, whether installed as binary (see {@link AbstractIdeToolCommandlet}) or via a package manager (see
+   *     {@link com.devonfw.tools.ide.tool.pip.PipBasedIdeToolCommandlet}).
+   */
+  default Path getIdeMetadataPath() {
 
-    int result = errors;
-    result = mergeWorkspaceSingle(configFolder.resolve(IdeContext.FOLDER_WORKSPACE), workspaceFolder, redirects, result);
-    result = mergeWorkspaceSingle(configFolder.resolve(this.tool).resolve(IdeContext.FOLDER_WORKSPACE), workspaceFolder, redirects, result);
-    return result;
-  }
-
-  private int mergeWorkspaceSingle(Path templatesFolder, Path workspaceFolder, Map<Path, Path> redirects, int errors) {
-
-    Path setupFolder = templatesFolder.resolve(IdeContext.FOLDER_SETUP);
-    Path updateFolder = templatesFolder.resolve(IdeContext.FOLDER_UPDATE);
-    if (!Files.isDirectory(setupFolder) && !Files.isDirectory(updateFolder)) {
-      LOG.trace("Skipping empty or non-existing workspace template folder {}.", templatesFolder);
-      return errors;
-    }
-    LOG.debug("Merging workspace templates from {}...", templatesFolder);
-    return errors + this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), workspaceFolder, redirects);
+    IdeContext context = getContext();
+    return context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve(getName()).resolve(context.getWorkspaceName());
   }
 
   /**
@@ -296,94 +63,8 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
    *
    * @param repositoryPath the {@link Path} to the repository directory to import.
    */
-  public void importRepository(Path repositoryPath) {
+  default void importRepository(Path repositoryPath) {
 
-    throw new UnsupportedOperationException("Repository import is not yet implemented for IDE " + this.tool);
-  }
-
-  /**
-   * Registers support for synchronizing an extra SDK/template for this IDE.
-   *
-   * <p>
-   * The registered template path must be relative to the IDE workspace root. During workspace synchronization, the generic extra-SDK handling in
-   * {@link #synchronizeExtraToolInstallations()} uses this mapping to locate the corresponding template file in the settings repository and merge it into the
-   * current workspace.
-   * </p>
-   *
-   * @param sdk the name of the extra SDK/tool as configured in {@code ide-extra-tools.json}.
-   * @param relativeTemplatePath the workspace-relative path of the IDE-specific template file to merge.
-   */
-  protected void registerExtraSdkTemplate(String sdk, Path relativeTemplatePath) {
-
-    Set<Path> templatePaths = this.extraSdkMap.computeIfAbsent(sdk, _ -> new HashSet<>());
-    templatePaths.add(relativeTemplatePath);
-  }
-
-  /**
-   * Synchronizes extra IDEasy tool installations into the current IDE workspace configuration if supported.
-   *
-   * <p>
-   * By default, nothing will happen. Your IDE commandlet has to register one or more according templates in its constructor.
-   * </p>
-   */
-  protected void synchronizeExtraToolInstallations() {
-
-    ExtraTools extraTools = ExtraToolsMapper.get().loadJsonFromFolder(this.context.getSettingsPath());
-    if (extraTools == null) {
-      return;
-    }
-    for (String sdk : extraTools.getSortedToolNames()) {
-      Set<Path> templatePaths = this.extraSdkMap.get(sdk);
-      if ((templatePaths == null) || templatePaths.isEmpty()) {
-        LOG.debug("Skipping import of extra tool {} into {} because not configured or supported.", sdk, this.tool);
-        continue;
-      }
-      List<ExtraToolInstallation> extraInstallations = extraTools.getExtraInstallations(sdk);
-      synchronizeExtraToolInstallation(sdk, templatePaths, extraInstallations);
-    }
-  }
-
-  private void synchronizeExtraToolInstallation(String sdk, Set<Path> templatePaths, List<ExtraToolInstallation> extraInstallations) {
-
-    for (Path templatePath : templatePaths) {
-      Path workspaceFile = this.context.getWorkspacePath().resolve(templatePath);
-      Path templateFile = this.context.getSettingsPath().resolve(this.tool).resolve(IdeContext.FOLDER_WORKSPACE)
-          .resolve(IdeContext.FOLDER_REPOSITORY)
-          .resolve(templatePath);
-      if (Files.exists(templateFile)) {
-        for (ExtraToolInstallation extraInstallation : extraInstallations) {
-          synchronizeExtraToolInstallation(sdk, templateFile, workspaceFile, extraInstallation);
-        }
-      } else {
-        LOG.warn("You are missing a template file at {}.", templatePath);
-        IdeLogLevel.INTERACTION.log(LOG, "Please ask the IDEasy admin in your project to merge your settings with upstream.");
-      }
-    }
-  }
-
-  private void synchronizeExtraToolInstallation(String sdk, Path templateFile, Path workspaceFile, ExtraToolInstallation installation) {
-
-    String name = installation.name();
-    Path extraToolHome = this.context.getSoftwareExtraPath().resolve(sdk).resolve(name);
-    if (!Files.isDirectory(extraToolHome)) {
-      LOG.warn("Skipping extra tool installation import to {} because it is missing at {}", this.tool, extraToolHome);
-      IdeLogLevel.INTERACTION.log(LOG, "Please run the following command to fix:\nide update");
-      return;
-    }
-    ExtensibleEnvironmentVariables environmentVariables = new ExtensibleEnvironmentVariables(
-        (AbstractEnvironmentVariables) this.context.getVariables().getParent(), this.context);
-    String variablePrefix = "EXTRA_" + sdk.toUpperCase(Locale.ROOT);
-    environmentVariables.setValue(variablePrefix + "_NAME", name);
-    environmentVariables.setValue(variablePrefix + "_HOME", extraToolHome.toString().replace('\\', '/'));
-    environmentVariables.setValue(variablePrefix + "_VERSION", installation.version().toString());
-    if (installation.edition() != null) {
-      environmentVariables.setValue(variablePrefix + "_EDITION", installation.edition());
-    }
-
-    XmlMerger xmlMerger = new XmlMerger(this.context);
-    XmlMergeDocument workspaceDocument = xmlMerger.load(workspaceFile);
-    XmlMergeDocument templateDocument = xmlMerger.loadAndResolve(templateFile, environmentVariables);
-    Document mergedDocument = xmlMerger.merge(templateDocument, workspaceDocument, false);
-    xmlMerger.save(mergedDocument, workspaceFile);
+    throw new CliException("Repository import is not yet supported for IDE " + getName());
   }
 }
