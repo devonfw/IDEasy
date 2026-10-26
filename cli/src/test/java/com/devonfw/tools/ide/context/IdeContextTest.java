@@ -331,4 +331,24 @@ public class IdeContextTest extends AbstractIdeContextTest {
     assertThatThrownBy(() -> context.question(options, "Which option?")).isInstanceOf(CliAbortException.class);
   }
 
+  /**
+   * Counterpart to {@link #testQuestionWithMultipleOptionsAbortsInBatchModeWithoutForce()}: the {@code -f} (force) option that the abort message tells the
+   * user to rely on must make a question with multiple options select the first option in batch mode.
+   */
+  @Test
+  void testQuestionWithMultipleOptionsSelectsFirstOptionInBatchModeWithForce() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    context.getStartContext().setBatchMode(true);
+    context.getStartContext().setForceMode(true);
+    String[] options = { "option1", "option2" };
+
+    // act
+    String result = context.question(options, "Which option?");
+
+    // assert
+    assertThat(result).isEqualTo("option1");
+  }
+
 }
