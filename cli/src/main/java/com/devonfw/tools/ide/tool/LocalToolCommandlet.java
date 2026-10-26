@@ -25,4 +25,25 @@ public interface LocalToolCommandlet extends ToolCommandlet {
     }
     return toolPath;
   }
+
+  /**
+   * @return the {@link Path} where the tool is located (installed). Will be {@code null} for global tools that do not know the {@link Path} since it is
+   *     determined by the installer.
+   */
+  @Override
+  default Path getToolPath() {
+
+    if (getContext().getSoftwarePath() == null) {
+      return null;
+    }
+    return getContext().getSoftwarePath().resolve(getName());
+  }
+
+  /**
+   * @return Bash completion command for this tool or {@code null} if this tool does not provide Bash completion.
+   */
+  default String getBashCompletion() {
+
+    return null;
+  }
 }
