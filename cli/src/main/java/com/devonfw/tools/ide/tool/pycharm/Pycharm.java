@@ -34,7 +34,8 @@ public class Pycharm extends IdeaBasedIdeToolCommandlet {
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
-    environmentContext.withEnvVar("PYCHARM_PROPERTIES", this.context.getWorkspacePath().resolve("pycharm.properties").toString());
+    // point at the opened folder's own pycharm.properties (see getOpenPath() for the single source of truth)
+    environmentContext.withEnvVar("PYCHARM_PROPERTIES", getOpenPath().resolve("pycharm.properties").toString());
   }
 
   @Override

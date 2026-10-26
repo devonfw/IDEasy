@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -274,8 +275,79 @@ class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that {@code VSCODE_OPTIONS} is honoured by appending its tokens as additional command-line arguments when starting the IDE (analogue to the global
-   * {@code IDE_OPTIONS} used for IDEasy itself, see issue #788).
+   * Tests that with an explicit {@code --project} folder
+   * {@link Vscode#configureToolArgs(ProcessContext, ProcessMode, List)} appends the selected folder
+   * ({@link AbstractIdeToolCommandlet#getOpenPath()}) to the launch arguments instead of the managed workspace path, while the
+   * {@code --user-data-dir} / {@code --profile} stay on the {@code main} profile (sharing is decided behavior, see #2393).
+   */
+  @Test
+  void testConfigureToolArgsUsesOpenPathForProject() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    Path external = context.getIdeHome().resolve("external-project").normalize();
+    ProjectVscode commandlet = new ProjectVscode(context);
+    commandlet.setProject(external);
+    ArgCapturingProcessContext pc = new ArgCapturingProcessContext(context);
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+    // assert
+    assertThat(pc.capturedArgs).contains(external.toString());
+    assertThat(pc.capturedArgs).doesNotContain(context.getWorkspacePath().toString());
+    // the VS Code profile stays on the managed workspace, not the external project
+    assertThat(pc.capturedArgs).anyMatch(arg -> arg.startsWith("--user-data-dir=")
+        && arg.contains(context.getWorkspaceName().toString()));
+  }
+
+  /**
+   * Tests that without an explicit {@code --project} folder VS Code is launched with the managed workspace path (regression guard, no-flag behavior is
+   * unchanged by #2492) and {@code --user-data-dir} points at the main metadata profile.
+   */
+  @Test
+  void testConfigureToolArgsUsesWorkspacePathWithoutProject() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    ProjectVscode commandlet = new ProjectVscode(context);
+    ArgCapturingProcessContext pc = new ArgCapturingProcessContext(context);
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+    // assert
+    assertThat(pc.capturedArgs).contains(context.getWorkspacePath().toString());
+    assertThat(pc.capturedArgs)
+        .anyMatch(arg -> arg.startsWith("--user-data-dir=")
+            && arg.equals("--user-data-dir=" + context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode")
+                .resolve(context.getWorkspaceName()).resolve("config")));
+  }
+
+  /**
+   * Tests that an invalid explicit {@code --project} folder (a non-existing folder or a regular file) aborts the VS Code launch with a {@link CliException}
+   * via {@link AbstractIdeToolCommandlet#validateOpenPath()}. Mirrors the IntelliJ-specific {@code testGetOpenPathInvalidPathThrows}, since both share the same
+   * validation path.
+   */
+  @Test
+  void testValidateOpenPathForVscodeThrowsOnInvalidProject() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    ProjectVscode commandlet = new ProjectVscode(context);
+    ProcessContextTestImpl pc = new ProcessContextTestImpl(context);
+    // act & assert - a non-existing folder
+    commandlet.setProject(Path.of("does-not-exist-folder-12345"));
+    assertThatThrownBy(() -> commandlet.runTool(pc, ProcessMode.BACKGROUND, List.of())).isInstanceOf(CliException.class);
+    // act & assert - a file is not a folder
+    Path file = context.getWorkspacePath().resolve("a-file.txt");
+    context.getFileAccess().writeFileContent("content", file);
+    commandlet.setProject(file);
+    assertThatThrownBy(() -> commandlet.runTool(pc, ProcessMode.BACKGROUND, List.of())).isInstanceOf(CliException.class);
+  }
+
+  /**
+   * Tests that {@code VSCODE_OPTIONS} is honoured by appending its tokens as additional command-line arguments when starting the IDE (analogue to the
+   * global {@code IDE_OPTIONS} used for IDEasy itself, see issue #788).
    */
   @Test
   void testRunAddsVscodeOptions() {
@@ -426,6 +498,21 @@ class VscodeTest extends AbstractIdeContextTest {
     }
   }
 
+  /**
+   * {@link Vscode} test double exposing a setter for the inherited protected {@code --project} {@code FolderProperty} so {@code configureToolArgs} tests can
+   * simulate an explicit {@code --project} folder without going through the full CLI path.
+   */
+  private static class ProjectVscode extends Vscode {
+
+    private ProjectVscode(IdeTestContext context) {
+
+      super(context);
+    }
+
+    public void setProject(Path project) {
+      this.project.setValue(project);
+    }
+  }
 
   /**
    * {@link ProcessContextTestImpl} subclass that captures calls to {@link #withEnvVar(String, String)} for test assertions.

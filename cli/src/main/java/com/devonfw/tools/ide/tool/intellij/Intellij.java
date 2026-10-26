@@ -86,7 +86,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   @Override
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
-    environmentContext.withEnvVar("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve(IDEA_PROPERTIES).toString());
+    // point at the opened folder's own idea.properties (see getOpenPath() for the single source of truth)
+    environmentContext.withEnvVar("IDEA_PROPERTIES", getOpenPath().resolve(IDEA_PROPERTIES).toString());
   }
 
   @Override
