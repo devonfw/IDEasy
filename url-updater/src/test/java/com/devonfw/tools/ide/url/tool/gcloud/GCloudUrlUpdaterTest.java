@@ -40,7 +40,7 @@ class GCloudUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
     // arrange
     String versionPath = "/dl/cloudsdk/channels/rapid/components-2.json";
-    String response = readAndResolve(PATH_INTEGRATION_TEST.resolve("GCloudUrlUpdater").resolve("components-2.json"), wmRuntimeInfo)
+    String response = readAndResolve(PATH_INTEGRATION_TEST.resolve("GCloudUrlUpdater").resolve("gcloud-version.json"), wmRuntimeInfo)
         .replace("590.0.1", version);
     stubFor(get(urlEqualTo(versionPath)).willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(response)));
     stubFor(any(urlPathMatching("/dl/cloudsdk/channels/rapid/downloads/.*"))
