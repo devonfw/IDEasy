@@ -545,7 +545,7 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
   public void uninstall() {
     try {
       Path toolPath = getToolPath();
-      if (!Files.exists(toolPath)) {
+      if (!Files.exists(toolPath, LinkOption.NOFOLLOW_LINKS)) {
         LOG.warn("An installed version of {} does not exist.", this.tool);
         return;
       }

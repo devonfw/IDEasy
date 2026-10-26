@@ -22,8 +22,12 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.process.ProcessResultImpl;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.plugin.AbstractPluginBasedCommandlet;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Test of {@link Vscode} class.
@@ -74,8 +78,9 @@ class VscodeTest extends AbstractIdeContextTest {
     Vscode commandlet = context.getCommandletManager().getCommandlet(Vscode.class);
     commandlet.run();
 
-    assertThat(context).logAtSuccess().hasNoMessageContaining("Successfully installed plugin:");
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin mockedPlugin (1/1)'.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin");
+    assertThat(context).logAtSuccess().hasNoMessageContaining("Successfully ended step 'Install plugin mockedPlugin");
+    assertThat(context).log().hasMessage("Start: Install plugin mockedPlugin (1/1)");
 
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("mockedPlugin"))).exists();
@@ -127,7 +132,7 @@ class VscodeTest extends AbstractIdeContextTest {
 
     assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.92.1");
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode in version 1.92.1");
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin mockedPlugin (1/1)'.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin");
   }
 
   @Test
@@ -364,6 +369,36 @@ class VscodeTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(excludedEditions).contains("vscode", "vscodium");
+  }
+
+  @Test
+  void testPluginPurgeRequiredOnMajorVersionChangeOnly() {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode vscodeCommandlet = new Vscode(context);
+    ToolEdition edition = new ToolEdition(PROJECT_VSCODE, PROJECT_VSCODE);
+
+    ToolEditionAndVersion installed = new ToolEditionAndVersion(edition);
+    installed.setResolvedVersion(VersionIdentifier.of("1.90.0"));
+    ToolEditionAndVersion requestedMajor = new ToolEditionAndVersion(edition);
+    requestedMajor.setResolvedVersion(VersionIdentifier.of("2.90.0"));
+    ToolInstallRequest majorVersionChange = new ToolInstallRequest(true);
+    majorVersionChange.setInstalled(installed);
+    majorVersionChange.setRequested(requestedMajor);
+
+    ToolEditionAndVersion requestedMinor = new ToolEditionAndVersion(edition);
+    requestedMinor.setResolvedVersion(VersionIdentifier.of("1.91.0"));
+    ToolInstallRequest minorVersionChange = new ToolInstallRequest(true);
+    minorVersionChange.setInstalled(installed);
+    minorVersionChange.setRequested(requestedMinor);
+
+    // act
+    boolean purgeOnMajor = vscodeCommandlet.isPluginPurgeRequired(majorVersionChange);
+    boolean purgeOnMinor = vscodeCommandlet.isPluginPurgeRequired(minorVersionChange);
+
+    // assert
+    assertThat(purgeOnMajor).isTrue();
+    assertThat(purgeOnMinor).isFalse();
   }
 
   /**
