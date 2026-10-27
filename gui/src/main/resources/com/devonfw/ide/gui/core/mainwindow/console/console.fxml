@@ -10,6 +10,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
+<?import java.net.URL?>
 <AnchorPane
   xmlns:fx="http://javafx.com/fxml"
   xmlns="http://javafx.com/javafx"
@@ -21,6 +22,7 @@
   AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
   minHeight="0"
 >
+  <stylesheets><URL value="@../../../style/console.css"/></stylesheets>
 
   <VBox spacing="5" minWidth="-Infinity" styleClass="vBox-style" AnchorPane.topAnchor="0"
     AnchorPane.bottomAnchor="0"
