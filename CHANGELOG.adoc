@@ -18,6 +18,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2607[#2607]: Align tool help for corepack
 * https://github.com/devonfw/IDEasy/issues/2322[#2322]: Use a consistent IDEasy icon across all operating systems
 * https://github.com/devonfw/IDEasy/issues/1209[#1209]: Improve confusing migration version message of `ide status`
+* https://github.com/devonfw/IDEasy/issues/2714[#2714]: oc url-updater misses all versions since OpenShift 4.10
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/51?closed=1[milestone 2026.10.001].
 
