@@ -6,6 +6,7 @@ import java.util.Locale;
 
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
 
 /**
  * {@link Enum} with the available compression modes of a TAR archive file. A GNU Tape ARchive is the standard archive format on Linux systems. It is similar to
@@ -32,6 +33,15 @@ public enum TarCompression {
     InputStream unpackRaw(InputStream in) throws IOException {
 
       return new BZip2CompressorInputStream(in);
+    }
+  },
+
+  /** XZ (LZMA2) compression. */
+  XZ("xz", "txz", "-J") {
+    @Override
+    InputStream unpackRaw(InputStream in) throws IOException {
+
+      return new XZCompressorInputStream(in);
     }
   };
 

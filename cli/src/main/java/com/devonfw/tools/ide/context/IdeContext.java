@@ -304,26 +304,10 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
-   * Marks the variable with the given name as secret so that its value is masked in all log output, even if the value is not entered by the user but read from
-   * an existing {@code ide.properties}.
-   *
-   * @param name the name of the variable (e.g. "MY_API_TOKEN").
-   */
-  void addSecretVariable(String name);
-
-  /**
-   * Registers the value of a variable as secret if the variable was marked via {@link #addSecretVariable(String)}. Has to be called before the value is
-   * logged.
-   *
-   * @param name the name of the variable.
-   * @param value the value of the variable.
-   */
-  void addSecretValue(String name, String value);
-
-  /**
    * @param question the question to ask.
    * @param args arguments for filling the templates
    * @return {@code true} if the user answered with "yes", {@code false} otherwise ("no").
+   * @throws CliAbortException if the question cannot be answered because we are in batch mode without force mode.
    */
   default boolean question(String question, Object... args) {
 
@@ -340,6 +324,8 @@ public interface IdeContext extends IdeStartContext {
    * @param options the available options for the user to answer. There should be at least two options given as otherwise the question cannot make sense.
    * @param question the question to ask.
    * @return the option selected by the user as answer.
+   * @throws CliAbortException if the question cannot be answered because we are in batch mode without force mode. In that case the first option is not selected
+   *     automatically - re-run the command with the force option to accept it.
    */
   @SuppressWarnings("unchecked")
   <O> O question(O[] options, String question, Object... args);
