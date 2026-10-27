@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.property.StringProperty;
@@ -24,7 +24,7 @@ import com.devonfw.tools.ide.tool.repository.ToolRepository;
 /**
  * Commandlet which scans your IDE installation for unused software (tools not currently used by any project) and removes them.
  */
-public class CleanupCommandlet extends Commandlet {
+public class CleanupCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(CleanupCommandlet.class);
 

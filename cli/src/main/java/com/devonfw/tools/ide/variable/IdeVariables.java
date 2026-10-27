@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitUrlSyntax;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 
 /**
  * Interface (mis)used to define all the available variables.
@@ -68,8 +69,7 @@ public interface IdeVariables {
   VariableDefinitionPath M2_REPO = new VariableDefinitionPath("M2_REPO", null, IdeVariables::getMavenRepositoryPath, false, true);
 
   /**
-   * {@link VariableDefinition} for {@link com.devonfw.tools.ide.tool.ToolCommandlet#getConfiguredEdition() edition} of
-   * {@link com.devonfw.tools.ide.tool.docker.Docker docker}.
+   * {@link VariableDefinition} for {@link AbstractToolCommandlet#getConfiguredEdition() edition} of {@link com.devonfw.tools.ide.tool.docker.Docker docker}.
    */
   VariableDefinitionString DOCKER_EDITION = new VariableDefinitionString("DOCKER_EDITION", null, c -> "rancher");
 

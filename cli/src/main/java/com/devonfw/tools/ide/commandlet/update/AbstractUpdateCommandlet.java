@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliFatalException;
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CreateCommandlet;
 import com.devonfw.tools.ide.commandlet.update.settings.SettingsHealthCheckResult;
@@ -31,8 +31,8 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
@@ -45,9 +45,9 @@ import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Abstract {@link Commandlet} base-class for both {@link UpdateCommandlet} and {@link CreateCommandlet}.
+ * Abstract {@link AbstractCommandlet} base-class for both {@link UpdateCommandlet} and {@link CreateCommandlet}.
  */
-public abstract class AbstractUpdateCommandlet extends Commandlet {
+public abstract class AbstractUpdateCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractUpdateCommandlet.class);
 
@@ -255,13 +255,13 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   private void doUpdateSoftwareStep(Step step) {
 
-    Set<ToolCommandlet> toolCommandlets = new HashSet<>();
+    Set<AbstractToolCommandlet> toolCommandlets = new HashSet<>();
     CommandletManager commandletManager = this.context.getCommandletManager();
     // installed tools in IDE_HOME/software
     List<Path> softwarePaths = this.context.getFileAccess().listChildren(this.context.getSoftwarePath(), Files::isDirectory);
     for (Path softwarePath : softwarePaths) {
       String toolName = softwarePath.getFileName().toString();
-      ToolCommandlet toolCommandlet = commandletManager.getToolCommandlet(toolName);
+      AbstractToolCommandlet toolCommandlet = commandletManager.getToolCommandlet(toolName);
       if (toolCommandlet != null) {
         toolCommandlets.add(toolCommandlet);
       }
@@ -271,7 +271,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     List<String> regularTools = IdeVariables.IDE_TOOLS.get(this.context);
     if (regularTools != null) {
       for (String regularTool : regularTools) {
-        ToolCommandlet toolCommandlet = commandletManager.getToolCommandlet(regularTool);
+        AbstractToolCommandlet toolCommandlet = commandletManager.getToolCommandlet(regularTool);
         if (toolCommandlet == null) {
           String displayName = (regularTool == null || regularTool.isBlank()) ? "<empty>" : "'" + regularTool + "'";
           LOG.error("Cannot install or update tool '{}''. No matching commandlet found. Please check your IDE_TOOLS configuration.", displayName);
@@ -288,7 +288,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     }
 
     // update/install the toolCommandlets
-    for (ToolCommandlet toolCommandlet : toolCommandlets) {
+    for (AbstractToolCommandlet toolCommandlet : toolCommandlets) {
       this.context.newStep("Install " + toolCommandlet.getName()).run(() -> toolCommandlet.install(false));
     }
 
@@ -309,7 +309,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     CommandletManager commandletManager = this.context.getCommandletManager();
     FileAccess fileAccess = this.context.getFileAccess();
     Path extraPath = this.context.getSoftwareExtraPath();
-    LocalToolCommandlet toolCommandlet = commandletManager.getRequiredLocalToolCommandlet(tool);
+    AbstractLocalToolCommandlet toolCommandlet = commandletManager.getRequiredLocalToolCommandlet(tool);
     for (ExtraToolInstallation extraInstallation : extraInstallations) {
       ToolInstallRequest request = new ToolInstallRequest(false);
       String edition = extraInstallation.edition();
@@ -348,7 +348,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       return;
     }
     for (String ide : ides) {
-      ToolCommandlet tool = this.context.getCommandletManager().getToolCommandlet(ide);
+      AbstractToolCommandlet tool = this.context.getCommandletManager().getToolCommandlet(ide);
       if (tool == null) {
         LOG.error("Undefined IDE '{}' configured in variable CREATE_START_SCRIPTS.", ide);
       } else {

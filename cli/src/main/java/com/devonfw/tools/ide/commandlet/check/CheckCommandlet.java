@@ -8,16 +8,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.property.FlagProperty;
 
 /**
- * {@link Commandlet} to check the current repository for best-practices, starting from the current working directory (CWD).
+ * {@link AbstractCommandlet} to check the current repository for best-practices, starting from the current working directory (CWD).
  */
-public class CheckCommandlet extends Commandlet {
+public class CheckCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(CheckCommandlet.class);
 
