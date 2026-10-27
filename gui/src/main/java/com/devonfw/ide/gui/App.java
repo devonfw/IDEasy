@@ -31,7 +31,7 @@ public class App extends Application {
   /**
    * Path to icon file used for GUI of IDEasy starting from {@code gui/src/main/resources}
    */
-  public static final String ICON_PATH = "com/devonfw/ide/gui/assets/ideasy.png";
+  public static final String ICON_PATH = "com/devonfw/ide/gui/assets/icon.png";
 
   /** Preferred initial width of the main window content in pixels, as given by the UI design (excluding window decorations). */
   private static final double MAIN_WINDOW_WIDTH = 1295.0;
