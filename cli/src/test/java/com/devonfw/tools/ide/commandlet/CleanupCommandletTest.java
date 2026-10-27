@@ -193,7 +193,7 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
     ageFolder(unusedVersion, Duration.ofDays(366));
 
     // create the _ide/installation link (a symlink, or a junction where symlinks are not allowed) pointing at the running version
-    WindowsSymlinkTestHelper.createDirectoryLink(context.getIdeInstallationPath(), runningVersion);
+    context.getFileAccess().symlink(runningVersion, context.getIdeInstallationPath(), false);
 
     CleanupCommandlet cleanup = getCleanupWithConfirmation(context);
 
@@ -231,7 +231,7 @@ class CleanupCommandletTest extends AbstractIdeContextTest {
     ageFolder(unusedVersion, Duration.ofDays(10));
 
     // create the _ide/installation link pointing at the running version
-    WindowsSymlinkTestHelper.createDirectoryLink(context.getIdeInstallationPath(), runningVersion);
+    context.getFileAccess().symlink(runningVersion, context.getIdeInstallationPath(), false);
 
     context.setAnswers("yes");
     setRetentionDelay(context, "P1D");

@@ -311,7 +311,8 @@ public class CleanupCommandlet extends AbstractCommandlet {
     try {
       return this.context.getFileAccess().toRealPath(installation);
     } catch (Exception e) {
-      LOG.debug("Could not resolve the running IDEasy installation at {}.", installation, e);
+      // This is called once per run, so reaching the catch block is unexpected and worth raising as a warning rather than a debug message.
+      LOG.warn("Could not resolve the running IDEasy installation at {}.", installation, e);
       return null;
     }
   }
