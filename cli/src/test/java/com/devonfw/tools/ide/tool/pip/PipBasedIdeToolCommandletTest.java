@@ -11,8 +11,12 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextTestImpl;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 import com.devonfw.tools.ide.tool.python.Python;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -59,8 +63,11 @@ class PipBasedIdeToolCommandletTest extends AbstractIdeContextTest {
     ToolPluginDescriptor plugin = new ToolPluginDescriptor("testplugin", "TestPlugin", null, "1.0.0", true, null, null);
     Step step = context.newStep("Install plugin TestPlugin");
 
-    // act
-    step.run(() -> commandlet.installPlugin(plugin, step, new ProcessContextTestImpl(context)));
+    // act - the request is the tool install request propagated down from postInstall, so it carries the tool's requested edition
+    ToolInstallRequest request = new ToolInstallRequest(true);
+    request.setProcessContext(new ProcessContextTestImpl(context));
+    request.setRequested(new ToolEditionAndVersion(new ToolEdition(TOOL, null), VersionIdentifier.of("1.0.0")));
+    step.run(() -> commandlet.installPlugin(plugin, step, request));
 
     // assert
     assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: TestPlugin");

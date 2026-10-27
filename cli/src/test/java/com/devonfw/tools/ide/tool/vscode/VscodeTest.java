@@ -102,7 +102,7 @@ class VscodeTest extends AbstractIdeContextTest {
     ToolPluginDescriptor plugin = new ToolPluginDescriptor("publisher.extension", "mockedPlugin", null, "1.2.3", true, null, null);
     Step step = context.newStep("Install plugin mockedPlugin");
 
-    step.run(() -> vscodeCommandlet.installPlugin(plugin, step, new ProcessContextTestImpl(context)));
+    step.run(() -> vscodeCommandlet.installPlugin(plugin, step, newRequest(context)));
 
     assertThat(vscodeCommandlet.lastArgs).contains("--install-extension", "publisher.extension@1.2.3");
   }
@@ -115,7 +115,7 @@ class VscodeTest extends AbstractIdeContextTest {
     ToolPluginDescriptor plugin = new ToolPluginDescriptor("publisher.extension", "mockedPlugin", null, null, true, null, null);
     Step step = context.newStep("Install plugin mockedPlugin");
 
-    step.run(() -> vscodeCommandlet.installPlugin(plugin, step, new ProcessContextTestImpl(context)));
+    step.run(() -> vscodeCommandlet.installPlugin(plugin, step, newRequest(context)));
 
     assertThat(vscodeCommandlet.lastArgs).contains("--install-extension", "publisher.extension");
     assertThat(vscodeCommandlet.lastArgs).doesNotContain("publisher.extension@null");
@@ -329,7 +329,7 @@ class VscodeTest extends AbstractIdeContextTest {
     List<ToolPluginDescriptor> plugins = List.of(excludedPlugin);
 
     // act
-    vscodiumCommandlet.installPluginsForTest(plugins, new ProcessContextTestImpl(context));
+    vscodiumCommandlet.installPluginsForTest(plugins, newRequest(context));
 
     // assert
     assertThat(vscodiumCommandlet.lastArgs).isEmpty();
@@ -347,7 +347,7 @@ class VscodeTest extends AbstractIdeContextTest {
     List<ToolPluginDescriptor> plugins = List.of(excludedPlugin);
 
     // act
-    vscodeCommandlet.installPluginsForTest(plugins, new ProcessContextTestImpl(context));
+    vscodeCommandlet.installPluginsForTest(plugins, newRequest(context));
 
     // assert
     assertThat(vscodeCommandlet.lastArgs).contains("--install-extension", "publisher.excluded@1.0.0");
@@ -398,6 +398,17 @@ class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
+   * @param context the {@link IdeTestContext}.
+   * @return a {@link ToolInstallRequest} with a process context set, as used when plugins are installed as part of a tool installation.
+   */
+  private static ToolInstallRequest newRequest(IdeTestContext context) {
+
+    ToolInstallRequest request = new ToolInstallRequest(true);
+    request.setProcessContext(new ProcessContextTestImpl(context));
+    return request;
+  }
+
+  /**
    * Test double for {@link Vscode} that captures CLI arguments passed to {@link #runTool(ProcessContext, ProcessMode, List)} so tests can assert command
    * construction without spawning an external process.
    */
@@ -420,9 +431,9 @@ class VscodeTest extends AbstractIdeContextTest {
       return new ProcessResultImpl("code", "code", 0, List.of());
     }
 
-    /** Exposes the protected {@link AbstractPluginBasedCommandlet#installPlugins(Collection, ProcessContext)} for testing. */
-    public void installPluginsForTest(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
-      installPlugins(plugins, pc);
+    /** Exposes the protected {@link AbstractPluginBasedCommandlet#installPlugins(Collection, ToolInstallRequest)} for testing. */
+    public void installPluginsForTest(Collection<ToolPluginDescriptor> plugins, ToolInstallRequest request) {
+      installPlugins(plugins, request);
     }
   }
 

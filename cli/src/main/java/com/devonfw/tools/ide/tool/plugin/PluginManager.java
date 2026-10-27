@@ -16,7 +16,6 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
@@ -218,9 +217,10 @@ public class PluginManager {
    * {@link ToolPluginDescriptor#active() active} ones, and handles the inactive plugins that are not explicitly requested.
    *
    * @param plugins as {@link Collection} of plugins to install.
-   * @param pc the {@link ProcessContext} to use.
+   * @param request the {@link ToolInstallRequest} of the tool installation that triggers the plugin installation (carries the
+   *     {@link com.devonfw.tools.ide.process.ProcessContext} and the real install context).
    */
-  public void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
+  public void installPlugins(Collection<ToolPluginDescriptor> plugins, ToolInstallRequest request) {
 
     Set<String> extraPlugins = getExtraPlugins(plugins);
     String edition = this.tool.getConfiguredEdition();
@@ -248,7 +248,7 @@ public class PluginManager {
       if (this.context.isForcePlugins() || !pluginMarkerFileExists) {
         String progressMarker = " (" + currentPluginIndex + "/" + totalPlugins + ")";
         Step step = this.context.newStep("Install plugin " + plugin.name() + progressMarker);
-        step.run(() -> doInstallPluginStep(plugin, step, pc));
+        step.run(() -> doInstallPluginStep(plugin, step, request));
       } else {
         LOG.debug("Skipping installation of plugin '{}' due to existing marker file: {}", plugin.name(), pluginMarkerFile);
       }
@@ -290,9 +290,9 @@ public class PluginManager {
     return extraPlugins;
   }
 
-  private void doInstallPluginStep(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
+  private void doInstallPluginStep(ToolPluginDescriptor plugin, Step step, ToolInstallRequest request) {
 
-    boolean result = this.tool.installPlugin(plugin, step, pc);
+    boolean result = this.tool.installPlugin(plugin, step, request);
     if (result) {
       createPluginMarkerFile(plugin);
     }
