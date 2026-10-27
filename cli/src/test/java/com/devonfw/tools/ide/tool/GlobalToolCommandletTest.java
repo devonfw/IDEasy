@@ -669,6 +669,6 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     // assert: the edition comes from getEditionNames() (the meaningful name), not the tool-name placeholder
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("mytool-pro");
-    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("9.9.9"));
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired("9.9.9"));
   }
 }

@@ -136,7 +136,7 @@ class DockerTest extends AbstractIdeContextTest {
     // assert: plutil is called directly (not via `bash -lc`) and the full Docker.app plist path is passed as one argument
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("docker");
-    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("4.44.0"));
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired("4.44.0"));
     Mockito.verify(processContext).runAndGetSingleOutput(IdeLogLevel.WARNING, PLUTIL_EXECUTABLE, PLUTIL_ARGUMENT_1, PLUTIL_ARGUMENT_2,
         PLUTIL_ARGUMENT_3, DOCKER_PLIST_PATH);
   }
@@ -196,7 +196,7 @@ class DockerTest extends AbstractIdeContextTest {
     // assert: edition is the real "rancher" edition (not a placeholder) and the version comes from the native package manager
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("rancher");
-    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("1.13.0"));
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired("1.13.0"));
   }
 
   /**
@@ -224,7 +224,7 @@ class DockerTest extends AbstractIdeContextTest {
     // assert: edition is the real "rancher" edition and the version comes from the Rancher Desktop.app bundle (single-arg plist path)
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("rancher");
-    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("1.13.0"));
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired("1.13.0"));
     Mockito.verify(processContext).runAndGetSingleOutput(IdeLogLevel.WARNING, PLUTIL_EXECUTABLE, PLUTIL_ARGUMENT_1, PLUTIL_ARGUMENT_2,
         PLUTIL_ARGUMENT_3, RANCHER_PLIST_PATH);
   }
@@ -273,7 +273,7 @@ class DockerTest extends AbstractIdeContextTest {
     // assert: the docker edition wins because it is probed before rancher
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("docker");
-    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("4.44.0"));
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired("4.44.0"));
   }
 
   /**
@@ -296,7 +296,7 @@ class DockerTest extends AbstractIdeContextTest {
     // assert: the rancher edition with the version of the Rancher Desktop registry entry
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("rancher");
-    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("1.24.0"));
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired("1.24.0"));
   }
 
   /**
