@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2725[#2725]: Cleanup of IdeLogEntry, IdeLogListener and IdeGuiLogListener
 * https://github.com/devonfw/IDEasy/issues/2365[#2365]: Reduce plugin reinstallations
 * https://github.com/devonfw/IDEasy/issues/2701[#2701]: Stop exporting UV_PROJECT_ENVIRONMENT which broke uv projects
 * https://github.com/devonfw/IDEasy/issues/1965[#1965]: Improve dependent installation, fixed npm and pip-based installation duplication
@@ -47,8 +48,7 @@ The full list of changes for this release can be found in https://github.com/dev
 
 == 2026.09.001
 
-* https://github.com/devonfw/IDEasy/issues/2293[#2293]: Rework spyder to have same features as IdeToolCommandlets
-Release with new features and bugfixes:
+* https://github.com/devonfw/IDEasy/issues/2293[#2293]: Rework spyder to have same features as IdeToolCommandlets Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1525[#1525]: Document known issue and workaround for lombok plugin in Eclipse
 * https://github.com/devonfw/IDEasy/issues/1031[#1031]: Added OpenRewrite commandlet

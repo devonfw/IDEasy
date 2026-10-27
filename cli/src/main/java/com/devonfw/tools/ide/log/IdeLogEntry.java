@@ -21,6 +21,17 @@ public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, 
   /** The {@link DateTimeFormatter} used by {@link #displayValue()}. */
   private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
 
+  public IdeLogEntry {
+    // validation to be used by all constructors...
+    if (level == null) {
+      throw new IllegalStateException();
+    }
+
+    if ((message == null) && (rawMessage == null)) {
+      throw new IllegalStateException();
+    }
+  }
+
   /**
    * @param level the {@link IdeLogLevel}.
    * @param message the {@link IdeSubLogger#log(String) logged message}.
