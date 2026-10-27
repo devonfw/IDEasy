@@ -51,3 +51,5 @@ include::configurator.adoc[leveloffset=2]
 include::cygwin.adoc[leveloffset=2]
 
 include::sandbox.adoc[leveloffset=2]
+
+include::proxy-support.adoc[leveloffset=2]
