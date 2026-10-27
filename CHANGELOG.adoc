@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2372[#2372]: Add `--retention-delay` option to `ide cleanup` so that stale files and unused tool versions are only deleted once they are older than the given retention delay
 * https://github.com/devonfw/IDEasy/issues/2635[#2635]: Abort with a clear message instead of a NullPointerException when a tool with CVEs is installed in batch mode without force
 * https://github.com/devonfw/IDEasy/issues/2226[#2226]: Show IDEasy project, workspace and repository in the Git Bash window title
 * https://github.com/devonfw/IDEasy/issues/2373[#2373]: GlobalToolCommandlet: determine the edition together with the version for native package manager installs (Linux/macOS)
@@ -86,8 +87,6 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2251[#2251]: Provide generic uninstall support for globally installed tools (windows)
 * https://github.com/devonfw/IDEasy/issues/1135[#1135]: Fix PowerShell env variable initialization on Windows by sourcing functions from the PowerShell profile
 * https://github.com/devonfw/IDEasy/issues/741[#741]: Add a warning message for legacy devonfw-ide settings users
-* https://github.com/devonfw/IDEasy/issues/1933[#1933]: Added a console panel to the GUI
-* https://github.com/devonfw/IDEasy/issues/1981[#1981]: Fall back to windows-x64 when no windows-arm64 artifact is published
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/49?closed=1[milestone 2026.09.001].
 
