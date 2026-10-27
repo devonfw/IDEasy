@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.npm;
 
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
@@ -69,6 +70,25 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet<Npm> {
       return super.getInstalledLocation();
     }
     return npmGlobalPath;
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * The per-project global npm prefix is created by the first global package installation and is therefore not part of the {@link IdeContext#getPath() PATH}
+   * snapshot taken when the context was created. So it is searched explicitly before falling back to the {@link IdeContext#getPath() PATH}.
+   */
+  @Override
+  protected Path getBinaryExecutable() {
+
+    Path npmGlobalBin = Npm.getGlobalNpmBin(this.context);
+    if (npmGlobalBin != null) {
+      Path binary = this.context.getPath().findBinary(npmGlobalBin.resolve(getBinaryName()));
+      if (Files.exists(binary, LinkOption.NOFOLLOW_LINKS)) {
+        return binary;
+      }
+    }
+    return super.getBinaryExecutable();
   }
 
   /**
