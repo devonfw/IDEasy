@@ -23,6 +23,7 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.BuildToolHelper;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
@@ -186,9 +187,13 @@ public class Mvn extends MavenCommandlet implements BuildTool {
 
   private String retrievePassword(String option, String input) {
 
-    ProcessResult result = runTool(this.context.newProcess(), ProcessMode.DEFAULT_CAPTURE, List.of(option, input,
-        getSettingsSecurityProperty()));
-
+    ProcessResult result;
+    if (option.equals("--encrypt-master-password")) {
+      result = runTool(this.context.newProcess(), ProcessMode.DEFAULT_CAPTURE, List.of(option, input));
+    } else {
+      result = runTool(this.context.newProcess(), ProcessMode.DEFAULT_CAPTURE, List.of(option, input,
+          getSettingsSecurityProperty()));
+    }
     return result.getSingleOutput(null);
   }
 
