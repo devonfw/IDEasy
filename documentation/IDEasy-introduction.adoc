@@ -11,4 +11,4 @@ include::migration-from-devonfw.adoc[leveloffset=2]
 
 include::alternatives.adoc[leveloffset=2]
 
-include::docker-desktop-alternative.adoc[leveloffset=3]
+include::docker-desktop-alternative.adoc[leveloffset=2]
