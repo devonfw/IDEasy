@@ -1,24 +1,46 @@
 package com.devonfw.tools.ide.url.tool.kotlinc;
 
-import java.util.regex.Pattern;
-
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlReleaseUpdater;
 
 /**
- * {@link WebsiteUrlUpdater} for kotlinc-native.
+ * {@link GithubUrlReleaseUpdater} for kotlinc-native.
+ * <p>
+ * Since Kotlin 2.0 the release assets are named <code>kotlin-native-prebuilt-&lt;version&gt;-&lt;os&gt;-&lt;arch&gt;</code> (the previous
+ * <code>kotlin-native-&lt;os&gt;-&lt;arch&gt;-&lt;version&gt;</code> assets are no longer published). The prebuilt assets also exist for the last 1.9.x
+ * release, so this naming stays compatible with existing versions.
  */
-// TODO refactor me to GithubUrlUpdater
-public class KotlincNativeUrlUpdater extends WebsiteUrlUpdater {
-
-  private final static String DOWNLOAD_BASE_URL = "https://github.com";
-  private final static String VERSION_BASE_URL = "https://api.github.com";
+public class KotlincNativeUrlUpdater extends GithubUrlReleaseUpdater {
 
   /**
    * The Constructor.
    */
   public KotlincNativeUrlUpdater() {
-    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
+
+    super();
+  }
+
+  /**
+   * Package-private constructor used for testing {@link KotlincNativeUrlUpdater}.
+   *
+   * @param downloadBaseUrl mock url used for download base.
+   * @param versionBaseUrl mock url used for version base.
+   */
+  KotlincNativeUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
+
+    super(downloadBaseUrl, versionBaseUrl);
+  }
+
+  @Override
+  protected String getGithubOrganization() {
+
+    return "JetBrains";
+  }
+
+  @Override
+  protected String getGithubRepository() {
+
+    return "kotlin";
   }
 
   @Override
@@ -28,25 +50,28 @@ public class KotlincNativeUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
+  protected String getVersionPrefixToRemove() {
+
+    return "Kotlin ";
+  }
+
+  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    String baseUrl = getDownloadBaseUrl() + "/JetBrains/kotlin/releases/download/v${version}/kotlin-native-";
-    doAddVersion(urlVersion, baseUrl + "windows-x86_64-${version}.zip", WINDOWS, X64);
-    doAddVersion(urlVersion, baseUrl + "linux-x86_64-${version}.tar.gz", LINUX, X64);
-    doAddVersion(urlVersion, baseUrl + "macos-x86_64-${version}.tar.gz", MAC, X64);
-    doAddVersion(urlVersion, baseUrl + "macos-aarch64-${version}.tar.gz", MAC, ARM64);
+    String baseUrl = getGithubReleaseDownloadBaseUrl() + "/" + "v${version}/kotlin-native-prebuilt-${version}-";
+    doAddVersion(urlVersion, baseUrl + "windows-x86_64.zip", WINDOWS, X64);
+    doAddVersion(urlVersion, baseUrl + "linux-x86_64.tar.gz", LINUX, X64);
+    doAddVersion(urlVersion, baseUrl + "macos-x86_64.tar.gz", MAC, X64);
+    doAddVersion(urlVersion, baseUrl + "macos-aarch64.tar.gz", MAC, ARM64);
   }
 
   @Override
-  protected String getVersionUrl() {
-
-    return getVersionBaseUrl() + "/repos/JetBrains/kotlin/releases";
+  public String getCpeVendor() {
+    return "jetbrains";
   }
 
   @Override
-  protected Pattern getVersionPattern() {
-
-    return Pattern.compile("[0-9]+\\.[0-9]+\\.[0-9]+");
+  public String getCpeProduct() {
+    return "kotlin";
   }
-
 }
