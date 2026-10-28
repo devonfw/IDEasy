@@ -6,6 +6,7 @@ import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -142,6 +143,22 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
     // assert
     assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve(TEST_REPO)).isDirectory();
     assertThat(context).logAtError().hasMessageContaining("Invalid template expression");
+  }
+
+  @Test
+  void testAbortIsNotIgnoredWhenSettingUpAllRepositories() {
+
+    // arrange
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
+    // in batch mode without force mode a question cannot be asked, so evaluating the active flag aborts
+    context.getStartContext().setBatchMode(true);
+    Properties properties = createDefaultProperties();
+    properties.setProperty("active", "@ask-variable('', 'Setup this repository?')");
+    saveProperties(context, properties);
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    // act & assert
+    assertThatThrownBy(rc::run).isInstanceOf(CliAbortException.class);
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve(TEST_REPO)).doesNotExist();
   }
 
   @Test

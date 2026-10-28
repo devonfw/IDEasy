@@ -1,0 +1,195 @@
+package com.devonfw.ide.gui.core.progress.taskwindow;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
+
+import java.net.URL;
+
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.ListView;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.devonfw.ide.gui.UIBasedApplicationTest;
+import com.devonfw.ide.gui.core.context.TaskManager;
+import com.devonfw.ide.gui.core.progress.ProgressBarTask;
+
+/**
+ * Tests for the TaskOverviewWindow. We check whether the window is displayed correctly and whether it properly reacts to changes in the TaskManager.
+ */
+public class TaskWindowTest extends UIBasedApplicationTest {
+
+  private ListView<ProgressBarTask> taskList;
+  private static TaskManager taskManager;
+
+  @Override
+  public void start(Stage stage) throws Exception {
+
+    URL taskOverviewWindowUrl = TaskOverviewWindowController.class.getResource("task_overview_window.fxml");
+    assertThat(taskOverviewWindowUrl).as("Cannot resolve task overview window FXML resource!").isNotNull();
+
+    FXMLLoader fxmlLoader = new FXMLLoader(taskOverviewWindowUrl);
+    fxmlLoader.setController(new TaskOverviewWindowController(taskManager));
+    Parent root = fxmlLoader.load();
+    stage.setScene(new Scene(root));
+    stage.show();
+
+    taskList = (ListView<ProgressBarTask>) root.lookup("#taskList");
+  }
+
+  @BeforeAll
+  static void setup() {
+    taskManager = new TaskManager();
+  }
+
+  @BeforeEach
+  void reset() {
+    taskManager.clearTasks();
+    waitForFxEvents();
+  }
+
+  /**
+   * Adds a task to the manager and waits for the FX thread to process it.
+   */
+  private void addTask(ProgressBarTask task) {
+    taskManager.addTask(task);
+    waitForFxEvents();
+  }
+
+  /**
+   * We check, whether our implementation of {@link TaskOverviewWindow#show()} actually displays the window.
+   */
+  @Test
+  void isWindowShown() {
+
+    //Why use interact here instead of e.g. FxHelper.runFxSafe? -> runFxSafe executes the code asynchronously on the UI thread without waiting for the result,
+    //therefore swallowing any errors. This assertion never fails if we use runFxSafe
+    interact(() -> {
+      TaskOverviewWindow testWindow = TaskOverviewWindow.getInstance(taskManager);
+      testWindow.show();
+
+      assertThat(testWindow.getStage().isShowing()).isTrue();
+    });
+  }
+
+  @Test
+  void shouldShowTaskWhenTaskAdded() {
+
+    ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Test Task");
+    addTask(task);
+
+    assertThat(taskList.getItems()).contains(task);
+  }
+
+  @Test
+  void shouldNotShowTaskWhenTaskRemoved() {
+
+    ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Test Task");
+    addTask(task);
+
+    assertThat(taskList.getItems()).contains(task);
+
+    taskManager.removeTask(task);
+    waitForFxEvents();
+
+    assertThat(taskList.getItems()).isEmpty();
+  }
+
+  /**
+   * Ensures that the list of tasks stays coherent with the actual tasks.
+   */
+  @Test
+  void listContentsAreCoherent() {
+
+    ProgressBarTask task1 = new ProgressBarTask(taskManager, "task-1", "Test Task");
+    ProgressBarTask task2 = new ProgressBarTask(taskManager, "task-2", "Test Task 2");
+    ProgressBarTask task3 = new ProgressBarTask(taskManager, "task-3", "Test Task 3");
+
+    addTask(task1);
+    addTask(task2);
+    addTask(task3);
+
+    assertThat(taskList.getItems()).containsExactly(task1, task2, task3);
+  }
+
+  /**
+   * Our TaskOverViewWindow should reuse the same window instance if it is already open. Also, the existing window should be brought to the front
+   */
+  @Test
+  void reusesExistingWindow() {
+
+    interact(() -> {
+
+      TaskOverviewWindow testWindow1 = TaskOverviewWindow.getInstance(taskManager);
+      testWindow1.show();
+
+      TaskOverviewWindow testWindow2 = TaskOverviewWindow.getInstance(taskManager);
+      testWindow2.show();
+
+      assertThat(testWindow1.equals(testWindow2)).as("Window instances differentiate").isTrue();
+      assertThat(testWindow1.getStage().isShowing()).as("Window is not showing").isTrue();
+      assertThat(testWindow1.getStage().isFocused()).as("Window is not focused").isTrue();
+    });
+  }
+
+  /**
+   * When no tasks are running, the TaskOverViewWindow should show an empty list, not a null pointer exception or similar.
+   */
+  @Test
+  void showsEmptyListWhenNoTasks() {
+
+    // In @BeforeEach tasks get cleared before each test
+    assertThat(taskList.getItems()).isEmpty();
+  }
+
+  /**
+   * tests whether progress tasks are properly updated in the list when the properties update
+   */
+  @Test
+  void testTaskProgressUpdatesProperly() {
+
+    ProgressBarTask task = new ProgressBarTask(taskManager, "task-1", "Test Task", 100, "Units", 1);
+    addTask(task);
+
+    assertThat(taskList.getItems()).as("Task should be in the list").contains(task);
+
+    //Test stepBy (includes doStepBy; see implementation of stepBy())
+    task.stepBy(20);
+    waitForFxEvents();
+
+    assertThat(taskList.getItems().getFirst().currentProgressProperty().getValue()).as("Progress should be 20").isEqualTo(20);
+
+    //Test doStepTo (only used internally)
+    task.doStepTo(40);
+    waitForFxEvents();
+
+    assertThat(taskList.getItems().getFirst().currentProgressProperty().getValue()).as("Progress should be 40").isEqualTo(40);
+  }
+
+  /**
+   * We check here that a null node reference is handled properly and leads to the window being displayed in the center of the screen.
+   */
+  @Test
+  void testNullReferenceNode() {
+
+    interact(() -> {
+      TaskOverviewWindow nullRefWindow = TaskOverviewWindow.getInstance(taskManager);
+      nullRefWindow.showRelativeToReferenceNode(null);
+
+      Rectangle2D screenMeasures = Screen.getPrimary().getVisualBounds();
+
+      double expectedPositionX = screenMeasures.getWidth() / 2 - nullRefWindow.getStage().getWidth() / 2;
+      double expectedPositionY = screenMeasures.getHeight() / 2 - nullRefWindow.getStage().getHeight() / 2;
+
+      assertThat(nullRefWindow.getStage().getX()).as("Window should be in the expected X position").isEqualTo(expectedPositionX);
+      assertThat(nullRefWindow.getStage().getY()).as("Window should be in the expected Y position").isEqualTo(expectedPositionY);
+    });
+  }
+}

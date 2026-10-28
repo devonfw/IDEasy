@@ -50,6 +50,16 @@ public class SystemPath {
 
   private final IdeContext context;
 
+  /**
+   * Tools whose binaries are also bundled inside another (runtime) tool's install folder and would therefore be shadowed by it on the PATH.
+   * <p>
+   * {@code node} ships its own {@code npm}/{@code npx}/{@code corepack} inside its (flat, no {@code bin/}) install folder, so without an explicit order the
+   * pristine, independently versioned {@code npm} install and the node-bundled one would compete for the same binary names in an arbitrary order
+   * ({@code tool2pathMap} is a {@link HashMap}). Ordering these tools first guarantees the pristine installation deterministically wins. If another tool ever
+   * becomes independently versioned the same way, it is added here.
+   */
+  private static final List<String> PATH_PRECEDENCE_TOOLS = List.of("npm");
+
   private static final List<String> EXTENSION_PRIORITY = List.of(".exe", ".cmd", ".bat", ".msi", ".ps1", "");
 
   /**
@@ -205,6 +215,28 @@ public class SystemPath {
     }
   }
 
+  /**
+   * @return the tool bin {@link Path}s in the order in which they must be searched and placed on the PATH. The {@link #PATH_PRECEDENCE_TOOLS} are placed
+   *     first so that their executables deterministically take precedence over the copies bundled with the runtime that also ships them (e.g. the pristine
+   *     {@code npm} over the {@code npm}/{@code npx} bundled with {@code node}); the remaining tools are returned in their map order.
+   */
+  private List<Path> getToolPathsInResolutionOrder() {
+
+    List<Path> orderedPaths = new ArrayList<>(this.tool2pathMap.size());
+    for (String tool : PATH_PRECEDENCE_TOOLS) {
+      Path toolPath = this.tool2pathMap.get(tool);
+      if (toolPath != null) {
+        orderedPaths.add(toolPath);
+      }
+    }
+    for (Map.Entry<String, Path> entry : this.tool2pathMap.entrySet()) {
+      if (!PATH_PRECEDENCE_TOOLS.contains(entry.getKey())) {
+        orderedPaths.add(entry.getValue());
+      }
+    }
+    return orderedPaths;
+  }
+
   private static String getTool(Path path, Path ideRoot) {
 
     if (ideRoot == null) {
@@ -290,7 +322,7 @@ public class SystemPath {
           return binaryPath;
         }
       }
-      for (Path path : this.tool2pathMap.values()) {
+      for (Path path : getToolPathsInResolutionOrder()) {
         Path binaryPath = findBinaryInOrder(path, fileName);
         if (binaryPath != null && filter.test(binaryPath)) {
           return binaryPath;
@@ -352,7 +384,7 @@ public class SystemPath {
     for (Path path : this.extraPathEntries) {
       appendPath(path, sb, separator, pathSyntax);
     }
-    for (Path path : this.tool2pathMap.values()) {
+    for (Path path : getToolPathsInResolutionOrder()) {
       appendPath(path, sb, separator, pathSyntax);
     }
     for (Path path : this.paths) {

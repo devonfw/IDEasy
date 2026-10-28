@@ -11,6 +11,9 @@ permissions:
 jobs:
   update-quality-status:
     runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      vars.ENABLE_AUTOMATIC_WORKFLOWS == 'true'
 
     steps:
       - name: Check out repository

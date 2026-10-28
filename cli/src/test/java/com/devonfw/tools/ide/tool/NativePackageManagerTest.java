@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -168,6 +169,26 @@ class NativePackageManagerTest {
   }
 
   @Test
+  void testYayInstallCommand() {
+    NativePackage np = new NativePackage(NativePackageManager.YAY, List.of("rancher-desktop"));
+
+    var cmd = NativePackageManager.YAY.install(np, "1.24.0");
+
+    assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.YAY);
+    assertThat(cmd.commands()).containsExactly("yay -S --needed --noconfirm rancher-desktop");
+  }
+
+  @Test
+  void testYayUninstallCommand() {
+    NativePackage np = new NativePackage(NativePackageManager.YAY, List.of("rancher-desktop"));
+
+    var cmd = NativePackageManager.YAY.uninstall(np);
+
+    assertThat(cmd.packageManager()).isEqualTo(NativePackageManager.YAY);
+    assertThat(cmd.commands()).containsExactly("yay -Rs --noconfirm rancher-desktop");
+  }
+
+  @Test
   void testVersionQueryCommandForDebianBasedPackageManager() {
     assertThat(NativePackageManager.APT.getVersionQueryCommand("pkg1")).containsExactly("dpkg-query", "-W", "-f=${db:Status-Status}|${Version}",
         "pkg1");
@@ -191,6 +212,53 @@ class NativePackageManagerTest {
     assertThat(NativePackageManager.ZYPPER.parseVersionQueryOutput("1.0.0")).isEqualTo("1.0.0");
     assertThat(NativePackageManager.YUM.parseVersionQueryOutput("1.0.0")).isEqualTo("1.0.0");
     assertThat(NativePackageManager.DNF.parseVersionQueryOutput("1.0.0")).isEqualTo("1.0.0");
+  }
+
+  @Test
+  void installUsesPackageNameAndVersionWhenNoArtifactPathConfigured() {
+    NativePackage nativePackage = new NativePackage(NativePackageManager.APT, List.of("docker-desktop"));
+    PackageManagerCommand result = NativePackageManager.APT.install(nativePackage, "1.2.3");
+
+    List<String> commands = result.commands();
+    String installCommand = commands.getLast();
+    assertThat(installCommand).contains("apt", "install -y", "docker-desktop=1.2.3*");
+    assertThat(installCommand).doesNotContain(".deb");
+  }
+
+  @Test
+  void installUsesArtifactPathWhenConfiguredInsteadOfPackageName() {
+    Path debPath = Path.of("/tmp/downloads/docker-desktop-4.34.0-amd64");
+
+    NativePackage nativePackage = new NativePackage(NativePackageManager.APT, List.of("docker-desktop"), null, null, null, List.of(debPath));
+
+    PackageManagerCommand result = NativePackageManager.APT.install(nativePackage, null);
+
+    List<String> commands = result.commands();
+    String installCommand = commands.getLast();
+    assertThat(installCommand).contains(debPath.toString());
+    assertThat(installCommand).doesNotContain("docker-desktop=");
+  }
+
+  @Test
+  void installFallsBackToPackagesWhenArtifactPathListIsEmpty() {
+    NativePackage nativePackage = new NativePackage(NativePackageManager.APT, List.of("docker-desktop"), null, null, null);
+
+    PackageManagerCommand result = NativePackageManager.APT.install(nativePackage, null);
+
+    List<String> commands = result.commands();
+    String installCommand = commands.getLast();
+    assertThat(installCommand).contains("docker-desktop");
+  }
+
+  @Test
+  void installRejectsMismatchingPackageManager() {
+    NativePackage nativePackage = new NativePackage(NativePackageManager.APT, List.of("docker-desktop"), null, null, null);
+
+    PackageManagerCommand result = NativePackageManager.APT.install(nativePackage, null);
+
+    List<String> commands = result.commands();
+    String installCommand = commands.getLast();
+    assertThat(installCommand).contains("docker-desktop");
   }
 
   @Test
