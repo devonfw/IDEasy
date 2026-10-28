@@ -6,7 +6,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import org.jline.utils.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.json.JsonMapping;
@@ -29,6 +30,8 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
   private static final ObjectMapper MAPPER = JsonMapping.create();
 
   private ToolSecurity security;
+
+  private static final Logger LOG = LoggerFactory.getLogger(UrlSecurityFile.class);
 
   /**
    * The constructor.
@@ -70,7 +73,7 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
   public void doSave() {
 
     if ((this.security == null || this.security.getIssues().isEmpty()) && !Files.exists(getPath())) {
-      Log.debug("Skipping save for {} (no warnings and file doesn't exist)", getPath());
+      LOG.debug("Skipping save for {} (no warnings and file doesn't exist)", getPath());
       return;
     }
 

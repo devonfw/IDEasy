@@ -5,9 +5,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 == 2026.11.001
 
 Release with new features and bugfixes:
-
-* https://github.com/devonfw/IDEasy/issues/2226[#2226]: Show IDEasy project, workspace and repository in the Git Bash window title
-* https://github.com/devonfw/IDEasy/issues/2373[#2373]: GlobalToolCommandlet: determine the edition together with the version for native package manager installs (Linux/macOS)
+* https://github.com/devonfw/IDEasy/issues/2747[#2747]: Add linting rule for wrong logger usage * https://github.com/devonfw/IDEasy/issues/2226[#2226]: Show IDEasy project, workspace and repository in the Git Bash window title * https://github.com/devonfw/IDEasy/issues/2373[#2373]: GlobalToolCommandlet: determine the edition together with the version for native package manager installs (Linux/macOS)
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/52?closed=1[milestone 2026.11.001].
 
@@ -58,8 +56,7 @@ The full list of changes for this release can be found in https://github.com/dev
 
 == 2026.09.001
 
-* https://github.com/devonfw/IDEasy/issues/2293[#2293]: Rework spyder to have same features as IdeToolCommandlets
-Release with new features and bugfixes:
+* https://github.com/devonfw/IDEasy/issues/2293[#2293]: Rework spyder to have same features as IdeToolCommandlets Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1525[#1525]: Document known issue and workaround for lombok plugin in Eclipse
 * https://github.com/devonfw/IDEasy/issues/1031[#1031]: Added OpenRewrite commandlet
