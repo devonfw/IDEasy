@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.git.GitContextImplMock;
+import com.devonfw.tools.ide.git.GitContextMock;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 
 /**
@@ -24,7 +24,7 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
   private IdeTestContext newReleaseContext(boolean untrackedFiles) {
 
     IdeTestContext context = newContext(PROJECT_RELEASE);
-    GitContextImplMock gitContext = new GitContextImplMock(context, context.getWorkspacePath().resolve("mvn"));
+    GitContextMock gitContext = new GitContextMock(context);
     gitContext.setSimulateUntrackedFiles(untrackedFiles);
     context.setGitContext(gitContext);
     context.setCwd(context.getWorkspacePath().resolve("mvn"), context.getWorkspacePath().toString(), context.getIdeHome());
