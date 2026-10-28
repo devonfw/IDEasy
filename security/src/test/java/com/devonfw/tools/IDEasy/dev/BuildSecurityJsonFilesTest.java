@@ -72,7 +72,42 @@ class BuildSecurityJsonFilesTest extends Assertions {
   }
 
   @Test
-  void testToVersionRangeRoutesOsSpecificRangeToOs() throws CpeValidationException {
+  void testFindOperatingSystemFromOsVariantsAndDistros() throws CpeValidationException {
+
+    assertThat(BuildSecurityJsonFiles.findOperatingSystem(software(b -> b.targetSw("macos")))).isEqualTo(OperatingSystem.MAC);
+    assertThat(BuildSecurityJsonFiles.findOperatingSystem(software(b -> b.targetSw("mac_os_x")))).isEqualTo(OperatingSystem.MAC);
+    assertThat(BuildSecurityJsonFiles.findOperatingSystem(software(b -> b.targetSw("ubuntu_linux")))).isEqualTo(OperatingSystem.LINUX);
+    assertThat(BuildSecurityJsonFiles.findOperatingSystem(software(b -> b.targetSw("debian")))).isEqualTo(OperatingSystem.LINUX);
+    assertThat(BuildSecurityJsonFiles.findOperatingSystem(software(b -> b.targetSw("windows_server_2019")))).isEqualTo(OperatingSystem.WINDOWS);
+  }
+
+  @Test
+  void testFindOperatingSystemFromEditionCombinedWithOs() throws CpeValidationException {
+
+    VulnerableSoftware software = software(b -> b.edition("desktop_windows"));
+
+    assertThat(BuildSecurityJsonFiles.findOperatingSystem(software)).isEqualTo(OperatingSystem.WINDOWS);
+  }
+
+  @Test
+  void testFindOperatingSystemIgnoresValuesContainingOsKeywordOnlyAsPartOfWord() throws CpeValidationException {
+
+    assertThat(BuildSecurityJsonFiles.findOperatingSystem(software(b -> b.edition("machine_learning")))).isNull();
+  }
+
+  @Test
+  void testToVersionRangeDoesNotTreatCombinedOsEditionAsToolEdition() throws CpeValidationException {
+
+    VulnerableSoftware software = software(b -> b.edition("desktop_windows").versionStartIncluding("1.0.0").versionEndExcluding("2.0.0"));
+
+    OsVersionRange match = BuildSecurityJsonFiles.toVersionRange(software, TOOL, this.updater, "CVE-TEST");
+
+    assertThat(match).isNotNull();
+    assertThat(match.os()).isEqualTo(OperatingSystem.WINDOWS);
+  }
+
+  @Test
+  void testToVersionRangeRoutesOsSpecificRangeToOs()throws CpeValidationException {
 
     VulnerableSoftware software = software(b -> b.targetSw("windows").versionStartIncluding("1.0.0").versionEndExcluding("2.0.0"));
 

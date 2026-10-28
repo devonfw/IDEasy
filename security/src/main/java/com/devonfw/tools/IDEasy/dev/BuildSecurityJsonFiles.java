@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -51,7 +52,14 @@ public class BuildSecurityJsonFiles implements Runnable {
 
   private static final Set<String> DEFAULT_EDITIONS = Set.of("community");
 
-  private static final Set<String> IGNORED_VALUES = Set.of("*", "windows", "linux", "mac", "aws");
+  private static final Set<String> IGNORED_VALUES = Set.of("*", "aws");
+
+  private static final Map<String, OperatingSystem> OS_KEYWORDS = Map.ofEntries(Map.entry("windows", OperatingSystem.WINDOWS),
+      Map.entry("mac", OperatingSystem.MAC), Map.entry("macos", OperatingSystem.MAC), Map.entry("macosx", OperatingSystem.MAC),
+      Map.entry("osx", OperatingSystem.MAC), Map.entry("darwin", OperatingSystem.MAC), Map.entry("linux", OperatingSystem.LINUX),
+      Map.entry("ubuntu", OperatingSystem.LINUX), Map.entry("debian", OperatingSystem.LINUX), Map.entry("centos", OperatingSystem.LINUX),
+      Map.entry("rhel", OperatingSystem.LINUX), Map.entry("redhat", OperatingSystem.LINUX), Map.entry("fedora", OperatingSystem.LINUX),
+      Map.entry("suse", OperatingSystem.LINUX), Map.entry("alpine", OperatingSystem.LINUX));
 
   private static final Set<String> IGNORED_VERSIONS = Set.of("*", "-");
 
@@ -244,14 +252,35 @@ public class BuildSecurityJsonFiles implements Runnable {
    */
   static OperatingSystem findOperatingSystem(Cpe cpe) {
 
-    OperatingSystem os = OperatingSystem.of(cpe.getEdition());
+    OperatingSystem os = findOperatingSystem(cpe.getEdition());
     if (os == null) {
-      os = OperatingSystem.of(cpe.getSwEdition());
+      os = findOperatingSystem(cpe.getSwEdition());
     }
     if (os == null) {
-      os = OperatingSystem.of(cpe.getTargetSw());
+      os = findOperatingSystem(cpe.getTargetSw());
     }
     return os;
+  }
+
+  /**
+   * The CVE database is messy: a CPE component may be a combination of a real edition and an operating system (e.g. {@code desktop_windows}) or name a
+   * distribution (e.g. {@code ubuntu_linux}). Therefore, the value is split into its words that are then matched against known OS keywords.
+   *
+   * @param value the value of a {@link Cpe} component (edition, swEdition, or targetSw). May be {@code null}.
+   * @return the {@link OperatingSystem} the given value refers to or {@code null} if it does not refer to a specific {@link OperatingSystem}.
+   */
+  private static OperatingSystem findOperatingSystem(String value) {
+
+    if ((value == null) || value.isEmpty()) {
+      return null;
+    }
+    for (String word : value.toLowerCase(Locale.ROOT).split("[^a-z0-9]+")) {
+      OperatingSystem os = OS_KEYWORDS.get(word);
+      if (os != null) {
+        return os;
+      }
+    }
+    return null;
   }
 
   private static boolean isEditionMatching(String cpeEdition, String urlEdition, AbstractUrlUpdater urlUpdater) {
@@ -291,7 +320,7 @@ public class BuildSecurityJsonFiles implements Runnable {
 
   private static boolean isSpecificValue(String value) {
 
-    return (value != null) && !"*".equals(value) && !IGNORED_VALUES.contains(value);
+    return (value != null) && !"*".equals(value) && !IGNORED_VALUES.contains(value) && (findOperatingSystem(value) == null);
   }
 
   private static List<Vulnerability> findVulnerabilities(CveDB database, AbstractUrlUpdater updater) {
