@@ -105,7 +105,7 @@ class BuildSecurityJsonFilesTest extends Assertions {
   }
 
   @Test
-  void testToVersionRangeRoutesOsSpecificRangeToOs()throws CpeValidationException {
+  void testToVersionRangeRoutesOsSpecificRangeToOs() throws CpeValidationException {
 
     VulnerableSoftware software = software(b -> b.targetSw("windows").versionStartIncluding("1.0.0").versionEndExcluding("2.0.0"));
 
