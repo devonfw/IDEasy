@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.cli;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.commandlet.BugReportCommandlet;
 import com.devonfw.tools.ide.commandlet.CompleteCommandlet;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
@@ -62,7 +61,7 @@ public final class Ideasy {
       exitStatus = 255;
       String title = BugReportHelper.createTitle(error);
       LOG.error(BugReportHelper.createUnexpectedErrorMessage(title), error);
-      BugReportCommandlet.offerAfterError(this.context, title, error);
+      BugReportHelper.offerAfterError(this.context, error, args);
     }
     return exitStatus;
   }

@@ -4,10 +4,13 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
+import com.devonfw.tools.ide.commandlet.TestCommandletManager;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.git.GitContextMock;
+import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.util.PrivacyUtil;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -15,6 +18,28 @@ import com.devonfw.tools.ide.version.IdeVersion;
  * Test of {@link BugReportHelper}.
  */
 class BugReportHelperTest extends AbstractIdeContextTest {
+
+  /**
+   * Installs a {@link TestCommandletManager} that returns the given {@link Gh} stub instead of the real one, so that no real GitHub CLI binary is ever
+   * resolved or executed (the test must stay hermetic even when {@code gh} is present on the machine's PATH).
+   *
+   * @param context the {@link IdeTestContext}.
+   * @param ghStub the {@link Gh} commandlet to return for {@link Gh#class}.
+   */
+  private void useGhStub(IdeTestContext context, Gh ghStub) {
+
+    context.setCommandletManager(new TestCommandletManager(context) {
+      @Override
+      @SuppressWarnings("unchecked")
+      public <C extends AbstractCommandlet> C getCommandlet(Class<C> commandletType) {
+
+        if (commandletType == Gh.class) {
+          return (C) ghStub;
+        }
+        return super.getCommandlet(commandletType);
+      }
+    });
+  }
 
   /** Test of {@link BugReportHelper#createTitle(Throwable)}. */
   @Test
@@ -66,7 +91,7 @@ class BugReportHelperTest extends AbstractIdeContextTest {
 
     assertThat(message).contains("An unexpected error occurred!");
     assertThat(message).contains(BugReportHelper.createIssueUrl("test-title"));
-    assertThat(message).contains("ide bugreport");
+    assertThat(message).doesNotContain("ide bugreport");
   }
 
   /** Test of {@link BugReportHelper#createIssueBody(com.devonfw.tools.ide.context.IdeContext, String, String, String, String, String)}. */
@@ -78,7 +103,7 @@ class BugReportHelperTest extends AbstractIdeContextTest {
     context.getNetworkStatus().simulateOnline();
 
     // act
-    String body = BugReportHelper.createIssueBody(context, "It crashed", "step 1", "It should not crash", "my hint", "stacktrace-line");
+    String body = BugReportHelper.createIssueBody(context, "It crashed", "step 1", "It should not crash", "#123", "my hint");
 
     assertThat(body).contains("### Actual behavior");
     assertThat(body).contains("It crashed");
@@ -90,8 +115,8 @@ class BugReportHelperTest extends AbstractIdeContextTest {
     assertThat(body).contains("You are online.");
     assertThat(body).contains("Your version of IDEasy is " + IdeVersion.getVersionString());
     assertThat(body).contains("### Comments/Hints");
+    assertThat(body).contains("Related: #123");
     assertThat(body).contains("my hint");
-    assertThat(body).contains("stacktrace-line");
   }
 
   /** Test that {@link BugReportHelper#createIssueBody} falls back to placeholders for missing fields. */
@@ -109,6 +134,7 @@ class BugReportHelperTest extends AbstractIdeContextTest {
     assertThat(body).contains("_Please add steps to reproduce._");
     assertThat(body).contains("_Please describe the expected behavior._");
     assertThat(body).doesNotContain("### Comments/Hints");
+    assertThat(body).doesNotContain("Related:");
   }
 
   /** Test that the {@code Comments/Hints} section is only rendered when there is content (comments and/or an exception hint). */
@@ -120,12 +146,12 @@ class BugReportHelperTest extends AbstractIdeContextTest {
     context.getNetworkStatus().simulateOnline();
 
     // act
-    String body = BugReportHelper.createIssueBody(context, "It crashed", "step 1", "It should not crash", "user hint about network", null);
+    String body = BugReportHelper.createIssueBody(context, "It crashed", "step 1", "It should not crash", null, "user hint about network");
 
     // assert
     assertThat(body).contains("### Comments/Hints");
     assertThat(body).contains("user hint about network");
-    assertThat(body).doesNotContain("<details>");
+    assertThat(body).doesNotContain("Related:");
   }
 
   /**
@@ -251,5 +277,219 @@ class BugReportHelperTest extends AbstractIdeContextTest {
     assertThat(status).isEqualTo(IdeContext.SettingsUpdateState.UNKNOWN);
     assertThat(context.getSettingsStatusLine()).isEmpty();
     assertThat(snippet).doesNotContain("Your settings are not up-to-date");
+  }
+
+  /**
+   * Test that {@link BugReportHelper#offerAfterError} derives the issue from the error and the invoked command (masked), prints a summary and asks
+   * whether to report.
+   */
+  @Test
+  void testOfferAfterErrorAsksAndDerivesPrefill() {
+
+    // arrange
+    IdeTestContext context = IdeTestContext.of();
+    context.setAnswers("Do not report");
+
+    // act
+    BugReportHelper.offerAfterError(context, new IllegalStateException("settings are broken"), "status", "--project", "/tmp/project");
+
+    // assert (the simple summary shows all six derived fields; the actual behaviour is the full stacktrace whose first line carries the
+    // fully-qualified exception class name)
+    assertThat(context).logAtInteraction().hasMessageContaining("Title: IllegalStateException: settings are broken");
+    assertThat(context).logAtInteraction().hasMessageContaining("Actual behaviour: java.lang.IllegalStateException: settings are broken");
+    assertThat(context).logAtInteraction().hasMessageContaining(PrivacyUtil.removeSensitivePathInformation("status --project /tmp/project"));
+    assertThat(context).logAtInteraction().hasMessageContaining("Expected behaviour: No such unexpected exception should happen.");
+    assertThat(context).logAtInteraction().hasMessageContaining("Related:");
+    assertThat(context).logAtInteraction().hasMessageContaining("Comments:");
+    assertThat(context).logAtInteraction().hasMessage("Option 1: Do not report");
+    assertThat(context).logAtInteraction().hasMessage("Option 2: Report as is");
+    assertThat(context).logAtInteraction().hasMessage("Option 3: Edit and then report");
+  }
+
+  /** Test that declining the bug report offers the prefilled issue URL to file it later. */
+  @Test
+  void testOfferAfterErrorDeclineOffersUrl() {
+
+    // arrange
+    IdeTestContext context = IdeTestContext.of();
+    context.setAnswers("Do not report");
+
+    // act
+    BugReportHelper.offerAfterError(context, new IllegalStateException("boom"), "status");
+
+    // assert
+    assertThat(context).logAtInfo().hasMessageContaining(BugReportHelper.createIssueUrl("IllegalStateException: boom"));
+  }
+
+  /**
+   * Test that reporting as is falls back to the prefilled browser URL when the GitHub CLI is not available and includes the auto-derived (masked)
+   * details.
+   */
+  @Test
+  void testOfferAfterErrorReportAsIsFallsBackToUrlWhenNoGh() {
+
+    // arrange
+    IdeTestContext context = IdeTestContext.of();
+    context.getNetworkStatus().simulateOnline();
+    context.setAnswers("Report as is");
+    useGhStub(context, new Gh(context) {
+      @Override
+      public Path getGhBinary() {
+
+        return null;
+      }
+    });
+
+    // act
+    BugReportHelper.offerAfterError(context, new IllegalStateException("boom"), "status", "--project", "/tmp/project");
+
+    // assert
+    assertThat(context).logAtInfo().hasMessageContaining("GitHub CLI (gh) is not available");
+    assertThat(context).logAtInteraction().hasMessageContaining(BugReportHelper.createIssueUrl("IllegalStateException: boom"));
+    assertThat(context).logAtInfo().hasMessageContaining("### Actual behavior");
+    assertThat(context).logAtInfo().hasMessageContaining("IllegalStateException: boom"); // the actual behaviour is the full stacktrace
+    assertThat(context).logAtInfo().hasMessageContaining("No such unexpected exception should happen.");
+    assertThat(context).logAtInfo().hasMessageContaining(PrivacyUtil.removeSensitivePathInformation("status --project /tmp/project"));
+    assertThat(context).logAtInfo().hasNoMessageContaining("### Comments/Hints"); // empty related and comments are not rendered
+    assertThat(context).logAtInfo().hasNoMessageContaining("<details>");
+  }
+
+  /**
+   * Test that reporting as is creates the issue via the GitHub CLI when it is available and authenticated, and prints the created issue URL.
+   */
+  @Test
+  void testOfferAfterErrorReportAsIsCreatesIssueViaGh() {
+
+    // arrange
+    IdeTestContext context = IdeTestContext.of();
+    context.getNetworkStatus().simulateOnline();
+    context.setAnswers("Report as is");
+    useGhStub(context, new Gh(context) {
+      @Override
+      public Path getGhBinary() {
+
+        return Path.of("gh");
+      }
+
+      @Override
+      public boolean isGhAuthenticated() {
+
+        return true;
+      }
+
+      @Override
+      public String createIssue(String repo, String title, String body, String type) {
+
+        return "https://github.com/devonfw/IDEasy/issues/123";
+      }
+    });
+
+    // act
+    BugReportHelper.offerAfterError(context, new IllegalStateException("boom"), "status");
+
+    // assert
+    assertThat(context).logAtSuccess().hasMessageContaining("https://github.com/devonfw/IDEasy/issues/123");
+    assertThat(context).logAtSuccess().hasMessageContaining("Created bug report");
+    assertThat(context).logAtInteraction().hasNoMessageContaining("Please open the following URL");
+  }
+
+  /**
+   * Test that the "edit and then report" option lets the user adjust all prefilled values (title, actual behaviour, reproduce, expected behaviour,
+   * related, comments) and reports the edited issue.
+   */
+  @Test
+  void testOfferAfterErrorEditAndThenReport() {
+
+    // arrange
+    IdeTestContext context = IdeTestContext.of();
+    context.getNetworkStatus().simulateOnline();
+    context.setAnswers("Edit and then report", "edited title", "edited actual behaviour", "edited steps", "edited expected", "#99",
+        "edited comments");
+    final String[] createdTitle = {null};
+    final String[] createdBody = {null};
+    useGhStub(context, new Gh(context) {
+      @Override
+      public Path getGhBinary() {
+
+        return Path.of("gh");
+      }
+
+      @Override
+      public boolean isGhAuthenticated() {
+
+        return true;
+      }
+
+      @Override
+      public String createIssue(String repo, String title, String body, String type) {
+
+        createdTitle[0] = title;
+        createdBody[0] = body;
+        return "https://github.com/devonfw/IDEasy/issues/123";
+      }
+    });
+
+    // act
+    BugReportHelper.offerAfterError(context, new IllegalStateException("boom"), "status");
+
+    // assert (the edited values are what gets reported)
+    assertThat(context).logAtSuccess().hasMessageContaining("https://github.com/devonfw/IDEasy/issues/123");
+    assertThat(createdTitle[0]).isEqualTo("edited title");
+    assertThat(createdBody[0]).contains("edited actual behaviour");
+    assertThat(createdBody[0]).contains("edited steps");
+    assertThat(createdBody[0]).contains("edited expected");
+    assertThat(createdBody[0]).contains("Related: #99");
+    assertThat(createdBody[0]).contains("edited comments");
+  }
+
+  /**
+   * Test that the values published in the GitHub issue are sanitized: a registered secret (e.g. a token embedded in the error message) is always
+   * replaced and any path the message contains is masked, so neither leaks into the public issue title or body.
+   */
+  @Test
+  void testOfferAfterErrorSanitizesPublishedTitleAndBody() {
+
+    // arrange
+    IdeTestContext context = IdeTestContext.of();
+    context.getNetworkStatus().simulateOnline();
+    context.setAnswers("Report as is");
+    String token = "secrettoken12345";
+    context.addSecretVariable("API_TOKEN");
+    context.addSecretValue("API_TOKEN", token);
+    String message = "cannot reach git@github.com:hdawoud/myproject, token " + token + " is invalid";
+    final String[] createdTitle = {null};
+    final String[] createdBody = {null};
+    useGhStub(context, new Gh(context) {
+      @Override
+      public Path getGhBinary() {
+
+        return Path.of("gh");
+      }
+
+      @Override
+      public boolean isGhAuthenticated() {
+
+        return true;
+      }
+
+      @Override
+      public String createIssue(String repo, String title, String body, String type) {
+
+        createdTitle[0] = title;
+        createdBody[0] = body;
+        return "https://github.com/devonfw/IDEasy/issues/123";
+      }
+    });
+
+    // act
+    BugReportHelper.offerAfterError(context, new IllegalStateException(message), "status");
+
+    // assert (neither the secret nor any path segment survives into the published title or body)
+    assertThat(createdTitle[0]).doesNotContain(token);
+    assertThat(createdTitle[0]).doesNotContain("hdawoud");
+    assertThat(createdTitle[0]).doesNotContain("ide-project");
+    assertThat(createdBody[0]).doesNotContain(token);
+    assertThat(createdBody[0]).doesNotContain("hdawoud");
+    assertThat(createdBody[0]).doesNotContain("ide-project");
   }
 }
