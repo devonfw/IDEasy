@@ -38,6 +38,14 @@ public interface ToolCommandlet extends Commandlet, Tags {
   }
 
   /**
+   * @return the {@link ToolEdition} of {@link #getName() this tool} with its {@link #getConfiguredEdition() configured edition}.
+   */
+  default ToolEdition getToolWithConfiguredEdition() {
+
+    return new ToolEdition(getName(), getConfiguredEdition());
+  }
+
+  /**
    * @return the {@link Path} where the tool is located (installed). Will be {@code null} for global tools that do not know the {@link Path} since it is
    *     determined by the installer.
    */

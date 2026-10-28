@@ -186,14 +186,6 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
     this.executionDirectory = executionDirectory;
   }
 
-  /**
-   * @return the {@link ToolEdition} with {@link #getName() tool} with its {@link #getConfiguredEdition() edition}.
-   */
-  protected final ToolEdition getToolWithConfiguredEdition() {
-
-    return new ToolEdition(this.tool, getConfiguredEdition());
-  }
-
   @Override
   protected void doRun() {
 
