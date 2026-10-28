@@ -8,6 +8,7 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.process.ProcessResultImpl;
+import com.devonfw.tools.ide.tool.PackageManagerRequest;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 
 /**
@@ -17,6 +18,9 @@ import com.devonfw.tools.ide.tool.ToolInstallRequest;
 public class ExamplePipBasedIdeToolCommandlet extends PipBasedIdeToolCommandlet {
 
   private boolean workspaceConfigured;
+
+  /** The most recent {@link PackageManagerRequest} passed to {@link #runPackageManager(PackageManagerRequest)}, recorded for assertions. */
+  private PackageManagerRequest lastPackageManagerRequest;
 
   /**
    * The constructor.
@@ -42,11 +46,25 @@ public class ExamplePipBasedIdeToolCommandlet extends PipBasedIdeToolCommandlet 
     return new ProcessResultImpl(getName(), getName(), ProcessResult.SUCCESS, List.of());
   }
 
+  @Override
+  public ProcessResult runPackageManager(PackageManagerRequest request) {
+    this.lastPackageManagerRequest = request;
+    return super.runPackageManager(request);
+  }
+
   /**
    * @return {@code true} if {@link #configureWorkspace()} has been triggered, {@code false} otherwise.
    */
   public boolean wasWorkspaceConfigured() {
 
     return this.workspaceConfigured;
+  }
+
+  /**
+   * @return the most recent {@link PackageManagerRequest} passed to {@link #runPackageManager(PackageManagerRequest)} or {@code null} if none yet.
+   */
+  public PackageManagerRequest getLastPackageManagerRequest() {
+
+    return this.lastPackageManagerRequest;
   }
 }

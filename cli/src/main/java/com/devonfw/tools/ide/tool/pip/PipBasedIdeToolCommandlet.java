@@ -167,15 +167,16 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
    *     {@link PackageManagerRequest#TYPE_UNINSTALL uninstall}).
    * @param plugin the {@link ToolPluginDescriptor} to install or uninstall. Its {@link ToolPluginDescriptor#id() ID} is used as name of the python
    *     package.
-   * @param request the {@link ToolInstallRequest} carrying the {@link com.devonfw.tools.ide.process.ProcessContext} and the real install context, or
-   *     {@code null} to install standalone (e.g. the uninstall path).
+   * @param request the {@link ToolInstallRequest} carrying the {@link com.devonfw.tools.ide.process.ProcessContext} and the real install context for the
+   *     install case, or {@code null} for the uninstall path only (the install path requires a non-{@code null} request).
    * @return the {@link ProcessResult}
    */
   private ProcessResult runPluginPackageManager(String type, ToolPluginDescriptor plugin, ToolInstallRequest request) {
 
     PackageManagerRequest pmRequest = new PackageManagerRequest(type, plugin.id()).setProcessMode(ProcessMode.DEFAULT_CAPTURE);
     if (PackageManagerRequest.TYPE_INSTALL.equals(type)) {
-      // the plugin is installed as part of the tool installation, so the package manager install is tracked with the real install context (incl. CVE check)
+      // the plugin is installed as part of the tool installation, so the package manager install is tracked as a dependency of that tool installation
+      // (the CVE check covers the package manager tools such as pip/uv, not the plugin package itself)
       pmRequest.setToolInstallRequest(request).setProcessContext(request.getProcessContext());
       String version = plugin.version();
       if ((version != null) && !version.isBlank()) {

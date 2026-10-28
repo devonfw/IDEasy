@@ -59,6 +59,16 @@ public final class ToolInstallRequest {
   }
 
   /**
+   * The constructor for a transitive dependency. The package manager install triggered by a tool installation inherits the parent's process context but is
+   * always silent, so the "already installed" notice is logged at debug level rather than spamming the user with one line per plugin.
+   *
+   * @param parent the parent {@link ToolInstallRequest} (in case of a dependency).
+   */
+  public ToolInstallRequest(ToolInstallRequest parent, boolean silent) {
+    this(parent, silent, false);
+  }
+
+  /**
    * The constructor.
    *
    * @param silent the {@link #isSilent() silent} flag.
