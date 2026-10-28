@@ -137,6 +137,25 @@ class EnvironmentVariablesPropertiesFileTest extends AbstractIdeContextTest {
   }
 
   @Test
+  void testSaveMigratedVariableIsNotDuplicated(@TempDir Path tempDir) throws Exception {
+
+    // arrange
+    Path propertiesFilePath = tempDir.resolve("test.properties");
+    Files.write(propertiesFilePath, List.of("MAVEN_VERSION=3.8.8"), StandardOpenOption.CREATE_NEW);
+
+    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE,
+        propertiesFilePath, new IdeTestContext());
+
+    // act
+    variables.set("MVN_VERSION", "3.9.6", false);
+    variables.save();
+
+    // assert
+    List<String> lines = Files.readAllLines(propertiesFilePath);
+    assertThat(lines).containsExactly("MVN_VERSION=3.9.6");
+  }
+
+  @Test
   void testSaveWithMissingParentFilePath(@TempDir Path tempDir) throws Exception {
     // arrange
     Path propertiesFilePath = tempDir.resolve("test.properties");

@@ -208,7 +208,7 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
           }
           writer.append(newLine.toString());
           writer.append(NEWLINE);
-          String name = line.getName();
+          String name = newLine.getName();
           if (name != null) {
             this.modifiedVariables.remove(name);
           }
