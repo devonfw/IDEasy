@@ -24,6 +24,9 @@ class TarCompressionTest extends Assertions {
     assertThat(TarCompression.of("bzip2")).isNull();
     assertThat(TarCompression.of("file.tar.bz2")).isSameAs(TarCompression.BZIP2);
     assertThat(TarCompression.of("file.tar.bzip2")).isSameAs(TarCompression.BZIP2);
+    assertThat(TarCompression.of("file.tar.xz")).isSameAs(TarCompression.XZ);
+    assertThat(TarCompression.of("txz")).isSameAs(TarCompression.XZ);
+    assertThat(TarCompression.of("xz")).isNull();
     assertThat(TarCompression.of(".pkg")).isNull();
     assertThat(TarCompression.of("tfoo")).isNull();
     assertThat(TarCompression.of("file.tar.foo")).isNull();
