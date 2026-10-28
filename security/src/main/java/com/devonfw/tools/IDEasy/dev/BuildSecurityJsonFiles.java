@@ -137,8 +137,6 @@ public class BuildSecurityJsonFiles implements Runnable {
 
   private Cve toCve(Vulnerability vulnerability, String edition, AbstractUrlUpdater urlUpdater) {
 
-    String cveName = vulnerability.getName();
-
     BigDecimal severity = getBigDecimalSeverity(vulnerability);
     if (severity == null) {
       return null;
@@ -152,19 +150,22 @@ public class BuildSecurityJsonFiles implements Runnable {
       return null;
     }
 
-    Map<String, List<VersionRange>> conditions = new TreeMap<>();
-    List<VersionRange> versions = toVersions(vulnerability, edition, urlUpdater, conditions);
-    if (versions.isEmpty() && conditions.isEmpty()) {
-      return null;
-    }
-    return new Cve(cveName, severity.doubleValue(), versions, conditions);
+    return toCve(vulnerability, edition, urlUpdater, severity.doubleValue());
   }
 
-  static List<VersionRange> toVersions(Vulnerability vulnerability, String edition, AbstractUrlUpdater urlUpdater,
-      Map<String, List<VersionRange>> conditions) {
+  /**
+   * @param vulnerability the {@link Vulnerability} to convert.
+   * @param edition the edition of the tool.
+   * @param urlUpdater the {@link AbstractUrlUpdater} of the tool.
+   * @param severity the severity of the {@link Vulnerability}.
+   * @return the {@link Cve} with the general affected versions and the OS specific ones as {@link Cve#conditions() conditions} or {@code null} if no
+   *     affected version matches the given tool and edition.
+   */
+  static Cve toCve(Vulnerability vulnerability, String edition, AbstractUrlUpdater urlUpdater, double severity) {
 
     String id = vulnerability.getName();
     List<VersionRange> versions = new ArrayList<>();
+    Map<String, List<VersionRange>> conditions = new TreeMap<>();
     for (VulnerableSoftware range : vulnerability.getVulnerableSoftware()) {
       OsVersionRange match = toVersionRange(range, edition, urlUpdater, id);
       if (match != null) {
@@ -176,7 +177,10 @@ public class BuildSecurityJsonFiles implements Runnable {
         }
       }
     }
-    return versions;
+    if (versions.isEmpty() && conditions.isEmpty()) {
+      return null;
+    }
+    return new Cve(id, severity, versions, conditions);
   }
 
   /**

@@ -1,9 +1,6 @@
 package com.devonfw.tools.IDEasy.dev;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.Consumer;
 
 import org.assertj.core.api.Assertions;
@@ -14,6 +11,7 @@ import org.owasp.dependencycheck.dependency.VulnerableSoftwareBuilder;
 
 import com.devonfw.tools.IDEasy.dev.BuildSecurityJsonFiles.OsVersionRange;
 import com.devonfw.tools.ide.os.OperatingSystem;
+import com.devonfw.tools.ide.url.model.file.json.Cve;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
 import com.devonfw.tools.ide.version.VersionRange;
@@ -146,16 +144,18 @@ class BuildSecurityJsonFilesTest extends Assertions {
     vulnerability.addVulnerableSoftware(software(b -> b.versionStartIncluding("1.0.0").versionEndExcluding("1.5.0")));
     vulnerability.addVulnerableSoftware(software(b -> b.targetSw("windows").versionStartIncluding("2.0.0").versionEndIncluding("2.0.8")));
     vulnerability.addVulnerableSoftware(software(b -> b.targetSw("linux").versionStartIncluding("2.0.0").versionEndIncluding("2.0.5")));
-    Map<String, List<VersionRange>> conditions = new TreeMap<>();
 
     // act
-    List<VersionRange> versions = BuildSecurityJsonFiles.toVersions(vulnerability, TOOL, this.updater, conditions);
+    Cve cve = BuildSecurityJsonFiles.toCve(vulnerability, TOOL, this.updater, 7.5);
 
     // assert
-    assertThat(versions).containsExactly(VersionRange.of("[1.0.0,1.5.0)"));
-    assertThat(conditions).containsOnlyKeys("windows", "linux");
-    assertThat(conditions.get("windows")).containsExactly(VersionRange.of("[2.0.0,2.0.8]"));
-    assertThat(conditions.get("linux")).containsExactly(VersionRange.of("[2.0.0,2.0.5]"));
+    assertThat(cve).isNotNull();
+    assertThat(cve.id()).isEqualTo("CVE-2024-12345");
+    assertThat(cve.severity()).isEqualTo(7.5);
+    assertThat(cve.versions()).containsExactly(VersionRange.of("[1.0.0,1.5.0)"));
+    assertThat(cve.conditions()).containsOnlyKeys("windows", "linux");
+    assertThat(cve.conditions().get("windows")).containsExactly(VersionRange.of("[2.0.0,2.0.8]"));
+    assertThat(cve.conditions().get("linux")).containsExactly(VersionRange.of("[2.0.0,2.0.5]"));
   }
 
   @Test
@@ -164,15 +164,24 @@ class BuildSecurityJsonFilesTest extends Assertions {
     // arrange
     Vulnerability vulnerability = new Vulnerability("CVE-2024-99999");
     vulnerability.addVulnerableSoftware(software(b -> b.targetSw("windows").versionStartIncluding("1.0.0").versionEndExcluding("1.2.0")));
-    Map<String, List<VersionRange>> conditions = new TreeMap<>();
 
     // act
-    List<VersionRange> versions = BuildSecurityJsonFiles.toVersions(vulnerability, TOOL, this.updater, conditions);
+    Cve cve = BuildSecurityJsonFiles.toCve(vulnerability, TOOL, this.updater, 7.5);
 
     // assert
-    assertThat(versions).isEmpty();
-    assertThat(conditions).containsOnlyKeys("windows");
-    assertThat(conditions.get("windows")).containsExactly(VersionRange.of("[1.0.0,1.2.0)"));
+    assertThat(cve).isNotNull();
+    assertThat(cve.versions()).isEmpty();
+    assertThat(cve.conditions()).containsOnlyKeys("windows");
+    assertThat(cve.conditions().get("windows")).containsExactly(VersionRange.of("[1.0.0,1.2.0)"));
+  }
+
+  @Test
+  void testToCveReturnsNullWithoutMatchingSoftware() throws CpeValidationException {
+
+    Vulnerability vulnerability = new Vulnerability("CVE-2024-00000");
+    vulnerability.addVulnerableSoftware(software("other", "other", b -> b.versionStartIncluding("1.0.0")));
+
+    assertThat(BuildSecurityJsonFiles.toCve(vulnerability, TOOL, this.updater, 7.5)).isNull();
   }
 
   private static VulnerableSoftware software(Consumer<VulnerableSoftwareBuilder> customizer) throws CpeValidationException {
