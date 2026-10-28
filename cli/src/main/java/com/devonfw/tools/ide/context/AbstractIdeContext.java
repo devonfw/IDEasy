@@ -1149,6 +1149,10 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       if (isForceMode()) {
         option = options[0];
         IdeLogLevel.INTERACTION.log(LOG, "" + option);
+      } else {
+        throw new CliAbortException(
+            "The process was aborted because a question cannot be answered in batch mode without force mode. "
+                + "Please re-run the command with the -f (force) option to accept the first option automatically.");
       }
     } else {
       while (option == null) {
