@@ -54,6 +54,7 @@ import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.kubectl.KubeCtl;
 import com.devonfw.tools.ide.tool.lazydocker.LazyDocker;
+import com.devonfw.tools.ide.tool.mn.Micronaut;
 import com.devonfw.tools.ide.tool.msvc.Msvc;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.mvnd.Mvnd;
@@ -146,6 +147,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Ng(context));
     add(new Node(context));
     add(new Mvn(context));
+    add(new Micronaut(context));
     add(new Msvc(context));
     add(new RewriteCommandlet(context));
     add(new GcLogAnalyzer(context));
