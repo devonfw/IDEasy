@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -117,7 +119,7 @@ class GuiTest extends AbstractIdeContextTest {
     Path installationPath = this.tempDir;
 
     // act
-    List<String> args = Gui.buildMvnArgs(installationPath, installationPath.resolve("gui/pom.xml"), "java");
+    List<String> args = Gui.buildMvnArgs(installationPath, installationPath.resolve("gui/pom.xml"), "java", Optional.empty());
 
     // assert
     String m2RepoFlag = "-Dmaven.repo.local=" + installationPath.resolve(".m2");
@@ -137,7 +139,7 @@ class GuiTest extends AbstractIdeContextTest {
     String m2RepoFlag = "-Dmaven.repo.local=" + installationPath.resolve(".m2");
 
     // act
-    List<String> args = Gui.buildMvnArgs(installationPath, installationPath.resolve("gui/pom.xml"), "java");
+    List<String> args = Gui.buildMvnArgs(installationPath, installationPath.resolve("gui/pom.xml"), "java", Optional.empty());
 
     // assert
     assertThat(args).contains("-U");
@@ -157,7 +159,7 @@ class GuiTest extends AbstractIdeContextTest {
     String m2RepoFlag = "-Dmaven.repo.local=" + installationPath.resolve(".m2");
 
     // act
-    List<String> args = Gui.buildMvnArgs(installationPath, installationPath.resolve("gui/pom.xml"), "java");
+    List<String> args = Gui.buildMvnArgs(installationPath, installationPath.resolve("gui/pom.xml"), "java", Optional.empty());
 
     // assert
     assertThat(args).doesNotContain("-U");
@@ -173,10 +175,60 @@ class GuiTest extends AbstractIdeContextTest {
     IdeVersion.setMockVersionForTesting("2026.08.001");
 
     // act
-    List<String> args = Gui.buildMvnArgs(installationPath, installationPath.resolve("gui/pom.xml"), "/tmp/IDEasy.app/Contents/MacOS/IDEasy");
+    List<String> args = Gui.buildMvnArgs(installationPath, installationPath.resolve("gui/pom.xml"), "/tmp/IDEasy.app/Contents/MacOS/IDEasy",
+        Optional.empty());
 
     // assert
     assertThat(args).contains("-Dexec.executable=/tmp/IDEasy.app/Contents/MacOS/IDEasy");
+  }
+
+  /**
+   * Verifies a persisted GUI language is applied to the launched JVM as a system property placed before the main class (so the JVM, not the app, receives
+   * it).
+   */
+  @Test
+  void testBuildMvnArgsAppliesPersistedLanguage() {
+
+    // arrange
+    Path installationPath = this.tempDir;
+
+    // act
+    List<String> args = Gui.buildMvnArgs(installationPath, installationPath.resolve("gui/pom.xml"), "java", Optional.of(Locale.GERMAN));
+
+    // assert
+    assertThat(args).contains("-Dexec.args=-Duser.language=de -classpath %classpath com.devonfw.ide.gui.AppLauncher");
+  }
+
+  /**
+   * Verifies a regional persisted GUI language also applies the country, so the launched JVM boots with the matching {@code Locale}.
+   */
+  @Test
+  void testBuildMvnArgsAppliesRegionalPersistedLanguage() {
+
+    // arrange
+    Path installationPath = this.tempDir;
+
+    // act
+    List<String> args = Gui.buildMvnArgs(installationPath, installationPath.resolve("gui/pom.xml"), "java", Optional.of(Locale.UK));
+
+    // assert
+    assertThat(args).contains("-Dexec.args=-Duser.language=en -Duser.country=GB -classpath %classpath com.devonfw.ide.gui.AppLauncher");
+  }
+
+  /**
+   * Verifies no language flag is applied when no GUI language is persisted.
+   */
+  @Test
+  void testBuildMvnArgsWithoutPersistedLanguage() {
+
+    // arrange
+    Path installationPath = this.tempDir;
+
+    // act
+    List<String> args = Gui.buildMvnArgs(installationPath, installationPath.resolve("gui/pom.xml"), "java", Optional.empty());
+
+    // assert
+    assertThat(args).contains("-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher");
   }
 
 }

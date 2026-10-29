@@ -13,11 +13,8 @@ import java.util.MissingResourceException;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,9 +43,10 @@ public class NlsService {
 
   public static final String EXTENSION_PROPERTIES = ".properties";
 
-  public static final String IDE_OPTIONS = "IDE_OPTIONS";
-
-  private final List<Runnable> localeListeners = new CopyOnWriteArrayList<>();
+  /**
+   * Name of the user variable the GUI writes the selected language to and the CLI reads to launch the GUI with the corresponding locale.
+   */
+  public static final String GUI_LANGUAGE = "GUI_LANGUAGE";
 
   private Locale locale;
 
@@ -61,76 +59,29 @@ public class NlsService {
   /** The {@link IdeContext} used to resolve the user environment variables. */
   private final IdeContext context;
 
-  private static final Pattern USER_LANG_PATTERN = Pattern.compile("-Duser\\.language=(\\S*)");
-
   /**
-   * Creates the service using the given {@link IdeContext} to resolve the user configuration and initializes it with the given locale.
+   * Creates the service for the given locale.
+   * <p>
+   * The active locale is fixed for the lifetime of the service: the GUI JVM is launched by {@code ide gui} with the persisted language already applied
+   * (via {@code -Duser.language}), so {@code Locale.getDefault()} is the applied locale. Changing the language is a persistence-only operation that takes
+   * effect after a restart.
+   * </p>
    * <p>
    * The {@link IdeContext} is always injected by the caller (see the {@code documentation/contributing/junit-testing.adoc} guidance): production code
    * passes an application-level context that resolves the real user configuration, while tests pass an isolated {@code IdeTestContext} to stay independent
-   * from the machine's user home and the {@code IDE_OPTIONS} environment variable.
+   * from the machine's user home and the {@code GUI_LANGUAGE} user variable.
+   * </p>
    *
    * @param context the {@link IdeContext} to use for resolving the user environment variables.
-   * @param locale the preferred locale, or {@code null} to use persisted or default locale.
+   * @param locale the locale to use, or {@code null} to use the default locale.
    */
   public NlsService(IdeContext context, Locale locale) {
 
     this.context = Objects.requireNonNull(context, "context must not be null");
-    initialize(locale);
-  }
-
-  /**
-   * Initializes the service using an explicit, persisted, or system default locale.
-   *
-   * @param explicitLocale the locale requested by the caller, or {@code null}.
-   */
-  private void initialize(Locale explicitLocale) {
-
-    Locale localeToApply = explicitLocale;
-    if (localeToApply == null) {
-      localeToApply = Locale.getDefault();
-    }
-    applyLocale(localeToApply, false);
-  }
-
-  /**
-   * Changes the active locale and persists the selection.
-   *
-   * @param locale the new locale to activate.
-   */
-  public void setLocale(Locale locale) {
-
-    applyLocale(locale, true);
-  }
-
-  /**
-   * Applies the locale, reloads the bundle, optionally persists it, and notifies listeners.
-   *
-   * @param locale the locale to apply.
-   * @param persist whether the locale should be stored in user configuration.
-   */
-  private void applyLocale(Locale locale, boolean persist) {
-
     Locale targetLocale = (locale == null) ? Locale.getDefault() : locale;
-    boolean localeChanged = !targetLocale.equals(this.locale);
-    if (localeChanged) {
-      this.locale = targetLocale;
-      loadBundle();
-    }
-    if (persist) {
-      persistLocale(targetLocale);
-    }
-    if (!localeChanged) {
-      return;
-    }
+    this.locale = targetLocale;
+    loadBundle();
     LOG.info("Locale set to: {}", targetLocale.toLanguageTag());
-    for (Runnable listener : this.localeListeners) {
-      try {
-        listener.run();
-      } catch (Exception e) {
-        LOG.warn("Locale change listener threw: {}", e.getMessage(), e);
-      }
-    }
   }
 
   /**
@@ -162,29 +113,6 @@ public class NlsService {
       languageCode = Locale.ENGLISH.getLanguage();
     }
     return locale.getDisplayLanguage(this.locale) + " (" + languageCode + ")";
-  }
-
-  /**
-   * Registers a listener that is called after the locale changes.
-   *
-   * @param listener callback to run after locale updates.
-   */
-  public void addLocaleChangeListener(Runnable listener) {
-
-    if (listener != null) {
-      this.localeListeners.add(listener);
-    }
-  }
-
-  /**
-   * Removes a previously registered locale change listener.
-   *
-   * @param listener the callback to remove.
-   */
-  public void removeLocaleChangeListener(Runnable listener) {
-    if (listener != null) {
-      this.localeListeners.remove(listener);
-    }
   }
 
   /**
@@ -325,37 +253,21 @@ public class NlsService {
 
 
   /**
-   * Persists the selected GUI locale by setting {@code -Duser.language=<tag>} inside {@code IDE_OPTIONS}. Updates an existing {@code -Duser.language=...} entry
-   * if present; otherwise appends it.
+   * Persists the selected GUI language as the language tag of the given locale by writing the {@code GUI_LANGUAGE} user variable. The selection takes effect
+   * on the next GUI start, as {@code ide gui} reads this variable to apply the locale to the launched JVM.
    *
-   * @param localeToPersist the locale to store.
+   * @param languageTag the BCP 47 language tag to persist (e.g. {@code de}, {@code en}).
    */
-  private void persistLocale(Locale localeToPersist) {
+  public void setPersistedLocale(String languageTag) {
 
     EnvironmentVariables environmentVariables = getUserEnvironmentVariables();
     try {
-      // read only from the user configuration file, not from the machine-wide environment (see getFlat): the persisted GUI locale must not
-      // be influenced by a global IDE_OPTIONS environment variable
-      String ideOptions = environmentVariables.getFlat(IDE_OPTIONS);
-      String userLangFlag = "-Duser.language=" + localeToPersist.toLanguageTag();
-      String updated = updateLocale(ideOptions, userLangFlag);
-      environmentVariables.set(IDE_OPTIONS, updated);
+      environmentVariables.set(GUI_LANGUAGE, languageTag);
       environmentVariables.save();
+      LOG.info("Persisted GUI language: {}", languageTag);
     } catch (RuntimeException e) {
-      LOG.warn("Failed to persist GUI locale: {}", e.getMessage(), e);
+      LOG.warn("Failed to persist GUI language: {}", e.getMessage(), e);
     }
-  }
-
-  String updateLocale(String ideOptions, String userLangFlag) {
-
-    if (ideOptions == null || ideOptions.isBlank()) {
-      return userLangFlag;
-    }
-    Matcher matcher = USER_LANG_PATTERN.matcher(ideOptions);
-    if (matcher.find()) {
-      return matcher.replaceFirst(userLangFlag);
-    }
-    return ideOptions + " " + userLangFlag;
   }
 
   private EnvironmentVariables getUserEnvironmentVariables() {
