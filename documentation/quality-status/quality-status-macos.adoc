@@ -9,31 +9,28 @@ Automatically generated open issue overview for macOS.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 208
+*Total Issues:* 201
 
-* OS-specific: 3
+* OS-specific: 2
 
 * Multi-OS: 2
 
-* Cross-platform: 203
+* Cross-platform: 197
 
 == macOS Specific Issues
 
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *11-30 days*
+2+^| *0-10 days*
 
-| link:https://github.com/devonfw/IDEasy/issues/2576[#2576]
-| mvn test fails on macOS: CheckCommandletTest, InstallCommandletTest, CveCheckIn…
+| link:https://github.com/devonfw/IDEasy/issues/2706[#2706]
+| Improve Plist file generation on macOS
+
+2+^| *31-60 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2468[#2468]
 | Global tool commandlets ignore edition for name/version detection (Windows regi…
-
-2+^| *90+ days*
-
-| link:https://github.com/devonfw/IDEasy/issues/798[#798]
-| pgadmin not working on Mac
 
 |===
 
@@ -56,7 +53,7 @@ link:quality-status.adoc[Back to overview]
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *11-30 days*
+2+^| *31-60 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2467[#2467]
 | Obsidian: fix installation on macOS/Linux and duplicate LINUX/X64 artifact in O…
