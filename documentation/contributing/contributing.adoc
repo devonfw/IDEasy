@@ -26,7 +26,7 @@ mvn clean install
 If that fails, fix your changes and rerun the tests.
 +
 This runs the standard build and unit tests.
-For additional, more targeted ways to verify your changes locally, see link:#advanced-testing[Advanced Testing].
+For additional, more targeted ways to verify your changes locally, see <<Advanced Testing>>.
 . Commit your changes:
 +
 ```
