@@ -33,7 +33,11 @@ public class IdeMigrator implements IdeMigration {
   public IdeMigrator() {
 
     // migrations must be strictly in ascending order (from oldest to newest version)
-    this(List.of(new Mig202502001(), new Mig202510001(), new Mig202609002(), new Mig202610001()));
+    this(List.of(
+        new Mig202502001(),
+        new Mig202510001(),
+        new Mig202609002(),
+        new Mig202610001()));
   }
 
   /**

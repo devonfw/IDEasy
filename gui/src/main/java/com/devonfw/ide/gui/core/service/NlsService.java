@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeContextConsole;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 
@@ -59,32 +58,17 @@ public class NlsService {
 
   private volatile EnvironmentVariables userEnvironmentVariables;
 
-  /**
-   * The {@link IdeContext} used to resolve the user environment variables. If {@code null}, an {@link IdeContextConsole} is created lazily on first
-   * persistence, so that merely constructing the service has no side effects.
-   */
+  /** The {@link IdeContext} used to resolve the user environment variables. */
   private final IdeContext context;
 
   private static final Pattern USER_LANG_PATTERN = Pattern.compile("-Duser\\.language=(\\S*)");
 
   /**
-   * Creates the service and initializes it with the given locale. The user environment variables are resolved from an {@link IdeContextConsole} that is
-   * created lazily on first persistence, so that merely constructing the service has no side effects.
-   *
-   * @param locale the preferred locale, or {@code null} to use persisted or default locale.
-   */
-  public NlsService(Locale locale) {
-
-    this.context = null;
-    initialize(locale);
-  }
-
-  /**
    * Creates the service using the given {@link IdeContext} to resolve the user configuration and initializes it with the given locale.
    * <p>
-   * This constructor enables "design for testability" (see {@code documentation/contributing/junit-testing.adoc}): by injecting an {@link IdeContext} (for
-   * example an {@link com.devonfw.tools.ide.context.IdeTestContext}) the service can be isolated from the real user home and the environment of the
-   * machine running the test.
+   * The {@link IdeContext} is always injected by the caller (see the {@code documentation/contributing/junit-testing.adoc} guidance): production code
+   * passes an application-level context that resolves the real user configuration, while tests pass an isolated {@code IdeTestContext} to stay independent
+   * from the machine's user home and the {@code IDE_OPTIONS} environment variable.
    *
    * @param context the {@link IdeContext} to use for resolving the user environment variables.
    * @param locale the preferred locale, or {@code null} to use persisted or default locale.
@@ -388,9 +372,7 @@ public class NlsService {
 
   private EnvironmentVariables createUserEnvironmentVariables() {
 
-    // if no context was injected (see NlsService(Locale)) we create a console context lazily here, so constructing the service has no side effects
-    IdeContext context = (this.context != null) ? this.context : new IdeContextConsole();
-    EnvironmentVariables userVariables = context.getVariables().getByType(EnvironmentVariablesType.USER);
+    EnvironmentVariables userVariables = this.context.getVariables().getByType(EnvironmentVariablesType.USER);
     if (userVariables == null) {
       throw new IllegalStateException("Failed to resolve USER environment variables from IDE context");
     }
