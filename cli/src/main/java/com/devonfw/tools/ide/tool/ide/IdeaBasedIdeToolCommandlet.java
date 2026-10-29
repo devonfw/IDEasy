@@ -296,7 +296,7 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
     final Map<String, String> standardConfiguration = Map.of(
         IDEA_LOG_CONSOLE_KEY, "false",
         IDEA_LOG_PATH_KEY, getFormattedPath(context.getIdeHome().resolve("." + tool).resolve("system").resolve("log")),
-        IDEA_PLUGINS_PATH_KEY, getFormattedPath(context.getPluginsPath()),
+        IDEA_PLUGINS_PATH_KEY, getFormattedPath(context.getPluginsInstallationPath()),
         IDEA_SYSTEM_PATH_KEY, getFormattedPath(context.getIdeHome().resolve("." + tool).resolve("system")),
         IDEA_NO_SPLASH_KEY, "true",
         IDEA_CONFIG_PATH_KEY, getFormattedPath(configFolderPath)
