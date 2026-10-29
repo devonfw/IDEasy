@@ -542,6 +542,10 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
     return null;
   }
 
+  /**
+   * @return the additional arguments passed to the downloaded installer executable (e.g. silent mode flags). The default is an empty {@link List}. Override
+   *     this for tools whose installer requires specific arguments to run unattended.
+   */
   protected List<String> getInstallerArguments() {
     return List.of();
   }
