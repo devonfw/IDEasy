@@ -1,0 +1,120 @@
+name: Reconcile PR assignees
+
+# Enforces the "single-owner board" invariant on the IDEasy board (Projects v2):
+#   - In "Team Review" a PR has exactly one assignee: the team reviewer, taken
+#     from the board's "Team Reviewer" text field. The field is the source of
+#     truth and is auto-filled by this workflow (never typed by hand): when it
+#     is empty and exactly one non-author assignee exists (the team's
+#     self-assign habit), the reviewer is assigned and their login is recorded
+#     in the field. Because the field persists, moving a card back to
+#     "Team Review" re-assigns the same reviewer without a re-self-assign.
+#   - In "👀 In review" a PR has exactly two assignees: the fixed final reviewer
+#     (FINAL_REVIEWER, the PO/PL who does the final reviews) and the author.
+#   - In "🏗 In progress" a PR has exactly one assignee: the author.
+#   - Every other column (New / Research / Refinement / Done) is left untouched.
+#   - A PR with the TAKEOVER label (default "takeover") is exempted entirely:
+#     this is how the team marks a PR taken over after its author left, so the
+#     bot does not revert it.
+#
+# GitHub emits no event when a card is moved between columns, so this runs on a
+# schedule and self-heals assignees to match the board. It changes PR assignees
+# (Issues/PRs REST API) and writes the Team Reviewer field (GraphQL); it never
+# moves cards — humans do that. Requires a TEXT field named "Team Reviewer"
+# on the board (see REVIEWER_FIELD). If it is missing, the run degrades to
+# inference-only and reports it.
+#
+# Safety: the default (and cron) behaviour is DRY RUN = report only. Enable
+# writes by setting the repo VARIABLE RECONCILE_APPLY to "true", or trigger
+# manually with dry_run=false. Merged / closed / dependabot PRs are ignored.
+
+on:
+  schedule:
+    - cron: '0 6-18 * * 1-5'   # hourly, Mon-Fri 06:00-18:00 UTC
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report only (true) or apply assignee changes (false)'
+        type: choice
+        default: 'true'
+        options: [ 'true', 'false' ]
+
+concurrency:
+  group: pr-assignee-reconcile
+  cancel-in-progress: false
+
+# The built-in GITHUB_TOKEN is only used by actions/checkout; all API calls go
+# through ACTION_PUSH_TOKEN (GH_TOKEN below), so least privilege suffices here.
+permissions:
+  contents: read
+
+env:
+  # Token used for the API calls. The board lookup (organization { projectV2 })
+  # is an ORG-level call, so the token must carry the org "Projects: Read and
+  # write" permission. That is the org's fine-grained PAT ACTION_PUSH_TOKEN
+  # (see documentation/contributing/update-access-token.adoc). Do NOT fall back
+  # to the built-in GITHUB_TOKEN here: it is scoped to THIS repository and
+  # cannot read an org's Projects v2 boards, so the board lookup would fail on
+  # every scheduled run.
+  GH_TOKEN: ${{ secrets.ACTION_PUSH_TOKEN }}
+  # Account that owns the board (the devonfw organization).
+  GH_ACCOUNT: devonfw
+  # The board is looked up by number (github.com/orgs/devonfw/projects/5), not by
+  # listing all org boards: that lists private boards the token cannot read and
+  # fails with FORBIDDEN. BOARD_TITLE only guards against a wrong number.
+  BOARD_NUMBER: '5'
+  BOARD_TITLE: 'IDEasy board'
+  TEAM_REVIEW_COLUMN: 'Team Review'
+  # Columns whose PRs are forced to "author only". Matches the board's Status
+  # option names EXACTLY (matched literally), so if a column is renamed on the
+  # board these must be updated too.
+  AUTHOR_ONLY_COLUMNS: '🏗 In progress'
+  # The "final review" column: its PRs are assigned to the fixed final reviewer
+  # (FINAL_REVIEWER, the PO/PL who does the final reviews) and the author.
+  # Both values match the board's Status / login exactly and are updated if the
+  # column is renamed or the reviewer changes.
+  FINAL_REVIEW_COLUMN: '👀 In review'
+  FINAL_REVIEWER: 'hohwille'
+  TAKEOVER_LABEL: 'takeover'
+  # Repo VARIABLE RECONCILE_APPLY (set to "true") turns on writes. Default false.
+  RECONCILE_APPLY: ${{ vars.RECONCILE_APPLY }}
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      vars.ENABLE_AUTOMATIC_WORKFLOWS == 'true'
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Decide dry-run vs apply
+        id: mode
+        env:
+          DISPATCH: ${{ github.event_name }}
+          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
+          APPLY_VAR: ${{ env.RECONCILE_APPLY }}
+        run: |
+          # Manual dispatch with dry_run=false forces a real run. Otherwise the
+          # RECONCILE_APPLY variable (default empty) decides. Anything other than
+          # the literal "true" keeps it in the safe dry-run mode.
+          if [ "$DISPATCH" = "workflow_dispatch" ] && [ "$INPUT_DRY_RUN" = "false" ]; then
+            APPLY=true
+          elif [ "$APPLY_VAR" = "true" ]; then
+            APPLY=true
+          else
+            APPLY=false
+          fi
+          if [ "$APPLY" = "true" ]; then
+            echo "dry_run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "dry_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Test reconcile rules
+        run: node --test .github/scripts/reconcile-core.test.mjs
+
+      - name: Reconcile assignees
+        env:
+          DRY_RUN: ${{ steps.mode.outputs.dry_run }}
+        run: node .github/scripts/pr-assignee-reconcile.mjs

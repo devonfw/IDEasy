@@ -167,6 +167,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     return super.doInstall(request);
   }
 
+
   /**
    * @return the latest released {@link VersionIdentifier version} of IDEasy.
    */
@@ -338,6 +339,17 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   /**
+   * Regenerates the desktop shortcut using the current IDEasy installation.
+   */
+  public void refreshDesktopShortcut() {
+
+    Path installationPath = this.context.getIdeInstallationPath();
+    if (installationPath != null) {
+      installGuiDesktopShortcut(installationPath);
+    }
+  }
+
+  /**
    * Creates a desktop shortcut to the GUI based on the OS.
    *
    * @param installationPath path to the IDE binary
@@ -365,7 +377,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       return;
     }
     Path ideasyBin = installationPath.resolve("bin/ideasy");
-    Path logoPath = installationPath.resolve("gui/logo.png");
+    Path logoPath = installationPath.resolve("gui/icon.png");
     String content = Files.readString(templateFile)
         .replace("@IDEASY_BIN@", ideasyBin.toString())
         .replace("@IDEASY_ICON@", logoPath.toString());
@@ -412,7 +424,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   private void installGuiWindowsDesktopShortcut(Path installationPath) {
 
     Path ideasyExe = installationPath.resolve("bin\\ideasy.exe");
-    Path icoPath = installationPath.resolve("gui\\logo.ico");
+    Path icoPath = installationPath.resolve("gui\\icon.ico");
 
     if (isShortcutCreationRequested("IDEASY_CREATE_DESKTOP_SHORTCUT")) {
       // Shell Folders contains the already-expanded Desktop path, including OneDrive-redirected locations
