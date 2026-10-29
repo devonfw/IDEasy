@@ -2,10 +2,24 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2026.11.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/2635[#2635]: Abort with a clear message instead of a NullPointerException when a tool with CVEs is installed in batch mode without force
+* https://github.com/devonfw/IDEasy/issues/2226[#2226]: Show IDEasy project, workspace and repository in the Git Bash window title
+* https://github.com/devonfw/IDEasy/issues/2373[#2373]: GlobalToolCommandlet: determine the edition together with the version for native package manager installs (Linux/macOS)
+* https://github.com/devonfw/IDEasy/issues/2519[#2519]: Add Flutter SDK commandlet
+* https://github.com/devonfw/IDEasy/issues/2514[#2514]: Add commandlet for Ollama CLI
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/52?closed=1[milestone 2026.11.001].
+
 == 2026.10.001
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2585[#2585]: Create npm base commandlet for gemini cli
+* https://github.com/devonfw/IDEasy/issues/2365[#2365]: Reduce plugin reinstallations
 * https://github.com/devonfw/IDEasy/issues/2701[#2701]: Stop exporting UV_PROJECT_ENVIRONMENT which broke uv projects
 * https://github.com/devonfw/IDEasy/issues/1965[#1965]: Improve dependent installation, fixed npm and pip-based installation duplication
 * https://github.com/devonfw/IDEasy/issues/2546[#2546]: Include repository into git warning/errors
@@ -14,7 +28,6 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2345[#2345]: DOCKER_EDITION ignored on Linux
 * https://github.com/devonfw/IDEasy/issues/2381[#2381]: Make node and npm pristine versioned tools with per-project npm global prefix
 * https://github.com/devonfw/IDEasy/issues/2607[#2607]: Align tool help for corepack
-* https://github.com/devonfw/IDEasy/issues/2514[#2514]: Add commandlet for Ollama CLI
 * https://github.com/devonfw/IDEasy/issues/2322[#2322]: Use a consistent IDEasy icon across all operating systems
 * https://github.com/devonfw/IDEasy/issues/1209[#1209]: Improve confusing migration version message of `ide status`
 
@@ -24,6 +37,7 @@ The full list of changes for this release can be found in https://github.com/dev
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/798[#798]: pgadmin not working on Mac
 * https://github.com/devonfw/IDEasy/issues/2206[#2206]: IDEasy title not properly shown on macOS
 * https://github.com/devonfw/IDEasy/issues/377[#377]: Document Homebrew installation on MacOS
 * https://github.com/devonfw/IDEasy/issues/2338[#2338]: Create first basic version of check commandlet
