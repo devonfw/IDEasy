@@ -1,0 +1,64 @@
+:toc:
+toc::[]
+
+== Commit Hook
+
+State-of-the-art version control systems (such as https://git-scm.org[Git]) support hooks as custom scripts to be executed on specific events.
+Such hooks can run on client side on the computer of the developer or on server side on the machine hosting the version control repository.
+In this context we are talking only about client side hooks for commits as a harness for code quality.
+On the server side common tools like GitHub, GitLab, BitBucket with their own or external CI/CD have been established to run such checks.
+A commit hook is such a script that gets triggered in case of a commit and if it fails (exit code is not zero), the entire commit fails and will be rejected.
+This way developers and AI agents cannot fully integrate changes into your code without satisfying this commit hook script.
+It can also be seen as an API to give feedback if a change is acceptable or bad.
+This way if you use sub-agents for AI coding, the AI will not be able to complete its job until the commit succeeded and your basic harness of code-quality is satisfied.
+Typically, you will put the same checks that you run in your CI pipeline also into the commit hook.
+
+=== Example
+
+As an example simply have a look at the https://github.com/devonfw/IDEasy/tree/main/git-hooks[Git hooks] from this IDEasy project.
+As we are committed to collaborative Open-Source software development and making the world a better place, you are more than invited to copy & paste this commit hook script to your own project (even without explicit attribution).
+
+=== Pros and cons
+
+Pro:
+
+* Better quality of commits
++
+Commits automatically have higher code quality on average.
+It will become rather unlikely that changes committed and pushed will break your checks (will compile, have green tests, etc. whatever your commit hook is checking).
+* Faster feedback
++
+Before you can create a PR/MR you obviously need to commit and push.
+Already when you commit you will then get immediately feedback if your change broke something.
+Otherwise, you need to push your changes, create an PR/MR and then wait for the pipeline to complete to get the feedback.
+Meanwhile, you might have already been interrupted, distracted or started the next task and might miss the feedback.
+* Faster CI
++
+Especially in large projects your CI server(s) will be under load.
+The bigger your code-base, your team, your complexity, the more builds put the CI under stress what can even further slow down the builds due to higher load.
+Every build failure already detected by the commit hook locally on the developer machine will prevent a build on the central CI infrastructure reducing the load.
+* Clear guardrails
++
+When you join a project using commit-hooks you cannot miss the basic quality requirements from some documentation or onboarding.
+You will notice when your commits fail and you cannot miss out.
+* Continuous improvement
++
+Over the decades of project-project, I observed that a better level of such automation enforces continuous improvement.
+If automated QA checks are already in place and checked e.g. via commit-hook and CI, it is much more likely that team members will suggest improving the checks and the surrounding processes.
+If on the other extreme a project has not even CI setup, then getting started to improve can be a big hurdle.
+
+Cons:
+
+* Blocker in case of technical issues
++
+Assuming your commit hook is failing for technical reasons even though the change is fine, this can turn out to be a blocker annoying developers.
+So if developers are changing the commit hook script without having the proper experience for that you are heading for disaster.
+However, recent tooling supports you well and a client side commit hook can also be bypassed for a commit or temporary disabled if technically needed (e.g. you have resolved a complex merge and want to commit your large work and fix resulting quality problems later in another commit).
+So unlike with server-side checks, you never end up being completely blocked.
+Also, your team needs to understand that changes to the commit hook script and the automated checks need to be robust and tested carefully.
+This obviously includes that all operating systems used by your team are fully supported by the scripts.
+* Developer frustration
++
+Developers with less experience or not used to such discipline may be frustrated if they end up in a iteration loop of rejected commits.
+Typically, this can be fully addressed with a good onboarding.
+If the developer gets coached at the beginning and then knows how things are working and errors can be fixed, he will easily get used to it and after some time appreciate the extra safety net.
