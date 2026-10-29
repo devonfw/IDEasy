@@ -7,8 +7,11 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/2111[#2111]: Added user documentation for the GUI
+* https://github.com/devonfw/IDEasy/issues/992[#992]: Support multiple attributes for merge:id
+* https://github.com/devonfw/IDEasy/issues/2635[#2635]: Abort with a clear message instead of a NullPointerException when a tool with CVEs is installed in batch mode without force
 * https://github.com/devonfw/IDEasy/issues/2226[#2226]: Show IDEasy project, workspace and repository in the Git Bash window title
 * https://github.com/devonfw/IDEasy/issues/2373[#2373]: GlobalToolCommandlet: determine the edition together with the version for native package manager installs (Linux/macOS)
+* https://github.com/devonfw/IDEasy/issues/2519[#2519]: Add Flutter SDK commandlet
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/52?closed=1[milestone 2026.11.001].
 
