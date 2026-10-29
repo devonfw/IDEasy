@@ -69,6 +69,7 @@ public class AppBaseTest extends UIBasedApplicationTest {
   private MainWindowViewModel viewModel;
 
   private MainWindowView mainWindow;
+
   /** Throw-away user home for the isolated NlsService context so the persisted locale never rewrites the real {@code ~/.ide/ide.properties}. */
   @TempDir
   private static Path nlsUserHome;
@@ -99,7 +100,7 @@ public class AppBaseTest extends UIBasedApplicationTest {
     centerSplitPane = FxHelper.lookup(mainWindow, "#centerSplitPane");
     statusText = FxHelper.lookup(mainWindow, "#statusLabel");
     taskProgressBar = FxHelper.lookup(mainWindow, "#statusProgressBar");
-    tabPane =FxHelper.lookup(mainWindow, "#tabPane");
+    tabPane = FxHelper.lookup(mainWindow, "#tabPane");
     welcomePane = FxHelper.lookup(mainWindow, "#welcomePane");
     welcomeLabel = FxHelper.lookup(mainWindow, "#welcomeLabel");
     welcomeSubtitle = FxHelper.lookup(mainWindow, "#welcomeSubtitle");
