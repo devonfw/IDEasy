@@ -62,7 +62,7 @@ public class MainWindowViewModel {
   private void updateStatus() {
 
     if (this.tasks.size() > 1) {
-      this.statusText.set(this.tasks.size() + " tasks running...");
+      this.statusText.set(this.tasks.size() + " " + this.nlsService.get("tasks_running"));
       this.statusClickable.set(true);
       this.statusProgressVisible.set(false);
     } else if (this.tasks.size() == 1) {

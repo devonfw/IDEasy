@@ -49,7 +49,7 @@ class TaskManagerTest extends Assertions {
     assertThat(this.taskManager.addTask(task)).isTrue();
 
     assertThat(this.taskManager.getTasks()).containsExactly(task);
-    assertThat(this.taskManager.isEmpty()).isFalse();
+    assertThat(this.taskManager.isTaskListEmpty()).isFalse();
     assertThat(this.changeEvents).hasValue(1);
   }
 
@@ -62,7 +62,7 @@ class TaskManagerTest extends Assertions {
     assertThat(this.taskManager.removeTask(task)).isTrue();
 
     assertThat(this.taskManager.getTasks()).isEmpty();
-    assertThat(this.taskManager.isEmpty()).isTrue();
+    assertThat(this.taskManager.isTaskListEmpty()).isTrue();
     assertThat(this.changeEvents).hasValue(2);
   }
 

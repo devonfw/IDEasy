@@ -8,17 +8,19 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.event.TaskListChangeEvent;
 import com.devonfw.ide.gui.core.event.TaskProgressEvent;
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
 
 import io.github.mmm.event.EventBus;
 
+
 /**
  * Manages all currently running tasks and their progress bars. This class is plain Java without any JavaFX dependency and is thread-safe: all operations take
  * effect immediately on the calling thread, so the state returned by {@link #getTasks()} is always up to date. After every effective change, a
- * {@link TaskListChangeEvent} is sent via the {@link EventBus}, and a {@link TaskProgressEvent} after the progress of a running task has changed. UI components
- * listen to these events and pull the current state (on the JavaFX thread).
+ * {@link TaskListChangeEvent} is sent via the {@link GuiEventBus}, and a {@link TaskProgressEvent} after the progress of a running task has changed. UI
+ * components listen to these events and pull the current state (on the JavaFX thread).
  *
  * @see ProgressBarTask
  */
@@ -26,7 +28,7 @@ public class TaskManager {
 
   private static final Logger LOG = LoggerFactory.getLogger(TaskManager.class);
 
-  private final EventBus eventBus;
+  private final GuiEventBus eventBus;
 
   /** The tasks by their {@link ProgressBarTask#getTaskId() ID} in insertion order. Guarded by {@code this.tasks}. */
   private final Map<String, ProgressBarTask> tasks = new LinkedHashMap<>();
@@ -34,7 +36,7 @@ public class TaskManager {
   /**
    * @param eventBus the {@link EventBus} used to send a {@link TaskListChangeEvent} after every change.
    */
-  public TaskManager(EventBus eventBus) {
+  public TaskManager(GuiEventBus eventBus) {
 
     this.eventBus = Objects.requireNonNull(eventBus);
   }
@@ -103,7 +105,7 @@ public class TaskManager {
   /**
    * @return {@code true} if no task is currently running, {@code false} otherwise.
    */
-  public boolean isEmpty() {
+  public boolean isTaskListEmpty() {
 
     synchronized (this.tasks) {
       return this.tasks.isEmpty();
@@ -128,7 +130,7 @@ public class TaskManager {
 
   /**
    * Sends the {@link TaskListChangeEvent}. Must be called without holding the lock, as listeners may block or access this {@link TaskManager} from another
-   * thread, and the {@link EventBus} serializes dispatching with its own lock (lock-order deadlock).
+   * thread, and the {@link GuiEventBus} serializes dispatching with its own lock (lock-order deadlock).
    */
   private void fireChange() {
 

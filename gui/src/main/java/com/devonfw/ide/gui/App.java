@@ -61,7 +61,7 @@ public class App extends Application {
     primaryStage.setOnCloseRequest(event -> {
 
       LOG.info("Closing application");
-      if (!guiStateManager.getTaskManager().isEmpty()) {
+      if (!guiStateManager.getTaskManager().isTaskListEmpty()) {
         IdeDialog closeConfirm = new IdeDialog(IdeDialog.AlertType.CONFIRMATION, "There are still running tasks. Are you sure you want to exit?",
             ButtonType.CLOSE, ButtonType.CANCEL);
         closeConfirm.showAndWait().ifPresent(response -> {
