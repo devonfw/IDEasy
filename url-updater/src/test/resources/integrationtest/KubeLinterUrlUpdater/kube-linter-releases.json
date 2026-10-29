@@ -18,5 +18,25 @@
     "published_at": "2026-01-01T00:00:00Z",
     "assets": [],
     "body": "Release v0.8.3"
+  },
+  {
+    "url": "https://api.github.com/repos/stackrox/kube-linter/releases/987654321",
+    "assets_url": "https://api.github.com/repos/stackrox/kube-linter/releases/987654321/assets",
+    "html_url": "https://github.com/stackrox/kube-linter/releases/tag/v0.6.8",
+    "id": 987654321,
+    "author": {
+      "login": "github-actions[bot]",
+      "id": 41898282
+    },
+    "node_id": "RE_kwDOXKubeLinterOld",
+    "tag_name": "v0.6.8",
+    "target_commitish": "0000000000000000000000000000000000000000",
+    "name": "v0.6.8",
+    "draft": false,
+    "prerelease": false,
+    "created_at": "2025-06-01T00:00:00Z",
+    "published_at": "2025-06-01T00:00:00Z",
+    "assets": [],
+    "body": "Release v0.6.8"
   }
 ]
