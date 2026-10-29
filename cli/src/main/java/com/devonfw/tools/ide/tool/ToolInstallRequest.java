@@ -59,6 +59,16 @@ public final class ToolInstallRequest {
   }
 
   /**
+   * The constructor for a dependency with an explicit {@link #isSilent() silent} flag.
+   *
+   * @param parent the parent {@link ToolInstallRequest} (in case of a dependency).
+   * @param silent the {@link #isSilent() silent} flag.
+   */
+  public ToolInstallRequest(ToolInstallRequest parent, boolean silent) {
+    this(parent, silent, false);
+  }
+
+  /**
    * The constructor.
    *
    * @param silent the {@link #isSilent() silent} flag.

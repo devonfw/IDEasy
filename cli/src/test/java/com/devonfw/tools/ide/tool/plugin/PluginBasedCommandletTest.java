@@ -12,7 +12,6 @@ import org.junit.jupiter.api.io.TempDir;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.context.ProcessContextTestImpl;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
@@ -66,7 +65,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     //act
     pluginBasedCommandlet.installPlugins(
         List.of(ToolPluginDescriptor.of(context.getSettingsPath().resolve(ANY_EDIT_PLUGIN_PATH), context, false)),
-        new ProcessContextTestImpl(context));
+        new ToolInstallRequest(true));
 
     //assert - Check if we skip the markerfile-check because we force the plugins to install
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit (1/1)'.");
@@ -127,7 +126,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     context.getStartContext().setForcePlugins(true);
     ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
 
-    pluginBasedCommandlet.installPlugins(pluginBasedCommandlet.getPlugins().getPlugins(), new ProcessContextTestImpl(context));
+    pluginBasedCommandlet.installPlugins(pluginBasedCommandlet.getPlugins().getPlugins(), new ToolInstallRequest(true));
 
     // anyedit is configured as inactive but listed in ECLIPSE_EXTRA_PLUGINS - has to be installed
     assertThat(context).logAtSuccess().hasMessageContaining("Install plugin anyedit (");

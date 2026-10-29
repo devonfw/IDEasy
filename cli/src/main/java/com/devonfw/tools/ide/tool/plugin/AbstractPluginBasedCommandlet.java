@@ -70,7 +70,7 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
       this.pluginManager.resetPlugins(request);
     }
     this.context.getFileAccess().mkdirs(getPluginsInstallationPath());
-    installPlugins(getPlugins().getPlugins(), request.getProcessContext());
+    installPlugins(getPlugins().getPlugins(), request);
   }
 
   /**
@@ -100,7 +100,7 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
     ToolInstallRequest request = new ToolInstallRequest(true);
     request.setProcessContext(pc);
     install(request);
-    installPlugin(plugin, step, pc);
+    installPlugin(plugin, step, request);
   }
 
   @Override

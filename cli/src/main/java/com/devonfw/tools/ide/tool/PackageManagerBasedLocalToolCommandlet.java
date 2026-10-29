@@ -111,9 +111,10 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends AbstractT
       ToolInstallRequest parentRequest = request.getToolInstallRequest();
       if (parentRequest != null) {
         // this package-manager installation is triggered by a tool installation
-        // (e.g. "ide install ng" triggers the npm install), so the package-manager's
-        // install request gets the triggering tool's request as its parent
-        pm.install(new ToolInstallRequest(parentRequest));
+        // (e.g. "ide install ng" triggers the npm install, and a plugin install triggers the pip/uv install), so the package-manager's
+        // install request gets the triggering tool's request as its parent. It is made silent since the package manager is only a transitive
+        // dependency - it should not produce its own "already installed" notices (e.g. one per plugin) for a direct "ide install".
+        pm.install(new ToolInstallRequest(parentRequest, true));
       } else {
         // no triggering tool installation (e.g. the uninstall path), install standalone
         ToolInstallRequest installRequest = new ToolInstallRequest(true);
