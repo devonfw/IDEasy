@@ -6,6 +6,13 @@ if [ "$(uname)" = "Darwin" ]; then
   xattr -dr com.apple.quarantine . 2>/dev/null
 fi
 
+# Ensure the launcher is executable. The launcher is a native executable ("bin/ideasy" on Linux/macOS,
+# "bin/ideasy.exe" on Windows) that must be started with "exec", which requires the executable bit.
+# On Windows that bit is not reliably preserved by the archive/MSI, so "sh"/"bash" (Git Bash) would
+# otherwise refuse to run "./bin/ideasy" with "Permission denied" (#2753). chmod both possible names so
+# this works regardless of platform or how the archive was produced.
+chmod +x bin/ideasy bin/ideasy.exe 2>/dev/null || true
+
 # Create logs directory if it doesn't exist
 LOGS_DIR="${HOME}/.ide/logs"
 mkdir -p "${LOGS_DIR}"
