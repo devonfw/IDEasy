@@ -6,11 +6,13 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
@@ -146,10 +148,14 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that the desktop shortcut can be disabled during Windows installation.
+   * Tests that the GUI shortcuts on Windows are only created if enabled via the variables passed from the checkboxes of the MSI installer.
+   *
+   * @param createDesktopShortcut whether the desktop shortcut checkbox is checked.
+   * @param createStartMenuShortcut whether the Start Menu shortcut checkbox is checked.
    */
-  @Test
-  void testInstallIdeasyWithoutDesktopShortcutOnWindows() {
+  @ParameterizedTest
+  @CsvSource({ "true, true", "false, true", "true, false", "false, false" })
+  void testInstallIdeasyWithShortcutSelectionOnWindows(boolean createDesktopShortcut, boolean createStartMenuShortcut) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of("windows");
@@ -157,92 +163,23 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     context.setIdeRoot(null);
     context.setSystemInfo(systemInfo);
     context.getStartContext().setForceMode(true);
-    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("IDEASY_CREATE_DESKTOP_SHORTCUT", "0");
-
+    EnvironmentVariables variables = context.getVariables().getByType(EnvironmentVariablesType.CONF);
+    variables.set(IdeasyCommandlet.VAR_CREATE_DESKTOP_SHORTCUT, createDesktopShortcut ? "1" : "0");
+    variables.set(IdeasyCommandlet.VAR_CREATE_STARTMENU_SHORTCUT, createStartMenuShortcut ? "1" : "0");
     Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
     FileAccess fileAccess = new FileAccessImpl(context);
     fileAccess.writeFileContent("", gitconfigPath);
     fileAccess.copy(Path.of("src/main/package/gui"), context.getUserHome().resolve("Downloads/ide-cli"));
-
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
-
     // act
     ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
-
     // assert
     Assumptions.assumeTrue(System.getProperty("os.name", "").toLowerCase().startsWith("win"),
         "Skipped: .lnk creation requires PowerShell, which is only available on Windows");
-
-    assertThat(context.getUserHome().resolve("Desktop/IDEasy.lnk")).doesNotExist();
-    assertThat(context.getUserHome().resolve(
-        "AppData/Roaming/Microsoft/Windows/Start Menu/Programs/IDEasy.lnk")).exists();
-  }
-
-  /**
-   * Tests that the Start Menu shortcut can be disabled during Windows installation.
-   */
-  @Test
-  void testInstallIdeasyWithoutStartMenuShortcutOnWindows() {
-
-    // arrange
-    SystemInfo systemInfo = SystemInfoMock.of("windows");
-    IdeTestContext context = newContext("install");
-    context.setIdeRoot(null);
-    context.setSystemInfo(systemInfo);
-    context.getStartContext().setForceMode(true);
-    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("IDEASY_CREATE_STARTMENU_SHORTCUT", "0");
-
-    Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
-    FileAccess fileAccess = new FileAccessImpl(context);
-    fileAccess.writeFileContent("", gitconfigPath);
-    fileAccess.copy(Path.of("src/main/package/gui"), context.getUserHome().resolve("Downloads/ide-cli"));
-
-    IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
-
-    // act
-    ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
-
-    // assert
-    Assumptions.assumeTrue(System.getProperty("os.name", "").toLowerCase().startsWith("win"),
-        "Skipped: .lnk creation requires PowerShell, which is only available on Windows");
-
-    assertThat(context.getUserHome().resolve("Desktop/IDEasy.lnk")).exists();
-    assertThat(context.getUserHome().resolve(
-        "AppData/Roaming/Microsoft/Windows/Start Menu/Programs/IDEasy.lnk")).doesNotExist();
-  }
-
-  /**
-   * Tests that both Windows shortcuts can be disabled during installation.
-   */
-  @Test
-  void testInstallIdeasyWithoutShortcutsOnWindows() {
-
-    // arrange
-    SystemInfo systemInfo = SystemInfoMock.of("windows");
-    IdeTestContext context = newContext("install");
-    context.setIdeRoot(null);
-    context.setSystemInfo(systemInfo);
-    context.getStartContext().setForceMode(true);
-    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("IDEASY_CREATE_DESKTOP_SHORTCUT", "0");
-    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("IDEASY_CREATE_STARTMENU_SHORTCUT", "0");
-
-    Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
-    FileAccess fileAccess = new FileAccessImpl(context);
-    fileAccess.writeFileContent("", gitconfigPath);
-    fileAccess.copy(Path.of("src/main/package/gui"), context.getUserHome().resolve("Downloads/ide-cli"));
-
-    IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
-
-    // act
-    ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
-
-    // assert
-    Assumptions.assumeTrue(System.getProperty("os.name", "").toLowerCase().startsWith("win"),
-        "Skipped: .lnk creation requires PowerShell, which is only available on Windows");
-
-    assertThat(context.getUserHome().resolve("Desktop/IDEasy.lnk")).doesNotExist();
-    assertThat(context.getUserHome().resolve(
-        "AppData/Roaming/Microsoft/Windows/Start Menu/Programs/IDEasy.lnk")).doesNotExist();
+    assertThat(Files.exists(context.getUserHome().resolve("Desktop/IDEasy.lnk"))).as("desktop shortcut exists")
+        .isEqualTo(createDesktopShortcut);
+    assertThat(Files.exists(context.getUserHome().resolve("AppData/Roaming/Microsoft/Windows/Start Menu/Programs/IDEasy.lnk")))
+        .as("Start Menu shortcut exists").isEqualTo(createStartMenuShortcut);
   }
 
   /**
