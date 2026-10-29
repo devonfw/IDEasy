@@ -35,6 +35,7 @@ import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
+import com.devonfw.tools.ide.commandlet.InstallCommandlet;
 import com.devonfw.tools.ide.commandlet.UpgradeCommandlet;
 import com.devonfw.tools.ide.commandlet.update.UpdateCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
@@ -76,6 +77,7 @@ import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepository;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepositoryImpl;
+import com.devonfw.tools.ide.tool.git.Git;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.tool.pip.PipRepository;
@@ -819,10 +821,11 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     if (this.urlMetadata == null) {
       if (!isTest()) {
-        getGitContext().pullOrCloneAndResetIfNeeded(IDE_URLS_GIT, getUrlsPath(), null);
+        updateUrlsRepository();
       }
       this.urlMetadata = new UrlMetadata(this);
     }
+
     return this.urlMetadata;
   }
 
@@ -1465,20 +1468,24 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           if (!(cmd instanceof UpgradeCommandlet)) {
             verifyIdeMinVersion(false);
           }
-          Path settingsRepository = getSettingsGitRepository();
-          if (settingsRepository != null) {
-            if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) || (
-                getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(
-                    settingsRepository, getSettingsCommitIdPath()))) {
 
-              // Inform the user that an update is available. The update message is suppressed if we are already running the update
-              String msg = determineSettingsUpdateMessage(cmd);
-              if (msg != null) {
-                IdeLogLevel.INTERACTION.log(LOG, msg);
+          if (!isInstallingGit(cmd)) {
+            Path settingsRepository = getSettingsGitRepository();
+            if (settingsRepository != null) {
+              if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) || (
+                  getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(
+                      settingsRepository, getSettingsCommitIdPath()))) {
+
+                // Inform the user that an update is available. The update message is suppressed if we are already running the update
+                String msg = determineSettingsUpdateMessage(cmd);
+                if (msg != null) {
+                  IdeLogLevel.INTERACTION.log(LOG, msg);
+                }
               }
             }
           }
         }
+
         boolean success = ensureLicenseAgreement(cmd);
         if (!success) {
           return ValidationResultValid.get();
@@ -1996,4 +2003,28 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     return DEFAULT_WINDOWS_GIT_PATH;
   }
 
+  private boolean isInstallingGit(AbstractCommandlet cmd) {
+
+    if (cmd instanceof InstallCommandlet installCommandlet) {
+      return installCommandlet.tool.getValue() instanceof Git;
+    }
+    return false;
+  }
+
+  /**
+   * Updates the local {@code ide-urls} repository or, if Git is not available, falls back to the existing local metadata.
+   */
+  public void updateUrlsRepository() {
+
+    GitContext gitContext = getGitContext();
+
+    Path urlsPath = getUrlsPath();
+    if (gitContext.findGit() != null) {
+      gitContext.pullOrCloneAndResetIfNeeded(IDE_URLS_GIT, urlsPath, null);
+    } else if ((urlsPath != null) && Files.isDirectory(urlsPath)) {
+      LOG.debug("Git is not available. Using existing URL metadata without updating it.");
+    } else {
+      gitContext.findGitRequired();
+    }
+  }
 }
