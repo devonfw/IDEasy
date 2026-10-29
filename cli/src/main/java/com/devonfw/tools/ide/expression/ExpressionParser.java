@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.common.CharReader;
 
 /**
  * Parser for expressions of the syntax {@code @«function-name»([«arg»[,«arg»]*])}.
@@ -55,24 +55,32 @@ public class ExpressionParser {
     if (!matcher.find()) {
       return value;
     }
+    CharReader charReader = new CharReader(value);
     StringBuilder sb = new StringBuilder();
     int pos = 0;
     do {
       int start = matcher.start();
-      int open = matcher.end() - 1;
+      int end = matcher.end();
+      charReader.setIndex(end);
       String functionName = matcher.group(1);
-      int close = findClosingParenthesis(value, open);
-      ExpressionFunction function = (close < 0) ? null : this.functionManager.getFunction(functionName);
+      ExpressionFunction function = this.functionManager.getFunction(functionName);
       if (function == null) {
         LOG.trace("Ignoring '@{}(' in '{}' as it is no registered expression function.", functionName, value);
-        sb.append(value, pos, matcher.end());
-        pos = matcher.end();
+        sb.append(value, pos, end);
+        pos = end;
         continue;
       }
-      sb.append(value, pos, start);
-      List<String> args = parseArguments(value, open + 1, close, context);
-      sb.append(apply(function, args, value, context));
-      pos = close + 1;
+      List<String> args = parseArguments(charReader, context);
+      int index = charReader.getIndex();
+      if (args == null) {
+        // syntax error, be tolerant and append unresolved
+        sb.append(value, pos, index);
+        pos = index;
+      } else {
+        sb.append(value, pos, start);
+        sb.append(apply(function, args, value, context));
+        pos = index;
+      }
     } while (matcher.find(pos));
     sb.append(value, pos, value.length());
     return sb.toString();
@@ -80,98 +88,51 @@ public class ExpressionParser {
 
   private String apply(ExpressionFunction function, List<String> args, String value, ExpressionContext context) {
 
-    int size = args.size();
-    int min = function.getMinArgs();
-    int max = function.getMaxArgs();
-    if ((size < min) || ((max >= 0) && (size > max))) {
-      // NOTE: the value is deliberately not part of the message since it may already contain a resolved secret
-      throw new CliException(
-          "Invalid template expression: function @" + function.getName() + " requires " + min
-              + (max < 0 ? " or more" : " to " + max) + " argument(s) but received " + size + ".");
-    }
+    function.reset();
     String result = function.apply(args, context);
     return (result == null) ? "" : result;
   }
 
   /**
-   * @param value the value to scan.
-   * @param open the index of the opening parenthesis.
-   * @return the index of the matching closing parenthesis or {@code -1} if unbalanced.
-   */
-  private static int findClosingParenthesis(String value, int open) {
-
-    int depth = 0;
-    char quote = 0;
-    for (int i = open; i < value.length(); i++) {
-      char c = value.charAt(i);
-      if (quote != 0) {
-        if (c == quote) {
-          quote = 0;
-        }
-      } else if ((c == '\'') || (c == '"')) {
-        quote = c;
-      } else if (c == '(') {
-        depth++;
-      } else if (c == ')') {
-        depth--;
-        if (depth == 0) {
-          return i;
-        }
-      }
-    }
-    return -1;
-  }
-
-  /**
    * Splits the argument list at top-level commas, then trims, unquotes and resolves each argument.
    *
-   * @param value the entire value.
-   * @param begin the index after the opening parenthesis.
-   * @param end the index of the closing parenthesis (exclusive).
    * @param context the {@link ExpressionContext}.
    * @return the {@link List} of arguments.
    */
-  private static List<String> parseArguments(String value, int begin, int end, ExpressionContext context) {
+  private static List<String> parseArguments(CharReader charReader, ExpressionContext context) {
 
     List<String> args = new ArrayList<>();
-    if (value.substring(begin, end).isBlank()) {
-      return args;
-    }
-    int depth = 0;
-    char quote = 0;
-    int argStart = begin;
-    for (int i = begin; i < end; i++) {
-      char c = value.charAt(i);
-      if (quote != 0) {
-        if (c == quote) {
-          quote = 0;
+    while (charReader.hasNext()) {
+      charReader.skipSpaces();
+      boolean added = parseArgument(charReader, args, context);
+      if (added) {
+        charReader.skipSpaces();
+        if (charReader.expect(',')) {
+          continue;
         }
-      } else if ((c == '\'') || (c == '"')) {
-        quote = c;
-      } else if (c == '(') {
-        depth++;
-      } else if (c == ')') {
-        depth--;
-      } else if ((c == ',') && (depth == 0)) {
-        args.add(parseArgument(value.substring(argStart, i), context));
-        argStart = i + 1;
       }
+      if (charReader.expect(')')) {
+        break;
+      }
+      LOG.error("Illegal syntax found in expression arguments: {}", charReader.getRest());
+      return null;
     }
-    args.add(parseArgument(value.substring(argStart, end), context));
     return args;
   }
 
-  private static String parseArgument(String arg, ExpressionContext context) {
+  private static boolean parseArgument(CharReader charReader, List<String> args, ExpressionContext context) {
 
-    String result = arg.trim();
-    int length = result.length();
-    if (length >= 2) {
-      char first = result.charAt(0);
-      if (((first == '\'') || (first == '"')) && (result.charAt(length - 1) == first)) {
-        result = result.substring(1, length - 1);
-      }
+    if (charReader.expect("null")) {
+      args.add(null);
+      return true;
     }
-    return context.resolve(result);
+    String param = charReader.readQuotedString();
+    if (param != null) {
+      param = context.resolve(param);
+      args.add(param);
+      return true;
+    }
+    return false;
   }
 
 }

@@ -50,7 +50,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     context.getVariables().getByType(EnvironmentVariablesType.CONF).set("MY_BASE", "D:\\projects\\my-project");
 
     // act
-    String result = context.getVariables().resolve("@path('$[MY_BASE]/software/node/node.exe', native)", "test", false);
+    String result = context.getVariables().resolve("@path('$[MY_BASE]/software/node/node.exe', 'native')", "test", false);
 
     // assert
     assertThat(result).isEqualTo("D:\\projects\\my-project\\software\\node\\node.exe");
@@ -68,7 +68,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
 
     // act
-    String result = context.getVariables().resolve("@path('/d/projects/my-project/software/mvn', native)", "test", false);
+    String result = context.getVariables().resolve("@path('/d/projects/my-project/software/mvn', 'native')", "test", false);
 
     // assert
     assertThat(result).isEqualTo("D:\\projects\\my-project\\software\\mvn");
@@ -85,7 +85,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
 
     // act
-    String result = context.getVariables().resolve("@path('software/node/node.exe', native)", "test", false);
+    String result = context.getVariables().resolve("@path('software/node/node.exe', 'native')", "test", false);
 
     // assert
     assertThat(result).isEqualTo("software\\node\\node.exe");
@@ -138,7 +138,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
 
     // act
-    String result = context.getVariables().resolve("@if-windows('@path(C:/a/b, native)')", "test", false);
+    String result = context.getVariables().resolve("@if-windows('@path(\"C:/a/b\", \"native\")')", "test", false);
 
     // assert
     assertThat(result).isEqualTo("C:\\a\\b");
@@ -244,7 +244,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     context.setAnswers("");
 
     // act
-    String result = context.getVariables().resolve("@ask-secret('OPTIONAL_PASSWORD', 'Password (may be empty):', conf, '')", "test", false);
+    String result = context.getVariables().resolve("@ask-secret('OPTIONAL_PASSWORD', 'Password (may be empty):', 'conf', '')", "test", false);
 
     // assert
     assertThat(result).isEmpty();
@@ -285,7 +285,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     EnvironmentVariables variables = context.getVariables();
 
     // act
-    String result = variables.resolve("@ask-variable('MY_VARIABLE', 'Question:', conf, 'the-default')", "test", false);
+    String result = variables.resolve("@ask-variable('MY_VARIABLE', 'Question:', 'conf', 'the-default')", "test", false);
 
     // assert
     assertThat(result).isEqualTo("the-default");
@@ -304,8 +304,8 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     EnvironmentVariables variables = context.getVariables();
 
     // act
-    variables.resolve("@ask-variable('VAR_SETTINGS', 'Q:', settings)", "test", false);
-    variables.resolve("@ask-variable('VAR_HOME', 'Q:', home)", "test", false);
+    variables.resolve("@ask-variable('VAR_SETTINGS', 'Q:', 'settings')", "test", false);
+    variables.resolve("@ask-variable('VAR_HOME', 'Q:', 'home')", "test", false);
     variables.resolve("@ask-variable('VAR_DEFAULT', 'Q:')", "test", false);
 
     // assert
@@ -324,8 +324,8 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC);
 
     // act + assert
-    assertThatThrownBy(() -> context.getVariables().resolve("@ask-variable('MY_VARIABLE', 'Q:', somewhere)", "test", false))
-        .isInstanceOf(CliException.class).hasMessageContaining("invalid configuration location 'somewhere'");
+    assertThatThrownBy(() -> context.getVariables().resolve("@ask-variable('MY_VARIABLE', 'Q:', 'somewhere')", "test", false))
+        .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Invalid Enum option somewhere");
   }
 
   /**
@@ -339,7 +339,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     context.setAnswers("");
 
     // act
-    String result = context.getVariables().resolve("@ask-variable('MY_VARIABLE', 'Please enter the value:', conf, 'the-default')", "test", false);
+    String result = context.getVariables().resolve("@ask-variable('MY_VARIABLE', 'Please enter the value:', 'conf', 'the-default')", "test", false);
 
     // assert
     assertThat(result).isEqualTo("the-default");
@@ -358,7 +358,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     context.setAnswers("typed-value");
 
     // act
-    String result = context.getVariables().resolve("@ask-variable('MY_VARIABLE', 'Please enter the value:', conf, null)", "test", false);
+    String result = context.getVariables().resolve("@ask-variable('MY_VARIABLE', 'Please enter the value:', 'conf', null)", "test", false);
 
     // assert
     assertThat(result).isEqualTo("typed-value");
@@ -377,7 +377,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
 
     // act + assert
     assertThatThrownBy(() -> context.getVariables().resolve("@ask-variable('')", "test", false)).isInstanceOf(CliException.class)
-        .hasMessageContaining("requires an explicit question");
+        .hasMessageContaining("explicit question is required");
   }
 
   /**
@@ -390,8 +390,8 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC);
 
     // act + assert
-    assertThatThrownBy(() -> context.getVariables().resolve("@path(a, unix, extra)", "test", false)).isInstanceOf(CliException.class)
-        .hasMessageContaining("requires 1 to 2 argument(s) but received 3");
+    assertThatThrownBy(() -> context.getVariables().resolve("@path('a', 'unix', 'extra')", "test", false)).isInstanceOf(CliException.class)
+        .hasMessageContaining("Unknown argument #3");
   }
 
   /**
@@ -405,8 +405,8 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC);
 
     // act + assert
-    assertThatThrownBy(() -> context.getVariables().resolve("@path('x', dos)", "test", false)).isInstanceOf(CliException.class)
-        .hasMessageContaining("invalid mode 'dos'");
+    assertThatThrownBy(() -> context.getVariables().resolve("@path('x', 'dos')", "test", false)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Invalid Enum option dos");
   }
 
   /**

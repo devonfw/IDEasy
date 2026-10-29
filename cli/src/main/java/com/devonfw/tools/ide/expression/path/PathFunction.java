@@ -1,10 +1,10 @@
-package com.devonfw.tools.ide.expression.function;
+package com.devonfw.tools.ide.expression.path;
 
-import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.expression.BinaryExpressionFunction;
+import com.devonfw.tools.ide.expression.AbstractExpressionFunction;
 import com.devonfw.tools.ide.expression.ExpressionContext;
 import com.devonfw.tools.ide.expression.ExpressionFunction;
-import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.property.EnumProperty;
+import com.devonfw.tools.ide.property.StringProperty;
 
 /**
  * {@link ExpressionFunction} {@code @path} that normalises a path.
@@ -14,7 +14,7 @@ import com.devonfw.tools.ide.os.WindowsPathSyntax;
  * </ol>
  * Example: {@code @path('$[IDE_HOME]/software/node/node.exe')}
  */
-public class PathFunction extends BinaryExpressionFunction {
+public class PathFunction extends AbstractExpressionFunction {
 
   /** The literal value for the second argument to normalise to unix syntax (default). */
   public static final String MODE_UNIX = "unix";
@@ -22,12 +22,18 @@ public class PathFunction extends BinaryExpressionFunction {
   /** The literal value for the second argument to normalise to the syntax native to the current operating system. */
   public static final String MODE_NATIVE = "native";
 
+  private final StringProperty path;
+
+  private final EnumProperty<PathMode> mode;
+
   /**
    * The constructor.
    */
   public PathFunction() {
 
-    super(1);
+    super();
+    this.path = add(new StringProperty("path", true));
+    this.mode = add(new EnumProperty<>("mode", false, PathMode.class));
   }
 
   @Override
@@ -37,21 +43,10 @@ public class PathFunction extends BinaryExpressionFunction {
   }
 
   @Override
-  protected String apply(String path, String mode, ExpressionContext context) {
+  protected String execute(int paramCount, ExpressionContext context) {
 
-    if (mode == null) {
-      mode = MODE_UNIX;
-    }
-    if (MODE_UNIX.equals(mode)) {
-      return path.replace('\\', '/');
-    } else if (MODE_NATIVE.equals(mode)) {
-      if (context.getIdeContext().getSystemInfo().isWindows()) {
-        return WindowsPathSyntax.WINDOWS.normalize(path).replace('/', '\\');
-      }
-      return path.replace('\\', '/');
-    }
-    throw new CliException(
-        "Invalid template expression: invalid mode '" + mode + "' for function @path - expected '" + MODE_UNIX + "' or '" + MODE_NATIVE + "'.");
+    PathMode pathMode = this.mode.getValueOrDefault(PathMode.UNIX);
+    return pathMode.format(this.path.getValue(), context.getIdeContext().getSystemInfo());
   }
 
 }
