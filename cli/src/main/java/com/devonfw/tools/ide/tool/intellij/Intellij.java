@@ -17,12 +17,11 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.ExtensibleEnvironmentVariables;
 import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
 import com.devonfw.tools.ide.merge.xml.XmlMerger;
-import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
-import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
+import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -46,7 +45,6 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   private static final String TEMPLATE_LOCATION = "intellij/workspace/repository/" + FOLDER_IDEA_CONFIG;
   private static final String GRADLE_XML = "gradle.xml";
   private static final String MISC_XML = "misc.xml";
-  private static final String IDEA_PROPERTIES = "idea.properties";
 
   private static final Map<Class<?>, String> BUILD_TOOL_TO_IJ_TEMPLATE = Map.of(Mvn.class, MISC_XML, Gradle.class, GRADLE_XML);
 
@@ -81,12 +79,6 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   protected String getIdeProductPrefix() {
 
     return IDEA;
-  }
-
-  @Override
-  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
-    super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
-    environmentContext.withEnvVar("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve(IDEA_PROPERTIES).toString());
   }
 
   @Override
