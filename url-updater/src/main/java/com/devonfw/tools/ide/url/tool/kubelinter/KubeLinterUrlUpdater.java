@@ -71,7 +71,7 @@ public class KubeLinterUrlUpdater extends GithubUrlReleaseUpdater {
 
   @Override
   public String mapVersion(String version) {
-    return super.mapVersion(version).trim();
+    return super.mapVersion(version.trim());
   }
 
   @Override
