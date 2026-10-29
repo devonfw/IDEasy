@@ -19,6 +19,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '25'
+          cache: 'maven'
       - name: Check formatting (Spotless, changed files only)
         # Ratchets to origin/main, so only files changed by this PR are checked.
         # Fix locally with: mvn spotless:apply
