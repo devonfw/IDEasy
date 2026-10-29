@@ -48,7 +48,7 @@ public class UvUrlUpdater extends GithubUrlTagUpdater {
 
   @Override
   public String mapVersion(String version) {
-    if (VersionIdentifier.ofOptional(version).isLess(MIN_VID)) {
+    if (VersionIdentifier.ofRequired(version).isLess(MIN_VID)) {
       return null;
     }
     return super.mapVersion(version);

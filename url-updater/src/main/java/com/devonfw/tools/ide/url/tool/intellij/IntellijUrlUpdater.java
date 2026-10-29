@@ -92,7 +92,7 @@ public class IntellijUrlUpdater extends IdeaBasedUrlUpdater {
    */
   private boolean isUnifiedRelease(IntellijJsonRelease release) {
 
-    return VersionIdentifier.ofOptional(release.version()).isGreater(LAST_SEPARATE_VERSION);
+    return VersionIdentifier.ofRequired(release.version()).isGreater(LAST_SEPARATE_VERSION);
   }
 
 

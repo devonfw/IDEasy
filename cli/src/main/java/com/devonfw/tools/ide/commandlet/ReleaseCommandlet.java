@@ -72,7 +72,7 @@ public class ReleaseCommandlet extends AbstractCommandlet {
       if (this.context.question("Is the next version '" + nextVersion + "' correct?")) {
         break;
       }
-      nextVersion = VersionIdentifier.ofOptional(this.context.askForInput("Please enter the next version:"));
+      nextVersion = VersionIdentifier.ofRequired(this.context.askForInput("Please enter the next version:"));
     }
 
     buildTool.setProjectVersion(projectPath, releaseVersion);

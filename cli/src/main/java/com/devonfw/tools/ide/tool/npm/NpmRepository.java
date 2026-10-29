@@ -72,17 +72,12 @@ public class NpmRepository extends ArtifactToolRepository<NpmArtifact, NpmArtifa
       Set<String> versionSet = npmJs.versions().getVersionMap().keySet();
       List<VersionIdentifier> versions = new ArrayList<>(versionSet.size());
       for (String version : versionSet) {
-        try {
-          VersionIdentifier parsedVersion = VersionIdentifier.ofRequired(version);
-          if (parsedVersion != null) {
-            versions.add(parsedVersion);
-          } else {
-            LOG.warn("Skipping invalid npm version '{}' for package '{}': could not be parsed to a version", version, artifact.getName());
-          }
-        } catch (RuntimeException e) {
-          LOG.warn("Skipping invalid npm version '{}' for package '{}': {}", version, artifact.getName(), e.getMessage());
+        VersionIdentifier parsedVersion = VersionIdentifier.ofOptional(version);
+        if (parsedVersion != null) {
+          versions.add(parsedVersion);
+        } else {
+          LOG.warn("Skipping invalid npm version '{}' for package '{}': could not be parsed to a version", version, artifact.getName());
         }
-
       }
       return versions;
     } catch (JsonProcessingException e) {

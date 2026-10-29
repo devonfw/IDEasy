@@ -32,7 +32,7 @@ public class JasyptUrlUpdater extends MavenBasedUrlUpdater {
   @Override
   public boolean isValidVersion(String version) {
 
-    VersionIdentifier artifactVersion = VersionIdentifier.ofRequired(version);
+    VersionIdentifier artifactVersion = VersionIdentifier.ofOptional(version);
     if (artifactVersion != null) {
       return artifactVersion.isGreaterOrEqual(MIN_VERSION);
     }

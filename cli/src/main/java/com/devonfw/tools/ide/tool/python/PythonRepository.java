@@ -66,7 +66,7 @@ public class PythonRepository extends AbstractToolRepository {
     List<VersionIdentifier> versions = new ArrayList<>();
     for (PythonUvListEntry entry : entries) {
       if (entry.isCpython()) {
-        VersionIdentifier version = VersionIdentifier.ofRequired(entry.version());
+        VersionIdentifier version = VersionIdentifier.ofOptional(entry.version());
         if ((version != null) && !versions.contains(version)) {
           versions.add(version);
         }
