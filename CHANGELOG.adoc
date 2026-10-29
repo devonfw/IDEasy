@@ -18,6 +18,7 @@ The full list of changes for this release can be found in https://github.com/dev
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2703[#2703]: Improved documentation for resolving TLS certificate issues with `ide fix-vpn-tls-problem`.
 * https://github.com/devonfw/IDEasy/issues/2585[#2585]: Create npm base commandlet for gemini cli
 * https://github.com/devonfw/IDEasy/issues/2365[#2365]: Reduce plugin reinstallations
 * https://github.com/devonfw/IDEasy/issues/2701[#2701]: Stop exporting UV_PROJECT_ENVIRONMENT which broke uv projects

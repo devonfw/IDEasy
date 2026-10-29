@@ -67,7 +67,11 @@ Therefore, we provide you with a workaround so you can use IDEasy even in your e
 
 === Truststore
 
-So if you are affected by TLS cerificate validation errors as described above, you need to do the following things:
+If you are affected by TLS certificate validation errors as described above, IDEasy provides the following command to automatically fix the problem:
+
+ide fix-vpn-tls-problem [«url»]
+
+You can optionally provide the HTTPS URL that is causing the TLS certificate validation error. If this command does not solve the problem, you can follow the manual instructions below as a fallback:
 
 1. Open the failing HTTPS URL in your browser (e.g. from an error such as `java.lang.IllegalStateException: Failed to fetch XML metadata from https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/maven-metadata.xml ... PKIX path building failed`)
 2. Click on the `lock` icon left to the URL address bar.
@@ -114,8 +118,3 @@ echo 'export IDE_OPTIONS="-Djavax.net.ssl.trustStore=$IDE_HOME/settings/truststo
 13. You are now all set. Commit and push the `truststore.p12` file to your settings git repo to share it with your team.
 14. Provide a wiki page for your team with only step 11. and share it.
 15. If everybody in your team is affected by this VPN/TLS issue, you can even add the line directly to the https://github.com/devonfw/ide-settings/blob/main/templates/conf/ide.properties[conf/ide.properties template in your settings repo].
-
-Sorry, that we cannot support you automatically in this scenario.
-Ask your VPN tool vendor for support and why this is all required.
-In general encryption should be end-to-end and your data should be protected.
-But if you are not in a sane environment we have provided you with a nice workaround.
