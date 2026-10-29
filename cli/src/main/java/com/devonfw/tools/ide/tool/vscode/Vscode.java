@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.vscode;
 
+import static com.devonfw.tools.ide.version.VersionIdentifier.MAJOR_SEGMENT;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -18,6 +20,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -71,11 +74,10 @@ public class Vscode extends AbstractIdeToolCommandlet {
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, extensionsCommands);
     if (result.isSuccessful()) {
       if (versionSpecified) {
-        IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {} with version: {}", plugin.name(), plugin.version());
+        step.success("Successfully installed plugin: {} with version: {}", plugin.name(), plugin.version());
       } else {
-        IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
+        step.success("Successfully installed plugin: {}", plugin.name());
       }
-      step.success();
       return true;
     }
     if (versionSpecified) {
@@ -109,9 +111,15 @@ public class Vscode extends AbstractIdeToolCommandlet {
     super.configureWorkspace();
   }
 
+  @Override
+  public int getIncompatibleVersionSegmentIndex() {
+
+    return MAJOR_SEGMENT;
+  }
+
   /**
-   * Removes the legacy user-data folder from the workspace that VSCode does not read anymore (see #2142 and #2509). If the actual user-data folder does not
-   * yet exist, the legacy folder is moved there to preserve its content, otherwise it is backed up.
+   * Removes the legacy user-data folder from the workspace that VSCode does not read anymore (see #2142 and #2509). If the actual user-data folder does not yet
+   * exist, the legacy folder is moved there to preserve its content, otherwise it is backed up.
    */
   private void cleanupLegacyUserData() {
 
@@ -144,9 +152,7 @@ public class Vscode extends AbstractIdeToolCommandlet {
     if (this.context.getSystemInfo().isWsl()) {
       pc.withEnvVar("DONT_PROMPT_WSL_INSTALL", "1");
     }
-
     pc.addArg("--new-window");
-
     if (Boolean.TRUE.equals(IdeVariables.VSCODE_PROFILE_ENABLED.get(this.context))) {
       // Use a named profile (not --user-data-dir) so VS Code keeps its IPC lock at the default location.
       // This lets the OS-level vscode:// protocol handler (OAuth callbacks e.g. GitHub/Copilot) find the
@@ -155,10 +161,7 @@ public class Vscode extends AbstractIdeToolCommandlet {
     } else {
       pc.addArg("--user-data-dir=" + getUserDataPath());
     }
-
-    Path vsCodeExtensionFolder = getPluginsInstallationPath();
-    pc.addArg("--extensions-dir=" + vsCodeExtensionFolder);
-
+    pc.addArg("--extensions-dir=" + getPluginsInstallationPath());
     pc.addArg(this.context.getWorkspacePath());
     super.configureToolArgs(pc, processMode, args);
   }

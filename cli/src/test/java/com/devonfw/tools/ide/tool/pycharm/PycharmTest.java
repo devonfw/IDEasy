@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.tool.pycharm;
 
-import java.nio.file.Path;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -143,8 +141,7 @@ class PycharmTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    Path oldMarkerFile = commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"));
-    assertThat(oldMarkerFile).exists();
+    assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
 
     // act
     commandlet.setEdition("professional");
@@ -152,7 +149,7 @@ class PycharmTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(context).logAtDebug()
-        .hasEntries("Plugin marker file " + oldMarkerFile + " got deleted.");
+        .hasEntries("Plugin marker file " + context.getIdeHome().resolve(".ide").resolve("plugin.pycharm.pycharm.ActivePlugin") + " got deleted.");
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
   }
 
@@ -171,19 +168,15 @@ class PycharmTest extends AbstractIdeContextTest {
     pycharm.run();
 
     // assert
-    String expectedPluginsPath = pycharm.getPluginsInstallationPath()
-        .toAbsolutePath()
-        .toString();
-
     assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("pycharm").resolve(context.getWorkspaceName()).resolve(".pycharm.vmoptions"))
         .exists()
         .hasContent("""
-          -Xms256m
-          -Xmx4096m
-          -XX:ReservedCodeCacheSize=256m
-          -ea
-          -Dsun.io.useCanonCaches=true
-          """ + "-Didea.plugins.path=" + expectedPluginsPath + System.lineSeparator());
+            -Xms256m
+            -Xmx4096m
+            -XX:ReservedCodeCacheSize=256m
+            -ea
+            -Dsun.io.useCanonCaches=true
+            -Didea.plugins.path=""" + context.getPluginsPath().resolve("pycharm").resolve("2024.3").toAbsolutePath());
   }
 
   private void checkInstallation(IdeTestContext context) {
@@ -192,7 +185,7 @@ class PycharmTest extends AbstractIdeContextTest {
     assertThat(commandlet.getInstalledVersion().toString()).isEqualTo("2024.3.5");
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed pycharm in version 2024.3.5");
     assertThat(context).logAtDebug().hasMessage("Omitting installation of inactive plugin InactivePlugin (inactivePlugin).");
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin ActivePlugin (1/1)'.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: ActivePlugin");
   }
 
 }

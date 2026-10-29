@@ -1,12 +1,16 @@
 package com.devonfw.tools.ide.tool.plugin;
 
+import static com.devonfw.tools.ide.version.VersionIdentifier.MINOR_SEGMENT;
+
 import java.nio.file.Path;
 import java.util.Collection;
 
+import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -26,6 +30,39 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
   PluginManager getPluginManager();
 
   /**
+   * @return {@code true} if the reset and reinstallation of the plugins is forced for the current run via the {@code --force-plugin-reinstall} flag.
+   */
+  boolean isForcePluginReinstall();
+
+  /**
+   * Determines whether all installed plugins of this tool have to be purged (reset and reinstalled) as part of the installation. A purge is required if the
+   * reset and reinstallation is {@link #isForcePluginReinstall() forced via the {@code --force-plugin-reinstall} flag}, if the version changed at the
+   * {@link #getIncompatibleVersionSegmentIndex() incompatible version segment} or at a more significant segment, if the tool edition changed, or if the tool is
+   * installed for the first time. Concrete IDEs may override this to apply their own compatibility strategy and should account for a forced plugin
+   * reinstallation so that {@code --force-plugin-reinstall} is not silently ignored.
+   *
+   * @param request the {@link ToolInstallRequest} carrying the {@link ToolInstallRequest#getInstalled() installed} and
+   *     {@link ToolInstallRequest#getRequested() requested} edition and version.
+   * @return {@code true} if the installed plugins have to be purged (either because they are considered incompatible with the requested version or because the
+   *     purge is forced via the {@code --force-plugin-reinstall} flag), {@code false} otherwise.
+   */
+  default boolean isPluginPurgeRequired(ToolInstallRequest request) {
+
+    return getPluginManager().isPluginPurgeRequired(request);
+  }
+
+  /**
+   * @return the zero-based index of the version segment at which a change is considered incompatible with the installed plugins and hence requires a purge,
+   *     e.g. {@link VersionIdentifier#MAJOR_SEGMENT}, {@link VersionIdentifier#MINOR_SEGMENT}, or {@link VersionIdentifier#FIX_SEGMENT}. A change at this
+   *     segment or at a more significant one (towards the major segment) triggers a purge. By default only a change of the
+   *     {@link VersionIdentifier#MINOR_SEGMENT minor} segment triggers a purge. Concrete IDEs may override this to reflect their own versioning scheme.
+   */
+  default int getIncompatibleVersionSegmentIndex() {
+
+    return MINOR_SEGMENT;
+  }
+
+  /**
    * @return the configured edition of the tool owning the plugins (see {@code AbstractToolCommandlet#getConfiguredEdition()}).
    */
   String getConfiguredEdition();
@@ -35,12 +72,6 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
    */
   String getInstalledEdition();
 
-  /**
-   * @return the version to include in plugin marker files, or {@code null} if plugin markers are not version-specific.
-   */
-  default VersionIdentifier getPluginMarkerVersion() {
-    return null;
-  }
   /**
    * @return the {@link Path} to the folder with the plugin configuration files inside the settings. The default implementation is shared by all plugin-capable
    *     tools (see {@link AbstractPluginBasedCommandlet} and {@link com.devonfw.tools.ide.tool.pip.PipBasedIdeToolCommandlet}).
@@ -93,6 +124,8 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
   }
 
   /**
+   * Performs the tool-specific installation of a single plugin.
+   *
    * @param plugin the {@link ToolPluginDescriptor} to install.
    * @param step the {@link Step} for the plugin installation.
    * @param pc the {@link ProcessContext} to use.
