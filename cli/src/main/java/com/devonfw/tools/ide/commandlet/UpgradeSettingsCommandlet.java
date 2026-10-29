@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -82,12 +83,24 @@ public class UpgradeSettingsCommandlet extends AbstractCommandlet {
   }
 
   /**
-   * Removes the properties templates of the JetBrains IDEs (e.g. {@code intellij/workspace/update/idea.properties}) from the settings since IDEasy now
-   * generates these files itself outside of the workspace (see #2531).
+   * Removes the {@link #findObsoleteWorkspaceTemplates() obsolete workspace templates} from the settings.
    */
   private void removeObsoleteWorkspaceTemplates() {
     LOG.info("Removing obsolete workspace templates if present...");
     FileAccess fileAccess = this.context.getFileAccess();
+    for (Path template : findObsoleteWorkspaceTemplates()) {
+      fileAccess.delete(template);
+      IdeLogLevel.SUCCESS.log(LOG, "Removed obsolete template {} since IDEasy now generates this file itself.", template);
+    }
+  }
+
+  /**
+   * @return the {@link List} of obsolete workspace templates that exist in the settings and are removed by this commandlet. These are the properties
+   *     templates of the JetBrains IDEs (e.g. {@code intellij/workspace/update/idea.properties}) since IDEasy now generates these files itself outside of the
+   *     workspace (see #2531).
+   */
+  public List<Path> findObsoleteWorkspaceTemplates() {
+    List<Path> templates = new ArrayList<>();
     Path settingsPath = this.context.getSettingsPath();
     for (AbstractCommandlet commandlet : this.context.getCommandletManager().getCommandlets()) {
       if (commandlet instanceof IdeaBasedIdeToolCommandlet ide) {
@@ -95,12 +108,12 @@ public class UpgradeSettingsCommandlet extends AbstractCommandlet {
         for (String folder : List.of(IdeContext.FOLDER_SETUP, IdeContext.FOLDER_UPDATE)) {
           Path template = templatesFolder.resolve(folder).resolve(ide.getConfigurationFileName());
           if (Files.exists(template)) {
-            fileAccess.delete(template);
-            IdeLogLevel.SUCCESS.log(LOG, "Removed obsolete template {} since IDEasy now generates this file itself.", template);
+            templates.add(template);
           }
         }
       }
     }
+    return templates;
   }
 
   private void updateWorkspaceTemplates() {

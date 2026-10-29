@@ -103,6 +103,27 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtWarning().hasEntries("Templates folder is missing in settings repository.");
   }
 
+  /**
+   * Tests that the update warns if the settings still contain an obsolete JetBrains properties template (e.g. {@code idea.properties}) that IDEasy now
+   * generates itself and points to {@code ide upgrade-settings} to remove it (see #2531).
+   */
+  @Test
+  void testRunWarnsAboutObsoleteJetBrainsPropertiesTemplate() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_UPDATE);
+    Path template = context.getSettingsPath().resolve("intellij/workspace/update/idea.properties");
+    context.getFileAccess().writeFileContent("idea.config.path=$[IDE_HOME]/workspaces/$[WORKSPACE]/.intellij/config", template, true);
+    UpdateCommandlet uc = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
+
+    // act
+    uc.run();
+
+    // assert
+    assertThat(context).logAtWarning().hasMessageContaining(template.toString());
+    assertThat(context).logAtInteraction().hasMessageContaining("ide upgrade-settings");
+  }
+
   private void deleteTemplatesFolder(IdeContext context) {
 
     Path templates = context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES);
