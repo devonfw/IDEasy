@@ -27,6 +27,7 @@ import com.devonfw.tools.ide.url.tool.dotnet.DotNetUrlUpdater;
 import com.devonfw.tools.ide.url.tool.eclipse.EclipseCppUrlUpdater;
 import com.devonfw.tools.ide.url.tool.eclipse.EclipseJavaUrlUpdater;
 import com.devonfw.tools.ide.url.tool.eclipse.EclipseJeeUrlUpdater;
+import com.devonfw.tools.ide.url.tool.flutter.FlutterUrlUpdater;
 import com.devonfw.tools.ide.url.tool.gcloganalyzer.GcLogAnalyzerUrlUpdater;
 import com.devonfw.tools.ide.url.tool.gcloud.GCloudUrlUpdater;
 import com.devonfw.tools.ide.url.tool.gcviewer.GcViewerUrlUpdater;
@@ -46,6 +47,7 @@ import com.devonfw.tools.ide.url.tool.jenkins.JenkinsUrlUpdater;
 import com.devonfw.tools.ide.url.tool.jmc.JmcUrlUpdater;
 import com.devonfw.tools.ide.url.tool.kotlinc.KotlincNativeUrlUpdater;
 import com.devonfw.tools.ide.url.tool.kotlinc.KotlincUrlUpdater;
+import com.devonfw.tools.ide.url.tool.kubelinter.KubeLinterUrlUpdater;
 import com.devonfw.tools.ide.url.tool.lazydocker.LazyDockerUrlUpdater;
 import com.devonfw.tools.ide.url.tool.mvn.MvnUrlUpdater;
 import com.devonfw.tools.ide.url.tool.mvnd.MvndUrlUpdater;
@@ -90,10 +92,10 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
   private final List<AbstractUrlUpdater> updaters = List.of(
       new AgyUrlUpdater(), new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(),
       new ClaudeUrlUpdater(), new CodexUrlUpdater(), new CopilotUrlUpdater(), new CorepackUrlUpdater(), new DockerDesktopUrlUpdater(), new DotNetUrlUpdater(),
-      new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GcLogAnalyzerUrlUpdater(), new GCloudUrlUpdater(),
+      new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new FlutterUrlUpdater(), new GcLogAnalyzerUrlUpdater(), new GCloudUrlUpdater(),
       new GcViewerUrlUpdater(), new GhUrlUpdater(), new GitUrlUpdater(), new GoUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
       new GradleUrlUpdater(), new HelmUrlUpdater(), new InsoUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(), new JavaAzulUrlUpdater(),
-      new JavaUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(), new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(),
+      new JavaUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(), new KubeLinterUrlUpdater(), new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(),
       new MvnUrlUpdater(), new MvndUrlUpdater(), new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new ObsidianUrlUpdater(), new OcUrlUpdater(),
       new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(), new QuarkusUrlUpdater(), new RubyUrlUpdater(), new RubyJdxUrlUpdater(),
       new RustUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(), new SquirrelSqlUrlUpdater(), new SoapUiUrlUpdater(),
