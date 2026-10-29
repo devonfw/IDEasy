@@ -20,6 +20,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.tool.custom.CustomTools;
 import com.devonfw.tools.ide.tool.custom.CustomToolsMapper;
+import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
@@ -52,6 +53,7 @@ public class UpgradeSettingsCommandlet extends AbstractCommandlet {
   protected void doRun() {
     updateLegacyFolders();
     updateProperties();
+    removeObsoleteWorkspaceTemplates();
     updateWorkspaceTemplates();
   }
 
@@ -75,6 +77,28 @@ public class UpgradeSettingsCommandlet extends AbstractCommandlet {
         }
       } catch (IllegalStateException e) {
         LOG.error("Error renaming folder {} to {} in {}", legacyName, newName, folder, e);
+      }
+    }
+  }
+
+  /**
+   * Removes the properties templates of the JetBrains IDEs (e.g. {@code intellij/workspace/update/idea.properties}) from the settings since IDEasy now
+   * generates these files itself outside of the workspace (see #2531).
+   */
+  private void removeObsoleteWorkspaceTemplates() {
+    LOG.info("Removing obsolete workspace templates if present...");
+    FileAccess fileAccess = this.context.getFileAccess();
+    Path settingsPath = this.context.getSettingsPath();
+    for (AbstractCommandlet commandlet : this.context.getCommandletManager().getCommandlets()) {
+      if (commandlet instanceof IdeaBasedIdeToolCommandlet ide) {
+        Path templatesFolder = settingsPath.resolve(ide.getName()).resolve(IdeContext.FOLDER_WORKSPACE);
+        for (String folder : List.of(IdeContext.FOLDER_SETUP, IdeContext.FOLDER_UPDATE)) {
+          Path template = templatesFolder.resolve(folder).resolve(ide.getConfigurationFileName());
+          if (Files.exists(template)) {
+            fileAccess.delete(template);
+            IdeLogLevel.SUCCESS.log(LOG, "Removed obsolete template {} since IDEasy now generates this file itself.", template);
+          }
+        }
       }
     }
   }

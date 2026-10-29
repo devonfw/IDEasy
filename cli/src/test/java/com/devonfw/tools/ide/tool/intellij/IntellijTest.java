@@ -474,15 +474,15 @@ class IntellijTest extends AbstractIdeContextTest {
     assertThat(metadataConfig.resolve("options").resolve("code.style.schemes.xml")).exists()
         .content().contains("ideasyTestOption");
     // ...and is no longer merged into the workspace
-    assertThat(workspace.resolve(".intellij/config")).doesNotExist();
+    assertThat(workspace.resolve(".intellij")).doesNotExist();
+    // while the other templates (e.g. .idea) are still merged into the workspace
+    assertThat(workspace.resolve(".idea/foo.xml")).exists().content().contains("ideasy-fixture");
     // the settings config template carries the merge namespace, so it must merge cleanly without a warning (see the merger's namespace check)
     assertThat(this.context).logAtWarning().hasNoMessageContaining("XML merge namespace not found");
     // the generated idea.properties is kept out of the workspace as well and points at the out-of-workspace config folder
     assertThat(workspace.resolve("idea.properties")).doesNotExist();
     Properties ideaProperties = this.context.getFileAccess().readProperties(metadata.resolve("idea.properties"));
     assertThat(ideaProperties).containsEntry("idea.config.path", metadataConfig.toString().replace('\\', '/'));
-    // IDEasy takes over the control of idea.properties, so nothing from the settings template must survive (see #2531 and #2336)
-    assertThat(ideaProperties).doesNotContainKey("ideasyTestProperty");
   }
 
   /**
@@ -509,8 +509,8 @@ class IntellijTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that a legacy {@code .intellij} folder and the obsolete generated {@code idea.properties} are removed from the workspace (via backup, so nothing is
-   * lost) when the out-of-workspace metadata config folder already exists (see #2531).
+   * Tests that a legacy {@code .intellij} folder is removed from the workspace (via backup, so nothing is lost) when the out-of-workspace metadata config
+   * folder already exists (see #2531).
    */
   @Test
   void testConfigureWorkspaceRemovesLegacyMetadataIfConfigFolderExists() {
@@ -518,20 +518,16 @@ class IntellijTest extends AbstractIdeContextTest {
     // arrange: the intellij test project already ships $IDE_HOME/.ide/intellij/main/config
     Intellij commandlet = this.context.getCommandletManager().getCommandlet(Intellij.class);
     FileAccess fileAccess = this.context.getFileAccess();
-    Path workspace = this.context.getWorkspacePath();
-    Path legacyMetadata = workspace.resolve(".intellij");
+    Path legacyMetadata = this.context.getWorkspacePath().resolve(".intellij");
     fileAccess.writeFileContent("legacy", legacyMetadata.resolve("config").resolve("options").resolve("legacy.xml"), true);
-    fileAccess.writeFileContent("obsolete", workspace.resolve("idea.properties"));
 
     // act
     commandlet.configureWorkspace();
 
     // assert
     assertThat(legacyMetadata).doesNotExist();
-    assertThat(workspace.resolve("idea.properties")).doesNotExist();
-    // the legacy content is not deleted but backed up, and the properties file is regenerated out of the workspace
+    // the legacy content is not deleted but backed up
     assertThat(this.context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS)).exists();
-    assertThat(ideMetadata(this.context).resolve("idea.properties")).exists();
   }
 
   private static Path ideMetadata(IdeContext context) {

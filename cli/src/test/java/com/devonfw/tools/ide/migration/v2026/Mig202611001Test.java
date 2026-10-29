@@ -11,9 +11,9 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.io.FileAccess;
 
 /**
- * Test of {@link Mig202610001}.
+ * Test of {@link Mig202611001}.
  */
-class Mig202610001Test extends AbstractIdeContextTest {
+class Mig202611001Test extends AbstractIdeContextTest {
 
   private static final String PROJECT_MIGRATION = "migration";
 
@@ -30,7 +30,7 @@ class Mig202610001Test extends AbstractIdeContextTest {
     fileAccess.writeFileContent("dummy", legacyMetadata.resolve("config").resolve("options").resolve("editor.xml"), true);
 
     // act
-    new Mig202610001().run(context);
+    new Mig202611001().run(context);
 
     // assert
     assertThat(ideMetadata(context, "intellij").resolve("config").resolve("options").resolve("editor.xml")).exists().hasContent("dummy");
@@ -41,7 +41,7 @@ class Mig202610001Test extends AbstractIdeContextTest {
   /**
    * Tests that the migration also handles the other JetBrains based IDEs and backs up the obsolete generated properties files instead of deleting them.
    * <p>
-   * The set of IDEs is intentionally frozen in {@link Mig202610001}: a migration is a historical record and must keep behaving as it did at 2026.10.001, so
+   * The set of IDEs is intentionally frozen in {@link Mig202611001}: a migration is a historical record and must keep behaving as it did at 2026.11.001, so
    * this test pins that list rather than deriving it from the current commandlets.
    */
   @Test
@@ -58,7 +58,7 @@ class Mig202610001Test extends AbstractIdeContextTest {
     fileAccess.writeFileContent("obsolete", workspace.resolve("pycharm.properties"));
 
     // act
-    new Mig202610001().run(context);
+    new Mig202611001().run(context);
 
     // assert
     assertThat(ideMetadata(context, "android-studio").resolve("config").resolve("marker.txt")).exists().hasContent("studio");
@@ -81,7 +81,7 @@ class Mig202610001Test extends AbstractIdeContextTest {
     List<Path> before = listWorkspaceFiles(context);
 
     // act
-    new Mig202610001().run(context);
+    new Mig202611001().run(context);
 
     // assert
     assertThat(listWorkspaceFiles(context)).containsExactlyElementsOf(before);
@@ -103,7 +103,7 @@ class Mig202610001Test extends AbstractIdeContextTest {
     fileAccess.writeFileContent("new", config.resolve("marker.txt"), true);
 
     // act
-    new Mig202610001().run(context);
+    new Mig202611001().run(context);
 
     // assert
     assertThat(config.resolve("marker.txt")).exists().hasContent("new");

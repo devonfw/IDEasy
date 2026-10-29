@@ -62,12 +62,6 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
   }
 
   @Override
-  protected IdeWorkspaceConfigurer createWorkspaceConfigurer(IdeContext context, String tool) {
-
-    return new JetBrainsWorkspaceConfigurer(context, tool);
-  }
-
-  @Override
   public boolean installPlugin(ToolPluginDescriptor plugin, final Step step, ProcessContext pc) {
 
     // In case of plugins with a custom repo url
@@ -95,10 +89,17 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
     createIdeConfigurationFile();
   }
 
+  @Override
+  public Map<Path, Path> getWorkspaceRedirects(Path workspaceFolder) {
+
+    // the settings still provide the JetBrains metadata templates (e.g. .intellij/config) in the legacy location inside the workspace
+    return Map.of(workspaceFolder.resolve("." + this.tool), getIdeMetadataPath());
+  }
+
   /**
-   * Removes the JetBrains metadata that the IDE does not read anymore from the workspace (see #2531). The legacy config folder (e.g.
+   * Removes the JetBrains metadata folder that the IDE does not read anymore from the workspace (see #2531). The legacy config folder (e.g.
    * {@code .intellij/config}) is moved to {@link #getIdeMetadataConfigPath()} if that does not exist yet, so its content is preserved. Everything else is
-   * backed up (soft-deleted) since it is either obsolete or regenerated.
+   * backed up (soft-deleted) since it is obsolete.
    */
   private void cleanupLegacyMetadata() {
 
@@ -115,11 +116,6 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
       }
       LOG.warn("Removing obsolete {} metadata folder {} from workspace since {} is used instead.", getName(), legacyMetadata, getIdeMetadataPath());
       fileAccess.backup(legacyMetadata);
-    }
-    Path legacyConfigurationFile = workspaceFolder.resolve(getConfigurationFileName());
-    if (Files.exists(legacyConfigurationFile)) {
-      LOG.warn("Removing obsolete file {} from workspace since it is now generated at {}.", legacyConfigurationFile, getConfigurationFilePath());
-      fileAccess.backup(legacyConfigurationFile);
     }
   }
 
@@ -267,7 +263,10 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
     environmentContext.withEnvVar(pathVariableKey, getConfigurationFilePath().toString());
   }
 
-  private String getConfigurationFileName() {
+  /**
+   * @return the name of the IDE configuration file (e.g. {@code idea.properties}) that IDEasy generates at {@link #getConfigurationFilePath()}.
+   */
+  public String getConfigurationFileName() {
 
     return getIdeProductPrefix() + ".properties";
   }
