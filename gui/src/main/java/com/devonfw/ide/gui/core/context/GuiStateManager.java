@@ -80,7 +80,7 @@ public class GuiStateManager {
    * @param ideRoot the root directory of IDEasy. If <code>null</code>, the IDE_ROOT environment variable is used.
    * @param nlsContext the {@link IdeContext} handed to the {@link NlsService}, or {@code null} to derive one from the GUI start context (production default).
    *        Injecting an isolated context (for example an {@link com.devonfw.tools.ide.context.IdeTestContext}) keeps the GUI test independent from the real
-   *        user home and the {@code IDE_OPTIONS} environment variable.
+   *        user home and the {@code GUI_LANGUAGE} user variable.
    */
   public GuiStateManager(String ideRoot, IdeContext nlsContext) {
 

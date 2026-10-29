@@ -42,7 +42,7 @@ class ConsolePanelTest extends UIBasedApplicationTest {
     URL consoleViewUrl = getClass().getResource("console.fxml");
     assertThat(consoleViewUrl).as("Cannot resolve console UI FXML resource!").isNotNull();
 
-    // isolate the NlsService from the developer's real user home and the IDE_OPTIONS environment variable so constructing it has no side effects
+    // isolate the NlsService from the developer's real user home and the GUI_LANGUAGE user variable so constructing it has no side effects
     final IdeTestContext nlsContext = new IdeTestContext();
     nlsContext.setSystem(new IdeSystemTestImpl());
     nlsContext.setUserHome(nlsUserHome);

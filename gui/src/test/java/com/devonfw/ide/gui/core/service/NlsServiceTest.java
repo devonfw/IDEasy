@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.stream.Stream;
@@ -31,13 +30,13 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
 
 /**
- * Tests for {@link NlsService} - verifies locale switching, bundle loading, and fallback behavior.
+ * Tests for {@link NlsService} - verifies locale resolution, bundle loading, and persistence of the language selection.
  *
  * <p>
  * This test is isolated from the machine it runs on (see {@code documentation/contributing/junit-testing.adoc}): the {@link NlsService} is created with an
  * isolated {@link IdeTestContext} whose system environment and user home are stubbed. The user home is a per-test {@link TempDir @TempDir} created for
- * every test (and cleaned up afterwards), so the persisted GUI locale is written to a throw-away {@code ~/.ide/ide.properties} and can never leak between
- * tests or be influenced by the developer's real user home, the {@code IDE_OPTIONS} environment variable or any other global configuration.
+ * every test (and cleaned up afterwards), so the persisted {@code GUI_LANGUAGE} is written to a throw-away {@code ~/.ide/ide.properties} and can never leak
+ * between tests or be influenced by the developer's real user home or any other global configuration.
  */
 public class NlsServiceTest extends AbstractIdeContextTest {
 
@@ -61,7 +60,7 @@ public class NlsServiceTest extends AbstractIdeContextTest {
   public void setUp() {
 
     this.context = new IdeTestContext();
-    // isolate from the real System: a decoupled, empty environment (no IDE_OPTIONS) so the persisted selection is not influenced by the machine environment
+    // isolate from the real System: a decoupled, empty environment so the persisted selection is not influenced by the machine environment
     this.context.setSystem(new IdeSystemTestImpl());
     // point the isolated context at a fresh, throw-away user home (created anew per test) instead of the developer's real home
     this.context.setUserHome(this.userHome);
@@ -76,7 +75,7 @@ public class NlsServiceTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Creates a {@link NlsService} that persists the locale into the isolated {@link #context} instead of the real user home.
+   * Creates a {@link NlsService} that persists the language into the isolated {@link #context} instead of the real user home.
    */
   private NlsService newService(Locale locale) {
 
@@ -105,17 +104,6 @@ public class NlsServiceTest extends AbstractIdeContextTest {
         arguments(Locale.FRANCE, Locale.GERMAN, Locale.GERMAN),
         arguments(Locale.FRANCE, null, Locale.FRANCE)
     );
-  }
-
-  @Test
-  public void testSetLocale() {
-
-    NlsService service = newService(Locale.ENGLISH);
-    service.setLocale(Locale.GERMAN);
-
-    assertThat(service.getLocale().getLanguage()).isEqualTo("de");
-    assertThat(service.getResourceBundle()).isNotNull();
-    assertThat(service.get("language")).isEqualTo("Sprache");
   }
 
   @Test
@@ -163,99 +151,55 @@ public class NlsServiceTest extends AbstractIdeContextTest {
     );
   }
 
+  /**
+   * Persisting a language has to write it as the {@code GUI_LANGUAGE} user variable into the user configuration, so {@code ide gui} can apply it to the
+   * launched JVM on the next start.
+   */
   @Test
-  public void testLocaleChangeListenerIsInvokedAndCanBeRemoved() {
+  public void testSetPersistedLocaleWritesGuiLanguageToUserHomeIdeProperties() throws IOException {
 
     NlsService service = newService(Locale.ENGLISH);
-    AtomicInteger counter = new AtomicInteger();
-    Runnable listener = counter::incrementAndGet;
-
-    service.addLocaleChangeListener(listener);
-    service.setLocale(Locale.GERMAN);
-    assertThat(counter.get()).isEqualTo(1);
-
-    service.removeLocaleChangeListener(listener);
-    service.setLocale(Locale.ENGLISH);
-    assertThat(counter.get()).isEqualTo(1);
-  }
-
-  @Test
-  public void testSetLocalePersistsSelectionInUserHomeIdeProperties() throws IOException {
-
-    NlsService service = newService(Locale.ENGLISH);
-    service.setLocale(Locale.GERMAN);
+    service.setPersistedLocale(Locale.GERMAN.toLanguageTag());
 
     Path propertiesFile = getUserIdeProperties();
     assertThat(Files.exists(propertiesFile)).isTrue();
 
     Properties properties = loadUserIdeProperties(propertiesFile);
-    assertThat(properties.getProperty(NlsService.IDE_OPTIONS)).isEqualTo("-Duser.language=de");
+    assertThat(properties.getProperty(NlsService.GUI_LANGUAGE)).isEqualTo("de");
   }
 
+  /**
+   * Persisting a language has to replace a previously persisted selection, not accumulate entries.
+   */
   @Test
-  public void testSetLocaleIsNotInfluencedByIdeOptionsEnvironmentVariable() throws IOException {
-
-    // simulate a machine where IDE_OPTIONS is set globally (e.g. SSL trust store flags): the persisted selection must not be polluted by it
-    this.context.getSystem().setEnv(NlsService.IDE_OPTIONS,
-        "-Djavax.net.ssl.trustStore=C:Usershohwille.ide       ruststore       ruststore.p12 -Djavax.net.ssl.trustStorePassword=changeit");
-
-    NlsService service = newService(Locale.ENGLISH);
-    service.setLocale(Locale.GERMAN);
+  public void testSetPersistedLocaleOverwritesPreviouslyPersistedGuiLanguage() throws IOException {
 
     Path propertiesFile = getUserIdeProperties();
-    assertThat(Files.exists(propertiesFile)).isTrue();
-
-    Properties properties = loadUserIdeProperties(propertiesFile);
-    // only the language selection is persisted - the global IDE_OPTIONS environment variable must not leak into the user configuration
-    assertThat(properties.getProperty(NlsService.IDE_OPTIONS)).isEqualTo("-Duser.language=de");
-  }
-
-  @Test
-  public void testPersistLocaleUpdatesExistingUserLangInIdeOptions() throws IOException {
-
-    Path userProperties = getUserIdeProperties();
-    this.context.getFileAccess().mkdirs(userProperties.getParent());
-    Files.writeString(userProperties, "IDE_OPTIONS=-Duser.language=de\n");
-
-    NlsService service = newService(null);
-    service.setLocale(Locale.ENGLISH);
-
-    Properties properties = loadUserIdeProperties(userProperties);
-
-    assertThat(properties.getProperty(NlsService.IDE_OPTIONS)).isEqualTo("-Duser.language=en");
-  }
-
-  @Test
-  public void testPersistLocaleAppendsWhenIdeOptionsHasOtherOptions() throws IOException {
-
-    Path userProperties = getUserIdeProperties();
-    this.context.getFileAccess().mkdirs(userProperties.getParent());
-    Files.writeString(userProperties, "IDE_OPTIONS=-Dfoo=bar\n");
+    this.context.getFileAccess().mkdirs(propertiesFile.getParent());
+    Files.writeString(propertiesFile, "GUI_LANGUAGE=de");
 
     NlsService service = newService(Locale.ENGLISH);
-    service.setLocale(Locale.GERMAN);
+    service.setPersistedLocale(Locale.ENGLISH.toLanguageTag());
 
-    Properties properties = loadUserIdeProperties(userProperties);
-
-    assertThat(properties.getProperty(NlsService.IDE_OPTIONS)).isEqualTo("-Dfoo=bar -Duser.language=de");
+    assertThat(loadUserIdeProperties(propertiesFile).getProperty(NlsService.GUI_LANGUAGE)).isEqualTo("en");
   }
 
+  /**
+   * Persisting a language has to leave unrelated user variables (such as {@code IDE_OPTIONS}) untouched.
+   */
   @Test
-  public void testPersistLocalePreservesUnrelatedIdeOptions() throws IOException {
+  public void testSetPersistedLocalePreservesUnrelatedUserVariables() throws IOException {
 
-    Path userProperties = getUserIdeProperties();
-    this.context.getFileAccess().mkdirs(userProperties.getParent());
-    Files.writeString(userProperties, "IDE_OPTIONS=-Dfoo=bar -Duser.language=de\n");
+    Path propertiesFile = getUserIdeProperties();
+    this.context.getFileAccess().mkdirs(propertiesFile.getParent());
+    Files.writeString(propertiesFile, "IDE_OPTIONS=-Dfoo=bar\nGUI_LANGUAGE=de");
 
-    NlsService service = newService(null);
-    service.setLocale(Locale.ENGLISH);
+    NlsService service = newService(Locale.ENGLISH);
+    service.setPersistedLocale(Locale.ENGLISH.toLanguageTag());
 
-    Properties properties = loadUserIdeProperties(userProperties);
-
-    String ideOptions = properties.getProperty(NlsService.IDE_OPTIONS);
-    assertThat(ideOptions).contains("-Dfoo=bar");
-    assertThat(ideOptions).contains("-Duser.language=en");
-    assertThat(ideOptions).doesNotContain("-Duser.language=de");
+    Properties properties = loadUserIdeProperties(propertiesFile);
+    assertThat(properties.getProperty(NlsService.GUI_LANGUAGE)).isEqualTo("en");
+    assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Dfoo=bar");
   }
 
   @Test

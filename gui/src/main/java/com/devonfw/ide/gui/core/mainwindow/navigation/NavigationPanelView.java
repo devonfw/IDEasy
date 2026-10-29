@@ -2,10 +2,13 @@ package com.devonfw.ide.gui.core.mainwindow.navigation;
 
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.VBox;
 
 import com.devonfw.ide.gui.core.helper.FxHelper;
+import com.devonfw.ide.gui.core.modal.IdeDialog;
 import com.devonfw.ide.gui.core.service.NlsService;
 
 public class NavigationPanelView extends VBox {
@@ -56,5 +59,18 @@ public class NavigationPanelView extends VBox {
 
     this.languages.setItems(viewModel.getLanguagesViewModel().getItems());
     this.languages.valueProperty().bindBidirectional(viewModel.getLanguagesViewModel().selectedItemProperty());
+    this.languages.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> {
+      if (newValue != null) {
+        viewModel.selectLanguage(newValue);
+      }
+    });
+
+    // The view model raises the flag after persisting a language change; the view is responsible for prompting the user to restart.
+    viewModel.restartRequiredProperty().addListener((_, _, required) -> {
+      if (required) {
+        new IdeDialog(AlertType.INFORMATION, this.nlsService.get("language_restart_hint"), ButtonType.OK).showAndWait();
+        viewModel.restartRequiredProperty().set(false);
+      }
+    });
   }
 }

@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.Alert.AlertType;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
@@ -24,6 +26,8 @@ public class NavigationPanelViewModel {
   private final ComboBoxViewModel<String> languagesViewModel = new ComboBoxViewModel<>();
 
   private final Map<String, Locale> languageMap = new LinkedHashMap<>();
+
+  private final BooleanProperty restartRequired = new SimpleBooleanProperty(false);
 
   private final GuiStateManager guiStateManager;
 
@@ -83,30 +87,63 @@ public class NavigationPanelViewModel {
     this.languagesViewModel.select(resolveLanguageSelection(this.nlsService.getLocale()));
   }
 
+  /**
+   * Resolves the language combo label for the given locale. The applied locale equals the JVM default (see {@code NlsService}), which is often a regional
+   * variant (e.g. {@code de-DE}) while the available bundles are language-only (e.g. {@code de}). An exact language-tag match takes priority, a language-only
+   * match is the fallback, and the first available label is the last resort so the combo never disagrees with the displayed language.
+   */
   private String resolveLanguageSelection(Locale currentLocale) {
 
+    String firstAvailable = this.languageMap.keySet().stream().findFirst().orElse(null);
     if (currentLocale == null) {
-      return this.languageMap.keySet().stream().findFirst().orElse(null);
+      return firstAvailable;
     }
-
     String languageMatch = null;
-
     for (Map.Entry<String, Locale> entry : this.languageMap.entrySet()) {
       Locale entryLocale = entry.getValue();
-      // Exact language tag match takes priority
+      // Exact language tag match takes priority (e.g. a persisted de-DE selecting the de-DE entry)
       if (entryLocale.toLanguageTag().equalsIgnoreCase(currentLocale.toLanguageTag())) {
         return entry.getKey();
       }
-      // Track language-only match as fallback
-      if (languageMatch == null) {
-        if (entryLocale.getLanguage().equalsIgnoreCase(currentLocale.getLanguage())) {
-          languageMatch = entry.getKey();
-        }
+      // Track a language-only match as fallback (e.g. the JVM default de-DE selecting the language-only de entry)
+      if (languageMatch == null && entryLocale.getLanguage().equalsIgnoreCase(currentLocale.getLanguage())) {
+        languageMatch = entry.getKey();
       }
     }
+    return languageMatch != null ? languageMatch : firstAvailable;
+  }
 
-    // Return language-only match if found, otherwise first available
-    return languageMatch != null ? languageMatch : this.languageMap.keySet().stream().findFirst().orElse(null);
+  /**
+   * Selects the language with the given combo label. If it differs from the currently applied locale the selection is persisted (it takes effect on the next
+   * GUI start) and the restart-required flag is raised so the view can prompt the user to restart. Selecting the already-active locale is a no-op.
+   *
+   * @param displayLabel the language combo label, as produced by {@code NlsService.getLanguageDisplayName}.
+   */
+  public void selectLanguage(String displayLabel) {
+
+    Locale locale = this.languageMap.get(displayLabel);
+    if (locale == null || locale.equals(this.nlsService.getLocale())) {
+      return;
+    }
+    this.nlsService.setPersistedLocale(locale.toLanguageTag());
+    this.restartRequired.set(true);
+  }
+
+  /**
+   * @return whether the GUI must be restarted for the selected language to take effect.
+   */
+  public boolean isRestartRequired() {
+
+    return this.restartRequired.get();
+  }
+
+  /**
+   * @return the property flagging that a restart is required for the selected language to take effect. The view observes it to prompt the user and resets it
+   *         after showing the prompt.
+   */
+  public BooleanProperty restartRequiredProperty() {
+
+    return this.restartRequired;
   }
 
   public void updateContext() {

@@ -4,6 +4,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
@@ -27,6 +31,12 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class Gui extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Gui.class);
+
+  /**
+   * Name of the user variable holding the language tag selected in the GUI (e.g. {@code de}). {@code ide gui} applies it to the launched JVM via
+   * {@code -Duser.language=...}.
+   */
+  public static final String GUI_LANGUAGE = "GUI_LANGUAGE";
 
   /**
    * @param context the {@link IdeContext}.
@@ -84,7 +94,7 @@ public class Gui extends AbstractCommandlet {
       throw new CliException("Fatal error: The pom.xml file required for launching the IDEasy GUI could not be found in expected location: " + pomPath);
     }
 
-    List<String> args = buildMvnArgs(installationPath, pomPath, getGuiExecutable(javaInstallation));
+    List<String> args = buildMvnArgs(installationPath, pomPath, getGuiExecutable(javaInstallation), resolveGuiLanguage());
 
     /*
      * We manually update the PATH entry with our java version, as by default IDEasy includes the SymLink under /projectname/software/java/bin in the PATH
@@ -111,9 +121,11 @@ public class Gui extends AbstractCommandlet {
    * @param installationPath the {@link IdeContext#getIdeInstallationPath() IDEasy installation} directory containing {@code gui/pom.xml}.
    * @param pomPath the launcher POM ({@code gui/pom.xml}) to launch the GUI from. Must be verified to exist before this is called.
    * @param execExecutable the executable to pass as {@code -Dexec.executable} (see {@link #getGuiExecutable(ToolInstallation)}).
+   * @param guiLanguage the locale selected in the GUI (from the {@link #GUI_LANGUAGE} user variable) or an empty {@link Optional} if none was persisted. A
+   *        present locale is applied to the launched JVM via {@code -Duser.language}/{@code -Duser.country}.
    * @return the {@code mvn} arguments to launch the GUI.
    */
-  static List<String> buildMvnArgs(Path installationPath, Path pomPath, String execExecutable) {
+  static List<String> buildMvnArgs(Path installationPath, Path pomPath, String execExecutable, Optional<Locale> guiLanguage) {
 
     List<String> args = new ArrayList<>(List.of(
         "-f", //use specified POM file
@@ -121,7 +133,7 @@ public class Gui extends AbstractCommandlet {
         "org.codehaus.mojo:exec-maven-plugin:3.1.0:exec",
         "-Dexec.executable=" + execExecutable,
         "-Dexec.classpathScope=compile",
-        "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher",
+        "-Dexec.args=" + execArgs(guiLanguage),
         "-Dexec.async=true"
     ));
 
@@ -134,6 +146,52 @@ public class Gui extends AbstractCommandlet {
       args.add("-U"); //Adding this flag forces maven to download the latest SNAPSHOT version
     }
     return args;
+  }
+
+  /**
+   * Reads the {@link #GUI_LANGUAGE} user variable selected in the GUI. The value is a BCP 47 language tag (e.g. {@code de}, {@code en-GB}); invalid or
+   * unpersisted values are ignored so the GUI starts in the JVM's default locale.
+   *
+   * @return the locale the GUI was persisted with, or an empty {@link Optional} if none is set or the value is invalid.
+   */
+  private Optional<Locale> resolveGuiLanguage() {
+
+    EnvironmentVariables userVariables = this.context.getVariables().getByType(EnvironmentVariablesType.USER);
+    if (userVariables == null) {
+      return Optional.empty();
+    }
+    String value = userVariables.getFlat(GUI_LANGUAGE);
+    if (value == null || value.isBlank()) {
+      return Optional.empty();
+    }
+    Locale locale = Locale.forLanguageTag(value.trim());
+    if (locale.getLanguage().isEmpty()) {
+      LOG.warn("Ignoring invalid {} value: {}", GUI_LANGUAGE, value);
+      return Optional.empty();
+    }
+    return Optional.of(locale);
+  }
+
+  /**
+   * Builds the {@code -Dexec.args} value that launches the GUI. If a GUI language was persisted, {@code -Duser.language} (and {@code -Duser.country} for a
+   * regional locale) are placed <em>before</em> the main class so they are applied to the JVM as system properties, making the launched JVM boot with that
+   * locale.
+   *
+   * @param guiLanguage the locale the GUI was persisted with, or an empty {@link Optional} if none.
+   * @return the {@code exec.args} value.
+   */
+  private static String execArgs(Optional<Locale> guiLanguage) {
+
+    StringBuilder args = new StringBuilder();
+    if (guiLanguage.isPresent()) {
+      Locale locale = guiLanguage.get();
+      args.append("-Duser.language=").append(locale.getLanguage());
+      if (!locale.getCountry().isEmpty()) {
+        args.append(" -Duser.country=").append(locale.getCountry());
+      }
+      args.append(' ');
+    }
+    return args.append("-classpath %classpath com.devonfw.ide.gui.AppLauncher").toString();
   }
 
   private static final String GUI_INFO_PLIST = """
