@@ -9,7 +9,7 @@ To start the IDEasy GUI, use the `gui` commandlet:
 
 [source,bash]
 ----
-ideasy gui
+ide gui
 ----
 
 The window is titled `IDEasy - version <version>`.
@@ -84,7 +84,6 @@ The status bar at the bottom reports what is happening:
 
 The *Language* dropdown (the dropdown-button `Choose language`) lets you change the display language of the GUI.
 Languages are shown as `Language (code)`, for example `English (en)`.
-Selecting a language applies it to the GUI immediately.
 
 == 8. Quitting the GUI
 
