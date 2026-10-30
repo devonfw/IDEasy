@@ -122,8 +122,5 @@ public class ConsoleView {
         default -> getStyleClass().add("plain-style");
       }
     }
-
-
-
   }
 }
