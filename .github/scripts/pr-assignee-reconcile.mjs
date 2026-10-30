@@ -39,7 +39,12 @@
 //                            in-repo PRs.
 //   GH_ACCOUNT               the organization that owns the board
 //                            (default: devonfw).
-//   BOARD_TITLE              board title to manage                    (default: "IDEasy board")
+//   BOARD_NUMBER             number of the board to manage, i.e. the N in
+//                            github.com/orgs/<GH_ACCOUNT>/projects/N  (default: 5)
+//                            Looked up directly: listing all org boards fails
+//                            with FORBIDDEN for boards the token cannot read.
+//   BOARD_TITLE              expected title of that board, a sanity check
+//                            against a wrong BOARD_NUMBER             (default: "IDEasy board")
 //   TEAM_REVIEW_COLUMN       Status option that means "under team review"
 //                            (default: "Team Review")
 //   AUTHOR_ONLY_COLUMNS      comma-separated Status options forced to
@@ -59,17 +64,14 @@
 //
 // Exit codes: 0 ok (incl. dry run), 1 config/runtime error, 2 API error.
 
-import { COLUMNS, computeTarget, computeDiff } from './reconcile-core.mjs';
+import { COLUMNS, computeTarget, computeDiff, parseBoardNumber, resolveBoard } from './reconcile-core.mjs';
 
 const API = 'https://api.github.com';
 
-const ORG_BOARDS_QUERY = `
-query ($login: String!, $after: String) {
+const ORG_BOARD_QUERY = `
+query ($login: String!, $number: Int!) {
   organization(login: $login) {
-    projectsV2(first: 100, after: $after) {
-      nodes { id title }
-      pageInfo { hasNextPage endCursor }
-    }
+    projectV2(number: $number) { id title }
   }
 }
 `;
@@ -231,37 +233,19 @@ async function findField(boardId, fieldName) {
   return node ? { id: node.id, name: node.name } : null;
 }
 
-async function findBoard(login, title) {
-  // The board lives on the org account (GH_ACCOUNT, e.g. devonfw). Paginate
-  // the org's projectsV2 boards and match by title. A NOT_FOUND / empty result
-  // (the account has no boards) returns null from the lookup and we report it
-  // below; any other GraphQL error is fatal.
-  let after = null;
-  for (let page = 0; page < 50; page++) {
-    const data = await graphqlTolerantNotFound(ORG_BOARDS_QUERY, { login, after });
-    const proj = data?.organization?.projectsV2;
-    if (!proj) {
-      break; // account has no boards (or does not exist)
-    }
-    for (const node of proj.nodes) {
-      if (node.title === title) {
-        return { id: node.id, title: node.title };
-      }
-    }
-    if (!proj.pageInfo.hasNextPage) {
-      break;
-    }
-    after = proj.pageInfo.endCursor;
+async function findBoard(login, number, title) {
+  // The board lives on the org account (GH_ACCOUNT, e.g. devonfw) and is looked
+  // up directly by its number. Listing all of the org's boards instead would
+  // make GraphQL return FORBIDDEN for every board the token cannot read (e.g.
+  // private ones), which aborts the run. A NOT_FOUND (board invisible to the
+  // token) comes back as `null` and is reported by resolveBoard; any other
+  // GraphQL error is fatal.
+  const data = await graphqlTolerantNotFound(ORG_BOARD_QUERY, { login, number });
+  try {
+    return resolveBoard(data, number, title);
+  } catch (err) {
+    fail(err.message);
   }
-  // The board is expected to exist, so a miss here is almost always an
-  // insufficient token: a GITHUB_TOKEN (scoped to the triggering repository)
-  // or a PAT without the "Projects: Read and write" scope cannot read an
-  // org's boards, and GraphQL reports that as "no project found".
-  fail(
-    `Could not find a project titled "${title}" in account "${login}". ` +
-      `This usually means the token lacks org "Projects: Read and write" access ` +
-      `(e.g. it is the built-in GITHUB_TOKEN, which cannot enumerate org boards).`,
-  );
 }
 
 /**
@@ -405,6 +389,12 @@ mutation ($input: UpdateProjectV2ItemFieldValueInput!) {
 async function main() {
   const login = process.env.GH_ACCOUNT || 'devonfw';
   const title = process.env.BOARD_TITLE || 'IDEasy board';
+  let boardNumber;
+  try {
+    boardNumber = parseBoardNumber(process.env.BOARD_NUMBER);
+  } catch (err) {
+    fail(err.message);
+  }
   const teamReviewColumn = process.env.TEAM_REVIEW_COLUMN || 'Team Review';
   const reviewerFieldName = process.env.REVIEWER_FIELD || 'Team Reviewer';
   // Takeover exemption: PRs with the configured label are left alone (see
@@ -424,13 +414,13 @@ async function main() {
 
   const cfg = { teamReviewColumn, authorOnlyColumns, finalReviewColumn, finalReviewer };
 
-  console.log(`[reconcile] account=${login} board="${title}" dryRun=${dryRun}`);
+  console.log(`[reconcile] account=${login} board=#${boardNumber} "${title}" dryRun=${dryRun}`);
   console.log(
     `[reconcile] teamReview="${teamReviewColumn}" authorOnly=[${authorOnlyColumns.join(', ')}] ` +
       `finalReview="${finalReviewColumn}" -> ${finalReviewer} reviewerField="${reviewerFieldName}" takeoverLabel="${takeoverLabel}"`,
   );
 
-  const board = await findBoard(login, title);
+  const board = await findBoard(login, boardNumber, title);
   console.log(`[reconcile] board id=${board.id}`);
 
   // The "Team Reviewer" field is optional: if it does not exist yet, the
