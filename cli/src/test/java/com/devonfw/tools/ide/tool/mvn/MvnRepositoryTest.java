@@ -19,7 +19,7 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.os.SystemInfoMock;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.url.model.file.UrlChecksums;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlGenericChecksum;
@@ -151,7 +151,7 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
     VersionIdentifier version = VersionIdentifier.of("2025.01.001-beta");
     OperatingSystem os = context.getSystemInfo().getOs();
     SystemArchitecture arch = context.getSystemInfo().getArchitecture();
-    ToolCommandlet toolCommandlet = null;
+    AbstractToolCommandlet toolCommandlet = null;
 
     // this triggers maven download of checksums. Should we fake the checksum files into mocked maven repo in arrange phase?
     // act
@@ -192,7 +192,7 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
     VersionIdentifier version = VersionIdentifier.of("2025.01.001-beta-20250121.023134-9");
     OperatingSystem os = context.getSystemInfo().getOs();
     SystemArchitecture arch = context.getSystemInfo().getArchitecture();
-    ToolCommandlet toolCommandlet = null;
+    AbstractToolCommandlet toolCommandlet = null;
 
     // act
     UrlDownloadFileMetadata metadata = mavenRepo.getMetadata(tool, edition, version, toolCommandlet);
@@ -267,13 +267,13 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
     MvnRepository mvnRepository = context.getMvnRepository();
 
     String arm64Artifact = """
-      <snapshotVersion>
-        <classifier>windows-arm64</classifier>
-        <extension>tar.gz</extension>
-        <value>2025.02.001-beta-20250204.023111-1</value>
-        <updated>20250204023111</updated>
-      </snapshotVersion>
-      """;
+        <snapshotVersion>
+          <classifier>windows-arm64</classifier>
+          <extension>tar.gz</extension>
+          <value>2025.02.001-beta-20250204.023111-1</value>
+          <updated>20250204023111</updated>
+        </snapshotVersion>
+        """;
 
     String xml = XML_SNAPSNOT_METADATA.replace(
         "</snapshotVersions>",
