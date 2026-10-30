@@ -48,16 +48,20 @@ permissions:
   contents: read
 
 env:
-  # Token used for the API calls. The board lookup (organization { projectsV2 })
+  # Token used for the API calls. The board lookup (organization { projectV2 })
   # is an ORG-level call, so the token must carry the org "Projects: Read and
   # write" permission. That is the org's fine-grained PAT ACTION_PUSH_TOKEN
   # (see documentation/contributing/update-access-token.adoc). Do NOT fall back
   # to the built-in GITHUB_TOKEN here: it is scoped to THIS repository and
-  # cannot enumerate an org's Projects v2 boards, so the board lookup would
-  # fail on every scheduled run.
+  # cannot read an org's Projects v2 boards, so the board lookup would fail on
+  # every scheduled run.
   GH_TOKEN: ${{ secrets.ACTION_PUSH_TOKEN }}
   # Account that owns the board (the devonfw organization).
   GH_ACCOUNT: devonfw
+  # The board is looked up by number (github.com/orgs/devonfw/projects/5), not by
+  # listing all org boards: that lists private boards the token cannot read and
+  # fails with FORBIDDEN. BOARD_TITLE only guards against a wrong number.
+  BOARD_NUMBER: '5'
   BOARD_TITLE: 'IDEasy board'
   TEAM_REVIEW_COLUMN: 'Team Review'
   # Columns whose PRs are forced to "author only". Matches the board's Status
