@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.expression.ask;
 
+/**
+ * {@link AskFunction} for a secret value.
+ */
 public class AskSecretFunction extends AskFunction {
 
   @Override

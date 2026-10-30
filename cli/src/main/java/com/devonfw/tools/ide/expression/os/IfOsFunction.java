@@ -37,7 +37,7 @@ public abstract class IfOsFunction extends AbstractExpressionFunction {
   }
 
   @Override
-  protected String execute(int paramCount, ExpressionContext context) {
+  protected String execute(ExpressionContext context) {
 
     if (this.condition.test(context.getIdeContext().getSystemInfo())) {
       return this.value.getValue();

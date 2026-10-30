@@ -43,7 +43,7 @@ public class PathFunction extends AbstractExpressionFunction {
   }
 
   @Override
-  protected String execute(int paramCount, ExpressionContext context) {
+  protected String execute(ExpressionContext context) {
 
     PathMode pathMode = this.mode.getValueOrDefault(PathMode.UNIX);
     return pathMode.format(this.path.getValue(), context.getIdeContext().getSystemInfo());

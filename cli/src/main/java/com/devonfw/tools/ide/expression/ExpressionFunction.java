@@ -18,6 +18,6 @@ public interface ExpressionFunction extends ParameterizedFunction {
    * @param context the {@link ExpressionContext}.
    * @return the result of this function that will replace the entire expression.
    */
-  String apply(List<String> args, ExpressionContext context);
+  String apply(List<Object> args, ExpressionContext context);
 
 }

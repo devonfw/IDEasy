@@ -200,7 +200,7 @@ public final class CharReader {
       return false;
     }
     String substring = this.string.substring(this.i, end);
-    boolean found = false;
+    boolean found;
     if (ignoreCase) {
       found = substring.equalsIgnoreCase(expected);
     } else {
@@ -210,6 +210,34 @@ public final class CharReader {
       this.i = end;
     }
     return found;
+  }
+
+  /**
+   * @param filter the {@link CharFilter} defining where to stop reading.
+   * @return a {@link String} with all {@link #next() next characters} consumed from the stream until a character was {@link CharFilter#accept(char) accepted}
+   *     by the given {@link CharFilter} or the end of the stream was reached.
+   */
+  public String readUntil(CharFilter filter) {
+
+    int start = this.i;
+    while (this.i < this.len) {
+      char c = this.string.charAt(this.i);
+      if (filter.accept(c)) {
+        break;
+      }
+      this.i++;
+    }
+    return this.string.substring(start, this.i);
+  }
+
+  /**
+   * @param filter the {@link CharFilter} defining where to stop reading.
+   * @return a {@link String} with all {@link #next() next characters} consumed from the stream until a character was {@link CharFilter#accept(char) accepted}
+   *     by the given {@link CharFilter} or the end of the stream was reached.
+   */
+  public String readWhile(CharFilter filter) {
+
+    return readUntil(c -> !filter.accept(c));
   }
 
   /**
@@ -245,17 +273,29 @@ public final class CharReader {
 
   /**
    * Skips all whitespaces.
+   *
+   * @return the number of space characters that have been found and skipped.
    */
-  public void skipSpaces() {
+  public int skipSpaces() {
 
+    int startIndex = this.i;
     while (this.i < this.len) {
       char c = this.string.charAt(this.i);
       if (Character.isWhitespace(c)) {
         this.i++;
       } else {
-        return;
+        break;
       }
     }
+    return this.i - startIndex;
+  }
+
+  /**
+   * @return the start index as the minimum allowed value for {@link #getIndex() index}.
+   */
+  public int getStart() {
+
+    return this.start;
   }
 
   /**
@@ -267,7 +307,7 @@ public final class CharReader {
   }
 
   /**
-   * @param index the new {@link #getIndex() index}.
+   * @param index the new {@link #getIndex() index}. Has to be in the range from {@link #getStart() start} to {@link #getLimit() limit}.
    */
   public void setIndex(int index) {
 
@@ -275,6 +315,22 @@ public final class CharReader {
       throw new IndexOutOfBoundsException(index);
     }
     this.i = index;
+  }
+
+  /**
+   * @return the limit of the {@link #getIndex() index} when the end of the stream has been reached.
+   */
+  public int getLimit() {
+
+    return this.len;
+  }
+
+  /**
+   * @return the number of remaining {@link #next() next characters} that can be consumed from this reader. Will be {@code 0} if the end of the stream has been
+   *     reached.
+   */
+  public int getRemaining() {
+    return this.len - this.i;
   }
 
   /**
@@ -288,10 +344,33 @@ public final class CharReader {
     return "";
   }
 
+  /**
+   * @return the full {@link String} this {@link CharReader} was created from.
+   */
+  public String getString() {
+
+    if ((this.start == 0) && (this.len == this.string.length())) {
+      return this.string;
+    }
+    return this.string.substring(this.start, this.len);
+  }
+
+  /**
+   * @param newStart the new {@link #getStart() start}.
+   * @param newLimit the new {@link #getLimit() limit}.
+   * @return the new {@link CharReader}.
+   */
+  public CharReader subSequence(int newStart, int newLimit) {
+    if ((newStart < this.start) || (newLimit > this.len) || (newStart > newLimit)) {
+      throw new IllegalArgumentException("[" + newStart + "," + newLimit + ") !<= [" + this.start + "," + this.len + ")");
+    }
+    return new CharReader(this.string, newStart, newLimit);
+  }
+
   @Override
   public String toString() {
 
-    return getRest();
+    return this.string.substring(this.start, this.i) + "<|>" + getRest();
   }
 
   /**
@@ -310,6 +389,15 @@ public final class CharReader {
   public static boolean isLetter(char c) {
 
     return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z'));
+  }
+
+  /**
+   * @param c the character to test.
+   * @return {@code true} in case of a lower Latin ASCII letter, {@code false} otherwise.
+   */
+  public static boolean isLetterLowercase(char c) {
+
+    return ((c >= 'a') && (c <= 'z'));
   }
 
   /**

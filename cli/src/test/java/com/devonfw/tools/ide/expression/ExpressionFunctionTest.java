@@ -14,12 +14,12 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 
 /**
- * Test of {@link ExpressionParser}.
+ * Test of {@link ExpressionFunction} via {@link com.devonfw.tools.ide.environment.AbstractEnvironmentVariables}.
  * <p>
  * The expressions are resolved through the real {@link EnvironmentVariables#resolve(String, Object, boolean)} of an {@link IdeTestContext} (no mock of the
- * expression context) so that the behaviour of the surrounding variable resolution is exercised as well.
+ * expression context) so that the behavior of the surrounding variable resolution is exercised as well.
  */
-class ExpressionParserTest extends AbstractIdeContextTest {
+class ExpressionFunctionTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@code @path} with the default mode that replaces backslashes with slashes.
@@ -138,7 +138,7 @@ class ExpressionParserTest extends AbstractIdeContextTest {
     context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
 
     // act
-    String result = context.getVariables().resolve("@if-windows('@path(\"C:/a/b\", \"native\")')", "test", false);
+    String result = context.getVariables().resolve("@if-windows('@path('C:/a/b', 'native')')", "test", false);
 
     // assert
     assertThat(result).isEqualTo("C:\\a\\b");

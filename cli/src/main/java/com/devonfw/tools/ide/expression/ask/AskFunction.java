@@ -58,7 +58,7 @@ public abstract class AskFunction extends AbstractExpressionFunction {
   }
 
   @Override
-  protected String execute(int paramCount, ExpressionContext context) {
+  protected String execute(ExpressionContext context) {
 
     String varName = this.variableName.getValue();
     if (!varName.isEmpty()) {
@@ -67,7 +67,7 @@ public abstract class AskFunction extends AbstractExpressionFunction {
         return value;
       }
     }
-    String result = ask(paramCount, context);
+    String result = ask(context);
     if (!isSecret() && !result.isEmpty()) {
       // secret values are deliberately NOT persisted so that the secret is not cached on disk (as plain text) in the ide.properties;
       // the user is asked again on every run.
@@ -81,13 +81,13 @@ public abstract class AskFunction extends AbstractExpressionFunction {
    * @return the value entered by the user, the default value, or {@code null} if the user could not be asked (batch mode with force) and no default value was
    *     given.
    */
-  private String ask(int paramCount, ExpressionContext context) {
+  private String ask(ExpressionContext context) {
     boolean secret = isSecret();
     String varName = this.variableName.getValue();
     String prompt = this.question.getValue();
     if ((prompt == null) || prompt.isEmpty()) {
       if (varName.isEmpty()) {
-        throw throwParameterMismatch(paramCount, "An explicit question is required as 2nd argument if the variable name is empty.");
+        throw throwParameterMismatch("An explicit question is required as 2nd argument if the variable name is empty.");
         // the user is always asked and nothing is persisted since we have no name to persist under
       } else {
         prompt = "Please enter the value for the " + (secret ? "secret " : "") + "variable " + varName + ":";

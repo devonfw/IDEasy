@@ -13,7 +13,7 @@ import com.devonfw.tools.ide.validation.ValidationResult;
 public abstract class AbstractExpressionFunction extends AbstractParameterizedFunction implements ExpressionFunction {
 
   @Override
-  public final String apply(List<String> parameters, ExpressionContext context) {
+  public final String apply(List<Object> parameters, ExpressionContext context) {
 
     int paramCount = parameters.size();
     int paramIndex = 0;
@@ -24,7 +24,7 @@ public abstract class AbstractExpressionFunction extends AbstractParameterizedFu
     boolean done = false;
     while (!done) {
       boolean hasParam = paramIndex < paramCount;
-      String param = null;
+      Object param = null;
       if (hasParam) {
         param = parameters.get(paramIndex);
         paramIndex++;
@@ -41,7 +41,7 @@ public abstract class AbstractExpressionFunction extends AbstractParameterizedFu
         }
       }
       if (hasParam && hasProperty) {
-        property.setValueAsString(param, context.getIdeContext());
+        applyParameter(property, param, context, propertyCount);
       } else if (!hasParam) {
         if (property == null) {
           done = true;
@@ -49,27 +49,44 @@ public abstract class AbstractExpressionFunction extends AbstractParameterizedFu
           if (property.isMultiValued() && (property.getValueCount() > 0)) {
             done = true;
           } else {
-            throw throwParameterMismatch(paramCount, "Missing required argument #" + paramIndex + " for parameter " + property.getName());
+            throw throwParameterMismatch("Missing required argument #" + paramIndex + " for parameter " + property.getName());
           }
         }
       } else {
-        throw throwParameterMismatch(paramCount, "Unknown argument #" + paramIndex);
+        throw throwParameterMismatch("Unknown argument #" + paramIndex);
       }
     }
     ValidationResult validationResult = validate();
     if (!validationResult.isValid()) {
-      throw throwParameterMismatch(paramCount, validationResult.getErrorMessage());
+      throw throwParameterMismatch(validationResult.getErrorMessage());
     }
-    return execute(paramCount, context);
+    return execute(context);
   }
 
-  protected RuntimeException throwParameterMismatch(int parameterCount, String reason) {
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private void applyParameter(Property property, Object param, ExpressionContext context, int propertyCount) {
+    if (param instanceof String) {
+      property.setValueAsString(param.toString(), context.getIdeContext());
+    } else {
+      try {
+        property.setValue(param);
+      } catch (Exception e) {
+        throw throwParameterMismatch("Invalid argument '" + param + "' for parameter " + property.getName(), e);
+      }
+    }
+  }
+
+  protected RuntimeException throwParameterMismatch(String reason) {
+    return throwParameterMismatch(reason, null);
+  }
+
+  protected RuntimeException throwParameterMismatch(String reason, Throwable error) {
     StringBuilder message = new StringBuilder(64);
     message.append("Cannot call expression function ");
     appendFunctionSignature(message);
-    message.append(" with ").append(parameterCount).append(" parameter(s):\n");
+    message.append(" with ").append(getProperties().size()).append(" parameter(s):\n");
     message.append(reason);
-    throw new CliException(message.toString());
+    throw new CliException(message.toString(), error);
   }
 
   private void appendFunctionSignature(StringBuilder sb) {
@@ -91,5 +108,5 @@ public abstract class AbstractExpressionFunction extends AbstractParameterizedFu
     sb.append(')');
   }
 
-  protected abstract String execute(int paramCount, ExpressionContext context);
+  protected abstract String execute(ExpressionContext context);
 }

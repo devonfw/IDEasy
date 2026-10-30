@@ -15,28 +15,25 @@ public enum VariableSyntax {
    *
    * @see IdeVariables#IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED
    */
-  CURLY("\\$\\{([a-zA-Z0-9_-]+)\\}") {
-    @Override
-    public String create(String variableName) {
-      return "${" + variableName + "}";
-    }
-  },
+  CURLY('{', '}'),
 
   /**
    * Syntax using square brackets ("$[...]").
    */
-  SQUARE("\\$\\[([a-zA-Z0-9_-]+)\\]") {
-    @Override
-    public String create(String variableName) {
-      return "$[" + variableName + "]";
-    }
-  };
+  SQUARE('[', ']');
 
   private final Pattern pattern;
 
-  VariableSyntax(String regex) {
+  private final char open;
 
+  private final char close;
+
+  VariableSyntax(char open, char close) {
+
+    String regex = "\\$\\" + open + "([a-zA-Z0-9_-]+)\\" + close;
     this.pattern = Pattern.compile(regex);
+    this.open = open;
+    this.close = close;
   }
 
   /**
@@ -45,6 +42,22 @@ public enum VariableSyntax {
   public Pattern getPattern() {
 
     return this.pattern;
+  }
+
+  /**
+   * @return the opening character.
+   */
+  public char getOpen() {
+
+    return open;
+  }
+
+  /**
+   * @return the closing character.
+   */
+  public char getClose() {
+
+    return close;
   }
 
   /**
@@ -58,8 +71,11 @@ public enum VariableSyntax {
   /**
    * @param variableName the variable name.
    * @return the variable syntax for the given {@code variableName}. E.g. for {@link #CURLY} and the given {@link String} "JAVA_HOME" this method would return
-   * "${JAVA_HOME}".
+   *     "${JAVA_HOME}".
    */
-  public abstract String create(String variableName);
+  public String create(String variableName) {
+
+    return "$" + this.open + variableName + this.close;
+  }
 
 }
