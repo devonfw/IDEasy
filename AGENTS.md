@@ -22,6 +22,26 @@ https://github.com/devonfw/ide-settings.
   software packages
 - `/windows-installer`: Source code to compile an MSI installer for IDEasy
 
+## Where Things Live
+
+- Commandlets: `cli/src/main/java/com/devonfw/tools/ide/commandlet`, registered in
+  `CommandletManagerImpl`.
+- Tool commandlets: `cli/src/main/java/com/devonfw/tools/ide/tool/<tool>`.
+- Help texts (NLS) for every commandlet and option: `cli/src/main/resources/nls/Help*.properties`
+  (English and German).
+- URL updaters: `url-updater/src/main/java/com/devonfw/tools/ide/url/tool/<tool>`, registered in
+  `UpdateManager`.
+- How to add a commandlet or url-updater: `documentation/contributing/commandlet-and-url-updater.adoc`.
+  How to write tests: `documentation/contributing/junit-testing.adoc`.
+
+## Git Remotes and Branches
+
+- `origin` is the contributor's fork, `upstream` is `devonfw/IDEasy` (see
+  `documentation/contributing/setup.adoc`). The fork's `main` is often stale: compare and branch
+  against `upstream/main`, never `origin/main`.
+- Branch names: `feature/«issue-id»-«brief-description»`.
+- Push to `origin`, open the pull request against `devonfw/IDEasy`.
+
 ## Development Method
 
 - TDD is the standard for features and bug fixes: write a failing test first, make it pass, refactor.
@@ -29,11 +49,12 @@ https://github.com/devonfw/ide-settings.
 
 ## Test Execution
 
-- All tests can be executed with `mvn clean test`.
-- Run `mvn test` in the root folder RARELY — it triggers unnecessary long-running documentation
-  generation (the `ide-doc` module).
-- Execute specific test classes from your IDE or via `mvn -Dtest=ClassName test` in the module
-  folder of interest (e.g. the `cli` folder, i.e. the `ide-cli` Maven module).
+- During development, execute specific test classes from your IDE or via
+  `mvn -Dtest=ClassName test` in the module folder of interest (e.g. the `cli` folder, i.e. the
+  `ide-cli` Maven module).
+- Before a pull request, run all tests once (the PR checklist requires it). From the root folder use
+  `mvn clean test -pl '!documentation'`: a plain `mvn clean test` in the root also runs the slow
+  documentation generation (the `ide-doc` module), so use it only when the documentation changed.
 - All integration tests can be executed via the script `cli/src/test/all-tests.sh`.
 
 ## Development Harness (cheap → expensive)
@@ -44,7 +65,10 @@ and review — and fix what they report.
 1. Conventions (free): follow `documentation/contributing/coding-conventions.adoc` + `.editorconfig`.
 2. Compile: `mvn -q -o compile` in the changed module.
 3. Tests: `mvn -Dtest=ClassName test` or `mvn -q test` in the module folder (never repo root).
-4. Format: `mvn spotless:apply` (auto-fix; ratcheted to origin/main — only files you changed).
+4. Format: `mvn spotless:apply` (auto-fix; ratcheted to `origin/main`, so only files you changed).
+   If your `origin` is a stale fork, pass `-Dspotless.ratchetFrom=upstream/main`. Spotless cannot
+   read a `git worktree` checkout ("Cannot find git repository"): run it in a regular clone (until
+   #2665 is done).
 5. Lint: `mvn checkstyle:check` in the module folder — must pass for every file you change.
 6. Build + tests: `mvn -q verify -pl '!documentation'` from repo root.
 
@@ -56,6 +80,15 @@ commit only when strictly necessary with `git commit --no-verify`.
 
 - ALWAYS review and refactor your code after implementation to comply with the coding standards:
   `documentation/contributing/coding-conventions.adoc`.
+
+## Exception Handling
+
+- Wrap a caught exception with message AND cause: `throw new IllegalStateException("<meaningful
+  message>", e)`. A bare `throw new RuntimeException(e)` loses the context.
+- `CliException` is ONLY for expected, user-facing CLI aborts (defined exit code, stacktrace
+  suppressed). Do not use it to wrap unexpected technical failures like an `IOException`.
+- Details: `documentation/contributing/coding-conventions.adoc`, section "Catching and handling
+  Exceptions".
 
 ## Definition of Done
 
@@ -71,6 +104,12 @@ commit only when strictly necessary with `git commit --no-verify`.
 - Keep the title short and informative; use the description body to elaborate when needed.
 - See `documentation/contributing/commit.adoc` for full details.
 
+## Changelog
+
+- Add every issue implemented by a PR to `CHANGELOG.adoc`, unless the issue is labelled `internal`.
+- Put the entry under the topmost version (the next open release), after its last bullet:
+  `* https://github.com/devonfw/IDEasy/issues/«issue-id»[#«issue-id»]: «issue title»`
+
 ## DO NOT: AI attribution in commits and PRs
 
 These are strict prohibitions. Contributions carrying AI authorship/attribution cannot be accepted
@@ -84,6 +123,12 @@ These are strict prohibitions. Contributions carrying AI authorship/attribution 
   contributor's git identity.
 - Commit messages must contain only the issue reference and a description of the change — nothing
   about the tooling used to produce it.
+
+## Ask Before Anything Public
+
+- Comments, reviews, labels, issues, pull requests and status changes on GitHub are public. Show the
+  draft to the user and post it only after the user explicitly confirmed it.
+- Never approve or merge a pull request on the user's behalf.
 
 ## Pull Request Guidelines
 
@@ -99,3 +144,9 @@ These are strict prohibitions. Contributions carrying AI authorship/attribution 
   `Files.createSymbolicLink`), always call `WindowsSymlinkTestHelper.assumeSymlinksSupported()` at
   the beginning of the test method. This gracefully skips the test on Windows systems without
   symlink permissions (admin or Developer Mode), giving new contributors a better experience.
+
+## Agent Skills
+
+Shared workflows live as skills in `.claude/skills/<name>/SKILL.md` (read by Claude Code and by
+GitHub Copilot in VS Code) and are started with `/<name>`. Project settings for Claude Code are in
+`.claude/settings.json`. See `documentation/contributing/ai-agents.adoc`.
