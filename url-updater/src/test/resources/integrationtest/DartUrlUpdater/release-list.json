@@ -1,0 +1,11 @@
+{
+  "kind": "storage#objects",
+  "prefixes": [
+    "channels/stable/release/1.11.0/",
+    "channels/stable/release/2.10.5/",
+    "channels/stable/release/3.0.0/",
+    "channels/stable/release/3.13.4/",
+    "channels/stable/release/3.13.5/",
+    "channels/stable/release/latest/"
+  ]
+}

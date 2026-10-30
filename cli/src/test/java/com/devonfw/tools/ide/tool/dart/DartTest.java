@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.tool.AbstractPubCacheCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.claude.RecordingEnvironmentContext;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -100,7 +101,7 @@ class DartTest extends AbstractIdeContextTest {
     dart.setEnvironment(environmentContext, installation, false);
 
     // assert
-    Path pubCachePath = context.getIdeHome().resolve(Dart.PUB_CACHE_FOLDER);
+    Path pubCachePath = context.getIdeHome().resolve(AbstractPubCacheCommandlet.PUB_CACHE_FOLDER);
     assertThat(environmentContext.set).containsEntry("PUB_CACHE", pubCachePath.toString());
   }
 
