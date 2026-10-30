@@ -9,7 +9,6 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.environment.VariableLine;
@@ -32,25 +31,26 @@ public class PythonTest extends AbstractIdeContextTest {
 
 
   /**
-   * Test that a stale {@code .venv} folder left behind by a previously interrupted installation is removed before {@code uv venv} is invoked, see
-   * <a href="https://github.com/devonfw/IDEasy/issues/2313">#2313</a>.
+   * Test that installation places the pristine interpreter in the shared software repository and creates the per-project virtual environment, see
+   * <a href="https://github.com/devonfw/IDEasy/issues/2561">#2561</a>.
    */
   @Test
-  public void testInstallRemovesStaleVenvFolder(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  public void testInstallCreatesPristineInterpreterAndPerProjectVenv(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_UV, wireMockRuntimeInfo);
-    context.setSystemInfo(SystemInfoMock.MAC_X64);
-    Path staleMarker = context.getSoftwarePath().resolve(Python.VENV_FOLDER).resolve("stale.txt");
-    context.getFileAccess().writeFileContent("stale", staleMarker, true);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
     Python python = context.getCommandletManager().getCommandlet(Python.class);
 
     // act
     python.install();
 
-    // assert
-    assertThat(context.getSoftwarePath().resolve("python").resolve("stale.txt")).doesNotExist();
-    assertThat(context.getSoftwarePath().resolve(".venv")).doesNotExist();
+    // assert - the pristine interpreter is shared in the software repository (linked into the per-project software folder)
+    Path pythonLink = context.getSoftwarePath().resolve("python");
+    assertThat(pythonLink).exists();
+    assertThat(context.getFileAccess().toRealPath(pythonLink).getFileName().toString()).isEqualTo("3.14.6");
+    // assert - the per-project packages live in a virtual environment inside the project (IDE_HOME), isolated from the pristine interpreter
+    assertThat(context.getIdeHome().resolve(Python.VENV_FOLDER).resolve("bin").resolve("python")).exists();
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed python");
   }
 
@@ -72,41 +72,62 @@ public class PythonTest extends AbstractIdeContextTest {
 
 
   /**
-   * Test that a missing {@code .ide.software.version} file is restored while the existing installation with all its packages is preserved.
+   * Test that (re-)installing the pristine interpreter does not touch the per-project virtual environment, so the project's packages are preserved and projects
+   * don't collide (see <a href="https://github.com/devonfw/IDEasy/issues/352">#352</a>).
    *
    * @param wireMockRuntimeInfo the {@link WireMockRuntimeInfo}.
    * @throws IOException on error.
-   * @see <a href="https://github.com/devonfw/IDEasy/issues/2190">issue 2190</a>
    */
   @Test
-  public void testInstallRestoresMissingVersionFileAndPreservesPackages(WireMockRuntimeInfo wireMockRuntimeInfo) throws IOException {
+  public void testInstallKeepsPerProjectVenvIsolated(WireMockRuntimeInfo wireMockRuntimeInfo) throws IOException {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_UV, wireMockRuntimeInfo);
     context.setSystemInfo(SystemInfoMock.LINUX_X64);
     Python python = context.getCommandletManager().getCommandlet(Python.class);
     python.install();
-    Path pythonPath = context.getSoftwarePath().resolve("python");
-    Path versionFile = pythonPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
-    Path userPackage = pythonPath.resolve("lib").resolve("site-packages").resolve("mylib").resolve("__init__.py");
+    // simulate a package installed into the per-project virtual environment (inside IDE_HOME)
+    Path venvPath = context.getIdeHome().resolve(Python.VENV_FOLDER);
+    Path userPackage = venvPath.resolve("lib").resolve("site-packages").resolve("mylib").resolve("__init__.py");
     Files.createDirectories(userPackage.getParent());
     Files.writeString(userPackage, "# installed via pip");
-    // simulate that uv or python has removed our version file from the virtual environment
-    Files.delete(versionFile);
-    // the version is still determined from the installation itself (e.g. for "ide get-version python")
+
+    // act - install the (shared) pristine interpreter again
+    python.install();
+
+    // assert - the per-project package is preserved and the interpreter is still detected at the pristine version
+    assertThat(userPackage).exists();
+    assertThat(venvPath.resolve("bin").resolve("python")).exists();
     assertThat(python.getInstalledVersion()).isEqualTo(VersionIdentifier.of("3.14.6"));
+  }
+
+
+  /**
+   * Test that on Windows the pristine interpreter keeps its executable resolvable at the installation root (not shadowed by a symlinked {@code bin} folder)
+   * while the per-project virtual environment is exposed via {@code bin} (symlinked to the Windows {@code Scripts} folder), see
+   * <a href="https://github.com/devonfw/IDEasy/issues/2561">#2561</a>.
+   */
+  @Test
+  public void testInstallOnWindowsKeepsInterpreterAndVenvBinResolvable(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange - simulate the Windows layout of uv (interpreter executable at the installation root, empty "Scripts" folder) so the shared uv mock emits it
+    IdeTestContext context = newContext(PROJECT_UV, wireMockRuntimeInfo);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    context.setProcessEnv(Map.of("UV_LAYOUT", "windows"));
+    Python python = context.getCommandletManager().getCommandlet(Python.class);
 
     // act
     python.install();
 
-    // assert
-    assertThat(versionFile).exists().hasContent("3.14.6");
-    assertThat(userPackage).exists();
-    assertThat(python.getInstalledVersion()).isEqualTo(VersionIdentifier.of("3.14.6"));
-    assertThat(context).logAtWarning().hasMessageContaining("Version file is missing");
-    assertThat(context).logAtWarning().hasNoMessageContaining("Deleting corrupted installation");
+    // assert - the pristine interpreter keeps its executable at the installation root and gets no "bin" folder that would shadow it
+    Path pristineInterpreter = context.getFileAccess().toRealPath(context.getSoftwarePath().resolve("python"));
+    assertThat(pristineInterpreter.resolve("python")).exists();
+    assertThat(pristineInterpreter.resolve("bin")).doesNotExist();
+    // assert - the per-project virtual environment exposes its executable via "bin" (symlinked to the Windows "Scripts" folder)
+    Path venvPath = context.getIdeHome().resolve(Python.VENV_FOLDER);
+    assertThat(venvPath.resolve("Scripts").resolve("python")).exists();
+    assertThat(venvPath.resolve("bin").resolve("python")).exists();
   }
-
 
   @Test
   public void testSetEnvironment() {
@@ -123,10 +144,8 @@ public class PythonTest extends AbstractIdeContextTest {
     // act
     python.setEnvironment(environmentContext, toolInstallation, false);
 
-    // assert
-    assertThat(variables.get("VIRTUAL_ENV").getValue().replace('\\', '/')).endsWith("/software/python");
-    // UV_PROJECT_ENVIRONMENT must not be set: pointing uv at the shared installation breaks all uv projects, see
-    // https://github.com/devonfw/IDEasy/issues/2701
-    assertThat(variables).doesNotContainKey("UV_PROJECT_ENVIRONMENT");
+    // assert - the project's packages point to a per-project virtual environment (see #352), not to the pristine interpreter
+    assertThat(variables.get("VIRTUAL_ENV").getValue().replace('\\', '/')).endsWith("/.venv");
+    assertThat(variables.get("UV_PROJECT_ENVIRONMENT").getValue().replace('\\', '/')).endsWith("/.venv");
   }
 }
