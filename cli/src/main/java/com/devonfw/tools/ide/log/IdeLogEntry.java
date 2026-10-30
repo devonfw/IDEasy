@@ -14,23 +14,20 @@ import java.time.format.DateTimeFormatter;
  * @param error the {@link IdeSubLogger#log(Throwable, String) optional error that was logged}.
  * @param contains - {@code true} if the {@link IdeLogEntry} to create is used as sub-string pattern for {@link #matches(IdeLogEntry) matching},
  *     {@code false} otherwise.
+ * @param timestamp the {@link Instant} when the {@link IdeLogEntry} was created.
  */
-public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error, boolean contains, Long timeStamp) {
+public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error, boolean contains, Instant timestamp) {
 
-  /**
-   * The constructor.
-   *
-   * @param level - {@link #level()}.
-   * @param message - {@link #message()}.
-   * @param rawMessage - {@link #rawMessage()}.
-   * @param args - {@link #args()}.
-   * @param error - {@link #error()}.
-   * @param contains - {@link #contains()}.
-   */
+  /** The {@link DateTimeFormatter} used by {@link #displayValue()}. */
+  private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
+
   public IdeLogEntry {
-
     // validation to be used by all constructors...
-    if ((message == null) && (rawMessage == null)) {
+    if (level == null) {
+      throw new NullPointerException();
+    }
+
+    if ((message == null) && (rawMessage == null) && (error == null)) {
       throw new IllegalStateException();
     }
   }
@@ -41,7 +38,7 @@ public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, 
    */
   public IdeLogEntry(IdeLogLevel level, String message) {
 
-    this(level, message, null, null, null, false, System.currentTimeMillis());
+    this(level, message, null, null, null, false, Instant.now());
   }
 
   /**
@@ -51,7 +48,7 @@ public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, 
    */
   public IdeLogEntry(IdeLogLevel level, String message, boolean contains) {
 
-    this(level, message, null, null, null, contains, System.currentTimeMillis());
+    this(level, message, null, null, null, contains, Instant.now());
   }
 
   /**
@@ -62,7 +59,7 @@ public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, 
    */
   public IdeLogEntry(IdeLogLevel level, String message, String rawMessage, Object[] args) {
 
-    this(level, message, rawMessage, args, null, false, System.currentTimeMillis());
+    this(level, message, rawMessage, args, null, false, Instant.now());
   }
 
   /**
@@ -74,7 +71,7 @@ public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, 
    */
   public IdeLogEntry(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error) {
 
-    this(level, message, rawMessage, args, error, false, System.currentTimeMillis());
+    this(level, message, rawMessage, args, error, false, Instant.now());
   }
 
   /**
@@ -86,7 +83,7 @@ public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, 
    */
   public IdeLogEntry(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error, boolean contains) {
 
-    this(level, message, rawMessage, args, error, contains, System.currentTimeMillis());
+    this(level, message, rawMessage, args, error, contains, Instant.now());
   }
 
   /**
@@ -196,8 +193,6 @@ public record IdeLogEntry(IdeLogLevel level, String message, String rawMessage, 
   /// @return A human-readable, formatted string of the log entry following the structure: `timestamp | [LogLevel] message`
   public String displayValue() {
 
-    DateTimeFormatter DATETIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
-    String timeStampReadable = DATETIME_FORMAT.format(Instant.ofEpochMilli(this.timeStamp));
-    return String.format("%s | [%s] %s", timeStampReadable, this.level(), this.message());
+    return String.format("%s | [%s] %s", IdeLogEntry.TIME_FORMATTER.format(this.timestamp()), this.level(), this.message());
   }
 }
