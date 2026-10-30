@@ -5,13 +5,20 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
-<fx:root prefHeight="-Infinity" prefWidth="-Infinity" type="BorderPane" xmlns="http://javafx.com/javafx/25.0.0" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root prefHeight="-Infinity"
+  prefWidth="-Infinity"
+  type="BorderPane"
+  stylesheets="@../../style/main-window.css"
+  xmlns="http://javafx.com/javafx/25.0.0"
+  xmlns:fx="http://javafx.com/fxml/1">
   <center>
     <BorderPane>
       <center>
         <!-- CONTENT AREA -->
         <SplitPane fx:id="centerSplitPane" dividerPositions="1.0" BorderPane.alignment="CENTER" orientation="VERTICAL">
-          <TabPane fx:id="tabPane" tabClosingPolicy="ALL_TABS">
+          <TabPane
+            fx:id="tabPane"
+            tabClosingPolicy="ALL_TABS">
             <tabs/>
           </TabPane>
           <fx:include source="console/console.fxml" fx:id="console"/>
