@@ -46,6 +46,7 @@ import com.devonfw.tools.ide.url.tool.jenkins.JenkinsUrlUpdater;
 import com.devonfw.tools.ide.url.tool.jmc.JmcUrlUpdater;
 import com.devonfw.tools.ide.url.tool.kotlinc.KotlincNativeUrlUpdater;
 import com.devonfw.tools.ide.url.tool.kotlinc.KotlincUrlUpdater;
+import com.devonfw.tools.ide.url.tool.kubelinter.KubeLinterUrlUpdater;
 import com.devonfw.tools.ide.url.tool.lazydocker.LazyDockerUrlUpdater;
 import com.devonfw.tools.ide.url.tool.mvn.MvnUrlUpdater;
 import com.devonfw.tools.ide.url.tool.mvnd.MvndUrlUpdater;
@@ -94,7 +95,8 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new GcLogAnalyzerUrlUpdater(), new GCloudUrlUpdater(), new GcViewerUrlUpdater(), new GhUrlUpdater(), new GitUrlUpdater(),
       new GoUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(), new GradleUrlUpdater(), new HelmUrlUpdater(),
       new InsoUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(), new JavaAzulUrlUpdater(), new JavaUrlUpdater(),
-      new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(), new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(),
+      new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(), new KotlincNativeUrlUpdater(), new KubeLinterUrlUpdater(),
+      new LazyDockerUrlUpdater(),
       new MvnUrlUpdater(), new MvndUrlUpdater(), new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new ObsidianUrlUpdater(),
       new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(), new QuarkusUrlUpdater(),
       new RubyUrlUpdater(), new RubyJdxUrlUpdater(), new RustUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(),
