@@ -55,10 +55,12 @@ public class SystemPath {
    * <p>
    * {@code node} ships its own {@code npm}/{@code npx}/{@code corepack} inside its (flat, no {@code bin/}) install folder, so without an explicit order the
    * pristine, independently versioned {@code npm} install and the node-bundled one would compete for the same binary names in an arbitrary order
-   * ({@code tool2pathMap} is a {@link HashMap}). Ordering these tools first guarantees the pristine installation deterministically wins. If another tool ever
-   * becomes independently versioned the same way, it is added here.
+   * ({@code tool2pathMap} is a {@link HashMap}). The {@code flutter} framework likewise bundles its own {@code dart} inside its {@code bin/} folder, so the
+   * pristine, independently versioned {@code dart} install and the flutter-bundled one would compete for the {@code dart} binary the same way. Ordering these
+   * tools first guarantees the pristine installation deterministically wins. If another tool ever becomes independently versioned the same way, it is
+   * added here.
    */
-  private static final List<String> PATH_PRECEDENCE_TOOLS = List.of("npm");
+  private static final List<String> PATH_PRECEDENCE_TOOLS = List.of("npm", "dart");
 
   private static final List<String> EXTENSION_PRIORITY = List.of(".exe", ".cmd", ".bat", ".msi", ".ps1", "");
 
