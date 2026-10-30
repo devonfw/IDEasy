@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.os;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,8 @@ public class WindowsHelperImpl implements WindowsHelper {
       "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
       "HKLM\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
   };
+
+  private static final String DISPLAY_NAME = "DisplayName";
 
   private final IdeContext context;
 
@@ -144,10 +147,17 @@ public class WindowsHelperImpl implements WindowsHelper {
       if (out == null) {
         continue;
       }
+      // reg also matches on any other value (e.g. comments or paths of unrelated apps), so we only accept a key whose DisplayName matches
+      String key = null;
       for (String line : out) {
-        line = line.trim();
-        if (line.startsWith("HKEY_")) {
-          return line; // exact registry path (key) for tool
+        String trimmed = line.trim();
+        if (trimmed.startsWith("HKEY_")) {
+          key = trimmed;
+        } else if ((key != null) && line.startsWith("    " + DISPLAY_NAME + " ")) {
+          String displayName = retrieveRegString(DISPLAY_NAME, List.of(line));
+          if ((displayName != null) && displayName.toLowerCase(Locale.ROOT).contains(appName.toLowerCase(Locale.ROOT))) {
+            return key; // exact registry path (key) for tool
+          }
         }
       }
     }
