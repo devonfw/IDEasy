@@ -67,13 +67,15 @@ public class GeminiTest extends AbstractIdeContextTest {
   }
 
   @Test
-  void testGetSortedVersionsSkipsInvalidVersions(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void testGetSortedVersionsKeepsOverflowedVersions(WireMockRuntimeInfo wireMockRuntimeInfo) {
     IdeTestContext context = newContext(PROJECT_GEMINI, wireMockRuntimeInfo);
     Gemini commandlet = new Gemini(context);
 
     List<VersionIdentifier> versions = context.getNpmRepository().getSortedVersions(commandlet.getName(), null, commandlet);
 
-    assertThat(versions).contains(VersionIdentifier.of("0.61.0"));
-    assertThat(context).logAtWarning().hasMessageContaining("Skipping invalid npm version '0.0.8888888888'");
+    // the version whose digits overflow an int is no longer skipped but kept and ranked below the regular one
+    assertThat(versions).contains(VersionIdentifier.ofRequired("0.61.0"));
+    assertThat(versions).contains(VersionIdentifier.ofRequired("0.0.8888888888"));
+    assertThat(context).logAtWarning().hasNoMessageContaining("Skipping invalid npm version '0.0.8888888888'");
   }
 }

@@ -63,7 +63,7 @@ class JsonMappingTest extends Assertions {
 
     // arrange
     String json = "{\"tool\": \"java\",\"versionRange\": \"[11,21_35]\"}";
-    VersionRange expectedVersionRange = VersionRange.of(VersionIdentifier.of("11"), VersionIdentifier.of("21_35"), BoundaryType.CLOSED);
+    VersionRange expectedVersionRange = VersionRange.of(VersionIdentifier.ofRequired("11"), VersionIdentifier.ofRequired("21_35"), BoundaryType.CLOSED);
     // act
     ObjectMapper mapper = JsonMapping.create();
     ToolDependency dependencyInfo = mapper.readValue(json, ToolDependency.class);

@@ -11,11 +11,11 @@ public class GoUrlUpdater extends GithubUrlTagUpdater {
 
   private static final String DOWNLOAD_BASE_URL = "https://go.dev";
 
-  private static final VersionIdentifier MIN_GO_VID = VersionIdentifier.of("1.2.2");
+  private static final VersionIdentifier MIN_GO_VID = VersionIdentifier.ofRequired("1.2.2");
 
-  private static final VersionIdentifier MIN_WIN_ARM_VID = VersionIdentifier.of("1.17");
+  private static final VersionIdentifier MIN_WIN_ARM_VID = VersionIdentifier.ofRequired("1.17");
 
-  private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("1.16");
+  private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.ofRequired("1.16");
 
   /**
    * The Constructor.
@@ -90,4 +90,3 @@ public class GoUrlUpdater extends GithubUrlTagUpdater {
 
 
 }
-

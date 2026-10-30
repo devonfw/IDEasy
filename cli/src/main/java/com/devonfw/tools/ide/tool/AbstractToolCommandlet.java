@@ -941,7 +941,7 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
     if ((version == null) || version.isBlank()) {
       throw new IllegalStateException("Version has to be specified!");
     }
-    VersionIdentifier configuredVersion = VersionIdentifier.of(version);
+    VersionIdentifier configuredVersion = VersionIdentifier.ofRequired(version);
     if (!configuredVersion.isPattern() && !configuredVersion.isValid()) {
       LOG.warn("Version {} seems to be invalid", version);
     }
@@ -1147,7 +1147,7 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
     Matcher matcher = pattern.matcher(output);
 
     if (matcher.find()) {
-      return VersionIdentifier.of(matcher.group(1));
+      return VersionIdentifier.ofRequired(matcher.group(1));
     } else {
       return null;
     }

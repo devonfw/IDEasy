@@ -24,8 +24,8 @@ class VersionPropertyTest {
     IdeContext context = new IdeTestContext();
     VersionProperty versionProp = new VersionProperty("", false, "");
 
-    assertThat(versionProp.parse("1", context)).isEqualTo(VersionIdentifier.of("1"));
-    assertThat(versionProp.parse("4.2-beta", context)).isEqualTo(VersionIdentifier.of("4.2-beta"));
+    assertThat(versionProp.parse("1", context)).isEqualTo(VersionIdentifier.ofRequired("1"));
+    assertThat(versionProp.parse("4.2-beta", context)).isEqualTo(VersionIdentifier.ofRequired("4.2-beta"));
   }
 
   /**

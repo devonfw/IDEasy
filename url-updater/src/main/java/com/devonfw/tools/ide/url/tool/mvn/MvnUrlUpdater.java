@@ -13,8 +13,8 @@ public class MvnUrlUpdater extends GithubUrlReleaseUpdater {
 
   private static final String DOWNLOAD_BASE_URL = "https://archive.apache.org";
 
-  private static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("3.0.4");
-  private static final VersionIdentifier MAVEN_4_IDENTIFIER = VersionIdentifier.of("4.0.0-alpha");
+  private static final VersionIdentifier MIN_VERSION = VersionIdentifier.ofRequired("3.0.4");
+  private static final VersionIdentifier MAVEN_4_IDENTIFIER = VersionIdentifier.ofRequired("4.0.0-alpha");
 
   /**
    * The Constructor.

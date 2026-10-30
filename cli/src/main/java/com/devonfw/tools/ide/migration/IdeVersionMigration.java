@@ -16,7 +16,7 @@ public abstract class IdeVersionMigration implements IdeMigration {
    */
   public IdeVersionMigration(String targetVersion) {
 
-    this(VersionIdentifier.of(targetVersion));
+    this(VersionIdentifier.ofRequired(targetVersion));
   }
 
   /**

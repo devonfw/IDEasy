@@ -29,7 +29,7 @@ public class UvArtifactMetadata implements UrlDownloadFileMetadata {
    */
   public UvArtifactMetadata(UvArtifact uvArtifact, String tool, String edition) {
     this.uvArtifact = uvArtifact;
-    this.version = VersionIdentifier.of(uvArtifact.getVersion());
+    this.version = VersionIdentifier.ofRequired(uvArtifact.getVersion());
     this.tool = tool;
     this.edition = edition;
   }

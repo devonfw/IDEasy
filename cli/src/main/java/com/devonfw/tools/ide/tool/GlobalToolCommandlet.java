@@ -339,7 +339,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
       }
       String version = queryNativePackageVersion(nativePackage);
       if ((version != null) && !version.isBlank()) {
-        return VersionIdentifier.of(version.trim());
+        return VersionIdentifier.ofRequired(version.trim());
       }
     }
     return null;
@@ -407,7 +407,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
           continue;
         }
         WindowsAppInstallation installation = WindowsHelper.get(this.context).getAppInstallationFromRegistry(appName);
-        version = (installation != null) ? VersionIdentifier.of(installation.version()) : null;
+        version = (installation != null) ? VersionIdentifier.ofRequired(installation.version()) : null;
       } else {
         // on Linux global tools are typically installed via the package manager of the OS; on macOS the edition is
         // resolved from the app bundle. In both cases getInstalledVersionForEdition() provides the version.

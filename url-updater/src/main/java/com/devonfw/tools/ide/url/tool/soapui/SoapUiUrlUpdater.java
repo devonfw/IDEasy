@@ -14,7 +14,7 @@ public class SoapUiUrlUpdater extends GithubUrlReleaseUpdater {
 
   private static final String DOWNLOAD_BASE_URL = "https://dl.eviware.com";
 
-  private static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("5.8.0");
+  private static final VersionIdentifier MIN_VERSION = VersionIdentifier.ofRequired("5.8.0");
 
   private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+\\.\\d+\\.\\d+)");
 

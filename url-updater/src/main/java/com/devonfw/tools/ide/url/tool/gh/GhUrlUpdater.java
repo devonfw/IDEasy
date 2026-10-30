@@ -9,7 +9,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class GhUrlUpdater extends GithubUrlTagUpdater {
 
-  private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("2.23.0");
+  private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.ofRequired("2.23.0");
 
   @Override
   public String getTool() {

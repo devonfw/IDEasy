@@ -10,6 +10,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2635[#2635]: Abort with a clear message instead of a NullPointerException when a tool with CVEs is installed in batch mode without force
 * https://github.com/devonfw/IDEasy/issues/2226[#2226]: Show IDEasy project, workspace and repository in the Git Bash window title
 * https://github.com/devonfw/IDEasy/issues/2373[#2373]: GlobalToolCommandlet: determine the edition together with the version for native package manager installs (Linux/macOS)
+* https://github.com/devonfw/IDEasy/issues/2725[#2725]: Consider robustness for VersionIdentifier parsing
 * https://github.com/devonfw/IDEasy/issues/2519[#2519]: Add Flutter SDK commandlet
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/52?closed=1[milestone 2026.11.001].
@@ -61,8 +62,7 @@ The full list of changes for this release can be found in https://github.com/dev
 
 == 2026.09.001
 
-* https://github.com/devonfw/IDEasy/issues/2293[#2293]: Rework spyder to have same features as IdeToolCommandlets
-Release with new features and bugfixes:
+* https://github.com/devonfw/IDEasy/issues/2293[#2293]: Rework spyder to have same features as IdeToolCommandlets Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1525[#1525]: Document known issue and workaround for lombok plugin in Eclipse
 * https://github.com/devonfw/IDEasy/issues/1031[#1031]: Added OpenRewrite commandlet

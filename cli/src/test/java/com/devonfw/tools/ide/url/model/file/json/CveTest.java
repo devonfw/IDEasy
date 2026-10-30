@@ -23,11 +23,11 @@ class CveTest extends Assertions {
         Map.of("windows", List.of(VersionRange.of("[2.0.0,2.0.8]")), "linux", List.of(VersionRange.of("[2.0.0,2.0.5]"))));
 
     // act + assert
-    assertThat(cve.isAffected(VersionIdentifier.of("0.9.0"), OperatingSystem.LINUX)).isTrue();
-    assertThat(cve.isAffected(VersionIdentifier.of("2.0.6"), OperatingSystem.WINDOWS)).isTrue();
-    assertThat(cve.isAffected(VersionIdentifier.of("2.0.6"), OperatingSystem.LINUX)).isFalse();
-    assertThat(cve.isAffected(VersionIdentifier.of("2.0.6"), OperatingSystem.MAC)).isFalse();
-    assertThat(cve.isAffected(VersionIdentifier.of("2.0.6"), null)).isFalse();
+    assertThat(cve.isAffected(VersionIdentifier.ofRequired("0.9.0"), OperatingSystem.LINUX)).isTrue();
+    assertThat(cve.isAffected(VersionIdentifier.ofRequired("2.0.6"), OperatingSystem.WINDOWS)).isTrue();
+    assertThat(cve.isAffected(VersionIdentifier.ofRequired("2.0.6"), OperatingSystem.LINUX)).isFalse();
+    assertThat(cve.isAffected(VersionIdentifier.ofRequired("2.0.6"), OperatingSystem.MAC)).isFalse();
+    assertThat(cve.isAffected(VersionIdentifier.ofRequired("2.0.6"), null)).isFalse();
   }
 
   @Test

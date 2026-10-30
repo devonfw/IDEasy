@@ -61,8 +61,8 @@ public class ReleaseCommandlet extends AbstractCommandlet {
     if (currentVersion == null) {
       throw new CliException("The build tool " + buildTool.getName() + " detected in " + projectPath + " does not support releasing.");
     }
-    VersionIdentifier releaseVersion = VersionIdentifier.of(currentVersion.toString().replace("-SNAPSHOT", ""));
-    VersionIdentifier nextVersion = VersionIdentifier.of(releaseVersion.incrementLastDigit(false) + "-SNAPSHOT");
+    VersionIdentifier releaseVersion = VersionIdentifier.ofRequired(currentVersion.toString().replace("-SNAPSHOT", ""));
+    VersionIdentifier nextVersion = VersionIdentifier.ofRequired(releaseVersion.incrementLastDigit(false) + "-SNAPSHOT");
 
     LOG.info("Current version: {}", currentVersion);
     LOG.info("Release version: {}", releaseVersion);
@@ -72,7 +72,7 @@ public class ReleaseCommandlet extends AbstractCommandlet {
       if (this.context.question("Is the next version '" + nextVersion + "' correct?")) {
         break;
       }
-      nextVersion = VersionIdentifier.of(this.context.askForInput("Please enter the next version:"));
+      nextVersion = VersionIdentifier.ofRequired(this.context.askForInput("Please enter the next version:"));
     }
 
     buildTool.setProjectVersion(projectPath, releaseVersion);

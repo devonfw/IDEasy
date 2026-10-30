@@ -126,7 +126,7 @@ class AndroidStudioTest extends AbstractIdeContextTest {
     // arrange
     AndroidStudio commandlet = new AndroidStudio(this.context);
     Path dummy = this.context.getSoftwarePath().resolve("android-studio");
-    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.of("2024.1.1.1"), false);
+    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.ofRequired("2024.1.1.1"), false);
     RecordingEnvironmentContext environmentContext = new RecordingEnvironmentContext();
 
     // act
