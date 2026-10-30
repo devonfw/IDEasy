@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool.plugin;
 
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
 
@@ -21,9 +20,6 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
 
   private final PluginManager pluginManager;
 
-  /** {@link FlagProperty} to force the reset and reinstallation of plugins as configured in the project settings. */
-  public FlagProperty forcePluginReinstall;
-
   /**
    * The constructor.
    *
@@ -40,7 +36,7 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   @Override
   protected void initProperties() {
 
-    this.forcePluginReinstall = add(new FlagProperty("--force-plugin-reinstall"));
+    add(new FlagProperty("--force-plugin-reinstall"));
     super.initProperties();
   }
 
@@ -51,15 +47,6 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   public PluginManager getPluginManager() {
 
     return this.pluginManager;
-  }
-
-  /**
-   * @return {@code true} if the reset and reinstallation of the plugins is forced for the current run via the {@code --force-plugin-reinstall} flag.
-   */
-  @Override
-  public boolean isForcePluginReinstall() {
-
-    return this.forcePluginReinstall.isTrue();
   }
 
   @Override
@@ -88,12 +75,6 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   }
 
   @Override
-  public Path getPluginsInstallationPath() {
-
-    return this.context.getPluginsPath().resolve(this.tool);
-  }
-
-  @Override
   public void installPlugin(ToolPluginDescriptor plugin, final Step step) {
 
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
@@ -101,17 +82,5 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
     request.setProcessContext(pc);
     install(request);
     installPlugin(plugin, step, pc);
-  }
-
-  @Override
-  public void uninstallPlugin(ToolPluginDescriptor plugin) {
-
-    this.pluginManager.uninstallPlugin(plugin);
-  }
-
-  @Override
-  public void deleteAllPlugins() {
-
-    this.context.getFileAccess().delete(getPluginsInstallationPath());
   }
 }

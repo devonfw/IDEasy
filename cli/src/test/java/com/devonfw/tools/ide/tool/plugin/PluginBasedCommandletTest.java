@@ -247,7 +247,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
 
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
-    commandlet.forcePluginReinstall.setValue(true);
+    commandlet.getForcePluginReinstall().setValue(true);
 
     ToolEditionAndVersion sameEditionAndVersion = newEditionAndVersion(new ToolEdition(TOOL, TOOL), VersionIdentifier.of("1.90.0"));
     ToolInstallRequest request = newPurgeRequest(sameEditionAndVersion, sameEditionAndVersion);

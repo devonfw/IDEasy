@@ -173,6 +173,7 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
    *     directory where IDEasy was called.
    * @see #setExecutionDirectory(Path)
    */
+  @Override
   public Path getExecutionDirectory() {
     return this.executionDirectory;
   }
@@ -180,32 +181,9 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
   /**
    * @param executionDirectory the new value of {@link #getExecutionDirectory()}.
    */
+  @Override
   public void setExecutionDirectory(Path executionDirectory) {
     this.executionDirectory = executionDirectory;
-  }
-
-  /**
-   * @return the {@link EnvironmentVariables#getToolVersion(String) tool version}.
-   */
-  public VersionIdentifier getConfiguredVersion() {
-
-    return this.context.getVariables().getToolVersion(getName());
-  }
-
-  /**
-   * @return the {@link EnvironmentVariables#getToolEdition(String) tool edition}.
-   */
-  public String getConfiguredEdition() {
-
-    return this.context.getVariables().getToolEdition(getName());
-  }
-
-  /**
-   * @return the {@link ToolEdition} with {@link #getName() tool} with its {@link #getConfiguredEdition() edition}.
-   */
-  protected final ToolEdition getToolWithConfiguredEdition() {
-
-    return new ToolEdition(this.tool, getConfiguredEdition());
   }
 
   @Override
@@ -511,14 +489,6 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
       toolPath = getToolPath();
       request.setToolPath(toolPath);
     }
-  }
-
-  /**
-   * @return the {@link Path} where the tool is located (installed). Will be {@code null} for global tools that do not know the {@link Path} since it is
-   *     determined by the installer.
-   */
-  public Path getToolPath() {
-    return null;
   }
 
   /**
@@ -840,6 +810,7 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
    *
    * @return the {@link EditionAndVersion} or {@code null} if not installed.
    */
+  @Override
   public final EditionAndVersion getInstalledEditionAndVersion() {
 
     return this.installedEditionAndVersion.get();
@@ -859,27 +830,19 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
   /**
    * @return the currently installed {@link VersionIdentifier version} of this tool or {@code null} if not installed.
    */
+  @Override
   public final VersionIdentifier getInstalledVersion() {
 
-    EditionAndVersion ev = getInstalledEditionAndVersion();
-    return (ev != null) ? ev.version() : null;
-  }
-
-  /**
-   * @return {@code true} if this tool is installed, {@code false} otherwise.
-   */
-  public boolean isInstalled() {
-
-    return getInstalledVersion() != null;
+    return ToolCommandlet.super.getInstalledVersion();
   }
 
   /**
    * @return the installed edition of this tool or {@code null} if not installed.
    */
+  @Override
   public final String getInstalledEdition() {
 
-    EditionAndVersion ev = getInstalledEditionAndVersion();
-    return (ev != null) ? ev.edition() : null;
+    return ToolCommandlet.super.getInstalledEdition();
   }
 
   /** Invalidates the cached installed edition and version so the next call to {@link #getInstalledEditionAndVersion()} recomputes the result. */
@@ -892,14 +855,6 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
    * Uninstalls the {@link #getName() tool}.
    */
   public abstract void uninstall();
-
-  /**
-   * @return the {@link ToolRepository}.
-   */
-  public ToolRepository getToolRepository() {
-
-    return this.context.getDefaultToolRepository();
-  }
 
   /**
    * List the available editions of this tool.
@@ -1066,14 +1021,6 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
           .executable(Path.of(getBinaryName())).addArgs(toolHelpArgs);
       pc.run(ProcessMode.DEFAULT);
     }
-  }
-
-  /**
-   * @return the tool's specific help command. Usually help, --help or -h. Return null if not applicable.
-   */
-  public String getToolHelpArguments() {
-
-    return null;
   }
 
   /**
