@@ -81,7 +81,7 @@ class DirectoryMergerExpressionTest extends AbstractIdeContextTest {
     List<IdeLogEntry> errors = context.getTestStartContext().getEntries().stream().filter(e -> e.level() == IdeLogLevel.ERROR).toList();
     assertThat(errors).isNotEmpty();
     IdeLogEntry error = errors.get(0);
-    assertThat(error.message()).contains("invalid mode 'dos'");
+    assertThat(error.message()).contains("Illegal syntax found in expression arguments: dos");
     // no exception is attached to the log entry, so no stacktrace is printed for the end-user
     assertThat(error.error()).isNull();
   }

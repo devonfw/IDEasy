@@ -31,7 +31,7 @@ public class EditionSetCommandlet extends AbstractCommandlet {
     addKeyword(getName());
     this.tool = add(new ToolProperty("", true, "tool"));
     this.edition = add(new EditionProperty("", true, "edition"));
-    this.cfg = add(new EnumProperty<>("--cfg", false, null, EnvironmentVariablesFiles.class));
+    this.cfg = add(new EnumProperty<>("--cfg", false, EnvironmentVariablesFiles.class, null));
   }
 
   @Override

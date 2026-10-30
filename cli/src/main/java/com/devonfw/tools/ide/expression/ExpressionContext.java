@@ -14,15 +14,6 @@ public interface ExpressionContext {
   IdeContext getIdeContext();
 
   /**
-   * Resolves variables in the given value. Used to resolve arguments of a function that may themselves contain
-   * variables or nested expressions (e.g. {@code @path('$[IDE_HOME]/software/node')}).
-   *
-   * @param value the value to resolve.
-   * @return the given value with variables and nested expressions resolved.
-   */
-  String resolve(String value);
-
-  /**
    * @param name the name of the variable.
    * @return the value of the variable or {@code null} if not defined in any level of the hierarchy.
    */
