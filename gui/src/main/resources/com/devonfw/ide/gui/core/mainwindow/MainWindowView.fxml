@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.*?>
 <?import java.net.URL?>
 <fx:root prefHeight="-Infinity" prefWidth="-Infinity" type="BorderPane" xmlns="http://javafx.com/javafx/25.0.0" xmlns:fx="http://javafx.com/fxml/1">
-  <stylesheets><URL value="@../../style/MainWindowView.css"/></stylesheets>
+  <stylesheets><URL value="@../../style/mainWindowView.css"/></stylesheets>
   <center>
     <BorderPane>
       <center>
