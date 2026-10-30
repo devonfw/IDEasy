@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.Alert.AlertType;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
@@ -125,6 +126,18 @@ public class NavigationPanelViewModel {
       IdeDialog errorDialog = new IdeDialog(AlertType.ERROR, e.getMessage());
       errorDialog.showAndWait();
     }
+  }
+
+  /**
+   * Opens the tool configuration tab for the selected project and workspace.
+   */
+  public void openToolConfigTab() {
+
+    this.guiStateManager.getTabFactory().openToolConfigTab();
+  }
+
+  public BooleanProperty workspaceSelectedProperty() {
+    return this.guiStateManager.workspaceSelectedProperty();
   }
 
   public ComboBoxViewModel<String> getProjectsViewModel() {
