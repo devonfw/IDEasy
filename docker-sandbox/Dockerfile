@@ -4,8 +4,14 @@
 # IDEasy Docker Sandbox - base image
 # =============================================================================
 # Provisions an isolated IDEasy "project" (named `sandbox`) inside the image so
-# that a container can run an AI coding agent (default: Claude Code) against a
-# bind-mounted git repository, with a container-local (host-free) IDEasy runtime.
+# that a container can run a supported AI coding agent (Claude Code, GitHub
+# Copilot CLI, ...) against a bind-mounted git repository, with a
+# container-local (host-free) IDEasy runtime.
+#
+# The image is AGENT-NEUTRAL: which agents it provisions is controlled by the
+# AGENTS build-arg, and each agent's specifics (which tools to install, how it
+# receives credentials) live in its profile at docker-sandbox/agents/<agent>.sh.
+# This file never hard-codes a single agent.
 #
 # See docker-sandbox/docker-sandbox.sh (the host launcher) and
 # documentation/docker-sandbox.adoc (user documentation, security model).
@@ -35,8 +41,15 @@ ARG IDEASY_VERSION=""
 # (https://github.com/devonfw/ide-settings). Point this at your own fork to layer
 # project-specific tools/variables into the sandbox.
 ARG IDE_SETTINGS_REPO="-"
+# Comma-separated list of the supported agents to provision into the image
+# (default: both, so a single image can run any of them). Each name must match a
+# profile in docker-sandbox/agents/<name>.sh; the image installs the union of
+# the tools each profile declares (SBOX_AGENT_TOOLS). Add/adjust agents here or
+# via EXTRA_TOOLS without touching this file.
+# Pass via: docker build --build-arg AGENTS="claude,copilot"
+ARG AGENTS="claude,copilot"
 # Comma-separated list of *additional* IDEasy tools to install into the sandbox
-# (e.g. "java,mvn" for a JVM project). `node` and `claude` are always installed.
+# beyond the agents' own dependencies (e.g. "java,mvn" for a JVM project).
 # Pass via: docker build --build-arg EXTRA_TOOLS="java,mvn"
 ARG EXTRA_TOOLS=""
 
@@ -92,12 +105,17 @@ RUN set -ex; \
     rm -rf /tmp/ideasy-install /tmp/${archive}
 
 # ---- Provision the sandbox project (automatic provisioning) -----------------
-# Creates the IDEasy project `sandbox` under IDE_ROOT and installs the agent
-# (Claude Code) plus node, into the container-local runtime. `--skip-tools` on
-# create avoids installing the full default toolchain; `--skip-repositories`
-# avoids cloning the default repositories. EXTRA_TOOLS adds project-specific tools.
+# Creates the IDEasy project `sandbox` under IDE_ROOT and installs the tools the
+# selected agents declare. For each agent in AGENTS we source its profile
+# (agents/<agent>.sh) and collect SBOX_AGENT_TOOLS, then install the union
+# (de-duplicated) of those tools plus any EXTRA_TOOLS. `--skip-tools` on create
+# avoids installing the full default toolchain; `--skip-repositories` avoids
+# cloning the default repositories. AGENTS / EXTRA_TOOLS add project-specific
+# agents and tools without editing this file.
 ARG IDE_SETTINGS_REPO
+ARG AGENTS
 ARG EXTRA_TOOLS
+COPY agents/ /opt/ideasy-sandbox/agents/
 RUN set -ex; \
     export IDE_ROOT=/projects; \
     # Source WITHOUT `set -u` (nounset): the functions script, and the bare `ide`
@@ -108,8 +126,20 @@ RUN set -ex; \
     source /projects/_ide/installation/functions; \
     # Global options (e.g. -b = batch/non-interactive) precede the commandlet.
     ide -b create sandbox "${IDE_SETTINGS_REPO}" --skip-tools --skip-repositories; \
-    ide -b install node; \
-    ide -b install claude; \
+    # Collect the tools the selected agents declare (union, de-duplicated).
+    AGENT_TOOLS=""; \
+    for a in $(echo "${AGENTS}" | tr ',' ' '); do \
+      if [ ! -f "/opt/ideasy-sandbox/agents/${a}.sh" ]; then \
+        echo "ERROR: no agent profile for '${a}' (/opt/ideasy-sandbox/agents/${a}.sh)" >&2; \
+        exit 1; \
+      fi; \
+      . "/opt/ideasy-sandbox/agents/${a}.sh"; \
+      for t in ${SBOX_AGENT_TOOLS}; do \
+        case " ${AGENT_TOOLS} " in *" ${t} "*) ;; *) AGENT_TOOLS="${AGENT_TOOLS} ${t}";; esac; \
+      done; \
+    done; \
+    echo "Provisioning agents from tools: ${AGENT_TOOLS}"; \
+    for t in ${AGENT_TOOLS}; do ide -b install "${t}"; done; \
     if [ -n "${EXTRA_TOOLS}" ]; then \
       IFS=','; for t in ${EXTRA_TOOLS}; do ide -b install "${t}"; done; unset IFS; \
     fi

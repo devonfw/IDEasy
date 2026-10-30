@@ -3,8 +3,8 @@
 # IDEasy Docker Sandbox - host launcher
 # =============================================================================
 # Starts an isolated Docker container containing a fully provisioned IDEasy
-# workspace (IDEasy + Claude Code installed by the Dockerfile) and runs an AI
-# coding agent (default: Claude Code) inside it.
+# workspace (IDEasy + the supported AI coding agents installed by the Dockerfile)
+# and runs the agent you select (default: Claude Code) inside it.
 #
 # Only the git repository you pass is bind-mounted (read-write) - and it is
 # mounted *into* the container's IDEasy workspace as a subfolder, so the
@@ -12,6 +12,12 @@
 # checkout). The agent's edits, `git commit` and pull requests therefore operate
 # on your real repository, while the IDEasy runtime is container-local (discarded
 # on exit) - the host IDEasy installation is never touched.
+#
+# This launcher is agent-neutral: it never names a specific agent except the
+# default, and it never interprets credentials. It forwards the agent's name and
+# the credential values under the neutral IDEASY_SANDBOX_* names; the agent's
+# profile (docker-sandbox/agents/<agent>.sh) decides what they mean. The
+# supported agents are the profiles that ship in docker-sandbox/agents/.
 #
 # [EXPERIMENTAL] Targets technically skilled users. No warranty or support.
 #
@@ -30,21 +36,24 @@
 #                         directory - i.e. run this from inside the repo you want
 #                         to work on).
 #   --image <name>        Image name (default: ideasy-sandbox).
-#   --agent <name>        Agent commandlet to run (default: claude).
+#   --agent <name>        Agent to run (default: claude). Must be a profile in
+#                         docker-sandbox/agents/<name>.sh (e.g. claude, copilot).
 #   --pull                Rebuild the image before running.
-#   --check               Validate the host (engine, repo, git identity) and exit
-#                         - do not build or run. Needs no engine running.
+#   --check               Validate the host (engine, repo, git identity, agent)
+#                         and exit - do not build or run. Needs no engine running.
 #   --dry-run             Validate, build if necessary, print the exact `docker
 #                         run` command, then exit - do not start the container.
 #   --ca-cert <file>      Bundle of CA certificates to trust inside the container
 #                         (exported as NODE_EXTRA_CA_CERTS=/ca/certs/ca-bundle.crt).
-#   --api-key <value>     Anthropic API key (shorthand for
-#                         --env ANTHROPIC_API_KEY=<value>; also read from the
-#                         host IDEASY_SANDBOX_API_KEY env var).
-#   --env NAME=VALUE      Extra env var for the agent (repeatable), written into
-#                         Claude's isolated config at container start - e.g. a
-#                         custom ANTHROPIC_BASE_URL / ANTHROPIC_AUTH_TOKEN for a
-#                         proxy. Never baked into the image.
+#   --api-key <value>     The agent's primary credential (an API key or token;
+#                         also read from the host IDEASY_SANDBOX_API_KEY env var).
+#                         Forwarded as IDEASY_SANDBOX_API_KEY; the agent profile
+#                         decides what it means (e.g. ANTHROPIC_API_KEY for
+#                         Claude, GH_TOKEN for Copilot).
+#   --env NAME=VALUE      Extra variable for the agent (repeatable). Forwarded
+#                         under a neutral name and interpreted by the agent
+#                         profile at container start (e.g. a proxy endpoint /
+#                         alternate token). Never baked into the image.
 #   -h | --help           Show this help.
 #
 # Everything after `--` is forwarded to the agent (e.g. `-- -p "fix the test"`).
@@ -58,11 +67,12 @@ IMAGE="ideasy-sandbox"
 AGENT="claude"
 REPO=""
 CA_CERT_FILE=""
-# Agent credentials / endpoint config, written into Claude's isolated config at
-# container start (never baked into the image). API_KEY is a shorthand for the
-# env var ANTHROPIC_API_KEY (also read from the host IDEASY_SANDBOX_API_KEY env
-# var, convenient for CI or a login script); AGENT_ENV holds repeatable
-# NAME=VALUE pairs from --env (e.g. a custom ANTHROPIC_BASE_URL + token).
+# Agent credentials / endpoint config, applied by the agent's profile at
+# container start (never baked into the image). API_KEY is the agent's primary
+# credential (also read from the host IDEASY_SANDBOX_API_KEY env var, convenient
+# for CI or a login script); AGENT_ENV holds repeatable NAME=VALUE pairs from
+# --env. Both are forwarded under neutral IDEASY_SANDBOX_* names; the profile
+# decides what they mean (e.g. ANTHROPIC_API_KEY for Claude, GH_TOKEN for Copilot).
 API_KEY="${IDEASY_SANDBOX_API_KEY:-}"
 AGENT_ENV=()
 DO_PULL=0
@@ -88,7 +98,31 @@ green() { printf '%s%s%s\n' "$GREEN" "$1" "$OFF"; }
 blue()  { printf '%s%s%s\n' "$BLUE" "$1" "$OFF"; }
 
 usage() {
-  sed -n '2,54p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,60p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+# List the supported agents (the profiles shipped in agents/). Excludes common.sh
+# (shared helpers, not an agent).
+list_agents() {
+  local p name
+  for p in "$SCRIPT_DIR"/agents/*.sh; do
+    [ -e "$p" ] || continue
+    name="$(basename "$p" .sh)"
+    [ "$name" = "common" ] && continue
+    echo "  $name"
+  done
+}
+
+# Validate the selected agent: its profile must exist so the image can source it
+# at build time and the entrypoint at run time. Prints the available agents on
+# failure.
+validate_agent() {
+  if [ ! -f "$SCRIPT_DIR/agents/$AGENT.sh" ]; then
+    red "Unknown agent '$AGENT' (no profile at agents/$AGENT.sh)."
+    echo "Supported agents:" >&2
+    list_agents
+    exit 2
+  fi
 }
 
 # --- Argument parsing --------------------------------------------------------
@@ -195,11 +229,12 @@ build_env_flags() {
   if [ -n "$CA_CERT_FILE" ]; then
     ENV_FLAGS+=("-e" "NODE_EXTRA_CA_CERTS=/ca/certs/ca-bundle.crt")
   fi
-  # Agent credentials. IDEasy scrubs ANTHROPIC_* (and friends) out of the agent's
-  # ambient environment, so passing them with -e directly would drop them. We
-  # instead forward them under IDEASY_SANDBOX_* names (which IDEasy does not
-  # scrub) and let the entrypoint move them into Claude's settings.json env block
-  # - the place Claude actually honours.
+  # Agent credentials. Each agent commandlet scrubs its own provider/auth env vars
+  # (e.g. ANTHROPIC_* for Claude) out of the ambient environment, so passing them
+  # with -e directly would drop them. We instead forward them under IDEASY_SANDBOX_*
+  # names (which IDEasy does not scrub) and let the agent's profile (sourced by
+  # the entrypoint) apply them in an agent-specific way - e.g. Claude writes them
+  # to its settings.json env block, Copilot exports them to the agent's environment.
   if [ -n "$API_KEY" ]; then
     ENV_FLAGS+=("-e" "IDEASY_SANDBOX_API_KEY=$API_KEY")
   fi
@@ -254,6 +289,7 @@ main() {
   blue "IDEasy Docker Sandbox (experimental)"
   resolve_repo
   resolve_git_identity
+  validate_agent
 
   if ! validate_host "$engine"; then
     if [ "$DO_CHECK" -eq 1 ] || [ "$DO_DRY_RUN" -eq 1 ]; then
