@@ -24,10 +24,19 @@ commits/pull requests **without affecting the host environment**.
 
 The implementation lives in the `docker-sandbox/` folder of this repository:
 
-* `Dockerfile` - provisions the IDEasy workspace (IDEasy + agent) into an image.
+* `Dockerfile` - provisions the IDEasy workspace (IDEasy + the agents you select)
+  into an image.
 * `docker-sandbox.sh` - the host launcher that builds the image, passes your Git
-  identity, mounts your repository and starts the agent.
+  identity, mounts your repository and starts the agent you select.
 * `entrypoint.sh` - activates the IDEasy environment and runs the agent.
+* `agents/` - one **profile** per supported agent (`claude.sh`, `copilot.sh`, ...).
+  Each declares the IDEasy tools that agent needs and how that agent receives its
+  credentials (see the *Supported agents* section).
+
+The launcher, `Dockerfile` and `entrypoint.sh` are **agent-neutral**: they never
+interpret credentials and never name an agent except the default. An agent is
+described entirely by its profile, so adding a new agent is a new file in
+`agents/` - the shared infrastructure does not change.
 
 == How it works
 
@@ -57,6 +66,30 @@ Because only the repository is bind-mounted and the IDEasy runtime is
 container-local, running an `ide install` or other tooling inside the sandbox
 **does not affect the host** IDEasy installation.
 
+[[agents]]
+== Supported agents
+
+The agents the sandbox can run are its **profiles** - the files in
+`docker-sandbox/agents/`. Each profile declares:
+
+* the IDEasy tools that agent needs (`SBOX_AGENT_TOOLS`), and
+* how the agent receives its credentials (`sbox_agent_apply_credentials`).
+
+The `Dockerfile` installs the tools for the agents you select, and the
+`entrypoint.sh` applies the agent's credentials at container start. Two agents
+ship with the sandbox:
+
+* **Claude Code** (`--agent claude`, the default) - an npm tool. Its credentials
+  are written into Claude's own `conf/claude/settings.json` `env` block, because
+  IDEasy scrubs ambient `ANTHROPIC_*` environment variables out of the agent's
+  environment (see the *Agent authentication* note).
+* **GitHub Copilot CLI** (`--agent copilot`) - a standalone binary. Its
+  credentials are exported as environment variables (e.g. `GH_TOKEN`), because
+  the CLI authenticates from its environment rather than a config file.
+
+To see which agents are installed in an image, list the profiles:
+`ls docker-sandbox/agents/*.sh`.
+
 == Prerequisites
 
 * A running container engine. IDEasy recommends https://rancherdesktop.io/[Rancher
@@ -72,12 +105,15 @@ Run the launcher from inside the repository you want to work on:
 
 [source,bash]
 ----
-bash docker-sandbox/docker-sandbox.sh
+bash docker-sandbox/docker-sandbox.sh                 # Claude Code (default)
+bash docker-sandbox/docker-sandbox.sh --agent copilot # GitHub Copilot CLI
 ----
 
-This starts *Claude Code* (the default agent) inside the container, with its
-working directory set to your repository. On first run the image is built (this
-provisions IDEasy + Claude Code and takes a few minutes); subsequent runs are
+By default this starts *Claude Code*; pass `--agent <name>` to run another
+supported agent (the agent names are the profiles in
+`docker-sandbox/agents/`). The agent starts with its working directory set to
+your repository. On first run the image is built (this provisions IDEasy + the
+agents installed into the image, and takes a few minutes); subsequent runs are
 fast.
 
 [TIP]
@@ -104,28 +140,43 @@ The launcher supports the following options (see
 | `--repo <path>` | The git repository to mount (default: auto-detected from the
 current directory via `git rev-parse --show-toplevel`).
 | `--image <name>` | Image name (default: `ideasy-sandbox`).
-| `--agent <name>` | The agent commandlet to run (default: `claude`).
+| `--agent <name>` | The agent to run (default: `claude`). Must be a profile in
+`docker-sandbox/agents/<name>.sh` (e.g. `claude`, `copilot`). The available
+agents are the profiles in that folder.
 | `--pull` | Rebuild the image before running.
 | `--check` | Validate the host and exit (no build, no run).
 | `--dry-run` | Print the exact `docker run` command and exit (no run).
 | `--ca-cert <file>` | CA bundle to trust inside the container (`NODE_EXTRA_CA_CERTS`).
-| `--api-key <value>` | Anthropic/Claude API key so the agent can authenticate inside the container
-(shorthand for `--env ANTHROPIC_API_KEY=<value>`).
-Also read from the host `IDEASY_SANDBOX_API_KEY` environment variable.
-| `--env NAME=VALUE` | Extra environment variable for the agent, written into Claude's isolated config
-at container start (repeatable). Use for a custom/proxy endpoint, e.g.
-`ANTHROPIC_BASE_URL` and `ANTHROPIC_AUTH_TOKEN`.
+| `--api-key <value>` | The agent's primary credential (an API key or token) so it can
+authenticate inside the container. Forwarded under the neutral name
+`IDEASY_SANDBOX_API_KEY`; the agent profile decides what it means (e.g.
+`ANTHROPIC_API_KEY` for Claude, `GH_TOKEN` for Copilot). Also read from the host
+`IDEASY_SANDBOX_API_KEY` environment variable.
+| `--env NAME=VALUE` | Extra environment variable for the agent (repeatable). Forwarded
+under a neutral name and interpreted by the agent profile at container start -
+e.g. a custom/proxy endpoint. For Claude this lands in its isolated config; see
+the per-agent examples below.
 | `--` | Forward everything after `--` to the agent.
 |======================
 
-Example - run a single prompt non-interactively, authenticated with an API key:
+=== Claude Code examples
+
+Run a single prompt non-interactively:
+
+[source,bash]
+----
+bash docker-sandbox/docker-sandbox.sh -- -p "run the failing test and fix it"
+----
+
+Authenticate with an API key:
 
 [source,bash]
 ----
 bash docker-sandbox/docker-sandbox.sh --api-key "..." -- -p "run the failing test and fix it"
 ----
 
-Example - point the agent at a custom/proxy Anthropic-compatible endpoint:
+Point Claude at a custom/proxy Anthropic-compatible endpoint (these variables
+are written into Claude's isolated `conf/claude/settings.json` `env` block):
 
 [source,bash]
 ----
@@ -135,18 +186,38 @@ bash docker-sandbox/docker-sandbox.sh \
   -- -p "run the failing test and fix it"
 ----
 
-Example - run a single prompt non-interactively:
+=== GitHub Copilot CLI examples
+
+Run a single prompt non-interactively, authenticating with a GitHub token:
 
 [source,bash]
 ----
-bash docker-sandbox/docker-sandbox.sh -- -p "run the failing test and fix it"
+bash docker-sandbox/docker-sandbox.sh --agent copilot --api-key "<token>" -- -p "fix the failing test"
 ----
 
-== Provisioning more tools
+The token is forwarded under the neutral name `IDEASY_SANDBOX_API_KEY` and the
+Copilot profile exports it as `GH_TOKEN` (Copilot CLI's environment variable for
+a GitHub token - use a fine-grained personal access token with *Copilot
+Requests* permissions). Any extra `--env NAME=VALUE` you pass is likewise
+exported into the Copilot CLI's environment by the profile.
 
-By default the image provisions `node` and `claude`. For projects that need
-additional IDEasy tools (e.g. a JVM stack), build the image with the tools you
-need (comma-separated, passed as `EXTRA_TOOLS`):
+== Provisioning agents and more tools
+
+Each agent profile declares the IDEasy tools it needs, and the `Dockerfile`
+installs the union of tools for the agents you select. The set of agents is
+chosen at build time with the `AGENTS` build-arg (comma-separated profile names,
+default `claude,copilot`):
+
+[source,bash]
+----
+# only Claude Code
+docker build -t ideasy-sandbox --build-arg AGENTS="claude" docker-sandbox/
+# both (the default)
+docker build -t ideasy-sandbox docker-sandbox/
+----
+
+For projects that need additional IDEasy tools beyond what the agents declare
+(e.g. a JVM stack), add them with `EXTRA_TOOLS` (comma-separated):
 
 [source,bash]
 ----
@@ -166,6 +237,28 @@ docker build -t ideasy-sandbox \
 For reproducible builds pin the IDEasy release with `IDEASY_VERSION` (see the
 `ARG` declarations at the top of the `Dockerfile`).
 
+[[add-agent]]
+== Adding an agent
+
+Adding a new agent does not change the shared infrastructure - it is a new
+profile in `docker-sandbox/agents/`. The profile:
+
+1. declares `SBOX_AGENT_TOOLS` - the space-separated IDEasy tools the agent
+   needs (e.g. `"node claude"` for a node-based tool, `"copilot"` for a
+   standalone binary); and
+2. defines `sbox_agent_apply_credentials` - how the agent receives its
+   credentials from the neutral `IDEASY_SANDBOX_*` values the launcher forwards.
+
+Shared helpers (node lookup, a `settings.json` `env` merge, the neutral env-var
+names) live in `agents/common.sh`. Then:
+
+* select the new profile with `--agent <name>` (and include it in the `AGENTS`
+  build-arg if you rebuild the image), and
+* point users at it in this documentation.
+
+The launcher validates `--agent` against the available profiles and errors with
+the list of known agents if the profile is missing.
+
 == Git identity and security
 
 * **Your Git identity is passed into the container** via
@@ -175,21 +268,29 @@ For reproducible builds pin the IDEasy release with `IDEASY_VERSION` (see the
 * **The host SSH keys and SSH agent are NOT mounted into the container.**
   Mounting SSH keys would expose broad SSH access rights to the sandbox.
 
-.Agent authentication (API key)
+[[agent-authentication]]
+.Agent authentication
 ****
-By default the agent has *no* credentials. To let it authenticate, pass an
-Anthropic/Claude API key with `--api-key <value>` (or the host
-`IDEASY_SANDBOX_API_KEY` environment variable). The launcher forwards it into
-the container under a neutral name and the container entrypoint writes it into
-Claude's isolated config (`$IDE_ROOT/sandbox/conf/claude/settings.json` →
-`env.ANTHROPIC_API_KEY`). That location is deliberate: IDEasy scrubs ambient
-`ANTHROPIC_*` environment variables out of the agent's environment, so the key
-must be provided through Claude's own `settings.json`, which it applies itself.
+By default the agent has *no* credentials. To let it authenticate, pass the
+agent's primary credential with `--api-key <value>` (or the host
+`IDEASY_SANDBOX_API_KEY` environment variable), plus any extra variables with
+`--env NAME=VALUE`. The launcher forwards them into the container **under
+neutral names** (`IDEASY_SANDBOX_API_KEY` and `IDEASY_SANDBOX_E_<NAME>`) and
+never interprets them; the agent's profile decides what they mean:
 
-The key is **never baked into the image** (a secret in image layers would be a
-leak) and lives only in the container-local config, so it is discarded on exit
-(`--rm`). It is also kept out of the process argument list (`ps`) - the
-entrypoint reads it from the environment, not argv.
+* **Claude Code** - the profile writes them into Claude's isolated config
+  (`$IDE_ROOT/sandbox/conf/claude/settings.json` → `env.<NAME>`). That location
+  is deliberate: IDEasy scrubs ambient `ANTHROPIC_*` environment variables out
+  of the agent's environment, so the values must be provided through Claude's
+  own `settings.json`, which it applies itself.
+* **GitHub Copilot CLI** - the profile exports them into the CLI's environment
+  (e.g. `IDEASY_SANDBOX_API_KEY` → `GH_TOKEN`), because the CLI authenticates
+  from its environment rather than a config file.
+
+Credentials are **never baked into the image** (a secret in image layers would
+be a leak); they are applied at container start and are discarded on exit
+(`--rm`). They are also kept out of the process argument list (`ps`) - the
+entrypoint reads them from the environment, not argv.
 ****
 
 .Pushing and opening PRs
@@ -198,9 +299,9 @@ Because no credentials are mounted, **pushing branches or opening pull requests
 from inside the container is an explicit, opt-in concern** you control. Typical
 options, all of which keep secrets out of the shared host environment:
 
-* Pass a scoped *GitHub personal access token* into the container (e.g. as an
-  `ANTHROPIC`-unrelated environment variable or via the agent's own config) and
-  have the agent push over `https` with that token.
+* Pass a scoped *GitHub personal access token* into the container (e.g. as a
+  `--env` variable, or via the agent's own configuration) and have the agent
+  push over `https` with that token.
 * Use a CI/agent-provided token (e.g. `gh` authentication) scoped to the single
   repository.
 
@@ -209,18 +310,29 @@ credential is available - the agent can edit and commit locally, but not push,
 until you explicitly provide a scoped credential.
 ****
 
+Note the agent's own credential (e.g. the Anthropic API key for Claude, the
+GitHub token for Copilot) is separate from a *push* credential. Pass a push
+credential through an agent-specific variable (e.g. a GitHub token via
+`--env`) or the agent's own configuration - not through the primary
+`--api-key`, which the agent profile interprets as the agent's API credential.
+
 == Troubleshooting and limitations
 
 * **No container engine / engine stopped:** start your container engine (e.g.
   Rancher Desktop). `--check` and `--dry-run` still work without a running daemon.
 * **Windows:** run from WSL (a Docker-compatible Linux container environment);
   see the *Testing Linux on Windows* section of the contributing documentation.
-* **First run is slow:** the initial build provisions IDEasy + the agent. Use
-  `--pull` only when you intentionally want to rebuild.
-* **`claude` cannot authenticate:** pass an API key with `--api-key <value>` (or
-  the host `IDEASY_SANDBOX_API_KEY` env var). Do not rely on ambient host
-  secrets, which are not present in the container - IDEasy deliberately scrubs
-  them (see the *Agent authentication* note).
+* **First run is slow:** the initial build provisions IDEasy + the agents in
+  the image. Use `--pull` only when you intentionally want to rebuild.
+* **The agent cannot authenticate:** pass the agent's credential with
+  `--api-key <value>` (or the host `IDEASY_SANDBOX_API_KEY` env var), plus any
+  extra variables with `--env`. Do not rely on ambient host secrets, which are
+  not present in the container - IDEasy deliberately scrubs them (see the *Agent
+  authentication* note). For Claude specifically, note that it reads credentials
+  from its `settings.json`, so the values are applied there by the profile.
+* **Unknown agent:** `--agent <name>` must name a profile in
+  `docker-sandbox/agents/`. If the profile is not present in the image, the
+  launcher errors and lists the agents that are.
 * **Cleanup:** the container is started with `--rm`, so the container-local
   IDEasy runtime is discarded on exit. Only your bind-mounted repository (and any
   commits/pushes you performed) remain on the host.

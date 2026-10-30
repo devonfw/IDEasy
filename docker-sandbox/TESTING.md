@@ -2,11 +2,16 @@
 
 > **Audience:** a technically skilled user verifying the sandbox on their own machine.
 >
+> The steps below cover **Claude Code** (Steps 3–6) and **GitHub Copilot CLI**
+> (Step 7) end to end. Steps 0–2 are agent-neutral.
+>
 > **Prerequisites**
 > - A running container engine (Docker / Rancher Desktop / Podman).
 > - `git` with a configured `user.name` / `user.email`.
 > - A checkout of the repository (this one by default).
-> - A fresh agent credential (API key or token) — the previous `sk-...` token must be considered leaked.
+> - A fresh agent credential:
+>   - **Claude Code** — an Anthropic API key, or a proxy endpoint + token.
+>   - **GitHub Copilot CLI** — a GitHub token with *Copilot Requests* permissions.
 > - On **Windows**, run everything from WSL.
 
 > **Security**
@@ -26,13 +31,17 @@ docker info >/dev/null && echo "engine OK" || echo "ENGINE NOT RUNNING"
 git config user.name
 git config user.email
 
-# 3. (First time only) build the image — provision IDEasy + node + claude
+# 3. (First time only) build the image — by default this provisions IDEasy
+#    + the union of tools for the default agents (claude + copilot).
 cd <wsl-path>/workspaces/main/IDEasy
 bash docker-sandbox/docker-sandbox.sh --pull
 ```
 
 **PASS:** `engine OK`, a name/email are printed, and the build finishes without
-`failed` / `error` lines.
+`failed` / `error` lines. (The default image includes both the `claude` and
+`copilot` agents, so Steps 3–6 (Claude) and Step 7 (Copilot) can both run. To
+provision a different agent set, rebuild with the `AGENTS` build-arg — see the
+documentation.)
 
 ---
 
@@ -61,10 +70,10 @@ bash docker-sandbox/docker-sandbox.sh --dry-run -- -p "reply with the single wor
 
 ---
 
-## Step 3 — End-to-end round-trip (the critical test)
+## Step 3 — Claude Code: end-to-end round-trip (the critical test)
 
-This is the single most important check: it proves the agent runs, credentials are
-injected, and the corporate CA is trusted.
+This is the single most important check: it proves the Claude Code agent runs,
+credentials are injected, and the corporate CA is trusted.
 
 ```bash
 cd <wsl-path>/workspaces/main/IDEasy
@@ -157,7 +166,7 @@ git diff
 
 ---
 
-## Step 6 — `--api-key` path (alternative credential path)
+## Step 6 — Claude Code `--api-key` path (alternative credential path)
 
 ```bash
 export IDEASY_SANDBOX_API_KEY="<YOUR-TOKEN>"
@@ -169,6 +178,36 @@ bash docker-sandbox/docker-sandbox.sh -- -p "reply with the single word: ok"
 
 ---
 
+## Step 7 — GitHub Copilot CLI end-to-end
+
+This covers the **other** supported agent, proving the same sandbox
+infrastructure launches a second, different agent (a standalone binary rather
+than a node tool) and that its credentials are delivered as environment
+variables.
+
+```bash
+cd <wsl-path>/workspaces/main/IDEasy
+
+# Use a GitHub token with "Copilot Requests" permissions.
+TOKEN="<YOUR-GITHUB-TOKEN>"
+
+bash docker-sandbox/docker-sandbox.sh --agent copilot --api-key "$TOKEN" \
+  -- -p "reply with the single word: hello"
+```
+
+**How to read the output:**
+
+| You see | Meaning |
+|---|---|
+| `[ideasy-sandbox] Applied credentials for copilot (env): GH_TOKEN` | the profile exported the primary credential |
+| `hello` on the last line | **Copilot CLI runs and authenticates successfully** |
+
+**PASS:** you get `hello`. The launcher forwards the token under the neutral
+name `IDEASY_SANDBOX_API_KEY`; the `copilot` profile exports it as `GH_TOKEN`,
+and no `node`/`claude` config is involved.
+
+---
+
 ## Checklist
 
 | # | Test | Pass condition |
@@ -176,12 +215,15 @@ bash docker-sandbox/docker-sandbox.sh -- -p "reply with the single word: ok"
 | 0 | Prereqs + image build | `engine OK`, identity present, build clean |
 | 1 | `--check` | `Check passed` |
 | 2 | `--dry-run` | command printed, nothing started |
-| 3 | **E2E + proxy + CA** | gets `hello`, no cert error |
+| 3 | **Claude E2E + proxy + CA** | gets `hello`, no cert error |
 | 4 | keep-alive + `exec` | enter container, config/cert/env correct |
 | 5 | Isolation | agent edits the real repo, host IDEasy unchanged |
-| 6 | `--api-key` | gets `ok` |
+| 6 | Claude `--api-key` | gets `ok` |
+| 7 | **Copilot CLI E2E** | gets `hello` via `GH_TOKEN` |
 
-Step 3 is the gating test: if it passes, the rest confirm quality and security.
+Step 3 (Claude) and Step 7 (Copilot) are the gating tests: each proves a
+different agent runs through the same sandbox infrastructure. If they pass, the
+rest confirm quality and security.
 
 ---
 
@@ -191,6 +233,6 @@ Step 3 is the gating test: if it passes, the rest confirm quality and security.
 |---|---|
 | `cannot attach stdin to a TTY-enabled container` | You used `-i -t` without a TTY. Use the `-p` form (Step 3). |
 | `Self-signed certificate detected` | The CA bundle is missing or wrong. Rebuild it from the endpoint chain (intermediate + root) and re-verify with `openssl verify -CAfile <bundle> <leaf>` → `OK`. |
-| Agent cannot authenticate | Credentials not passed. Use `--api-key` or `--env ANTHROPIC_AUTH_TOKEN=...`; IDEasy scrubs ambient `ANTHROPIC_*` variables, so they must be injected at start. |
+| Agent cannot authenticate | Credentials not passed. Use `--api-key` (and `--env` as needed). For Claude, note IDEasy scrubs ambient `ANTHROPIC_*` variables, so the `claude` profile applies them via `settings.json` instead. For Copilot, the `copilot` profile exports `GH_TOKEN`; use a token with *Copilot Requests* permissions. |
 | Windows path errors in `docker run` | Run from WSL; keep container paths Unix-style. |
 | `unrecognized_model` warning | Non-blocking. Clear by mapping the model via `behavesAs` / `modelOverrides` in the settings repo. |
