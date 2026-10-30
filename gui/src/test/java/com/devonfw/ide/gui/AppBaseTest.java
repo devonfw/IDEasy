@@ -13,8 +13,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.SplitPane.Divider;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import org.assertj.core.data.Offset;
@@ -50,6 +52,11 @@ public class AppBaseTest extends UIBasedApplicationTest {
   private Label statusText;
   private ProgressBar taskProgressBar;
   private SplitPane centerSplitPane;
+  private TabPane tabPane;
+  private StackPane welcomePane;
+  private Label welcomeLabel;
+  private Label welcomeSubtitle;
+  private Button openLauncherButton;
 
   /**
    * Both are recreated for every test in {@link #start(Stage)}: a shared GuiStateManager leaks the project selection into the next test, and a shared
@@ -60,6 +67,8 @@ public class AppBaseTest extends UIBasedApplicationTest {
   private GuiStateManager guiStateManager;
 
   private MainWindowViewModel viewModel;
+
+  private MainWindowView mainWindow;
 
   /** Throw-away user home for the isolated NlsService context so the persisted locale never rewrites the real {@code ~/.ide/ide.properties}. */
   @TempDir
@@ -80,22 +89,22 @@ public class AppBaseTest extends UIBasedApplicationTest {
     this.guiStateManager.getNlsService().setLocale(Locale.ENGLISH);
     this.taskManager = guiStateManager.getTaskManager();
     this.viewModel = new MainWindowViewModel(guiStateManager);
-    MainWindowView mainWindow = new MainWindowView(this.viewModel, guiStateManager);
+    this.mainWindow = new MainWindowView(this.viewModel, guiStateManager);
     stage.setScene(new Scene(mainWindow, SCENE_WIDTH, SCENE_HEIGHT));
     stage.requestFocus(); //sometimes needed for headless setup to work
     stage.show();
 
-    androidStudioOpen = FxHelper.lookup(mainWindow, "#androidStudioOpen");
-    eclipseOpen = FxHelper.lookup(mainWindow, "#eclipseOpen");
-    intellijOpen = FxHelper.lookup(mainWindow, "#intellijOpen");
-    vsCodeOpen = FxHelper.lookup(mainWindow, "#vsCodeOpen");
     selectedProject = FxHelper.lookup(mainWindow, "#projects");
     selectedWorkspace = FxHelper.lookup(mainWindow, "#workspaces");
     consolePaneToggleButton = FxHelper.lookup(mainWindow, "#consolePaneToggleButton");
     centerSplitPane = FxHelper.lookup(mainWindow, "#centerSplitPane");
     statusText = FxHelper.lookup(mainWindow, "#statusLabel");
     taskProgressBar = FxHelper.lookup(mainWindow, "#statusProgressBar");
-    this.ideOpenButtons = new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen };
+    tabPane = FxHelper.lookup(mainWindow, "#tabPane");
+    welcomePane = FxHelper.lookup(mainWindow, "#welcomePane");
+    welcomeLabel = FxHelper.lookup(mainWindow, "#welcomeLabel");
+    welcomeSubtitle = FxHelper.lookup(mainWindow, "#welcomeSubtitle");
+    openLauncherButton = FxHelper.lookup(mainWindow, "#openLauncherButton");
   }
 
   @BeforeEach
@@ -103,6 +112,22 @@ public class AppBaseTest extends UIBasedApplicationTest {
 
     taskManager.clearTasks();
     waitForFxEvents();
+  }
+
+  /**
+   * The application starts on the welcome pane without any open tab. The IDE open buttons live in the launcher tab, so it has to be opened before they can be
+   * looked up.
+   */
+  private void openLauncherTab() {
+
+    interact(() -> this.viewModel.openLauncherTab());
+    waitForFxEvents();
+
+    androidStudioOpen = FxHelper.lookup(this.mainWindow, "#androidStudioOpen");
+    eclipseOpen = FxHelper.lookup(this.mainWindow, "#eclipseOpen");
+    intellijOpen = FxHelper.lookup(this.mainWindow, "#intellijOpen");
+    vsCodeOpen = FxHelper.lookup(this.mainWindow, "#vsCodeOpen");
+    this.ideOpenButtons = new Button[] { androidStudioOpen, eclipseOpen, intellijOpen, vsCodeOpen };
   }
 
   /**
@@ -126,6 +151,8 @@ public class AppBaseTest extends UIBasedApplicationTest {
   @Test
   public void testIdeOpenButtonsDisabledWhenNoProjectSelected() {
 
+    openLauncherTab();
+
     // assert that no project is selected
     assertThat(selectedProject.getValue()).isNull();
 
@@ -140,6 +167,8 @@ public class AppBaseTest extends UIBasedApplicationTest {
    */
   @Test
   public void testIdeOpenButtonsEnabledWhenWorkspaceSelected() {
+
+    openLauncherTab();
 
     // assert that a project and workspace is selected
     interact(() -> selectedProject.getSelectionModel().select("project-1"));
@@ -156,6 +185,8 @@ public class AppBaseTest extends UIBasedApplicationTest {
    */
   @Test
   public void testSwitchingProjectResetsWorkspaceSelectionToMain() {
+
+    openLauncherTab();
 
     // select a project and its workspace -> all IDE open buttons become enabled
     interact(() -> selectedProject.getSelectionModel().select("project-1"));
@@ -312,5 +343,63 @@ public class AppBaseTest extends UIBasedApplicationTest {
   private void clickStatusText() {
     statusText.fireEvent(
         new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, null, 1, false, false, false, false, false, false, false, false, false, false, null));
+  }
+
+  //===Welcome pane tests===
+
+  /**
+   * The application starts without any open tab, so the welcome pane must be visible and the empty tab pane hidden.
+   */
+  @Test
+  void testWelcomePaneShownOnStartup() {
+
+    assertThat(tabPane.getTabs()).as("No tab should be open on startup").isEmpty();
+    assertThat(welcomePane.isVisible()).as("The welcome pane should be visible on startup").isTrue();
+    assertThat(tabPane.isVisible()).as("The empty tab pane should be hidden on startup").isFalse();
+    assertThat(welcomeLabel.getText()).isEqualTo("Welcome to IDEasy");
+    assertThat(welcomeSubtitle.getText()).isEqualTo("Select where you want to start:");
+  }
+
+  /**
+   * Opening a tab must hide the welcome pane and show the tab pane.
+   */
+  @Test
+  void testWelcomePaneHiddenWhileTabIsOpen() {
+
+    openLauncherTab();
+
+    assertThat(tabPane.getTabs()).as("The launcher tab should be open").hasSize(1);
+    assertThat(welcomePane.isVisible()).as("The welcome pane should be hidden while a tab is open").isFalse();
+    assertThat(tabPane.isVisible()).as("The tab pane should be visible while a tab is open").isTrue();
+  }
+
+  /**
+   * Closing all tabs must reveal the welcome pane and hide the empty tab pane, so its header cannot cover the welcome pane.
+   */
+  @Test
+  void testWelcomePaneShownWhenAllTabsClosed() {
+
+    openLauncherTab();
+    interact(() -> tabPane.getTabs().clear());
+    waitForFxEvents();
+
+    assertThat(welcomePane.isVisible()).as("The welcome pane should be visible when no tab is open").isTrue();
+    assertThat(tabPane.isVisible()).as("The empty tab pane should be hidden").isFalse();
+    assertThat(welcomeLabel.getText()).isEqualTo("Welcome to IDEasy");
+  }
+
+  /**
+   * The button on the welcome pane must open the IDE launcher tab and hide the welcome pane again.
+   */
+  @Test
+  void testWelcomeButtonOpensLauncherTab() {
+
+    interact(() -> openLauncherButton.fire());
+    waitForFxEvents();
+
+    assertThat(tabPane.getTabs()).as("The welcome button should open exactly one tab").hasSize(1);
+    assertThat(tabPane.getTabs().getFirst().getUserData()).as("The opened tab should be the IDE launcher").isEqualTo("tab.ide_launcher");
+    assertThat(welcomePane.isVisible()).as("The welcome pane should be hidden again once a tab is open").isFalse();
+
   }
 }
