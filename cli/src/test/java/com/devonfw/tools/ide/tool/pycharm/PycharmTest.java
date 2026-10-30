@@ -176,7 +176,7 @@ class PycharmTest extends AbstractIdeContextTest {
             -XX:ReservedCodeCacheSize=256m
             -ea
             -Dsun.io.useCanonCaches=true
-            """);
+            -Didea.plugins.path=""" + context.getPluginsPath().resolve("pycharm").resolve("2024.3").toAbsolutePath());
   }
 
   private void checkInstallation(IdeTestContext context) {

@@ -114,7 +114,7 @@ class AndroidStudioTest extends AbstractIdeContextTest {
             -XX:ReservedCodeCacheSize=256m
             -ea
             -Dsun.io.useCanonCaches=true
-            """);
+            -Didea.plugins.path=""" + context.getPluginsPath().resolve("android-studio").resolve("2024.1").toAbsolutePath());
   }
 
   /**
@@ -142,7 +142,7 @@ class AndroidStudioTest extends AbstractIdeContextTest {
     assertThat(commandlet.getInstalledVersion().toString()).isEqualTo("2024.1.1.1");
     assertThat(context).log().hasEntries(new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully ended step 'Install plugin MockedPlugin (1/1)'.", true), //
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed android-studio in version 2024.1.1.1", true));
-    assertThat(context.getPluginsPath().resolve("android-studio").resolve("mockedPlugin").resolve("dev").resolve("MockedClass.class")).exists();
+    assertThat(commandlet.getPluginsInstallationPath().resolve("mockedPlugin").resolve("dev").resolve("MockedClass.class")).exists();
   }
 
   private void setupMockedPlugin(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {

@@ -11,7 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.Optional;
+import java.util.List;
+import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,10 +133,24 @@ public class IdeaPluginDownloader {
     return downloadedFile;
   }
 
-  private void extractDownloadedPlugin(FileAccess fileAccess, Path downloadedFile, String pluginId) throws IOException {
+  void extractDownloadedPlugin(FileAccess fileAccess, Path downloadedFile, String pluginId) throws IOException {
     Path targetDir = this.commandlet.getPluginsInstallationPath().resolve(pluginId);
     if (Files.exists(targetDir)) {
       LOG.info("Plugin already installed, target directory already existing: {}", targetDir);
+    } else if (downloadedFile.getFileName().toString().endsWith(".zip")) {
+      // a plugin ZIP contains a single plugin folder (e.g. «name»/lib/*.jar) that has to be installed as is and not flattened like FileAccess.extract does.
+      // It is installed as «pluginId» so it can be found by uninstallPlugin.
+      Path extractedDir = fileAccess.createTempDir("extract-" + pluginId);
+      try {
+        fileAccess.extractZip(downloadedFile, extractedDir);
+        List<Path> pluginDirs = fileAccess.listChildren(extractedDir, Files::isDirectory);
+        if (pluginDirs.size() != 1) {
+          throw new IllegalStateException("Expected exactly one plugin folder in " + downloadedFile + " but found " + pluginDirs);
+        }
+        fileAccess.move(pluginDirs.getFirst(), targetDir);
+      } finally {
+        fileAccess.delete(extractedDir);
+      }
     } else {
       fileAccess.extract(downloadedFile, targetDir);
     }
@@ -157,15 +172,21 @@ public class IdeaPluginDownloader {
         throw new RuntimeException("Failed to fetch file headers: HTTP " + responseCode);
       }
 
-      Optional<String> contentType = res.headers().firstValue("content-type");
-      if (contentType.isEmpty()) {
-        return "";
+      // content-type may have parameters (e.g. "application/zip;charset=utf-8")
+      String contentType = res.headers().firstValue("content-type").orElse("").toLowerCase(Locale.ROOT);
+      if (contentType.startsWith("application/zip")) {
+        return ".zip";
+      } else if (contentType.startsWith("application/java-archive")) {
+        return ".jar";
       }
-      return switch (contentType.get()) {
-        case "application/zip" -> ".zip";
-        case "application/java-archive" -> ".jar";
-        default -> "";
-      };
+      // fall back to the filename for unspecific content-types (e.g. "application/octet-stream")
+      String fileName = res.headers().firstValue("content-disposition").orElse(res.uri().getPath()).toLowerCase(Locale.ROOT);
+      if (fileName.contains(".zip")) {
+        return ".zip";
+      } else if (fileName.contains(".jar")) {
+        return ".jar";
+      }
+      return "";
     } catch (Exception e) {
       throw new RuntimeException("Failed to perform HEAD request of URL " + uri, e);
     }

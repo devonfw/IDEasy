@@ -53,7 +53,7 @@ public class EclipseTest extends AbstractIdeContextTest {
     assertThat(context.getPluginsPath().resolve("eclipse")).isDirectory();
     assertThat(eclipse.getToolBinPath().resolve("eclipsetest")).hasContent(
         "eclipse " + os + " -data " + context.getWorkspacePath() + " -keyring " + context.getUserHome().resolve(".eclipse").resolve(".keyring")
-            + " -configuration " + context.getPluginsPath().resolve("eclipse").resolve("configuration")
+            + " -configuration " + context.getPluginsPath().resolve("eclipse").resolve("2024-09").resolve("configuration")
             + " gui -showlocation eclipseproject -nosplash");
 
     //if tool already installed
@@ -87,7 +87,7 @@ public class EclipseTest extends AbstractIdeContextTest {
     Path buildFile = context.getIdeInstallationPath().resolve(IdeContext.FOLDER_INTERNAL).resolve("eclipse-import.xml");
     assertThat(eclipse.getToolBinPath().resolve("eclipsetest")).hasContent(
         "eclipse linux -data " + context.getWorkspacePath() + " -keyring " + context.getUserHome().resolve(".eclipse").resolve(".keyring")
-            + " -configuration " + context.getPluginsPath().resolve("eclipse").resolve("configuration")
+            + " -configuration " + context.getPluginsPath().resolve("eclipse").resolve("2024-09").resolve("configuration")
             + " -consoleLog -nosplash -application org.eclipse.ant.core.antRunner -buildfile " + buildFile + " -DrepositoryImportPath=" + repositoryPath
             + " -DrepositoryImportWorkingSet=");
   }

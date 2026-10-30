@@ -1,9 +1,14 @@
 package com.devonfw.tools.ide.tool.intellij;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -54,6 +59,42 @@ class IntellijTest extends AbstractIdeContextTest {
     //if tool already installed
     commandlet.install();
     assertThat(this.context).logAtDebug().hasMessageContaining("Version 2023.3.3 of tool intellij is already installed");
+  }
+
+  /**
+   * Tests that installing a new version of {@link Intellij} does not fail if the plugins of the previous version are still locked by the running IDE on
+   * Windows (see #1548) and that they get cleaned up once they are no longer locked.
+   *
+   * @throws IOException on error.
+   */
+  @Test
+  @EnabledOnOs(OS.WINDOWS)
+  void testIntellijInstallWhilePluginsOfPreviousVersionAreLocked() throws IOException {
+
+    // arrange
+    this.context.setSystemInfo(SystemInfoMock.of("windows"));
+    Intellij commandlet = new Intellij(this.context);
+    Path oldPluginsPath = this.context.getPluginsPath().resolve("intellij").resolve("2023.2");
+    Path lockedFile = oldPluginsPath.resolve("github-copilot-intellij").resolve("copilot-language-server.exe");
+    this.context.getFileAccess().mkdirs(lockedFile.getParent());
+    this.context.getFileAccess().touch(lockedFile);
+
+    // act
+    try (InputStream in = new FileInputStream(lockedFile.toFile())) { // java.io keeps the file locked against deletion on Windows
+      commandlet.install();
+    }
+
+    // assert
+    checkInstallation(this.context);
+    assertThat(commandlet.getPluginsInstallationPath()).isEqualTo(this.context.getPluginsPath().resolve("intellij").resolve("2023.3"));
+    assertThat(this.context).logAtWarning().hasMessage("Could not delete obsolete plugins at " + oldPluginsPath
+        + " as they may still be in use. They will be cleaned up on a later update.");
+
+    // act
+    commandlet.install();
+
+    // assert
+    assertThat(oldPluginsPath).doesNotExist();
   }
 
   /**
@@ -282,7 +323,7 @@ class IntellijTest extends AbstractIdeContextTest {
             -XX:ReservedCodeCacheSize=256m
             -ea
             -Dsun.io.useCanonCaches=true
-            """);
+            -Didea.plugins.path=""" + context.getPluginsPath().resolve("intellij").resolve("2023.3").toAbsolutePath());
   }
 
   /**
