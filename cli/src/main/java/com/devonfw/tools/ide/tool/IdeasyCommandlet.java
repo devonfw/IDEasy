@@ -60,6 +60,13 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   public static final String IDE_BIN = "\\_ide\\bin";
   public static final String IDE_INSTALLATION_BIN = "\\_ide\\installation\\bin";
 
+  /** Name of the variable (set by the MSI installer) that disables the GUI desktop shortcut on Windows if set to {@code 0}. */
+  public static final String VAR_CREATE_DESKTOP_SHORTCUT = "IDEASY_CREATE_DESKTOP_SHORTCUT";
+
+  /** Name of the variable (set by the MSI installer) that disables the GUI Start Menu shortcut on Windows if set to {@code 0}. */
+  public static final String VAR_CREATE_STARTMENU_SHORTCUT = "IDEASY_CREATE_STARTMENU_SHORTCUT";
+
+  private static final String REGISTRY_KEY_SHELL_FOLDERS = "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders";
 
   private static final Map<String, Boolean> REQUIRED_INSTALLATION_ARTIFACTS = Map.of(
       //artifactName: String, required: boolean
@@ -300,7 +307,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     addToShellRc(ZSHRC, ideRoot, "autoload -U +X bashcompinit && bashcompinit");
     installIdeasyWindowsEnv(ideRoot, installationPath);
     WindowsHelper.get(this.context).configurePowerShellProfiles(true);
-    installDesktopShortcut(installationPath);
+    installGuiDesktopShortcut(installationPath);
     IdeLogLevel.SUCCESS.log(LOG, "IDEasy has been installed successfully on your system.");
     LOG.warn("IDEasy has been setup for new shells but it cannot work in your current shell(s).\n"
         + "To use it here, reload your shell configuration (e.g. 'source ~/.bashrc' in bash "
@@ -345,26 +352,31 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
     Path installationPath = this.context.getIdeInstallationPath();
     if (installationPath != null) {
-      installDesktopShortcut(installationPath);
+      installGuiDesktopShortcut(installationPath);
     }
   }
 
-  private void installDesktopShortcut(Path installationPath) {
+  /**
+   * Creates a desktop shortcut to the GUI based on the OS.
+   *
+   * @param installationPath the {@link Path} to the IDEasy installation.
+   */
+  private void installGuiDesktopShortcut(Path installationPath) {
 
     try {
       if (this.context.getSystemInfo().isLinux()) {
-        installLinuxDesktopShortcut(installationPath);
+        installGuiLinuxDesktopShortcut(installationPath);
       } else if (this.context.getSystemInfo().isMac()) {
-        installMacDesktopShortcut(installationPath);
+        installGuiMacDesktopShortcut(installationPath);
       } else if (this.context.getSystemInfo().isWindows()) {
-        installWindowsDesktopShortcut(installationPath);
+        installGuiWindowsDesktopShortcut(installationPath);
       }
     } catch (Exception e) {
       LOG.warn("Failed to create desktop shortcut.", e);
     }
   }
 
-  private void installLinuxDesktopShortcut(Path installationPath) throws IOException {
+  private void installGuiLinuxDesktopShortcut(Path installationPath) throws IOException {
 
     Path templateFile = installationPath.resolve("gui/linux/ideasy-gui.desktop");
     if (!Files.exists(templateFile)) {
@@ -403,7 +415,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     IdeLogLevel.SUCCESS.log(LOG, "Created desktop shortcut at {}", desktopFile);
   }
 
-  private void installMacDesktopShortcut(Path installationPath) {
+  private void installGuiMacDesktopShortcut(Path installationPath) {
 
     Path ideasyBin = installationPath.resolve("bin/ideasy");
     String escapedBin = ideasyBin.toString().replace("\"", "\\\"");
@@ -416,23 +428,28 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     IdeLogLevel.SUCCESS.log(LOG, "Created macOS launcher at {}", commandFile);
   }
 
-  private void installWindowsDesktopShortcut(Path installationPath) {
+  private void installGuiWindowsDesktopShortcut(Path installationPath) {
 
     Path ideasyExe = installationPath.resolve("bin\\ideasy.exe");
     Path icoPath = installationPath.resolve("gui\\icon.ico");
-    // Shell Folders contains the already-expanded Desktop path, including OneDrive-redirected locations
     WindowsHelper helper = WindowsHelper.get(this.context);
-    String desktopStr = helper.getRegistryValue(
-        "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Desktop");
-    Path desktopPath = (desktopStr != null && !desktopStr.isBlank()) ? Path.of(desktopStr) : this.context.getUserHome().resolve("Desktop");
-    this.context.getFileAccess().mkdirs(desktopPath);
-    createWindowsShortcut(desktopPath.resolve("IDEasy.lnk"), ideasyExe, icoPath);
-    String startMenuStr = helper.getRegistryValue(
-        "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Programs");
-    Path startMenu = (startMenuStr != null && !startMenuStr.isBlank()) ? Path.of(startMenuStr)
-        : this.context.getUserHome().resolve("AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs");
-    if (Files.isDirectory(startMenu)) {
-      createWindowsShortcut(startMenu.resolve("IDEasy.lnk"), ideasyExe, icoPath);
+
+    if (isShortcutCreationRequested(VAR_CREATE_DESKTOP_SHORTCUT)) {
+      // Shell Folders contains the already-expanded Desktop path, including OneDrive-redirected locations
+      String desktopStr = helper.getRegistryValue(REGISTRY_KEY_SHELL_FOLDERS, "Desktop");
+      Path desktopPath = (desktopStr != null && !desktopStr.isBlank()) ? Path.of(desktopStr)
+          : this.context.getUserHome().resolve("Desktop");
+      this.context.getFileAccess().mkdirs(desktopPath);
+      createWindowsGuiShortcut(desktopPath.resolve("IDEasy.lnk"), ideasyExe, icoPath);
+    }
+
+    if (isShortcutCreationRequested(VAR_CREATE_STARTMENU_SHORTCUT)) {
+      String startMenuStr = helper.getRegistryValue(REGISTRY_KEY_SHELL_FOLDERS, "Programs");
+      Path startMenu = (startMenuStr != null && !startMenuStr.isBlank()) ? Path.of(startMenuStr)
+          : this.context.getUserHome().resolve("AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs");
+      if (Files.isDirectory(startMenu)) {
+        createWindowsGuiShortcut(startMenu.resolve("IDEasy.lnk"), ideasyExe, icoPath);
+      }
     }
   }
 
@@ -440,7 +457,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     return path.toString().replace("'", "''");
   }
 
-  private void createWindowsShortcut(Path lnkPath, Path targetExe, Path icoPath) {
+  private void createWindowsGuiShortcut(Path lnkPath, Path targetExe, Path icoPath) {
 
     String ps = "$ws = New-Object -ComObject WScript.Shell; "
         + "$s = $ws.CreateShortcut('" + psEscapePath(lnkPath) + "'); "
@@ -881,5 +898,17 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   private void logIdeasyModification(String target, boolean configure) {
     String action = configure ? "Configuring" : "Removing";
     LOG.info("{} IDEasy in {}", action, target);
+  }
+
+  /**
+   * Shortcuts are created by default (e.g. when installing via setup script) and only skipped if explicitly disabled.
+   *
+   * @param variable the environment variable controlling shortcut creation.
+   * @return {@code true} if the shortcut should be created, {@code false} otherwise.
+   */
+  private boolean isShortcutCreationRequested(String variable) {
+
+    String value = this.context.getVariables().get(variable);
+    return !"0".equals(value);
   }
 }
