@@ -170,3 +170,48 @@ export function computeDiff(currentAssignees, targets) {
   const toAdd = wanted.filter((login) => !currentAssignees.includes(login));
   return { toAdd, toRemove, changed: toAdd.length > 0 || toRemove.length > 0 };
 }
+
+/** Number of the IDEasy board (github.com/orgs/devonfw/projects/5). */
+const DEFAULT_BOARD_NUMBER = 5;
+
+/**
+ * Parse the BOARD_NUMBER setting. Unset or empty means the IDEasy board.
+ * @param {string | undefined} raw
+ * @returns {number}
+ */
+export function parseBoardNumber(raw) {
+  const text = (raw ?? '').trim();
+  if (text === '') {
+    return DEFAULT_BOARD_NUMBER;
+  }
+  if (!/^[1-9]\d*$/.test(text)) {
+    throw new Error(`BOARD_NUMBER must be a positive integer, got "${raw}"`);
+  }
+  return Number(text);
+}
+
+/**
+ * Validate the result of the direct `organization { projectV2(number) }` lookup.
+ * Fails if the token cannot see the board, or if the number points at a board
+ * with another title than expected (guards against a wrong BOARD_NUMBER).
+ * @param {any} data GraphQL `data` of the lookup (may be null)
+ * @param {number} number
+ * @param {string} expectedTitle
+ * @returns {{ id: string, title: string }}
+ */
+export function resolveBoard(data, number, expectedTitle) {
+  const project = data?.organization?.projectV2;
+  if (!project) {
+    throw new Error(
+      `Could not read board #${number}. The token needs org "Projects: Read and write" ` +
+        `access to it (the built-in GITHUB_TOKEN cannot read org boards).`,
+    );
+  }
+  if (project.title !== expectedTitle) {
+    throw new Error(
+      `Board #${number} is titled "${project.title}", expected "${expectedTitle}". ` +
+        `Check BOARD_NUMBER / BOARD_TITLE.`,
+    );
+  }
+  return { id: project.id, title: project.title };
+}
