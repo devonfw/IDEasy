@@ -49,6 +49,14 @@ public class Gui extends AbstractCommandlet {
     return false;
   }
 
+  /**
+   * Explicit installation of Java 25 is intentional.
+   * <p>
+   * Ide-gui is compiled against Java 25 and JavaFX 25, and it is started via {@code exec-maven-plugin} with the {@code java} found on the PATH of the Maven
+   * process. The dependency {@code mvn -> java} declared in {@code mvn/mvn/dependencies.json} only requires {@code Java [17,)}, so it cannot guarantee the
+   * version the GUI needs.
+   * </p>
+   */
   @Override
   protected void doRun() {
 
@@ -70,12 +78,11 @@ public class Gui extends AbstractCommandlet {
     ToolInstallation javaInstallation = java.installTool(javaToolInstallRequest);
 
     /*
-     * Register the freshly installed mvn on the IDEasy-managed PATH so the IDEasy-controlled maven (from the software
-     * repository) launches the GUI instead of any maven on the system PATH. installTool only installs into the software
-     * repository, so we register the bin directory here (install() would normally do this).
+     * Add the software-repository Maven bin directory only to this process, so this Maven launches the GUI instead of
+     * any Maven on the system PATH. installTool only installs into the software repository and does not register the
+     * tool. context.getPath().setPath(...) would change Maven for every later lookup in this IDEasy process.
      */
-    context.getPath().setPath(mvn.getName(), mvnToolInstallation.binDir());
-
+    processContext = processContext.withPathEntry(mvnToolInstallation.binDir());
     LOG.debug("Starting GUI via commandlet");
 
     Path installationPath = context.getIdeInstallationPath();
