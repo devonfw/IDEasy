@@ -8,7 +8,6 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
@@ -79,15 +78,6 @@ public abstract class AbstractIdeToolCommandlet extends AbstractPluginBasedComma
         args.add(option);
       }
     }
-  }
-
-  @Override
-  public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
-
-    if ((processMode != null) && processMode.isBackground()) {
-      configureWorkspace();
-    }
-    return super.runTool(pc, processMode, args);
   }
 
   @Override
