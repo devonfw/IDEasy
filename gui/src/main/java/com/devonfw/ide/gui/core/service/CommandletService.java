@@ -1,10 +1,16 @@
 package com.devonfw.ide.gui.core.service;
 
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Objects;
 
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
 import javafx.concurrent.Task;
+import javafx.concurrent.Worker.State;
 import javafx.scene.control.Alert.AlertType;
 
 import org.slf4j.Logger;
@@ -31,6 +37,8 @@ public class CommandletService {
 
   private final GuiStateManager guiStateManager;
 
+  private final ObservableSet<String> runningCommandlets;
+
   private IdeGuiLogListener guiLogListener;
   private GuiOutputListener guiOutputListener;
   private GuiEventBus eventBus;
@@ -49,6 +57,7 @@ public class CommandletService {
    */
   public CommandletService(GuiStateManager guiStateManager) {
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
+    this.runningCommandlets = FXCollections.observableSet(new HashSet<>());
     this.eventBus = guiStateManager.getEventBus();
     this.guiLogListener = new IdeGuiLogListener(eventBus);
     this.guiOutputListener = new GuiOutputListener(eventBus);
@@ -65,25 +74,54 @@ public class CommandletService {
   }
 
   /**
-   * Runs the given commandlet in the currently selected project/workspace context.
+   * Starts a background launch in the selected project/workspace context. Call on the JavaFX application thread. Repeated requests for an IDE that is
+   * already starting are ignored.
    *
    * @param commandlet the commandlet to run.
    */
   public void runCommandlet(String commandlet) {
 
-    this.preLaunchAction.run();
+    if (!this.runningCommandlets.add(commandlet)) {
+      return;
+    }
+    try {
+      this.preLaunchAction.run();
 
-    Task<Void> commandletTask = runCommandletTask(commandlet);
+      Task<Void> commandletTask = runCommandletTask(commandlet);
+      commandletTask.stateProperty().addListener((_, _, state) -> {
+        if ((state == State.SUCCEEDED) || (state == State.FAILED) || (state == State.CANCELLED)) {
+          this.runningCommandlets.remove(commandlet);
+        }
+      });
 
-    this.guiLogListener = new IdeGuiLogListener(guiStateManager.getEventBus());
-    this.guiOutputListener = new GuiOutputListener(guiStateManager.getEventBus());
+      this.guiLogListener = new IdeGuiLogListener(guiStateManager.getEventBus());
+      this.guiOutputListener = new GuiOutputListener(guiStateManager.getEventBus());
 
-    Thread commandletThread = new Thread(commandletTask);
-    commandletThread.setDaemon(true);
-    commandletThread.start();
+      Thread commandletThread = new Thread(commandletTask);
+      commandletThread.setDaemon(true);
+      commandletThread.start();
+    } catch (RuntimeException | Error e) {
+      this.runningCommandlets.remove(commandlet);
+      throw e;
+    }
   }
 
-  private Task<Void> runCommandletTask(String commandlet) {
+  /**
+   * @param commandlet the IDE whose launch state is observed.
+   * @return whether a launch of this IDE is already in progress. Access on the JavaFX application thread.
+   */
+  public BooleanBinding runningBinding(String commandlet) {
+
+    return Bindings.createBooleanBinding(() -> this.runningCommandlets.contains(commandlet), this.runningCommandlets);
+  }
+
+  /**
+   * Creates the background launch task without starting it.
+   *
+   * @param commandlet the commandlet to launch.
+   * @return the task for the launch.
+   */
+  protected Task<Void> runCommandletTask(String commandlet) {
 
     try (ProgressBarTask task = (ProgressBarTask) this.guiStateManager.getCurrentContext()
         .newProgressBarIndeterminate("Starting " + commandlet)) {

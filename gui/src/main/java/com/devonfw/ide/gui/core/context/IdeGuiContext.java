@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.UUID;
 
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
+import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.io.IdeProgressBar;
@@ -36,6 +37,16 @@ public class IdeGuiContext extends AbstractIdeContext {
   protected String readLine() {
 
     return "";
+  }
+
+  @Override
+  public <O> O question(O[] options, String question, Object... args) {
+
+    // The GUI cannot collect a choice; retrying its empty input would never complete.
+    if ((options.length > 1) && !isBatchMode()) {
+      throw new CliAbortException();
+    }
+    return super.question(options, question, args);
   }
 
   @Override
