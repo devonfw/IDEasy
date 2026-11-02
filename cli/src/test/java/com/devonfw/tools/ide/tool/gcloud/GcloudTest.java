@@ -104,7 +104,7 @@ class GcloudTest extends AbstractIdeContextTest {
     envCommandlet.run();
 
     // assert
-    Path configDir = this.context.getConfPath().resolve(".gcloud");
+    Path configDir = this.context.getConfPath().resolve("gcloud");
     if (os.equals("windows")) {
       assertThat(this.context).log().hasEntries(IdeLogEntry.ofProcessable("CLOUDSDK_CONFIG=" + configDir));
     } else {
@@ -142,7 +142,7 @@ class GcloudTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(environmentContext.set).containsEntry("CLOUDSDK_CONFIG",
-        this.context.getConfPath().resolve(".gcloud").toString());
+        this.context.getConfPath().resolve("gcloud").toString());
     assertThat(environmentContext.set).containsEntry("CLOUDSDK_PYTHON", python3.toString());
   }
 
@@ -171,7 +171,7 @@ class GcloudTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(environmentContext.set).containsEntry("CLOUDSDK_CONFIG",
-        this.context.getConfPath().resolve(".gcloud").toString());
+        this.context.getConfPath().resolve("gcloud").toString());
     assertThat(environmentContext.set).doesNotContainKey("CLOUDSDK_PYTHON");
   }
 
@@ -199,7 +199,7 @@ class GcloudTest extends AbstractIdeContextTest {
     assertThat(commandlet.getInstalledVersion().toString()).isEqualTo(GCLOUD_VERSION);
     assertThat(context).logAtSuccess()
         .hasMessageContaining("Successfully installed gcloud in version " + GCLOUD_VERSION);
-    assertThat(context.getConfPath().resolve(".gcloud")).exists();
+    assertThat(context.getConfPath().resolve("gcloud")).exists();
   }
 
 }
