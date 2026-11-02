@@ -18,8 +18,6 @@ import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
-import com.devonfw.tools.ide.tool.ToolEdition;
-import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
@@ -137,19 +135,6 @@ public class Docker extends GlobalToolCommandlet {
   public String getMacApplicationName() {
 
     return "Docker";
-  }
-
-  @Override
-  protected ToolEditionAndVersion adjustRequestedEdition(ToolEditionAndVersion requested) {
-
-    if (this.context.getSystemInfo().isLinux()) {
-      ToolEdition edition = requested.getEdition();
-      if (!"rancher".equals(edition.edition())) {
-        LOG.warn("Docker Desktop is not yet supported by IDEasy on Linux, installing Rancher Desktop instead.");
-        requested.replaceEdition(new ToolEdition(this.tool, "rancher"));
-      }
-    }
-    return requested;
   }
 
   @Override
