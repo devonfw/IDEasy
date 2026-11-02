@@ -24,6 +24,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?, ?>> {
 
+  private static final Logger LOG = LoggerFactory.getLogger(UrlSecurityFile.class);
+
   /** {@link #getName() Name} of security file. */
   public static final String SECURITY_JSON = "security.json";
 

@@ -18,6 +18,7 @@ public abstract class AbstractUrlFile<P extends AbstractUrlFolder<?>> extends Ab
     implements UrlFile<P> {
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractUrlFile.class);
+
   /**
    * {@code true} if modified and changes are unsaved, {@code false} otherwise.
    */
