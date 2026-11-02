@@ -133,6 +133,21 @@ class MvnTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that an existing legacy {@code conf/.m2} folder is still preferred over the new {@code conf/mvn} folder for the Maven repository.
+   * <p>
+   * The resolution by project layout still honors an existing legacy layout, so an IDEasy project that already uses {@code conf/.m2} keeps it.
+   */
+  @Test
+  void testMavenRepositoryPathUsesExistingLegacyConf() {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_MVN);
+    Path legacyConf = context.getConfPath().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
+    context.getFileAccess().mkdirs(legacyConf);
+    // act + assert
+    assertThat(IdeVariables.M2_REPO.get(context)).isEqualTo(legacyConf.resolve(IdeContext.FOLDER_REPOSITORY));
+  }
+
+  /**
    * Tests that the Maven repository falls back to {@code USER_HOME/.m2/repository} when running outside an IDEasy project (no IDE_HOME).
    */
   @Test

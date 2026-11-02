@@ -267,8 +267,9 @@ public class Mvn extends MavenCommandlet implements BuildTool {
   }
 
   /**
-   * @return the {@link Path} pointing to the maven configuration directory (where "settings.xml" or "settings-security.xml" are located). This method provides
-   *     the same behavior as the original IdeContext.getMavenConfigurationFolder() method.
+   * @return the {@link Path} pointing to the maven configuration directory (where "settings.xml" or "settings-security.xml" are located).
+   *     The resolution is layout-based and not gated on the folder already existing, so it returns {@code conf/mvn} (or an existing legacy
+   *     {@code conf/.m2}) by project layout (which may not exist yet) or {@code USER_HOME/.m2} outside of an IDEasy project.
    */
   public Path getMavenConfigurationFolder() {
 
