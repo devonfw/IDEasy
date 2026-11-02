@@ -45,7 +45,6 @@ class DirectoryMergerTest extends AbstractIdeContextTest {
    * @param workspaceDir the temporary folder to use as workspace for this test.
    * @throws Exception on error.
    */
-
   @Test
   void testConfigurator(@TempDir Path workspaceDir) throws Exception {
 
@@ -124,7 +123,6 @@ class DirectoryMergerTest extends AbstractIdeContextTest {
 
     assertThat(namePath).hasContent("project - main\ntest");
   }
-
 
   private static class Prop implements Entry<String, String> {
 
