@@ -18,6 +18,10 @@ import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.version.VersionSegment;
 
 /**
  * Manages plugin configuration and common plugin operations for tools that support plugins.
@@ -74,6 +78,61 @@ public class PluginManager {
     return this.plugins;
   }
 
+  /**
+   * Determines whether all installed plugins of the tool have to be purged (reset and reinstalled) as part of the installation. A purge is required if the
+   * reset and reinstallation is forced via the {@code --force-plugin-reinstall} flag, if the version changed at the
+   * {@link PluginBasedCommandlet#getIncompatibleVersionSegmentIndex() incompatible version segment} or at a more significant segment, if the tool edition
+   * changed, or if the tool is installed for the first time.
+   *
+   * @param request the {@link ToolInstallRequest} carrying the {@link ToolInstallRequest#getInstalled() installed} and
+   *     {@link ToolInstallRequest#getRequested() requested} edition and version.
+   * @return {@code true} if the installed plugins have to be purged (either because they are considered incompatible with the requested version or because
+   *     the purge is forced via the {@code --force-plugin-reinstall} flag), {@code false} otherwise.
+   */
+  public boolean isPluginPurgeRequired(ToolInstallRequest request) {
+
+    if (this.tool.isForcePluginReinstall()) {
+      return true;
+    }
+    ToolEditionAndVersion installed = request.getInstalled();
+    ToolEditionAndVersion requested = request.getRequested();
+    if ((installed == null) || (installed.getResolvedVersion() == null)) {
+      return true;
+    }
+    if ((requested == null) || (requested.getResolvedVersion() == null)) {
+      return false;
+    }
+    if (!installed.getEdition().equals(requested.getEdition())) {
+      return true;
+    }
+    return isVersionIncompatible(installed.getResolvedVersion(), requested.getResolvedVersion(), this.tool.getIncompatibleVersionSegmentIndex());
+  }
+
+  /**
+   * Determines whether a change of the version segments of the given versions at the incompatible segment or at a more significant segment invalidates the
+   * installed plugins.
+   *
+   * @param oldVersion the {@link VersionIdentifier} of the installed version.
+   * @param newVersion the {@link VersionIdentifier} of the requested version.
+   * @param incompatibleSegmentIndex the zero-based index of the version segment at which a change is considered incompatible (see
+   *     {@link PluginBasedCommandlet#getIncompatibleVersionSegmentIndex()}).
+   * @return {@code true} if the version changed at {@code incompatibleSegmentIndex} or at a more significant (lower index) segment, {@code false} otherwise.
+   */
+  private boolean isVersionIncompatible(VersionIdentifier oldVersion, VersionIdentifier newVersion, int incompatibleSegmentIndex) {
+
+    VersionSegment oldSegment = oldVersion.getStart();
+    VersionSegment newSegment = newVersion.getStart();
+    int currentSegmentIndex = 0;
+    while (oldSegment != null && newSegment != null) {
+      if (oldSegment.getNumber() != newSegment.getNumber()) {
+        return currentSegmentIndex <= incompatibleSegmentIndex;
+      }
+      oldSegment = oldSegment.getNextOrNull();
+      newSegment = newSegment.getNextOrNull();
+      currentSegmentIndex++;
+    }
+    return false;
+  }
 
   private void loadPluginsFromDirectory(ToolPlugins map, Path pluginsPath) {
 
@@ -112,13 +171,32 @@ public class PluginManager {
   }
 
   /**
-   * Reset all installed plugins by deleting the {@link PluginBasedCommandlet#getPluginsInstallationPath() plugins installation folder} and all plugin marker
-   * files.
+   * Resets all installed plugins by deleting the {@link PluginBasedCommandlet#getPluginsInstallationPath() plugins installation folder} and all plugin marker
+   * files, logging the reason for the purge (forced via {@code --force-plugin-reinstall}, first-time installation, edition or incompatible version change).
+   *
+   * @param request the {@link ToolInstallRequest} carrying the {@link ToolInstallRequest#getInstalled() installed} and
+   *     {@link ToolInstallRequest#getRequested() requested} edition and version.
    */
-  public void resetPlugins() {
-    LOG.info("Resetting all installed plugins...");
+  public void resetPlugins(ToolInstallRequest request) {
+    LOG.info("Resetting all installed plugins of {} ({}).", this.tool.getName(), describePurgeReason(request));
     this.tool.deleteAllPlugins();
     deleteAllPluginMarkerFiles();
+  }
+
+  private String describePurgeReason(ToolInstallRequest request) {
+
+    if (this.tool.isForcePluginReinstall()) {
+      return "forced via --force-plugin-reinstall";
+    }
+    ToolEditionAndVersion installed = request.getInstalled();
+    ToolEditionAndVersion requested = request.getRequested();
+    if ((installed == null) || (installed.getResolvedVersion() == null)) {
+      return "new installation";
+    }
+    if (!installed.getEdition().equals(requested.getEdition())) {
+      return "edition changed from " + installed.getEdition() + " to " + requested.getEdition();
+    }
+    return "version changed from " + installed.getResolvedVersion() + " to " + requested.getResolvedVersion();
   }
 
   /**
