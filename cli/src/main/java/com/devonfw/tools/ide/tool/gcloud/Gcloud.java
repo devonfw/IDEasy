@@ -26,7 +26,7 @@ public class Gcloud extends AbstractLocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Gcloud.class);
 
-  private static final String CONFIG_FOLDER = ".gcloud";
+  private static final String CONFIG_FOLDER = "gcloud";
 
   private static final String ENV_CLOUDSDK_CONFIG = "CLOUDSDK_CONFIG";
 
