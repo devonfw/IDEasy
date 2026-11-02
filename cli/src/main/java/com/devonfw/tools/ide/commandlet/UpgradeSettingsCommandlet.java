@@ -116,7 +116,12 @@ public class UpgradeSettingsCommandlet extends AbstractCommandlet {
       }
       environmentVariables = environmentVariables.getParent();
     }
-    Path templatePropertiesDir = this.context.getSettingsTemplatePath().resolve(IdeContext.FOLDER_CONF);
+    Path templatesPath = this.context.getSettingsTemplatePath();
+    if (templatesPath == null) {
+      return;
+    }
+
+    Path templatePropertiesDir = templatesPath.resolve(IdeContext.FOLDER_CONF);
     if (Files.exists(templatePropertiesDir)) {
       EnvironmentVariablesPropertiesFile environmentVariablesProperties = new EnvironmentVariablesPropertiesFile(null, EnvironmentVariablesType.CONF,
           templatePropertiesDir, null, this.context);
