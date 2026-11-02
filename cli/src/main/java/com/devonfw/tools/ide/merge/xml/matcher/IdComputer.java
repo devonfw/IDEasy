@@ -1,6 +1,10 @@
 package com.devonfw.tools.ide.merge.xml.matcher;
 
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.xml.XMLConstants;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -9,7 +13,9 @@ import javax.xml.xpath.XPathFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -96,7 +102,7 @@ public class IdComputer {
    * @param element the {@link Element} for which to build the XPath expression
    * @return the XPath expression as a {@link String}.
    */
-  private String buildXPathExpression(Element element) {
+  protected String buildXPathExpression(Element element) {
 
     String namespaceURI = element.getNamespaceURI();
     String localName = element.getLocalName();
@@ -110,7 +116,38 @@ public class IdComputer {
       xpathBuilder.append(prefix).append(":");
     }
     xpathBuilder.append(localName);
-    if (this.id.startsWith("@")) {
+    if (this.id.startsWith("@@")) {
+      NamedNodeMap attributesMap = element.getAttributes();
+      boolean appended = false;
+      for (int i = 0; i < attributesMap.getLength(); i++) {
+        Attr attribute = (Attr) attributesMap.item(i);
+        if (!XmlMergeSupport.hasMergeNamespace(attribute) && !XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(attribute.getNamespaceURI())) {
+          if (appended) {
+            appendAttributePredicate(xpathBuilder, attribute.getName(), attribute.getValue(), true);
+          } else {
+            xpathBuilder.append('[');
+            appendAttributePredicate(xpathBuilder, attribute.getName(), attribute.getValue(), false);
+            appended = true;
+          }
+        }
+      }
+      if (appended) {
+        xpathBuilder.append(']');
+      }
+    } else if (this.id.startsWith("@") && this.id.contains(",")) {
+      List<String> attributeNames = Arrays.stream(this.id.split(","))
+          .map(String::trim)
+          .filter(attribute -> !attribute.isEmpty())
+          .map(attribute -> attribute.substring(1))
+          .toList();
+      xpathBuilder.append('[');
+      for (int i = 0; i < attributeNames.size(); i++) {
+        String attribute = attributeNames.get(i);
+        String attributeValue = element.getAttribute(attribute);
+        appendAttributePredicate(xpathBuilder, attribute, attributeValue, i > 0);
+      }
+      xpathBuilder.append(']');
+    } else if (this.id.startsWith("@")) {
       String attributeName = this.id.substring(1);
       String attributeValue = element.getAttribute(attributeName);
       xpathBuilder.append('[').append(this.id).append("='").append(XmlMergeSupport.escapeSingleQuotes(attributeValue)).append("']");
@@ -126,6 +163,17 @@ public class IdComputer {
       return this.id;
     }
     return xpathBuilder.toString();
+  }
+
+  private void appendAttributePredicate(StringBuilder xpathBuilder, String attributeName, String attributeValue, boolean appendAnd) {
+    if (appendAnd) {
+      xpathBuilder.append(" and ");
+    }
+    xpathBuilder.append('@')
+        .append(attributeName)
+        .append("='")
+        .append(XmlMergeSupport.escapeSingleQuotes(attributeValue))
+        .append("'");
   }
 
 }

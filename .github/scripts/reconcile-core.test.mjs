@@ -6,6 +6,8 @@ import {
   computeTarget,
   computeDiff,
   COLUMNS,
+  parseBoardNumber,
+  resolveBoard,
 } from './reconcile-core.mjs';
 
 // The board's real column names (matched against the Status field option names).
@@ -188,4 +190,36 @@ test('computeDiff: null target removes everyone (defensive)', () => {
   const d = computeDiff(['a', 'b'], null);
   assert.deepEqual(d.toRemove, ['a', 'b']);
   assert.deepEqual(d.toAdd, []);
+});
+
+test('parseBoardNumber: accepts a positive integer', () => {
+  assert.equal(parseBoardNumber('5'), 5);
+  assert.equal(parseBoardNumber(' 12 '), 12);
+});
+
+test('parseBoardNumber: defaults to the IDEasy board (5) when unset or empty', () => {
+  assert.equal(parseBoardNumber(undefined), 5);
+  assert.equal(parseBoardNumber(''), 5);
+});
+
+test('parseBoardNumber: rejects anything that is not a positive integer', () => {
+  for (const raw of ['0', '-1', '1.5', 'abc', '5abc']) {
+    assert.throws(() => parseBoardNumber(raw), /BOARD_NUMBER/, raw);
+  }
+});
+
+test('resolveBoard: returns the board when the title matches', () => {
+  const data = { organization: { projectV2: { id: 'PVT_1', title: 'IDEasy board' } } };
+  assert.deepEqual(resolveBoard(data, 5, 'IDEasy board'), { id: 'PVT_1', title: 'IDEasy board' });
+});
+
+test('resolveBoard: fails when the board is not visible to the token', () => {
+  assert.throws(() => resolveBoard({ organization: { projectV2: null } }, 5, 'IDEasy board'), /#5/);
+  assert.throws(() => resolveBoard({ organization: null }, 5, 'IDEasy board'), /#5/);
+  assert.throws(() => resolveBoard(null, 5, 'IDEasy board'), /#5/);
+});
+
+test('resolveBoard: fails when the number points at a differently titled board', () => {
+  const data = { organization: { projectV2: { id: 'PVT_2', title: 'Some other board' } } };
+  assert.throws(() => resolveBoard(data, 5, 'IDEasy board'), /Some other board/);
 });
