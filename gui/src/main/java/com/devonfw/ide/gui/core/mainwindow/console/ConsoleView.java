@@ -92,7 +92,7 @@ public class ConsoleView {
   private static class LogEntryCell extends ListCell<IdeLogEntry> {
 
     private static final String BASE_STYLE = "-fx-font-family: 'Consolas', monospace; -fx-font-size: 11;";
-    private static final String ERROR_STYLE = BASE_STYLE + " -fx-text-fill: #cc0000;"+ "-fx-control-inner-background: #fff0e0;";
+    private static final String ERROR_STYLE = BASE_STYLE + " -fx-text-fill: #cc0000; -fx-control-inner-background: #fff0e0;";
     private static final String WARNING_STYLE = BASE_STYLE + " -fx-text-fill: #cc8800;"+ "-fx-control-inner-background: #fff8e0;";
     private static final String INFO_STYLE = BASE_STYLE + " -fx-text-fill: #000000;";
     private static final String DEBUG_STYLE = BASE_STYLE + " -fx-text-fill: #666666;";
