@@ -35,7 +35,7 @@ agent can safely perform development tasks, run tests, and prepare commits/PRs
 Run from inside the repository you want to work on:
 
 ```bash
-bash docker-sandbox/docker-sandbox.sh
+bash "$IDE_HOME"/settings/docker-sandbox/docker-sandbox.sh
 ```
 
 Claude Code starts inside the container with its working directory set to your
@@ -49,8 +49,8 @@ command. Neither builds the image nor starts a container, so they work even when
 the engine is stopped:
 
 ```bash
-bash docker-sandbox/docker-sandbox.sh --check
-bash docker-sandbox/docker-sandbox.sh --dry-run -- -p "fix the failing test"
+bash "$IDE_HOME"/settings/docker-sandbox/docker-sandbox.sh --check
+bash "$IDE_HOME"/settings/docker-sandbox/docker-sandbox.sh --dry-run -- -p "fix the failing test"
 ```
 
 ## Options
@@ -69,7 +69,7 @@ bash docker-sandbox/docker-sandbox.sh --dry-run -- -p "fix the failing test"
 Example - run a single prompt non-interactively:
 
 ```bash
-bash docker-sandbox/docker-sandbox.sh -- -p "run the failing test and fix it"
+bash "$IDE_HOME"/settings/docker-sandbox/docker-sandbox.sh -- -p "run the failing test and fix it"
 ```
 
 ## Provisioning more tools
@@ -79,7 +79,7 @@ additional IDEasy tools (e.g. a JVM stack), build the image with the tools you
 need:
 
 ```bash
-docker build -t ideasy-sandbox --build-arg EXTRA_TOOLS="java,mvn" docker-sandbox/
+docker build -t ideasy-sandbox --build-arg EXTRA_TOOLS="java,mvn" "$IDE_HOME"/settings/docker-sandbox
 ```
 
 Point the sandbox at your own settings fork to layer in project-specific
@@ -88,7 +88,7 @@ tools/variables:
 ```bash
 docker build -t ideasy-sandbox \
   --build-arg IDE_SETTINGS_REPO="https://github.com/you/ide-settings.git" \
-  docker-sandbox/
+  "$IDE_HOME"/settings/docker-sandbox
 ```
 
 ## Security notes

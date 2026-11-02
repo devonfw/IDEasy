@@ -22,7 +22,14 @@ The goal is to let AI coding agents such as *Claude Code*, *GitHub Copilot CLI*
 or *OpenAI Codex* safely perform development tasks, execute tests and prepare
 commits/pull requests **without affecting the host environment**.
 
-The implementation lives in the `docker-sandbox/` folder of this repository:
+The implementation lives in the `docker-sandbox/` folder of your **settings
+repository**, which IDEasy clones into `$IDE_HOME/settings` (the default settings
+repository is https://github.com/devonfw/ide-settings[devonfw/ide-settings]). The
+launcher therefore resolves from `$IDE_HOME/settings/docker-sandbox`. Keeping the
+implementation in the settings repository lets projects using IDEasy customize the
+sandbox (base image, extra tools, agent configuration) by forking their settings
+repository and pointing at it with `IDE_SETTINGS_REPO`, without forking IDEasy. The
+folder contains:
 
 * `Dockerfile` - provisions the IDEasy workspace (IDEasy + agent) into an image.
 * `docker-sandbox.sh` - the host launcher that builds the image, passes your Git
@@ -72,7 +79,7 @@ Run the launcher from inside the repository you want to work on:
 
 [source,bash]
 ----
-bash docker-sandbox/docker-sandbox.sh
+bash "$IDE_HOME"/settings/docker-sandbox/docker-sandbox.sh
 ----
 
 This starts *Claude Code* (the default agent) inside the container, with its
@@ -88,15 +95,15 @@ the image nor starts a container:
 
 [source,bash]
 ----
-bash docker-sandbox/docker-sandbox.sh --check
-bash docker-sandbox/docker-sandbox.sh --dry-run -- -p "fix the failing test"
+bash "$IDE_HOME"/settings/docker-sandbox/docker-sandbox.sh --check
+bash "$IDE_HOME"/settings/docker-sandbox/docker-sandbox.sh --dry-run -- -p "fix the failing test"
 ----
 ====
 
 == Options
 
 The launcher supports the following options (see
-`bash docker-sandbox/docker-sandbox.sh --help`):
+`bash "$IDE_HOME"/settings/docker-sandbox/docker-sandbox.sh --help`):
 
 [cols="30%,70%",options="header",grid="cols"]
 |======================
@@ -122,14 +129,14 @@ Example - run a single prompt non-interactively, authenticated with an API key:
 
 [source,bash]
 ----
-bash docker-sandbox/docker-sandbox.sh --api-key "..." -- -p "run the failing test and fix it"
+bash "$IDE_HOME"/settings/docker-sandbox/docker-sandbox.sh --api-key "..." -- -p "run the failing test and fix it"
 ----
 
 Example - point the agent at a custom/proxy Anthropic-compatible endpoint:
 
 [source,bash]
 ----
-bash docker-sandbox/docker-sandbox.sh \
+bash "$IDE_HOME"/settings/docker-sandbox/docker-sandbox.sh \
   --env ANTHROPIC_BASE_URL="https://your-proxy.example" \
   --env ANTHROPIC_AUTH_TOKEN="Token_example" \
   -- -p "run the failing test and fix it"
@@ -139,7 +146,7 @@ Example - run a single prompt non-interactively:
 
 [source,bash]
 ----
-bash docker-sandbox/docker-sandbox.sh -- -p "run the failing test and fix it"
+bash "$IDE_HOME"/settings/docker-sandbox/docker-sandbox.sh -- -p "run the failing test and fix it"
 ----
 
 == Provisioning more tools
@@ -150,7 +157,7 @@ need (comma-separated, passed as `EXTRA_TOOLS`):
 
 [source,bash]
 ----
-docker build -t ideasy-sandbox --build-arg EXTRA_TOOLS="java,mvn" docker-sandbox/
+docker build -t ideasy-sandbox --build-arg EXTRA_TOOLS="java,mvn" "$IDE_HOME"/settings/docker-sandbox
 ----
 
 You can also point the sandbox at your own settings fork to layer in
@@ -160,7 +167,7 @@ project-specific tools and variables (passed as `IDE_SETTINGS_REPO`):
 ----
 docker build -t ideasy-sandbox \
   --build-arg IDE_SETTINGS_REPO="https://github.com/you/ide-settings.git" \
-  docker-sandbox/
+  "$IDE_HOME"/settings/docker-sandbox
 ----
 
 For reproducible builds pin the IDEasy release with `IDEASY_VERSION` (see the

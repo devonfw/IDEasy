@@ -28,7 +28,7 @@ git config user.email
 
 # 3. (First time only) build the image — provision IDEasy + node + claude
 cd <wsl-path>/workspaces/main/IDEasy
-bash docker-sandbox/docker-sandbox.sh --pull
+bash "$IDE_HOME"/settings/docker-sandbox/docker-sandbox.sh --pull
 ```
 
 **PASS:** `engine OK`, a name/email are printed, and the build finishes without
@@ -40,7 +40,7 @@ bash docker-sandbox/docker-sandbox.sh --pull
 
 ```bash
 cd <wsl-path>/workspaces/main/IDEasy
-bash docker-sandbox/docker-sandbox.sh --check
+bash "$IDE_HOME"/settings/docker-sandbox/docker-sandbox.sh --check
 ```
 
 - **Purpose:** check engine + Dockerfile + git identity.
@@ -52,7 +52,7 @@ bash docker-sandbox/docker-sandbox.sh --check
 ## Step 2 — Preview the exact `docker run` (no container started)
 
 ```bash
-bash docker-sandbox/docker-sandbox.sh --dry-run -- -p "reply with the single word: hello"
+bash "$IDE_HOME"/settings/docker-sandbox/docker-sandbox.sh --dry-run -- -p "reply with the single word: hello"
 ```
 
 - **Purpose:** review the command the launcher will run.
@@ -69,7 +69,7 @@ injected, and the corporate CA is trusted.
 ```bash
 cd <wsl-path>/workspaces/main/IDEasy
 
-CA="$(pwd)/docker-sandbox/ca.pem"
+CA="$HOME/.ide/ca.pem"   # local (git-ignored) CA bundle for the internal proxy
 
 docker run --rm --init \
   -e NODE_EXTRA_CA_CERTS=/etc/ssl/ideasy-ca/ca-bundle.pem \
@@ -161,7 +161,7 @@ git diff
 
 ```bash
 export IDEASY_SANDBOX_API_KEY="<YOUR-TOKEN>"
-bash docker-sandbox/docker-sandbox.sh -- -p "reply with the single word: ok"
+bash "$IDE_HOME"/settings/docker-sandbox/docker-sandbox.sh -- -p "reply with the single word: ok"
 ```
 
 - **PASS:** you get `ok`. Confirms the `--api-key` / `IDEASY_SANDBOX_API_KEY`
