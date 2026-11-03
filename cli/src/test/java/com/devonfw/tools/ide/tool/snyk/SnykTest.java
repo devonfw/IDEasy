@@ -2,12 +2,10 @@ package com.devonfw.tools.ide.tool.snyk;
 
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
 
 /**
  * Test of {@link Snyk}.
@@ -32,16 +30,10 @@ class SnykTest extends AbstractIdeContextTest {
   /**
    * Tests that running {@link Snyk#run()} installs the tool on demand and actually executes the installed binary, forwarding the given
    * arguments. This asserts the commandlet behaves correctly at runtime, not only that the install wrote its markers.
-   * <p>
-   * The local-repository mock payload is a bash script that executes on Linux/macOS (via its shebang) but not on Windows, where the single mock
-   * file is renamed to {@code snyk.exe} without a Windows-executable companion (multi-file mocks can ship a {@code .bat}, but Snyk's is a single
-   * file). Hence the test is skipped on Windows; the Linux CI still exercises the real execution path.
    */
   @Test
   void testSnykRunExecutesTheInstalledBinary() {
 
-    // The mock payload is a bash script and cannot be executed on Windows (see method javadoc).
-    Assumptions.assumeTrue(!SystemInfoImpl.INSTANCE.isWindows(), "snyk mock payload is a bash script, not executable on Windows");
     IdeTestContext context = newContext(SNYK_PROJECT);
     Snyk snyk = new Snyk(context);
     snyk.arguments.setValue("--version");
