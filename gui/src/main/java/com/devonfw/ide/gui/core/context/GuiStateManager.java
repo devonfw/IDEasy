@@ -17,6 +17,8 @@ import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.factory.TabFactory;
 import com.devonfw.ide.gui.core.service.CommandletService;
 import com.devonfw.ide.gui.core.service.NlsService;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeContextConsole;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
@@ -62,23 +64,41 @@ public class GuiStateManager {
 
 
   /**
+   * Creates the state manager for the given root directory, deriving the {@link NlsService} context from the GUI's own start context.
+   *
    * @param ideRoot the root directory of IDEasy. If <code>null</code>, the IDE_ROOT environment variable is used.
    */
   public GuiStateManager(String ideRoot) {
 
+    // production derives the NlsService context from the GUI start context (which resolves the real user configuration); tests inject an isolated context
+    this(ideRoot, null);
+  }
+
+  /**
+   * Creates the state manager for the given root directory using the supplied {@link NlsService} context.
+   *
+   * @param ideRoot the root directory of IDEasy. If <code>null</code>, the IDE_ROOT environment variable is used.
+   * @param nlsContext the {@link IdeContext} handed to the {@link NlsService}, or {@code null} to derive one from the GUI start context (production default).
+   *        Injecting an isolated context (for example an {@link com.devonfw.tools.ide.context.IdeTestContext}) keeps the GUI test independent from the real
+   *        user home and the {@code IDE_OPTIONS} environment variable.
+   */
+  public GuiStateManager(String ideRoot, IdeContext nlsContext) {
+
     this.ideRootDir = Path.of(ideRoot != null ? ideRoot : System.getenv(IdeVariables.IDE_ROOT.getName()));
 
     //This specific ordering needs to be kept
-    this.projectManager = new ProjectManager(ideRootDir);
-    this.taskManager = new TaskManager();
-    this.eventBus = new GuiEventBus();
-    this.nlsService = new NlsService(null);
-    this.commandletService = new CommandletService(this);
-    this.tabFactory = new TabFactory(this);
-
     final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
     IdeLogLevel logLevel = IdeLogLevel.DEBUG;
     startContext = new IdeStartContextImpl(logLevel, buffer);
+
+    this.projectManager = new ProjectManager(ideRootDir);
+    this.taskManager = new TaskManager();
+    this.eventBus = new GuiEventBus();
+    // inject an application-level context so NlsService never has to create one itself; binding the default to startContext keeps the GUI logging context
+    IdeContext resolvedNlsContext = (nlsContext != null) ? nlsContext : new IdeContextConsole(startContext);
+    this.nlsService = new NlsService(resolvedNlsContext, null);
+    this.commandletService = new CommandletService(this);
+    this.tabFactory = new TabFactory(this);
   }
 
   /**
