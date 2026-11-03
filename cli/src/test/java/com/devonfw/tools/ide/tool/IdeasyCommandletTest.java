@@ -297,6 +297,55 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Test that the icon migration on Windows only refreshes GUI shortcuts that already exist. A missing shortcut may be the choice of the user made via the
+   * checkboxes of the MSI installer. That choice is not persisted, so the migration must not create the shortcut.
+   *
+   * @param desktopShortcutExists whether the desktop shortcut exists before the migration.
+   * @param startMenuShortcutExists whether the Start Menu shortcut exists before the migration.
+   */
+  @ParameterizedTest
+  @CsvSource({ "true, true", "true, false", "false, true", "false, false" })
+  void testIconMigrationOnlyRefreshesExistingShortcutsOnWindows(boolean desktopShortcutExists, boolean startMenuShortcutExists) {
+
+    // arrange
+    IdeTestContext context = newContext("install");
+    context.setSystemInfo(SystemInfoMock.of("windows"));
+    context.setIdeRoot(context.getUserHome().resolve("projects"));
+    Path desktopShortcut = context.getUserHome().resolve("Desktop/IDEasy.lnk");
+    Path startMenuShortcut = context.getUserHome().resolve("AppData/Roaming/Microsoft/Windows/Start Menu/Programs/IDEasy.lnk");
+    createStaleShortcut(context, desktopShortcut, desktopShortcutExists);
+    createStaleShortcut(context, startMenuShortcut, startMenuShortcutExists);
+    Mig202610001 migration = new Mig202610001();
+
+    // act
+    migration.run(context);
+
+    // assert
+    verifyShortcutRefreshed(context, desktopShortcut, desktopShortcutExists);
+    verifyShortcutRefreshed(context, startMenuShortcut, startMenuShortcutExists);
+  }
+
+  private void createStaleShortcut(IdeTestContext context, Path shortcut, boolean exists) {
+
+    if (exists) {
+      context.getFileAccess().mkdirs(shortcut.getParent());
+      context.getFileAccess().writeFileContent("stale", shortcut);
+    }
+  }
+
+  private void verifyShortcutRefreshed(IdeTestContext context, Path shortcut, boolean expected) {
+
+    assertThat(Files.exists(shortcut)).as("shortcut exists: %s", shortcut).isEqualTo(expected);
+    // matches the outcome of both success and failure, as PowerShell is only available on real Windows systems
+    String message = "shortcut at " + shortcut;
+    if (expected) {
+      assertThat(context).log().hasMessageContaining(message);
+    } else {
+      assertThat(context).log().hasNoMessageContaining(message);
+    }
+  }
+
+  /**
    * Test of {@link IdeasyCommandlet#checkIfUpdateIsAvailable()} with same snapshot versions.
    */
   @Test

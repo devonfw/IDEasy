@@ -68,6 +68,8 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
   private static final String REGISTRY_KEY_SHELL_FOLDERS = "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders";
 
+  private static final String WINDOWS_GUI_SHORTCUT = "IDEasy.lnk";
+
   private static final Map<String, Boolean> REQUIRED_INSTALLATION_ARTIFACTS = Map.of(
       //artifactName: String, required: boolean
       "bin", true,
@@ -346,13 +348,32 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   /**
-   * Regenerates the desktop shortcut using the current IDEasy installation.
+   * Regenerates the desktop shortcut using the current IDEasy installation. On Windows only existing shortcuts are regenerated, since a missing shortcut may be
+   * the choice of the user made via the checkboxes of the MSI installer, which is not persisted.
    */
   public void refreshDesktopShortcut() {
 
     Path installationPath = this.context.getIdeInstallationPath();
-    if (installationPath != null) {
+    if (installationPath == null) {
+      return;
+    }
+    if (this.context.getSystemInfo().isWindows()) {
+      refreshGuiWindowsShortcuts(installationPath);
+    } else {
       installGuiDesktopShortcut(installationPath);
+    }
+  }
+
+  private void refreshGuiWindowsShortcuts(Path installationPath) {
+
+    try {
+      for (Path shortcut : List.of(getWindowsDesktopShortcut(), getWindowsStartMenuShortcut())) {
+        if (Files.exists(shortcut)) {
+          createWindowsGuiShortcut(shortcut, installationPath);
+        }
+      }
+    } catch (Exception e) {
+      LOG.warn("Failed to refresh Windows shortcuts.", e);
     }
   }
 
@@ -430,35 +451,48 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
   private void installGuiWindowsDesktopShortcut(Path installationPath) {
 
-    Path ideasyExe = installationPath.resolve("bin\\ideasy.exe");
-    Path icoPath = installationPath.resolve("gui\\icon.ico");
-    WindowsHelper helper = WindowsHelper.get(this.context);
-
     if (isShortcutCreationRequested(VAR_CREATE_DESKTOP_SHORTCUT)) {
-      // Shell Folders contains the already-expanded Desktop path, including OneDrive-redirected locations
-      String desktopStr = helper.getRegistryValue(REGISTRY_KEY_SHELL_FOLDERS, "Desktop");
-      Path desktopPath = (desktopStr != null && !desktopStr.isBlank()) ? Path.of(desktopStr)
-          : this.context.getUserHome().resolve("Desktop");
-      this.context.getFileAccess().mkdirs(desktopPath);
-      createWindowsGuiShortcut(desktopPath.resolve("IDEasy.lnk"), ideasyExe, icoPath);
+      Path desktopShortcut = getWindowsDesktopShortcut();
+      this.context.getFileAccess().mkdirs(desktopShortcut.getParent());
+      createWindowsGuiShortcut(desktopShortcut, installationPath);
     }
 
     if (isShortcutCreationRequested(VAR_CREATE_STARTMENU_SHORTCUT)) {
-      String startMenuStr = helper.getRegistryValue(REGISTRY_KEY_SHELL_FOLDERS, "Programs");
-      Path startMenu = (startMenuStr != null && !startMenuStr.isBlank()) ? Path.of(startMenuStr)
-          : this.context.getUserHome().resolve("AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs");
-      if (Files.isDirectory(startMenu)) {
-        createWindowsGuiShortcut(startMenu.resolve("IDEasy.lnk"), ideasyExe, icoPath);
+      Path startMenuShortcut = getWindowsStartMenuShortcut();
+      if (Files.isDirectory(startMenuShortcut.getParent())) {
+        createWindowsGuiShortcut(startMenuShortcut, installationPath);
       }
     }
+  }
+
+  private Path getWindowsDesktopShortcut() {
+
+    return getWindowsShellFolder("Desktop", "Desktop").resolve(WINDOWS_GUI_SHORTCUT);
+  }
+
+  private Path getWindowsStartMenuShortcut() {
+
+    return getWindowsShellFolder("Programs", "AppData/Roaming/Microsoft/Windows/Start Menu/Programs").resolve(WINDOWS_GUI_SHORTCUT);
+  }
+
+  private Path getWindowsShellFolder(String registryValueName, String fallbackInUserHome) {
+
+    // Shell Folders contains the already-expanded path, including OneDrive-redirected locations
+    String folder = WindowsHelper.get(this.context).getRegistryValue(REGISTRY_KEY_SHELL_FOLDERS, registryValueName);
+    if ((folder != null) && !folder.isBlank()) {
+      return Path.of(folder);
+    }
+    return this.context.getUserHome().resolve(fallbackInUserHome);
   }
 
   private static String psEscapePath(Path path) {
     return path.toString().replace("'", "''");
   }
 
-  private void createWindowsGuiShortcut(Path lnkPath, Path targetExe, Path icoPath) {
+  private void createWindowsGuiShortcut(Path lnkPath, Path installationPath) {
 
+    Path targetExe = installationPath.resolve("bin\\ideasy.exe");
+    Path icoPath = installationPath.resolve("gui\\icon.ico");
     String ps = "$ws = New-Object -ComObject WScript.Shell; "
         + "$s = $ws.CreateShortcut('" + psEscapePath(lnkPath) + "'); "
         + "$s.TargetPath = '" + psEscapePath(targetExe) + "'; "
