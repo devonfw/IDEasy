@@ -79,6 +79,8 @@ class VscodeTest extends AbstractIdeContextTest {
     commandlet.run();
 
     assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin");
+    assertThat(context).logAtSuccess().hasNoMessageContaining("Successfully ended step 'Install plugin mockedPlugin");
+    assertThat(context).log().hasMessage("Start: Install plugin mockedPlugin (1/1)");
 
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("mockedPlugin"))).exists();
@@ -91,7 +93,7 @@ class VscodeTest extends AbstractIdeContextTest {
     // act
     commandlet.run();
     // assert
-    assertThat(context).logAtDebug().hasNoMessage("Successfully installed plugin: ActivePlugin");
+    assertThat(context).log().hasNoMessageContaining("Install plugin mockedPlugin");
   }
 
   @Test
@@ -105,6 +107,8 @@ class VscodeTest extends AbstractIdeContextTest {
     step.run(() -> vscodeCommandlet.installPlugin(plugin, step, new ProcessContextTestImpl(context)));
 
     assertThat(vscodeCommandlet.lastArgs).contains("--install-extension", "publisher.extension@1.2.3");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin with version: 1.2.3");
+    assertThat(context).logAtSuccess().hasNoMessageContaining("Successfully ended step 'Install plugin mockedPlugin'");
   }
 
   @Test
