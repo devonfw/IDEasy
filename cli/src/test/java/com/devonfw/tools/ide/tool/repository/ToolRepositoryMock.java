@@ -87,7 +87,7 @@ public class ToolRepositoryMock extends DefaultToolRepository {
       while (iterator.hasNext()) {
         if (contentArchive == null) {
           Path child = iterator.next();
-          if (Files.isRegularFile(child) && child.getFileName().startsWith("content.")) {
+          if (Files.isRegularFile(child) && (child.getFileName().toString().startsWith("content."))) {
             contentArchive = child;
             LOG.debug("Using compressed archive {} for mock download of {}/{}", child.getFileName(), tool,
                 edition);
