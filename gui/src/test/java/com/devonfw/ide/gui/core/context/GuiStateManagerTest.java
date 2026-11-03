@@ -3,6 +3,7 @@ package com.devonfw.ide.gui.core.context;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
@@ -23,15 +24,16 @@ public class GuiStateManagerTest extends AbstractIdeContextTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(GuiStateManagerTest.class);
 
+  private static final String FIRST_PROJECT = "project-0";
+
   private static IdeTestContext context;
 
   private static GuiStateManager guiStateManager;
-  private static ProjectManager projectManager;
 
   @BeforeAll
   static void setup() {
 
-    context = newContext("testProject", "project-0");
+    context = newContext("testProject", FIRST_PROJECT);
     LOG.debug("root: {}", context.getIdeRoot());
   }
 
@@ -39,7 +41,6 @@ public class GuiStateManagerTest extends AbstractIdeContextTest {
   void reset() {
 
     guiStateManager = new GuiStateManager(context.getIdeRoot().toString());
-    projectManager = guiStateManager.getProjectManager();
   }
 
   @Test
@@ -51,16 +52,36 @@ public class GuiStateManagerTest extends AbstractIdeContextTest {
   }
 
   @Test
+  void testGetProjectNames() {
+
+    assertThat(guiStateManager.getProjectNames()).contains(FIRST_PROJECT, "project-1", "project-2");
+  }
+
+  @Test
+  void testGetWorkspaceNames() throws NotDirectoryException {
+
+    assertThat(guiStateManager.getWorkspaceNames(FIRST_PROJECT)).containsExactlyInAnyOrder("main", "foo-test-0");
+  }
+
+  @Test
+  void testGetWorkspaceNamesThrowsIfNoWorkspacesFolder() {
+
+    assertThatExceptionOfType(NotDirectoryException.class)
+        .isThrownBy(() -> guiStateManager.getWorkspaceNames("nonExistentProject"))
+        .withMessageContaining("invalid workspaces directory for project: nonExistentProject");
+  }
+
+  @Test
   void testGetContext() throws FileNotFoundException {
 
-    IdeGuiContext context = guiStateManager.switchContext(projectManager.getProjectNames().getFirst(), "main");
+    IdeGuiContext context = guiStateManager.switchContext(guiStateManager.getProjectNames().getFirst(), "main");
     assertThat(context).as("context was null after switchContext was called").isNotNull(); // When switching to a project, the context should be set.
   }
 
   @Test
   void testSwitchContext() {
 
-    projectManager.getProjectNames().forEach((projectName) -> {
+    guiStateManager.getProjectNames().forEach((projectName) -> {
       try {
         guiStateManager.switchContext(projectName, "main");
         assertThat(guiStateManager.getCurrentContext().getCwd()).isNotNull();
