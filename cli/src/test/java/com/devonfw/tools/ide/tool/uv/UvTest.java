@@ -36,18 +36,47 @@ public class UvTest extends AbstractIdeContextTest {
     // act
     uv.setEnvironment(environmentContext, toolInstallation, false);
 
-    // assert
-    assertThat(variables.get("UV_TOOL_DIR").getValue().replace('\\', '/')).endsWith("software/python/tools");
-    assertThat(variables.get("UV_TOOL_BIN_DIR").getValue().replace('\\', '/')).endsWith("software/python/bin");
+    // assert - the uv tool store is per-project (inside IDE_HOME) so that two projects don't collide (see #352)
+    assertThat(variables.get("UV_TOOL_DIR").getValue().replace('\\', '/')).endsWith("/.uv-tools");
+    assertThat(variables.get("UV_TOOL_BIN_DIR").getValue().replace('\\', '/')).endsWith("/.uv-tools/bin");
   }
 
   @Test
-  public void testSetEnvironmentWithNullSoftwarePath() {
+  public void testSetEnvironmentMigratesLegacyToolStore() {
 
-    // arrange — force getSoftwarePath() to return null to reproduce the condition of #2312
+    // arrange - seed a legacy uv tool store inside the per-project software folder (the location used before #2561 made the store per-project, see #1518)
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    Path ideHome = context.getIdeHome();
+    Path legacyStore = ideHome.resolve("software").resolve("python").resolve("tools");
+    context.getFileAccess().mkdirs(legacyStore);
+    Path marker = legacyStore.resolve("ruff");
+    context.getFileAccess().mkdirs(marker);
+    context.getFileAccess().touch(marker.resolve("tool"));
+    Uv uv = new Uv(context);
+    Path rootDir = context.getSoftwarePath().resolve("uv");
+    ToolInstallation toolInstallation = new ToolInstallation(rootDir, rootDir, rootDir, VersionIdentifier.of("0.1.0"), true);
+    Map<String, VariableLine> variables = new HashMap<>();
+    EnvironmentVariableCollectorContext environmentContext = new EnvironmentVariableCollectorContext(variables,
+        new VariableSource(EnvironmentVariablesType.WORKSPACE, null), WindowsPathSyntax.MSYS);
+
+    // act
+    uv.setEnvironment(environmentContext, toolInstallation, false);
+
+    // assert - the legacy store was moved into the per-project store and is gone from its old location (see #2561)
+    Path uvToolDir = ideHome.resolve(".uv-tools");
+    assertThat(uvToolDir.resolve("ruff").resolve("tool")).exists();
+    assertThat(legacyStore).doesNotExist();
+    // assert - UV_TOOL_DIR still points at the per-project store
+    assertThat(variables.get("UV_TOOL_DIR").getValue().replace('\\', '/')).endsWith("/.uv-tools");
+  }
+
+  @Test
+  public void testSetEnvironmentWithNullIdeHome() {
+
+    // arrange — force getIdeHome() to return null (global mode, no project)
     IdeTestContext context = new IdeTestContext() {
       @Override
-      public Path getSoftwarePath() {
+      public Path getIdeHome() {
         return null;
       }
     };
@@ -58,10 +87,10 @@ public class UvTest extends AbstractIdeContextTest {
     EnvironmentVariableCollectorContext environmentContext = new EnvironmentVariableCollectorContext(variables,
         new VariableSource(EnvironmentVariablesType.WORKSPACE, null), WindowsPathSyntax.MSYS);
 
-    // act — must not throw a NullPointerException when the software path is null
+    // act — must not throw a NullPointerException when there is no project
     assertThatCode(() -> uv.setEnvironment(environmentContext, toolInstallation, false)).doesNotThrowAnyException();
 
-    // assert — the uv tool directories are not registered when the software path is null
+    // assert — the per-project uv tool directories are not registered when there is no project
     assertThat(variables).doesNotContainKey("UV_TOOL_DIR");
     assertThat(variables).doesNotContainKey("UV_TOOL_BIN_DIR");
   }
