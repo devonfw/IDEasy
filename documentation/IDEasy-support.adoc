@@ -1,8 +1,6 @@
 = Support
 
-TODO: community, bug-reporting, etc.
-
-<<<<
+//TODO: community, bug-reporting, etc.
 
 include::symlink.adoc[leveloffset=2]
 
@@ -13,4 +11,3 @@ include::mac-gatekeeper.adoc[leveloffset=2]
 include::security.adoc[leveloffset=2]
 
 include::LICENSE.adoc[leveloffset=2]
-
