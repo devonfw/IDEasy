@@ -285,6 +285,8 @@ public class CleanupCommandlet extends AbstractCommandlet {
     for (InstalledSoftwareTool tool : installedSoftwareTools) {
       for (InstalledSoftwareEdition edition : tool.getEditions()) {
         for (InstalledSoftwareVersion version : edition.getVersions()) {
+          // isUnused() marks a version as used only when a project links to it; IDEasy itself is a global tool no project links to, so isUnused() can
+          // never protect it. The isRunningInstallation(...) guard is therefore what prevents deleting the IDEasy installation currently in use.
           if (version.isUnused() && isStale(version.getPath(), retentionDelay) && !isRunningInstallation(version.getPath(), runningInstallation)) {
             version.setDelete(true);
           }
