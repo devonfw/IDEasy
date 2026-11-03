@@ -157,17 +157,17 @@ public final class BugReportHelper {
    * replaced (regardless of the privacy mode) via {@link AbstractIdeContext#formatArgument(Object)}, and, on top of that, any path is masked
    * unconditionally (a public issue must not leak paths even when the privacy mode is off).
    *
-   * @param context the {@link IdeContext}; may be {@code null} (in which case only the path masking is applied).
+   * @param context the {@link AbstractIdeContext}.
    * @param value the value to sanitize; may be {@code null}.
    * @return the sanitized value, or {@code null} if {@code value} is {@code null}.
    */
-  private static String sanitize(IdeContext context, String value) {
+  private static String sanitize(AbstractIdeContext context, String value) {
 
     if (value == null) {
       return null;
     }
     // first let the context replace registered secrets (always) and, when the privacy mode is on, the privacy map, then mask the paths unconditionally
-    String result = (context instanceof AbstractIdeContext ideContext) ? ideContext.formatArgument(value) : value;
+    String result = context.formatArgument(value);
     return mask(result);
   }
 
@@ -176,11 +176,11 @@ public final class BugReportHelper {
    * command (sensitive arguments are masked); the user only has to decide whether to report. Failures in this flow are logged and never
    * rethrown so the original error remains the primary outcome.
    *
-   * @param context the {@link IdeContext}; may be {@code null}.
+   * @param context the {@link AbstractIdeContext}; may be {@code null}.
    * @param error the unexpected error that triggered this offer.
    * @param commandArgs the command-line arguments the user ran, used (masked) for the "Reproduce" section.
    */
-  public static void offerAfterError(IdeContext context, Throwable error, String... commandArgs) {
+  public static void offerAfterError(AbstractIdeContext context, Throwable error, String... commandArgs) {
 
     if ((context == null) || context.isBatchMode()) {
       return;
