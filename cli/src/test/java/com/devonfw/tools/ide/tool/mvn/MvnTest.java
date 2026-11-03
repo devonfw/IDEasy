@@ -116,18 +116,46 @@ class MvnTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests if the user is starting IDEasy without a Maven repository, IDEasy should fall back to USER_HOME/.m2/repository.
+   * Tests that within an IDEasy project the Maven repository resolves to the project-local {@code conf/mvn/repository} even when the maven configuration
+   * folder does not exist yet (e.g. during {@code ide create}, before the maven tool installation populates it).
    * <p>
-   * See: <a href="https://github.com/devonfw/IDEasy/issues/463">#463</a>
+   * The resolution is layout-based and not gated on the folder already existing, so the path is consistent from the very start of the run.
    */
   @Test
-  void testMavenRepositoryPathFallsBackToUserHome() {
+  void testMavenRepositoryPathUsesProjectConfBeforeInstallation() {
     // arrange
     String path = "project/workspaces";
     // act
     IdeTestContext context = newContext(PROJECT_MVN, path, false);
-    Path mavenRepository = context.getUserHome().resolve(".m2").resolve(IdeContext.FOLDER_REPOSITORY);
     // assert
+    Path mavenRepository = context.getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(IdeContext.FOLDER_REPOSITORY);
+    assertThat(IdeVariables.M2_REPO.get(context)).isEqualTo(mavenRepository);
+  }
+
+  /**
+   * Tests that an existing legacy {@code conf/.m2} folder is still preferred over the new {@code conf/mvn} folder for the Maven repository.
+   * <p>
+   * The resolution by project layout still honors an existing legacy layout, so an IDEasy project that already uses {@code conf/.m2} keeps it.
+   */
+  @Test
+  void testMavenRepositoryPathUsesExistingLegacyConf() {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_MVN);
+    Path legacyConf = context.getConfPath().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
+    context.getFileAccess().mkdirs(legacyConf);
+    // act + assert
+    assertThat(IdeVariables.M2_REPO.get(context)).isEqualTo(legacyConf.resolve(IdeContext.FOLDER_REPOSITORY));
+  }
+
+  /**
+   * Tests that the Maven repository falls back to {@code USER_HOME/.m2/repository} when running outside an IDEasy project (no IDE_HOME).
+   */
+  @Test
+  void testMavenRepositoryPathFallsBackToUserHome() {
+    // arrange / act - no IDE_HOME detected for this context
+    IdeTestContext context = IdeTestContext.of();
+    // assert
+    Path mavenRepository = context.getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER).resolve(IdeContext.FOLDER_REPOSITORY);
     assertThat(IdeVariables.M2_REPO.get(context)).isEqualTo(mavenRepository);
   }
 
