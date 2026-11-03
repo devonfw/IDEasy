@@ -1154,9 +1154,19 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     } else {
       while (option == null) {
         String answer = readLine();
+        // a null answer means the input stream was exhausted (EOF), so the question cannot be answered interactively
+        if (answer == null) {
+          throw new CliAbortException(
+              "The process was aborted because the end of the input stream was reached before a valid answer to the question was given.");
+        }
+        // an empty answer is only valid for a single option (see above); for multiple options it is not accepted and the question is asked again
         option = mapping.get(answer);
         if (option == null) {
-          LOG.warn("Invalid answer: '{}' - please try again.", answer);
+          if (answer.isEmpty()) {
+            LOG.warn("An empty answer is not valid, please choose one of the listed options.");
+          } else {
+            LOG.warn("Invalid answer: '{}' - please try again.", answer);
+          }
         }
       }
     }
