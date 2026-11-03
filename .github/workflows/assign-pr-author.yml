@@ -2,7 +2,7 @@ name: Auto Assign PR Author
 
 on:
   pull_request_target:
-    types: [opened]
+    types: [ opened, edited ]
 
 permissions:
   contents: read
@@ -12,38 +12,99 @@ permissions:
 jobs:
   assign-author:
     runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      vars.ENABLE_AUTOMATIC_WORKFLOWS == 'true'
+    # The only trigger is `pull_request_target`, so there is no manual dispatch to gate on;
+    # the repo variable alone decides whether the automation runs at all.
+    if: vars.ENABLE_AUTOMATIC_WORKFLOWS == 'true'
 
     steps:
-      - name: Assign PR author if no assignee exists
+      - name: Assign PR author to the PR and the linked issue(s)
         uses: actions/github-script@v7
         with:
           script: |
             const pr = context.payload.pull_request;
+            const author = pr.user.login;
 
-            // Do not overwrite existing assignees
-            if (pr.assignees?.length > 0) {
-              console.log('PR already has assignees. Skipping.');
-              return;
-            }
             // Bot accounts cannot be assigned like regular contributors
             if (pr.user.type === 'Bot') {
               console.log(`PR author ${pr.user.login} is a bot. Skipping assignment.`);
               return;
             }
 
+            // Issue(s) this PR closes, resolved by GitHub; only those in this repository.
+            const issueNumbers = new Set();
             try {
-              await github.rest.issues.addAssignees({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: pr.number,
-                assignees: [pr.user.login]
-              });
-
-              console.log(`Assigned ${pr.user.login} to PR #${pr.number}`);
+              const { repository: repoData } = await github.graphql(
+                `query($owner: String!, $name: String!, $number: Int!) {
+                  repository(owner: $owner, name: $name) {
+                    pullRequest(number: $number) {
+                      closingIssuesReferences(first: 10) {
+                        nodes {
+                          number
+                          repository {
+                            owner { login }
+                            name
+                          }
+                        }
+                      }
+                    }
+                  }
+                }`,
+                { owner: context.repo.owner, name: context.repo.repo, number: pr.number }
+              );
+              for (const ref of repoData?.pullRequest?.closingIssuesReferences?.nodes ?? []) {
+                const repo = ref.repository;
+                if ((repo?.owner?.login ?? '').toLowerCase() === context.repo.owner.toLowerCase()
+                  && (repo?.name ?? '').toLowerCase() === context.repo.repo.toLowerCase()) {
+                  issueNumbers.add(ref.number);
+                }
+              }
             } catch (err) {
-              // E.g. fork author is not a collaborator — don't fail the workflow
-              console.log(`Warning: could not assign ${pr.user.login}: ${err.message}`);
+              // A broken query just warns.
+              core.warning(`could not fetch the PR's closing issues: ${err.message}`);
+            }
+
+            // Never assign the author to the PR itself if it appears in its own references.
+            issueNumbers.delete(pr.number);
+
+            for (const issueNumber of issueNumbers) {
+              try {
+                const issue = await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber
+                });
+                if (issue.data.pull_request) continue; // a pull request, not an issue
+                if (issue.data.assignees.some((a) => a.login === author)) {
+                  console.log(`Issue #${issueNumber} is already assigned to ${author}. Skipping.`);
+                  continue;
+                }
+
+                await github.rest.issues.addAssignees({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  assignees: [author]
+                });
+
+                console.log(`Assigned ${author} to issue #${issueNumber}`);
+              } catch (err) {
+                core.warning(`could not assign ${author} to issue #${issueNumber}: ${err.message}`);
+              }
+            }
+
+            // Pull Requests - Assign the author to the PR itself, do not overwrite existing assignees
+            if (pr.assignees?.some((assignee) => assignee.login === author)) {
+              console.log(`PR #${pr.number} is already assigned to ${author}. Skipping.`);
+            } else {
+              try {
+                await github.rest.issues.addAssignees({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  assignees: [author]
+                });
+                console.log(`Assigned ${author} to PR #${pr.number}`);
+              } catch (err) {
+                core.warning(`could not assign ${author} to PR #${pr.number}: ${err.message}`);
+              }
             }
