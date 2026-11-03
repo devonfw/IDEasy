@@ -9,19 +9,24 @@ Automatically generated open issue overview for Windows.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 210
+*Total Issues:* 211
 
 * OS-specific: 12
 
 * Multi-OS: 1
 
-* Cross-platform: 197
+* Cross-platform: 198
 
 == Windows Specific Issues
 
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
+2+^| *0-10 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/2753[#2753]
+| Install script blocked by MS Defender on windows when installing via git bash s…
+
 2+^| *31-60 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2473[#2473]
@@ -30,19 +35,16 @@ link:quality-status.adoc[Back to overview]
 | link:https://github.com/devonfw/IDEasy/issues/2472[#2472]
 | Multiple IDEasy entries in Windows Control Center
 
+2+^| *61-90 days*
+
 | link:https://github.com/devonfw/IDEasy/issues/2406[#2406]
 | Prepare IDEasy for Microsoft Store App Submission
 
 | link:https://github.com/devonfw/IDEasy/issues/2405[#2405]
 | Set Up Microsoft Store Developer Account for IDEasy
 
-2+^| *61-90 days*
-
 | link:https://github.com/devonfw/IDEasy/issues/2342[#2342]
 | Display ProgressBar progress in windows taskbar
-
-| link:https://github.com/devonfw/IDEasy/issues/2226[#2226]
-| Show IDEasy project, workspace and repository in the Git Bash / Windows Termina…
 
 2+^| *90+ days*
 
