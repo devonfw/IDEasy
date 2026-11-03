@@ -46,3 +46,5 @@ hs_err_pid*
 
 # docker-sandbox: local corporate CA bundle used to trust the internal Anthropic proxy (never share)
 docker-sandbox/*.pem
+docker-sandbox/*.cer
+docker-sandbox/*.crt
