@@ -10,11 +10,11 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.EnumProperty;
+import com.devonfw.tools.ide.property.RecipeNameProperty;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.openrewrite.RecipeManager;
 import com.devonfw.tools.ide.tool.openrewrite.RecipeWrapper;
-import com.devonfw.tools.ide.tool.openrewrite.RewriteRecipeEnum;
+import com.devonfw.tools.ide.validation.PropertyValidator;
 
 /**
  * {@link AbstractCommandlet} for <a href="https://docs.openrewrite.org/">OpenRewrite</a> refactoring.
@@ -23,7 +23,12 @@ public class RewriteCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(RewriteCommandlet.class);
 
-  public final EnumProperty<RewriteRecipeEnum> command;
+  /** The relative location of the recipe configuration inside the {@code ide-settings} settings folder. */
+  private static final Path RECIPE_CONFIG_PATH = Path.of("rewrite").resolve("openrewrite.json");
+
+  /** The recipe to run, selected by name from the {@code ide-settings} recipe configuration. */
+  public final RecipeNameProperty command;
+
   private final RecipeManager recipeManager;
 
   /**
@@ -35,8 +40,18 @@ public class RewriteCommandlet extends AbstractCommandlet {
 
     super(context);
     addKeyword(getName());
-    this.command = add(new EnumProperty<>("", true, "recipe_name", RewriteRecipeEnum.class));
-    this.recipeManager = new RecipeManager();
+    // Resolve the settings path lazily: the commandlet is constructed before the context has resolved
+    // its settings folder, so we must not capture getSettingsPath() here (it is still null).
+    this.recipeManager = new RecipeManager(() -> {
+      Path settingsPath = context.getSettingsPath();
+      return settingsPath == null ? null : settingsPath.resolve(RECIPE_CONFIG_PATH);
+    });
+    PropertyValidator<String> validator = (value, state) -> {
+      if (!this.recipeManager.hasRecipe(value)) {
+        state.addErrorMessage("Unknown recipe: " + value);
+      }
+    };
+    this.command = add(new RecipeNameProperty("", true, "recipe_name", this.recipeManager::getRecipeNames, validator));
   }
 
   @Override
@@ -83,7 +98,7 @@ public class RewriteCommandlet extends AbstractCommandlet {
   }
 
   private void showInfo(RecipeWrapper wrapper) {
-    LOG.info("Recipe [{}], {}", wrapper.ideasyCommand.name(), wrapper.description);
+    LOG.info("Recipe [{}], {}", wrapper.ideasyCommand, wrapper.description);
     LOG.info("Reference {}", wrapper.url);
     LOG.info("Raw command: {}", wrapper.rawCmd);
   }
@@ -124,13 +139,17 @@ public class RewriteCommandlet extends AbstractCommandlet {
 
     LOG.info("{} called", getClass().getSimpleName());
 
-    RewriteRecipeEnum recipeEnum = this.command.getValue();
-
-    if (!recipeManager.isValidRecipeEnum(recipeEnum)) {
-      throw new CliException("Invalid recipe name: " + recipeEnum);
+    if (!this.recipeManager.isLoaded()) {
+      throw new CliException("No OpenRewrite recipes configured. Expected the recipe configuration at "
+          + this.recipeManager.getConfigPath()
+          + ". Make sure your ide-settings settings folder is up to date (e.g. run 'ide update').");
     }
 
-    RecipeWrapper wrapper = recipeManager.getRecipeWrapper(recipeEnum);
+    String recipeName = this.command.getValue();
+    RecipeWrapper wrapper = this.recipeManager.getRecipe(recipeName);
+    if (wrapper == null) {
+      throw new CliException("Unknown recipe: " + recipeName);
+    }
 
     Path projectRoot = findProjectRoot();
     LOG.info("Target project: {}", projectRoot);
@@ -156,6 +175,6 @@ public class RewriteCommandlet extends AbstractCommandlet {
   @Override
   public boolean isIdeHomeRequired() {
 
-    return false;
+    return true;
   }
 }

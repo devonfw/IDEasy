@@ -7,10 +7,10 @@ public class RecipeWrapper implements JsonObject {
   public String description;
   public String originName;
   public String url;
-  public RewriteRecipeEnum ideasyCommand;
+  public String ideasyCommand;
   public String rawCmd;
 
-  public RecipeWrapper(String description, String originName, String url, RewriteRecipeEnum ideasyCommand, String rawCmd) {
+  public RecipeWrapper(String description, String originName, String url, String ideasyCommand, String rawCmd) {
     this.description = description;
     this.originName = originName;
     this.url = url;

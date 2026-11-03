@@ -28,7 +28,7 @@ public class RecipeWrapperJsonDeserializer extends JsonObjectDeserializer<Recipe
     private String description;
     private String originName;
     private String url;
-    private RewriteRecipeEnum ideasyCommand;
+    private String ideasyCommand;
     private String rawCmd;
 
     @Override
@@ -45,14 +45,7 @@ public class RecipeWrapperJsonDeserializer extends JsonObjectDeserializer<Recipe
           this.url = readValueAsString(p, property, this.url);
         }
         case "ideasy_command" -> {
-          String value = readValueAsString(p, property, null);
-          if (value != null) {
-            try {
-              this.ideasyCommand = RewriteRecipeEnum.valueOf(value);
-            } catch (IllegalArgumentException e) {
-              this.ideasyCommand = RewriteRecipeEnum.UNRECOGNIZED_RECIPE;
-            }
-          }
+          this.ideasyCommand = readValueAsString(p, property, this.ideasyCommand);
         }
         case "raw_cmd" -> {
           this.rawCmd = readValueAsString(p, property, this.rawCmd);
