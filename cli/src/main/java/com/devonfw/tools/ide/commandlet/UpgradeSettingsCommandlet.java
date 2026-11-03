@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -20,6 +21,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.tool.custom.CustomTools;
 import com.devonfw.tools.ide.tool.custom.CustomToolsMapper;
+import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
@@ -52,6 +54,7 @@ public class UpgradeSettingsCommandlet extends AbstractCommandlet {
   protected void doRun() {
     updateLegacyFolders();
     updateProperties();
+    removeObsoleteWorkspaceTemplates();
     updateWorkspaceTemplates();
   }
 
@@ -77,6 +80,40 @@ public class UpgradeSettingsCommandlet extends AbstractCommandlet {
         LOG.error("Error renaming folder {} to {} in {}", legacyName, newName, folder, e);
       }
     }
+  }
+
+  /**
+   * Removes the {@link #findObsoleteWorkspaceTemplates() obsolete workspace templates} from the settings.
+   */
+  private void removeObsoleteWorkspaceTemplates() {
+    LOG.info("Removing obsolete workspace templates if present...");
+    FileAccess fileAccess = this.context.getFileAccess();
+    for (Path template : findObsoleteWorkspaceTemplates()) {
+      fileAccess.delete(template);
+      IdeLogLevel.SUCCESS.log(LOG, "Removed obsolete template {} since IDEasy now generates this file itself.", template);
+    }
+  }
+
+  /**
+   * @return the {@link List} of obsolete workspace templates that exist in the settings and are removed by this commandlet. These are the properties
+   *     templates of the JetBrains IDEs (e.g. {@code intellij/workspace/update/idea.properties}) since IDEasy now generates these files itself outside of the
+   *     workspace (see #2531).
+   */
+  public List<Path> findObsoleteWorkspaceTemplates() {
+    List<Path> templates = new ArrayList<>();
+    Path settingsPath = this.context.getSettingsPath();
+    for (AbstractCommandlet commandlet : this.context.getCommandletManager().getCommandlets()) {
+      if (commandlet instanceof IdeaBasedIdeToolCommandlet ide) {
+        Path templatesFolder = settingsPath.resolve(ide.getName()).resolve(IdeContext.FOLDER_WORKSPACE);
+        for (String folder : List.of(IdeContext.FOLDER_SETUP, IdeContext.FOLDER_UPDATE)) {
+          Path template = templatesFolder.resolve(folder).resolve(ide.getConfigurationFileName());
+          if (Files.exists(template)) {
+            templates.add(template);
+          }
+        }
+      }
+    }
+    return templates;
   }
 
   private void updateWorkspaceTemplates() {

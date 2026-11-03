@@ -35,6 +35,28 @@ class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
     verifyUpdateWorkspaceTemplates();
   }
 
+  /**
+   * Tests that {@link UpgradeSettingsCommandlet} removes the obsolete JetBrains properties templates (e.g. {@code idea.properties}) from the settings since
+   * IDEasy now generates these files itself outside of the workspace (see #2531).
+   */
+  @Test
+  void testRemovesObsoleteJetBrainsPropertiesTemplates() {
+
+    // arrange
+    UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(this.context);
+    Path settings = UPGRADE_SETTINGS_PATH.resolve(IdeContext.FOLDER_SETTINGS);
+
+    // act
+    upgradeSettingsCommandlet.run();
+
+    // assert
+    assertThat(settings.resolve("intellij/workspace/update/idea.properties")).doesNotExist();
+    assertThat(settings.resolve("android-studio/workspace/setup/studio.properties")).doesNotExist();
+    assertThat(settings.resolve("pycharm/workspace/update/pycharm.properties")).doesNotExist();
+    // other templates next to them are kept
+    assertThat(settings.resolve("intellij/workspace/update/user.properties")).exists();
+  }
+
   private void verifyUpdateProperties() {
 
     assertThat(UPGRADE_SETTINGS_PATH.resolve("home/.ide/ide.properties")).exists();

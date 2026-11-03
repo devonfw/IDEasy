@@ -118,7 +118,8 @@ class AndroidStudioTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests if the environment variable {@code STUDIO_PROPERTIES} is set to the path of the {@code studio.properties} file in the workspace.
+   * Tests if the environment variable {@code STUDIO_PROPERTIES} is set to the path of the {@code studio.properties} file that IDEasy generates outside of the
+   * workspace (see #2531).
    */
   @Test
   void testSetEnvironmentSetsStudioProperties() {
@@ -133,7 +134,9 @@ class AndroidStudioTest extends AbstractIdeContextTest {
     commandlet.setEnvironment(environmentContext, installation, false);
 
     // assert
-    assertThat(environmentContext.set).containsEntry("STUDIO_PROPERTIES", this.context.getWorkspacePath().resolve("studio.properties").toString());
+    Path studioProperties = this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("android-studio").resolve(this.context.getWorkspaceName())
+        .resolve("studio.properties");
+    assertThat(environmentContext.set).containsEntry("STUDIO_PROPERTIES", studioProperties.toString());
   }
 
   private void checkInstallation(IdeTestContext context) {

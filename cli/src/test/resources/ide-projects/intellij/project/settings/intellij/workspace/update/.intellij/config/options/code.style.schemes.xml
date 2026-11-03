@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<application xmlns:merge="https://github.com/devonfw/IDEasy/merge">
+  <component name="MyTestCodeStyleSettings">
+    <option name="ideasyTestOption" value="true" />
+  </component>
+</application>
