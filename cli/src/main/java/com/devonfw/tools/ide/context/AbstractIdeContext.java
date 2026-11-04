@@ -35,7 +35,6 @@ import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
-import com.devonfw.tools.ide.commandlet.InstallCommandlet;
 import com.devonfw.tools.ide.commandlet.UpgradeCommandlet;
 import com.devonfw.tools.ide.commandlet.update.UpdateCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
@@ -77,7 +76,6 @@ import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepository;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepositoryImpl;
-import com.devonfw.tools.ide.tool.git.Git;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.tool.pip.PipRepository;
@@ -825,7 +823,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
       this.urlMetadata = new UrlMetadata(this);
     }
-
     return this.urlMetadata;
   }
 
@@ -1468,24 +1465,20 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           if (!(cmd instanceof UpgradeCommandlet)) {
             verifyIdeMinVersion(false);
           }
+          Path settingsRepository = getSettingsGitRepository();
+          if ((settingsRepository != null) && (getGitContext().findGit() != null)) {
+            if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) || (
+                getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(
+                    settingsRepository, getSettingsCommitIdPath()))) {
 
-          if (!isInstallingGit(cmd)) {
-            Path settingsRepository = getSettingsGitRepository();
-            if (settingsRepository != null) {
-              if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) || (
-                  getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(
-                      settingsRepository, getSettingsCommitIdPath()))) {
-
-                // Inform the user that an update is available. The update message is suppressed if we are already running the update
-                String msg = determineSettingsUpdateMessage(cmd);
-                if (msg != null) {
-                  IdeLogLevel.INTERACTION.log(LOG, msg);
-                }
+              // Inform the user that an update is available. The update message is suppressed if we are already running the update
+              String msg = determineSettingsUpdateMessage(cmd);
+              if (msg != null) {
+                IdeLogLevel.INTERACTION.log(LOG, msg);
               }
             }
           }
         }
-
         boolean success = ensureLicenseAgreement(cmd);
         if (!success) {
           return ValidationResultValid.get();
@@ -1809,7 +1802,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
     }
     if (bashPath == null) {
-      LOG.error("No bash executable could be found on your system.");
+      LOG.debug("No bash executable could be found on your system.");
     } else {
       this.bash = bashPath;
     }
@@ -1862,7 +1855,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       Path bashPath = getPath().findBinary(plainBash, pathsToIgnore);
       bash = bashPath.toAbsolutePath();
       if (bashPath.equals(plainBash)) {
-        LOG.warn("No usable bash executable was found in your PATH environment variable!");
+        LOG.debug("No usable bash executable was found in your PATH environment variable!");
         bash = null;
       } else {
         if (Files.exists(bashPath)) {
@@ -1908,7 +1901,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
             return null;
           }
         } else {
-          LOG.info("No bash executable could be found in the Windows registry.");
+          LOG.debug("No bash executable could be found in the Windows registry.");
         }
       }
     }
@@ -2003,28 +1996,16 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     return DEFAULT_WINDOWS_GIT_PATH;
   }
 
-  private boolean isInstallingGit(AbstractCommandlet cmd) {
-
-    if (cmd instanceof InstallCommandlet installCommandlet) {
-      return installCommandlet.tool.getValue() instanceof Git;
-    }
-    return false;
-  }
-
   /**
-   * Updates the local {@code ide-urls} repository or, if Git is not available, falls back to the existing local metadata.
+   * Updates the local {@code ide-urls} repository. If Git is not available, this is only reported as warning so that existing metadata can still be used.
    */
   public void updateUrlsRepository() {
 
     GitContext gitContext = getGitContext();
-
-    Path urlsPath = getUrlsPath();
     if (gitContext.findGit() != null) {
-      gitContext.pullOrCloneAndResetIfNeeded(IDE_URLS_GIT, urlsPath, null);
-    } else if ((urlsPath != null) && Files.isDirectory(urlsPath)) {
-      LOG.debug("Git is not available. Using existing URL metadata without updating it.");
+      gitContext.pullOrCloneAndResetIfNeeded(IDE_URLS_GIT, getUrlsPath(), null);
     } else {
-      gitContext.findGitRequired();
+      LOG.warn("Git is not available, so the URL metadata cannot be updated. Please run 'ide install git' to install it.");
     }
   }
 }

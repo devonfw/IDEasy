@@ -383,7 +383,10 @@ public class GitContextImpl implements GitContext {
 
   private Path findGitOnWindowsViaBash() {
     Path gitPath;
-    Path bashBinary = this.context.findBashRequired();
+    Path bashBinary = this.context.findBash();
+    if (bashBinary == null) {
+      return null; // findGit() has to report a missing Git instead of failing, as it can still be installed via "ide install git"
+    }
     LOG.trace("Trying to find git path on Windows");
     if (Files.exists(bashBinary)) {
       gitPath = bashBinary.getParent().resolve("git.exe");
