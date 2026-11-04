@@ -78,9 +78,9 @@ public class GuiStateManager {
    * Creates the state manager for the given root directory using the supplied {@link NlsService} context.
    *
    * @param ideRoot the root directory of IDEasy. If <code>null</code>, the IDE_ROOT environment variable is used.
-   * @param nlsContext the {@link IdeContext} handed to the {@link NlsService}, or {@code null} to derive one from the GUI start context (production default).
-   *        Injecting an isolated context (for example an {@link com.devonfw.tools.ide.context.IdeTestContext}) keeps the GUI test independent from the real
-   *        user home and the {@code IDE_OPTIONS} environment variable.
+   * @param nlsContext the {@link IdeContext} handed to the {@link NlsService}, or {@code null} to derive one from the GUI start context (production
+   *     default). Injecting an isolated context (for example an {@link com.devonfw.tools.ide.context.IdeTestContext}) keeps the GUI test independent from the
+   *     real user home and the {@code IDE_OPTIONS} environment variable.
    */
   public GuiStateManager(String ideRoot, IdeContext nlsContext) {
 
@@ -90,6 +90,8 @@ public class GuiStateManager {
     final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
     IdeLogLevel logLevel = IdeLogLevel.DEBUG;
     startContext = new IdeStartContextImpl(logLevel, buffer);
+    // on a startup failure the default uncaught-exception handler must still be able to log the error to the console
+    startContext.activateLogging();
 
     this.projectManager = new ProjectManager(ideRootDir);
     this.taskManager = new TaskManager();
