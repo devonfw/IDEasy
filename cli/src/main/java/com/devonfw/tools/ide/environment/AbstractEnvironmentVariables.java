@@ -359,10 +359,6 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
       return VersionIdentifier.LATEST;
     }
     VersionIdentifier version = VersionIdentifier.ofRequired(value);
-    if (version == null) {
-      // can actually never happen, but for robustness
-      version = VersionIdentifier.LATEST;
-    }
     return version;
   }
 

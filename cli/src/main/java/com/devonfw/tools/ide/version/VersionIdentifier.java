@@ -381,16 +381,24 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
   }
 
   /**
+   * Use this where a valid version is a hard requirement
+   *
    * @param version the {@link #toString() string representation} of the {@link VersionIdentifier} to parse.
-   * @return the parsed {@link VersionIdentifier}.
+   * @return the parsed {@link VersionIdentifier}, never {@code null}.
+   * @throws VersionParseException if the given value is {@code null} or cannot be parsed.
    */
-
   @JsonCreator
   public static VersionIdentifier ofRequired(String version) {
 
     return of(version, true);
   }
 
+  /**
+   * Use this for input where a bad entry should be skipped with a warning instead of aborting the run.
+   *
+   * @param version the {@link #toString() string representation} of the {@link VersionIdentifier} to parse, or {@code null}.
+   * @return the parsed {@link VersionIdentifier}, or {@code null} if the given value is {@code null} or cannot be parsed (a warning is logged in that case).
+   */
   public static VersionIdentifier ofOptional(String version) {
 
     return of(version, false);
