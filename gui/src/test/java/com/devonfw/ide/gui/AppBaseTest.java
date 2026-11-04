@@ -17,6 +17,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
+import org.assertj.core.api.Assertions;
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -149,6 +150,27 @@ public class AppBaseTest extends UIBasedApplicationTest {
     for (Button button : ideOpenButtons) {
       assertThat(button.isDisabled()).as(button.getId() + " button should be enabled when a workspace has been selected").isFalse();
     }
+  }
+
+  @Test
+  void testOnlyClickedIdeButtonIsDisabledDuringLaunch() {
+
+    interact(() -> {
+      this.selectedProject.getSelectionModel().select("project-1");
+      this.selectedWorkspace.getSelectionModel().select("main");
+      this.guiStateManager.getCommandletService().setPreLaunchAction(() -> {
+        assertThat(this.intellijOpen.isDisabled()).isTrue();
+        assertThat(this.eclipseOpen.isDisabled()).isFalse();
+        assertThat(this.androidStudioOpen.isDisabled()).isFalse();
+        assertThat(this.vsCodeOpen.isDisabled()).isFalse();
+
+        // Stop before creating a real launch task, which would install or open an IDE.
+        throw new IllegalStateException("Expected setup failure");
+      });
+
+      Assertions.assertThatIllegalStateException().isThrownBy(this.intellijOpen::fire).withMessage("Expected setup failure");
+      assertThat(this.intellijOpen.isDisabled()).isFalse();
+    });
   }
 
   /**
