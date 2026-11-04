@@ -51,7 +51,7 @@ class AgyTest extends AbstractIdeContextTest {
   }
 
   /**
-   * /** Test {@link Agy#linkHomeConfigDir()} creates a link for Agy home location pointing to its project-local configuration directory.
+   * Test {@link Agy#linkHomeConfigDir()} creates a link for Agy home location pointing to its project-local configuration directory.
    */
   @Test
   void testLinkHomeConfigDirCreatesLinks() {
