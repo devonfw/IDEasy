@@ -53,6 +53,7 @@ import com.devonfw.tools.ide.tool.just.Just;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.kubectl.KubeCtl;
+import com.devonfw.tools.ide.tool.kubelinter.KubeLinter;
 import com.devonfw.tools.ide.tool.lazydocker.LazyDocker;
 import com.devonfw.tools.ide.tool.mn.Micronaut;
 import com.devonfw.tools.ide.tool.msvc.Msvc;
@@ -162,6 +163,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Kotlinc(context));
     add(new KotlincNative(context));
     add(new KubeCtl(context));
+    add(new KubeLinter(context));
     add(new Tomcat(context));
     add(new Task(context));
     add(new Vscode(context));
