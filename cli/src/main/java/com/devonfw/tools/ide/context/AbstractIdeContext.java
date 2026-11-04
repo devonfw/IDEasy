@@ -1763,7 +1763,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           }
         }
         if ((property != null) && property.isValue() && property.isMultiValued()) {
-          arguments.endOptions();
+          arguments.stopSplitShortOptions();
         }
       }
       boolean matches = currentProperty.apply(arguments, this, cmd, null);
