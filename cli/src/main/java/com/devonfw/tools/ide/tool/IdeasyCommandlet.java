@@ -458,7 +458,13 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   private void setGitLongpaths() {
-    this.context.getGitContext().findGitRequired();
+
+    // Git is optional: a fresh machine may not have Git installed yet (it can be installed via `ide install git`). Enabling long paths is a nice-to-have
+    // only, so skip it instead of aborting the (possibly automated) IDEasy installation.
+    if (this.context.getGitContext().findGit() == null) {
+      LOG.info("Git is not installed, skipping enabling long paths in the git configuration.");
+      return;
+    }
     Path configPath = this.context.getUserHome().resolve(".gitconfig");
     FileAccess fileAccess = this.context.getFileAccess();
     IniFile iniFile = fileAccess.readIniFile(configPath);

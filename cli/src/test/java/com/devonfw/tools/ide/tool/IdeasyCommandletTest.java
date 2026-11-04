@@ -7,10 +7,12 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mockito;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.migration.v2026.Mig202610001;
@@ -81,6 +83,10 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     context.setIdeRoot(null);
     context.setSystemInfo(systemInfo);
     context.getStartContext().setForceMode(true);
+    // Git longpaths is only configured when Git is installed; model that Git is present for this test
+    GitContext mockGitContext = Mockito.mock(GitContext.class);
+    Mockito.when(mockGitContext.findGit()).thenReturn(Path.of("git"));
+    context.setGitContext(mockGitContext);
     WindowsHelper helper = context.getWindowsHelper();
     String originalPath = helper.getUserEnvironmentValue("PATH");
     if (systemInfo.isWindows()) {
@@ -211,6 +217,10 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     context.setIdeRoot(null);
     context.setSystemInfo(systemInfo);
     context.getStartContext().setForceMode(true);
+    // Git longpaths is only configured when Git is installed; model that Git is present for this test
+    GitContext mockGitContext = Mockito.mock(GitContext.class);
+    Mockito.when(mockGitContext.findGit()).thenReturn(Path.of("git"));
+    context.setGitContext(mockGitContext);
     Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
     context.getFileAccess().copy(Path.of("src/main/package/gui"), context.getUserHome().resolve("Downloads/ide-cli"));
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context);

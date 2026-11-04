@@ -108,7 +108,9 @@ Utilizing containers (via docker oder podman) projects and easily manage their o
 Therefore we decided not to integrate tools like databases, IAM tools like keycloak, etc. into IDEasy.
 Instead each project can create its own `docker compose` configuration to manage the required services.
 
-Also, we do not provide `git` as a local tool but consider it as a pre-requisite.
+Also, we do not provide `git` as a local tool.
+Since git is required by IDEasy itself (to fetch the URL metadata among others), it is typically a pre-requisite.
+However, you can also let IDEasy install Git for you via `ide install git`.
 For global tools the principle is typically "latest is greatest".
 
 == Auto-completion

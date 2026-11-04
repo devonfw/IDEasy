@@ -57,6 +57,13 @@ public class InstallCommandlet extends AbstractCommandlet {
   }
 
   @Override
+  public boolean isIdeHomeRequired() {
+
+    AbstractToolCommandlet commandlet = this.tool.getValue();
+    return (commandlet != null) && commandlet.isIdeHomeRequired();
+  }
+
+  @Override
   protected void doRun() {
 
     if (this.tool.getValueCount() == 0) {
@@ -87,7 +94,8 @@ public class InstallCommandlet extends AbstractCommandlet {
     ToolInstallRequest request = ToolInstallRequest.ofDirect();
     request.setRequested(new ToolEditionAndVersion(version));
     ToolInstallation installation = commandlet.install(request);
-    if (versionIdentifier != null) {
+    // outside of a project there are no settings to persist the version to
+    if ((versionIdentifier != null) && (this.context.getIdeHome() != null)) {
       VersionIdentifier installedVersion = installation.resolvedVersion();
       if (!versionIdentifier.isPattern() || !versionIdentifier.matches(installedVersion)) {
         versionIdentifier = installedVersion;
