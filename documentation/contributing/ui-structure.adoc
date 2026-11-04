@@ -187,6 +187,7 @@ gui
         ├── messages.properties
         ├── messages_de.properties
         └── messages_en.properties
+        └── navigation.css
 ----
 
 === Benefits

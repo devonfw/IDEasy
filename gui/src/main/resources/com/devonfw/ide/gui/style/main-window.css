@@ -1,0 +1,15 @@
+#tabPane .tab-header-area {
+  -fx-effect: dropshadow(
+      gaussian,
+      rgba(0, 0, 0, 0.15),
+      4,
+      0.1,
+      0,
+      2
+  );
+}
+
+#tabPane > .tab-content-area {
+  -fx-padding: 4 0 0 0;
+  -fx-background-color: -fx-background, linear-gradient(from 0px 0px to 0px 4px, rgba(0, 0, 0, 0.15), transparent);
+}
