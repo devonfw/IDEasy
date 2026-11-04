@@ -22,6 +22,7 @@ The full list of changes for this release can be found in https://github.com/dev
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2655[#2655]: Support and preserve comments in JSONC workspace templates during upgrade-settings
 * https://github.com/devonfw/IDEasy/issues/2725[#2725]: Cleanup of IdeLogEntry, IdeLogListener and IdeGuiLogListener
 * https://github.com/devonfw/IDEasy/issues/2585[#2585]: Create npm base commandlet for gemini cli
 * https://github.com/devonfw/IDEasy/issues/2365[#2365]: Reduce plugin reinstallations
