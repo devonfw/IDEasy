@@ -109,29 +109,30 @@ class StepTest extends AbstractIdeContextTest {
   }
 
   @Test
-  void testInvalidUsageErrorSuccess() {
+  void testFailureCannotChangeToSuccess() {
 
-    // arrage
+    // arrange
     IdeTestContext context = newContext(PROJECT_BASIC, "project", false, null, IdeLogLevel.TRACE);
     // act
     Step step = context.newStep("Test-Step");
     try {
       step.error("The Test-Step failed as expected");
-      // WOW this is really inconsistent and hopefully never happens elsewhere
-      step.success("The Test-Step succeeded as expected");
+      step.success("The Test-Step succeeded unexpectedly");
     } finally {
       step.close();
     }
+    // assert
     assertThat(step.getSuccess()).isFalse();
     assertThat(step.getDuration()).isPositive();
-    // assert
-    assertThat(context).log().hasEntries(IdeLogEntry.ofTrace("Starting step Test-Step..."),
+    assertThat(context).log().hasEntries(
+        IdeLogEntry.ofTrace("Starting step Test-Step..."),
         IdeLogEntry.ofStep("Start: Test-Step"),
         IdeLogEntry.ofError("The Test-Step failed as expected"),
-        IdeLogEntry.ofDebug("Step 'Test-Step' ended with failure."),
-        IdeLogEntry.ofWarning("Step 'Test-Step' already ended with false and now ended again with true."),
-        IdeLogEntry.ofSuccess("The Test-Step succeeded as expected"),
-        IdeLogEntry.ofDebug("Step 'Test-Step' ended successfully."));
+        IdeLogEntry.ofDebug("Step 'Test-Step' ended with failure."));
+    assertThat(context).log()
+        .hasNoMessage("Step 'Test-Step' already ended with false and now ended again with true.");
+    assertThat(context).log().hasNoMessage("The Test-Step succeeded unexpectedly");
+    assertThat(context).log().hasNoMessage("Step 'Test-Step' ended successfully.");
   }
 
   @Test

@@ -140,7 +140,7 @@ public final class StepImpl implements Step {
     boolean firstCallOfEnd = (this.success == null);
     if (!firstCallOfEnd) {
       assert (this.duration > 0);
-      if ((newSuccess != null) && (newSuccess != this.success)) {
+      if (this.success && Boolean.FALSE.equals(newSuccess)) {
         LOG.warn("Step '{}' already ended with {} and now ended again with {}.", this.name, this.success, newSuccess);
       } else {
         return;
