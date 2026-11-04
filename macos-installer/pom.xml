@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>ide-macos-installer</artifactId>
+  <version>${revision}</version>
+  <name>${project.artifactId}</name>
+  <packaging>pom</packaging>
+
+  <parent>
+    <groupId>com.devonfw.tools.IDEasy.dev</groupId>
+    <artifactId>ide</artifactId>
+    <version>dev-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <groupId>com.devonfw.tools.IDEasy</groupId>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.3.1</version>
+        <executions>
+          <execution>
+            <id>copy-distribution-file-pkgbuild</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>./</outputDirectory>
+              <delimiters>
+                <delimiter>$[*]</delimiter>
+              </delimiters>
+              <resources>
+                <resource>
+                  <directory>./src</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>Distribution.xml</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Clean up macOS installer artifacts. Helpful when working on the PKG installer locally. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.5.0</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>./</directory>
+              <includes>
+                <include>Distribution.xml</include>
+                <include>*.pkg</include>
+                <include>pkg-root/</include>
+                <include>Resources/LICENSE.rtf</include>
+              </includes>
+              <followSymlinks>false</followSymlinks>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

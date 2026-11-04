@@ -1,0 +1,503 @@
+#!/usr/bin/env node
+// @ts-check
+//
+// pr-assignee-reconcile.mjs
+//
+// Enforces the "single-owner board" invariant on a GitHub Projects v2 board:
+//   - In the "Team Review" column a PR has exactly one assignee: the team
+//     reviewer, taken from the board's "Team Reviewer" text field. That field
+//     is the source of truth and is AUTO-FILLED by this script (never typed by
+//     hand, so no typos): when it is empty and exactly one non-author assignee
+//     exists (the team's self-assign habit), the bot assigns them and records
+//     their login in the field. Because the field persists across column
+//     moves, moving a card back to Team Review re-assigns the same reviewer
+//     even if they were unassigned in between.
+//   - In each configured "author-only" column a PR has exactly one assignee:
+//     the author (the Team Reviewer field is kept as a record, not cleared).
+//   - Every other column is left untouched.
+//   - A PR carrying the explicit TAKEOVER label (default "takeover") is left
+//     completely alone: this is how the team marks a PR handed over after its
+//     author left the team, so the bot does not re-assign the departed author.
+//
+// It changes PR assignees (Issues/PRs REST API) and writes the Team Reviewer
+// field (GraphQL updateProjectV2ItemFieldValue). It never moves cards between
+// columns; humans keep doing that on the board. If the Team Reviewer field
+// does not exist yet, it degrades to inference-only behaviour and says so.
+//
+// Configuration (environment variables):
+//   GH_TOKEN / GITHUB_TOKEN  Token with the org "Projects: Read and write"
+//                            permission AND the repo's issues/PRs write (for the
+//                            REST assignee changes). Production sets GH_TOKEN to
+//                            the org's ACTION_PUSH_TOKEN (see
+//                            documentation/contributing/update-access-token.adoc).
+//                            A GITHUB_TOKEN is NOT sufficient for the board
+//                            lookup: it is scoped to the triggering repository
+//                            and cannot enumerate an org's Projects v2 boards.
+//                            PRs from OTHER repos that share the board are
+//                            best-effort: a 403/404 there is logged and skipped
+//                            (not fatal), so the invariant only holds for
+//                            in-repo PRs.
+//   GH_ACCOUNT               the organization that owns the board
+//                            (default: devonfw).
+//   BOARD_NUMBER             number of the board to manage, i.e. the N in
+//                            github.com/orgs/<GH_ACCOUNT>/projects/N  (default: 5)
+//                            Looked up directly: listing all org boards fails
+//                            with FORBIDDEN for boards the token cannot read.
+//   BOARD_TITLE              expected title of that board, a sanity check
+//                            against a wrong BOARD_NUMBER             (default: "IDEasy board")
+//   TEAM_REVIEW_COLUMN       Status option that means "under team review"
+//                            (default: "Team Review")
+//   AUTHOR_ONLY_COLUMNS      comma-separated Status options forced to
+//                            "author only" (default: "🏗 In progress")
+//   FINAL_REVIEW_COLUMN      Status option whose PRs are assigned to the fixed
+//                            final reviewer in addition to the author
+//                            (default: "👀 In review")
+//   FINAL_REVIEWER           the login of the PO/PL who does the final reviews;
+//                            assigned next to the author on FINAL_REVIEW_COLUMN PRs
+//                            (default: "hohwille")
+//   TAKEOVER_LABEL           PR label that exempts a PR from reconciliation
+//                            (default: "takeover"). (A board field cannot be
+//                            used here: Projects v2 exposes no checkbox value
+//                            type via the GraphQL API.)
+//   DRY_RUN                  "true" -> report only, change nothing
+//                            (default: "true"; set "false" to apply)
+//
+// Exit codes: 0 ok (incl. dry run), 1 config/runtime error, 2 API error.
+
+import { COLUMNS, computeTarget, computeDiff, parseBoardNumber, resolveBoard } from './reconcile-core.mjs';
+
+const API = 'https://api.github.com';
+
+const ORG_BOARD_QUERY = `
+query ($login: String!, $number: Int!) {
+  organization(login: $login) {
+    projectV2(number: $number) { id title }
+  }
+}
+`;
+
+const ITEMS_QUERY = `
+query ($id: ID!, $after: String) {
+  node(id: $id) {
+    ... on ProjectV2 {
+      items(first: 100, after: $after) {
+        nodes {
+          ... on ProjectV2Item {
+            id
+            content {
+              __typename
+              ... on PullRequest {
+                number
+                state
+                mergedAt
+                isDraft
+                author { login }
+                repository { nameWithOwner }
+                assignees(first: 30) { nodes { login } }
+                labels(first: 30) { nodes { name } }
+              }
+            }
+            fieldValues(first: 100) {
+              nodes {
+                __typename
+                ... on ProjectV2ItemFieldSingleSelectValue {
+                  name
+                  field {
+                    ... on ProjectV2SingleSelectField { name }
+                  }
+                }
+                ... on ProjectV2ItemFieldTextValue {
+                  text
+                  field {
+                    ... on ProjectV2Field { name }
+                  }
+                }
+              }
+            }
+          }
+        }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  }
+}
+`;
+
+// ---------------------------------------------------------------------------
+// HTTP helpers
+// ---------------------------------------------------------------------------
+
+function headers() {
+  const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
+  if (!token) {
+    fail('No GH_TOKEN or GITHUB_TOKEN set.');
+  }
+  return {
+    Authorization: `Bearer ${token}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    'Content-Type': 'application/json',
+  };
+}
+
+function fail(message) {
+  console.error(`[reconcile] FATAL: ${message}`);
+  process.exit(1);
+}
+
+async function graphql(query, variables) {
+  const res = await fetch(`${API}/graphql`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ query, variables }),
+  });
+  if (!res.ok) {
+    fail(`GraphQL HTTP ${res.status}: ${await res.text()}`);
+  }
+  const json = await res.json();
+  // Reads use GraphQL and are treated as fatal: if the board/field read fails
+  // we cannot trust the board state, so the whole run aborts. Assignee REST
+  // writes are per-card and non-fatal (see rest()). A bad single card therefore
+  // never aborts the run; only a bad board-level read does.
+  if (json.errors?.length) {
+    fail(`GraphQL error: ${JSON.stringify(json.errors)}`);
+  }
+  return json.data;
+}
+
+/**
+ * Like {@link graphql}, but treats a GraphQL NOT_FOUND as "the thing was not
+ * found here" (returns `null`) instead of aborting the run. Used by the board
+ * lookup, which may legitimately find no boards for the account; any other
+ * error is still fatal.
+ */
+async function graphqlTolerantNotFound(query, variables) {
+  const res = await fetch(`${API}/graphql`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ query, variables }),
+  });
+  if (!res.ok) {
+    fail(`GraphQL HTTP ${res.status}: ${await res.text()}`);
+  }
+  const json = await res.json();
+  if (json.errors?.length) {
+    if (json.errors.every((e) => e.type === 'NOT_FOUND')) {
+      return null;
+    }
+    fail(`GraphQL error: ${JSON.stringify(json.errors)}`);
+  }
+  return json.data;
+}
+
+async function rest(method, path, body) {
+  const res = await fetch(`${API}${path}`, {
+    method,
+    headers: headers(),
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) {
+    // 422/404 on assignee ops is non-fatal for a single card; surface it and continue.
+    const text = await res.text();
+    console.error(`[reconcile] REST ${method} ${path} -> ${res.status}: ${text}`);
+    return { ok: false, status: res.status };
+  }
+  return { ok: true, status: res.status };
+}
+
+// ---------------------------------------------------------------------------
+// Board access
+// ---------------------------------------------------------------------------
+
+const FIELDS_QUERY = `
+query ($id: ID!) {
+  node(id: $id) {
+    ... on ProjectV2 {
+      fields(first: 100) {
+        nodes {
+          ... on ProjectV2Field { id name dataType }
+        }
+      }
+    }
+  }
+}
+`;
+
+/**
+ * Find the board field named `fieldName` (the "Team Reviewer" text field).
+ * Returns its node id, or `null` if the field does not exist yet.
+ */
+async function findField(boardId, fieldName) {
+  const data = await graphql(FIELDS_QUERY, { id: boardId });
+  const node = data.node?.fields?.nodes.find((f) => f.name === fieldName);
+  return node ? { id: node.id, name: node.name } : null;
+}
+
+async function findBoard(login, number, title) {
+  // The board lives on the org account (GH_ACCOUNT, e.g. devonfw) and is looked
+  // up directly by its number. Listing all of the org's boards instead would
+  // make GraphQL return FORBIDDEN for every board the token cannot read (e.g.
+  // private ones), which aborts the run. A NOT_FOUND (board invisible to the
+  // token) comes back as `null` and is reported by resolveBoard; any other
+  // GraphQL error is fatal.
+  const data = await graphqlTolerantNotFound(ORG_BOARD_QUERY, { login, number });
+  try {
+    return resolveBoard(data, number, title);
+  } catch (err) {
+    fail(err.message);
+  }
+}
+
+/**
+ * Read every Pull Request item on the board (paginated) and reduce each to a
+ * plain object: { itemId, number, author, repo, assignees, statusName,
+ * reviewer, takeover } where `reviewer` is the current "Team Reviewer" text
+ * field value (a GitHub login, or '' when the field is unset / does not exist)
+ * and `takeover` is true when the PR has the configured takeover label.
+ * (A board field cannot be used for this: Projects v2 exposes no value type
+ * for checkbox fields via the GraphQL API.)
+ */
+async function readPrItems(boardId, reviewerFieldName, takeoverLabel) {
+  const items = [];
+  let after = null;
+  for (let page = 0; page < 100; page++) {
+    const data = await graphql(ITEMS_QUERY, { id: boardId, after });
+    const conn = data.node.items;
+    for (const node of conn.nodes) {
+      const content = node.content;
+      if (!content || content.__typename !== 'PullRequest') {
+        continue; // skip issues / drafts
+      }
+      // With "... on PullRequest { number ... }" the fields merge directly onto
+      // `content` (there is no content.PullRequest wrapper).
+      const pr = content;
+      // The Status value is the single-select whose field is named "Status";
+      // the Team Reviewer value is the text field named `reviewerFieldName`.
+      // In both cases the field name merges directly onto `v.field` (no wrapper).
+      const statusValue = node.fieldValues.nodes.find(
+        (v) =>
+          v.__typename === 'ProjectV2ItemFieldSingleSelectValue' &&
+          v.field?.name === 'Status',
+      );
+      const reviewerValue = node.fieldValues.nodes.find(
+        (v) => v.__typename === 'ProjectV2ItemFieldTextValue' && v.field?.name === reviewerFieldName,
+      );
+      // Takeover exemption: the configured PR label marks the card as handed
+      // over (e.g. author left the team) so the bot never reverts the taker's
+      // assignment.
+      const takeover = pr.labels.nodes.some((label) => label.name === takeoverLabel);
+      // Only manage open, not-yet-merged PRs authored by a human. The board
+      // holds hundreds of stale/merged PRs (incl. dependabot); we must not
+      // rewrite their assignees.
+      // Skip automated authors. GitHub reports the dependabot login as
+      // "dependabot" via GraphQL (the board query) but as "dependabot[bot]"
+      // via the REST API, so match both; any other "[bot]" login is a bot too.
+      const isBot = (login) => login === 'dependabot' || login.endsWith('[bot]');
+      // A PR whose author account was deleted has a null GraphQL author. We
+      // can't read its login here (it would throw) and have nothing to
+      // reconcile against, so skip it instead of letting it abort the whole run.
+      const authorLogin = pr.author?.login;
+      if (!authorLogin) {
+        console.warn(`[reconcile]   ! #${pr.number} has no readable author (deleted account?); skipping`);
+        continue;
+      }
+      const manageable = pr.state === 'OPEN' && pr.mergedAt === null && !pr.isDraft && !isBot(authorLogin);
+      if (!manageable) {
+        continue;
+      }
+      items.push({
+        itemId: node.id,
+        number: pr.number,
+        author: authorLogin,
+        repo: pr.repository.nameWithOwner,
+        assignees: pr.assignees.nodes.map((a) => a.login),
+        statusName: statusValue?.name ?? '',
+        reviewer: (reviewerValue?.text || '').trim(),
+        takeover,
+      });
+    }
+    if (!conn.pageInfo.hasNextPage) {
+      break;
+    }
+    after = conn.pageInfo.endCursor;
+  }
+  return items;
+}
+
+// ---------------------------------------------------------------------------
+// Reconciliation
+// ---------------------------------------------------------------------------
+
+// Add the targets first and only then remove the others, so a failed add
+// (e.g. a hand-typed typo in the Team Reviewer field) can never leave the
+// card with zero assignees.
+async function applyAssignees(repo, number, toAdd, toRemove) {
+  if (toAdd.length) {
+    const r = await rest('POST', `/repos/${repo}/issues/${number}/assignees`, { assignees: toAdd });
+    if (!r.ok) {
+      console.warn(`[reconcile]   ! could not assign ${toAdd.join(', ')} on ${repo}#${number}; skipping unassign`);
+      return;
+    }
+  }
+  // Remove via a JSON body { assignees: [...] } — the API retired the old
+  // "?assignee=<login>" query form (it now 400s "Body should be a JSON
+  // object"). Mirrors the add call above, which already uses the body form.
+  for (const login of toRemove) {
+    const r = await rest('DELETE', `/repos/${repo}/issues/${number}/assignees`, { assignees: [login] });
+    if (!r.ok) {
+      console.warn(`[reconcile]   ! could not unassign ${login} on ${repo}#${number}`);
+    }
+  }
+}
+
+/**
+ * Auto-fill the "Team Reviewer" text field with a login (the record of who
+ * did the team review). Only called when the field was empty.
+ */
+async function setReviewerField(boardId, itemId, fieldId, login) {
+  // NOTE: updateProjectV2ItemFieldValue takes a single `input` object
+  // (UpdateProjectV2ItemFieldValueInput), not top-level arguments — the
+  // old projectId/itemId/fieldId/value form is retired by the API.
+  const mutation = `
+mutation ($input: UpdateProjectV2ItemFieldValueInput!) {
+  updateProjectV2ItemFieldValue(input: $input) {
+    projectV2Item { id }
+  }
+}
+`;
+  const res = await fetch(`${API}/graphql`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({
+      query: mutation,
+      variables: { input: { projectId: boardId, itemId, fieldId, value: { text: login } } },
+    }),
+  });
+  if (!res.ok) {
+    console.warn(`[reconcile]   ! field write HTTP ${res.status}: ${await res.text()}`);
+    return;
+  }
+  const json = await res.json();
+  if (json.errors?.length) {
+    console.warn(`[reconcile]   ! field write error: ${JSON.stringify(json.errors)}`);
+    return;
+  }
+  const item = json.data.updateProjectV2ItemFieldValue.projectV2Item;
+  console.log(`[reconcile]   wrote Team Reviewer field = ${login} (item ${item?.id})`);
+}
+
+async function main() {
+  const login = process.env.GH_ACCOUNT || 'devonfw';
+  const title = process.env.BOARD_TITLE || 'IDEasy board';
+  let boardNumber;
+  try {
+    boardNumber = parseBoardNumber(process.env.BOARD_NUMBER);
+  } catch (err) {
+    fail(err.message);
+  }
+  const teamReviewColumn = process.env.TEAM_REVIEW_COLUMN || 'Team Review';
+  const reviewerFieldName = process.env.REVIEWER_FIELD || 'Team Reviewer';
+  // Takeover exemption: PRs with the configured label are left alone (see
+  // readPrItems / computeTarget).
+  const takeoverLabel = process.env.TAKEOVER_LABEL || 'takeover';
+  // Columns forced to "author only". The final review column is handled
+  // separately (see FINAL_REVIEW) and is intentionally NOT part of this list.
+  const authorOnlyColumns = (process.env.AUTHOR_ONLY_COLUMNS || '🏗 In progress')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  // The "final review" column assigns the fixed final reviewer (the PO/PL who
+  // does the final reviews) next to the author.
+  const finalReviewColumn = process.env.FINAL_REVIEW_COLUMN || '👀 In review';
+  const finalReviewer = process.env.FINAL_REVIEWER || 'hohwille';
+  const dryRun = (process.env.DRY_RUN ?? 'true').toLowerCase() !== 'false';
+
+  const cfg = { teamReviewColumn, authorOnlyColumns, finalReviewColumn, finalReviewer };
+
+  console.log(`[reconcile] account=${login} board=#${boardNumber} "${title}" dryRun=${dryRun}`);
+  console.log(
+    `[reconcile] teamReview="${teamReviewColumn}" authorOnly=[${authorOnlyColumns.join(', ')}] ` +
+      `finalReview="${finalReviewColumn}" -> ${finalReviewer} reviewerField="${reviewerFieldName}" takeoverLabel="${takeoverLabel}"`,
+  );
+
+  const board = await findBoard(login, boardNumber, title);
+  console.log(`[reconcile] board id=${board.id}`);
+
+  // The "Team Reviewer" field is optional: if it does not exist yet, the
+  // reconciler degrades to inference-only behaviour (no field reads/writes).
+  const reviewerField = await findField(board.id, reviewerFieldName);
+  if (!reviewerField) {
+    console.warn(
+      `[reconcile] WARNING: board has no "${reviewerFieldName}" field; running inference-only (no reviewer field will be recorded). Create a TEXT field named exactly "${reviewerFieldName}" to enable the record.`,
+    );
+  }
+
+  const prItems = await readPrItems(board.id, reviewerFieldName, takeoverLabel);
+  const prCards = prItems.filter((it) => it.statusName); // skip items without a readable Status
+  console.log(`[reconcile] found ${prCards.length} open, non-merged PR items to manage`);
+
+  let changes = 0;
+  let skipped = 0;
+  let takeovers = 0;
+  let fieldWrites = 0;
+
+  for (const pr of prCards) {
+    const target = computeTarget(pr, cfg);
+    if (target.kind === COLUMNS.UNMANAGED) {
+      skipped++;
+      continue;
+    }
+    if (target.kind === COLUMNS.TAKEOVER) {
+      // Explicitly taken-over card: leave the assignees as they are.
+      takeovers++;
+      console.log(
+        `[reconcile] #${pr.number} [${pr.statusName}] (takeover: assignees left as-is: ${pr.assignees.join(', ') || '(none)'})`,
+      );
+      continue;
+    }
+    const diff = computeDiff(pr.assignees, target.targets);
+    const willFillField = target.setField !== null && reviewerField !== null;
+    if (!diff.changed && !willFillField) {
+      continue;
+    }
+
+    changes++;
+    const who = target.targets?.length ? ` -> ${target.targets.join(', ')}` : ' -> (none)';
+    const verb = dryRun ? 'WOULD SET' : 'SET';
+    console.log(
+      `[reconcile] #${pr.number} [${pr.statusName}] ${pr.assignees.join(', ') || '(none)'}${who} ` +
+        `(author=${pr.author}, ${diff.toRemove.length} removed, ${diff.toAdd.length} added)` +
+        (willFillField ? ` [field: "${reviewerFieldName}" = ${target.setField}]` : ''),
+    );
+    if (target.anomaly) {
+      console.warn(`[reconcile]   ! ${pr.number}: ${target.anomaly}`);
+    }
+    // Count the field writes the same way as the assignee changes: in dry-run
+    // this is how many the run WOULD have written, in apply how many it does.
+    if (willFillField) {
+      fieldWrites++;
+    }
+    if (!dryRun) {
+      // Apply the assignee change first and only then record the reviewer in
+      // the field, so the field never points at a reviewer who was not actually
+      // assigned. If the field write then fails, the card is correct and the
+      // field stays empty -> the next run re-infers and re-fills it (self-heals).
+      if (diff.changed) {
+        await applyAssignees(pr.repo, pr.number, diff.toAdd, diff.toRemove);
+      }
+      if (willFillField) {
+        await setReviewerField(board.id, pr.itemId, reviewerField.id, target.setField);
+      }
+    }
+  }
+
+  console.log(
+    `[reconcile] done. cards=${prCards.length} changed=${changes} skipped=${skipped} takeovers=${takeovers}` +
+      ` fieldWrites=${dryRun ? `(dry-run) ${fieldWrites}` : fieldWrites} mode=${dryRun ? 'dry-run' : 'apply'}`,
+  );
+}
+
+main().catch((err) => {
+  console.error(`[reconcile] unhandled: ${err.stack || err}`);
+  process.exit(2);
+});

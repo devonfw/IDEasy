@@ -7,9 +7,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -19,17 +16,15 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
+import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
- * {@link IdeToolCommandlet} for <a href="https://www.eclipse.org/">Eclipse</a>.
+ * {@link AbstractIdeToolCommandlet} for <a href="https://www.eclipse.org/">Eclipse</a>.
  */
-public class Eclipse extends IdeToolCommandlet {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Eclipse.class);
+public class Eclipse extends AbstractIdeToolCommandlet {
 
   // version must correspond to eclipse-import.xml
   private static final String GROOVY_VERSION = "3.0.23";
@@ -84,7 +79,7 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  protected boolean isPluginUrlNeeded() {
+  public boolean isPluginUrlNeeded() {
 
     return true;
   }
@@ -97,8 +92,7 @@ public class Eclipse extends IdeToolCommandlet {
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("Overall install request is satisfiable")) {
-          IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
-          step.success();
+          step.success("Successfully installed plugin: {}", plugin.name());
           return true;
         }
       }
@@ -109,7 +103,7 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  protected void configureWorkspace() {
+  public void configureWorkspace() {
 
     Path lockfile = this.context.getWorkspacePath().resolve(".metadata/.lock");
     if (isLocked(lockfile)) {
@@ -145,9 +139,11 @@ public class Eclipse extends IdeToolCommandlet {
       maven.getOrDownloadArtifact(groovyAnt);
       this.groovyInstalled = true;
     }
-    // -DdevonImportPath=\"${import_path}\" -DdevonImportWorkingSet=\"${importWorkingSets}\""
-    runTool(ProcessMode.DEFAULT, null, ProcessErrorHandling.THROW_CLI, List.of(VMARGS,
-        "-DrepositoryImportPath=\"" + repositoryPath + "\" -DrepositoryImportWorkingSet=\"" + "" + "\"", "-application", "org.eclipse.ant.core.antRunner",
-        "-buildfile", this.context.getIdeInstallationPath().resolve(IdeContext.FOLDER_INTERNAL).resolve("eclipse-import.xml").toString()));
+    Path buildFile = this.context.getIdeInstallationPath().resolve(IdeContext.FOLDER_INTERNAL).resolve("eclipse-import.xml");
+    // "-application" and "-buildfile" must come before "-vmargs" (added by super.configureToolArgs if ECLIPSE_VMARGS is set),
+    // as "-vmargs" and everything after it is passed to the JVM instead of being processed by eclipse itself.
+    runTool(ProcessMode.DEFAULT, null, ProcessErrorHandling.THROW_CLI,
+        List.of("-application", "org.eclipse.ant.core.antRunner", "-buildfile", buildFile.toString(), "-DrepositoryImportPath=" + repositoryPath,
+            "-DrepositoryImportWorkingSet="));
   }
 }

@@ -1,8 +1,9 @@
 package com.devonfw.tools.ide.completion;
 
 import java.util.List;
+import java.util.Set;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.property.Property;
 
 /**
@@ -28,7 +29,7 @@ public class CompletionCandidateCollectorAdapter implements CompletionCandidateC
   }
 
   @Override
-  public void add(String text, String description, Property<?> property, Commandlet commandlet) {
+  public void add(String text, String description, Property<?> property, AbstractCommandlet commandlet) {
 
     this.delegate.add(this.prefix + text, description, property, commandlet);
   }
@@ -49,5 +50,11 @@ public class CompletionCandidateCollectorAdapter implements CompletionCandidateC
   public void disableSorting() {
 
     this.delegate.disableSorting();
+  }
+
+  @Override
+  public Set<String> getAlreadyProvided() {
+
+    return this.delegate.getAlreadyProvided();
   }
 }

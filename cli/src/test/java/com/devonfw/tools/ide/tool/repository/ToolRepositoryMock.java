@@ -17,9 +17,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.io.TarCompression;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFile;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
+import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -55,14 +57,14 @@ public class ToolRepositoryMock extends DefaultToolRepository {
   }
 
   @Override
-  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, ToolCommandlet toolCommandlet) {
+  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, AbstractToolCommandlet toolCommandlet) {
 
     return super.resolveVersion(tool, edition, version, toolCommandlet);
 
   }
 
   @Override
-  public Path download(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
+  public Path download(String tool, String edition, VersionIdentifier version, AbstractToolCommandlet toolCommandlet) {
 
     Path editionFolder = this.repositoryFolder.resolve(tool).resolve(edition);
     String versionString = version.toString();
@@ -107,24 +109,42 @@ public class ToolRepositoryMock extends DefaultToolRepository {
       UrlDownloadFileMetadata metadata = getMetadata(tool, edition, version, toolCommandlet);
       String url = metadata.getUrls().iterator().next();
       if (url.startsWith(VARIABLE_TESTBASEURL)) {
+        // FileAccess.compress builds tar and zip only. Fixtures named .dmg or .pkg are served as tgz.
+        String archiveUrl = toCompressibleArchiveUrl(url);
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream(1024)) {
-          this.context.getFileAccess().compress(archiveFolder, baos, url);
+          this.context.getFileAccess().compress(archiveFolder, baos, archiveUrl);
           byte[] body = baos.toByteArray();
-          String path = url.substring(VARIABLE_TESTBASEURL.length());
+          String path = archiveUrl.substring(VARIABLE_TESTBASEURL.length());
           stubFor(get(urlMatching(path)).willReturn(
               aResponse().withStatus(200).withBody(body)));
-          String resolvedUrl = url.replace(VARIABLE_TESTBASEURL, this.wmRuntimeInfo.getHttpBaseUrl());
+          String resolvedUrl = archiveUrl.replace(VARIABLE_TESTBASEURL, this.wmRuntimeInfo.getHttpBaseUrl());
           UrlDownloadFile urlDownloadFile = (UrlDownloadFile) metadata;
           metadata = new UrlDownloadFile(urlDownloadFile.getParent(), urlDownloadFile.getName(), Set.of(resolvedUrl));
           return super.download(metadata);
         } catch (IOException e) {
-          throw new IllegalStateException("Failed to create mock archive for " + url, e);
+          throw new IllegalStateException("Failed to create mock archive for " + archiveUrl, e);
         }
       } else {
         throw new IllegalStateException("Invalid URL: " + url);
       }
     }
     return archiveFolder;
+  }
+
+  /**
+   * Returns a URL that {@code FileAccess.compress} can build. Fixtures for {@code dmg} and {@code pkg} cannot be created by the test infrastructure, so
+   * their extension is rewritten to {@code tgz}.
+   *
+   * @param url the download URL from the test fixture.
+   * @return {@code url} unchanged, or the same URL with a {@code tgz} extension for {@code dmg} and {@code pkg}.
+   */
+  private static String toCompressibleArchiveUrl(String url) {
+
+    String extension = FilenameUtil.getExtension(url);
+    if (!"dmg".equals(extension) && !"pkg".equals(extension)) {
+      return url;
+    }
+    return url.substring(0, url.lastIndexOf('.')) + "." + TarCompression.GZ.getCombinedExtension();
   }
 
 }

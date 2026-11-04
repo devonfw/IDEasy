@@ -32,6 +32,9 @@ public abstract class AbstractIdeContextTest extends Assertions {
   /** {@link #newContext(String) Name of test project} {@value}. */
   protected static final String PROJECT_BASIC = "basic";
 
+  /** {@link #newContext(String) Name of test project} {@value} to test the {@code «TOOL»_EXTRA_PLUGINS} variable. */
+  protected static final String PROJECT_EXTRA_PLUGINS = "extra-plugins";
+
   /** Test- */
   protected static final Path TEST_RESOURCES = Path.of("src/test/resources");
 
@@ -49,7 +52,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    *     E.g. "basic".
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected IdeTestContext newContext(String testProject) {
+  public static IdeTestContext newContext(String testProject) {
 
     return newContext(testProject, null, true, null);
   }
@@ -60,7 +63,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param wmRuntimeInfo the {@link WireMockRuntimeInfo} or {@code null} if not used.
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected IdeTestContext newContext(String testProject, WireMockRuntimeInfo wmRuntimeInfo) {
+  public static IdeTestContext newContext(String testProject, WireMockRuntimeInfo wmRuntimeInfo) {
 
     return newContext(testProject, null, true, wmRuntimeInfo);
   }
@@ -71,7 +74,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param projectPath the relative path inside the test project where to create the context.
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected static IdeTestContext newContext(String testProject, String projectPath) {
+  public static IdeTestContext newContext(String testProject, String projectPath) {
 
     return newContext(testProject, projectPath, true, null);
   }
@@ -84,7 +87,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    *     if you are 100% sure that your test never modifies anything in that project.)
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation) {
+  public static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation) {
 
     return newContext(testProject, projectPath, copyForMutation, null);
   }
@@ -132,7 +135,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
     ToolRepositoryMock toolRepository = null;
     IdeTestContext context = new IdeTestContext(userDir, logLevel, wmRuntimeInfo);
 
-    Path repositoryFolder = ideRoot.resolve("repository");
+    Path repositoryFolder = ideRoot.resolve(IdeContext.FOLDER_REPOSITORY);
     if (Files.isDirectory(repositoryFolder)) {
       toolRepository = new ToolRepositoryMock(context, repositoryFolder, wmRuntimeInfo);
       context.setDefaultToolRepository(toolRepository);

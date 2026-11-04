@@ -55,7 +55,7 @@ class HelpCommandletTest extends AbstractIdeContextTest {
     assertLogoMessage(context);
     assertThat(context).logAtSuccess().hasMessageContaining("Current version of IDE is");
     assertThat(context).logAtInfo().hasMessage("Usage: ide [global-option]* [[commandlet] [local-option]* [arg]*]");
-    for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
+    for (AbstractCommandlet cmd : context.getCommandletManager().getCommandlets()) {
       assertThat(context).log().hasMessageContaining(cmd.getName());
     }
     assertThat(context).logAtInfo().hasMessageContaining("Hint: Use 'icd' command to easily navigate");
@@ -100,7 +100,7 @@ class HelpCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Ensure that for every {@link Commandlet} and each of their {@link Property} a help text is defined.
+   * Ensure that for every {@link AbstractCommandlet} and each of their {@link Property} a help text is defined.
    *
    * @param locale the {@link String} representation of the {@link Locale} to test. The empty {@link String} will be used for {@link Locale#ROOT}.
    */
@@ -114,7 +114,7 @@ class HelpCommandletTest extends AbstractIdeContextTest {
     NlsBundle bundle = new NlsBundle(context, Locale.forLanguageTag(locale));
     SoftAssertions soft = new SoftAssertions();
     // act
-    for (Commandlet commandlet : context.getCommandletManager().getCommandlets()) {
+    for (AbstractCommandlet commandlet : context.getCommandletManager().getCommandlets()) {
       String message = bundle.get(commandlet);
       soft.assertThat(message).doesNotStartWith("?");
       String detail = bundle.getDetail(commandlet);
@@ -168,7 +168,7 @@ class HelpCommandletTest extends AbstractIdeContextTest {
         "-d | --debug    enable debug logging.",
         "-f | --force    enable force mode.",
         "-o | --offline  enable offline mode (skip updates or git pull, fail downloads or git clone).",
-        "-q | --quiet    disable info logging (only log success, warning or error).",
+        "-q | --quiet    disable info logging (only log interaction, success, warning or error).",
         "-t | --trace    enable trace logging.");
   }
 

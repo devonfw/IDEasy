@@ -34,7 +34,7 @@ class RustUrlUpdaterTest extends AbstractUrlUpdaterTest {
     RustUrlUpdater updater = new RustUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/rustup.sh", wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path rustEditionDir = tempDir.resolve("rust").resolve("rust");

@@ -42,7 +42,9 @@ public final class EnvironmentVariablesSystem extends EnvironmentVariablesMap {
   public String getFlat(String name) {
 
     for (VariableDefinition<?> variable : IdeVariables.VARIABLES) {
-      if ((variable != IdeVariables.PATH) && (variable != IdeVariables.IDE_ROOT) && (variable != IdeVariables.HOME) && name.equals(variable.getName())) {
+      // USER is like PATH, IDE_ROOT and HOME an environment variable provided by the operating system and not invented by IDEasy, so it is not blocked here
+      if ((variable != IdeVariables.PATH) && (variable != IdeVariables.IDE_ROOT) && (variable != IdeVariables.HOME) && (variable != IdeVariables.USER)
+          && name.equals(variable.getName())) {
         return null;
       }
     }

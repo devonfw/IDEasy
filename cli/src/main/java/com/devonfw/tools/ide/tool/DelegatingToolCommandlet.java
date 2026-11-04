@@ -9,11 +9,11 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link ToolCommandlet} that delegates to another ToolCommandlet.
+ * {@link AbstractToolCommandlet} that delegates to another ToolCommandlet.
  *
- * @param <D> type of the {@link ToolCommandlet} to delegate to.
+ * @param <D> type of the {@link AbstractToolCommandlet} to delegate to.
  */
-public abstract class DelegatingToolCommandlet<D extends ToolCommandlet> extends ToolCommandlet {
+public abstract class DelegatingToolCommandlet<D extends AbstractToolCommandlet> extends AbstractToolCommandlet {
 
   private final Class<D> delegateClass;
 
@@ -23,7 +23,7 @@ public abstract class DelegatingToolCommandlet<D extends ToolCommandlet> extends
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
-   * @param delegateClass the {@link ToolCommandlet}.
+   * @param delegateClass the {@link AbstractToolCommandlet}.
    */
   public DelegatingToolCommandlet(IdeContext context, String tool, Set<Tag> tags, Class<D> delegateClass) {
 
@@ -46,13 +46,8 @@ public abstract class DelegatingToolCommandlet<D extends ToolCommandlet> extends
   }
 
   @Override
-  public VersionIdentifier getInstalledVersion() {
-    return getDelegate().getInstalledVersion();
-  }
-
-  @Override
-  public String getInstalledEdition() {
-    return getDelegate().getInstalledEdition();
+  protected EditionAndVersion computeInstalledEditionAndVersion() {
+    return getDelegate().getInstalledEditionAndVersion();
   }
 
   @Override

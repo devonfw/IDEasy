@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.variable.VariableDefinition;
 import com.devonfw.tools.ide.variable.VariableSyntax;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -202,7 +203,7 @@ public interface EnvironmentVariables {
    * @param source the source where the {@link String} to resolve originates from. Should have a reasonable {@link Object#toString() string representation}
    *     that will be used in error or log messages if a variable could not be resolved.
    * @return the given {@link String} with the variables resolved.
-   * @see com.devonfw.tools.ide.tool.ide.IdeToolCommandlet
+   * @see AbstractIdeToolCommandlet
    */
   String resolve(String string, Object source);
 
@@ -213,7 +214,7 @@ public interface EnvironmentVariables {
    *     that will be used in error or log messages if a variable could not be resolved.
    * @param legacySupport - {@code true} for legacy support with {@link VariableSyntax#CURLY} as fallback, {@code false} otherwise.
    * @return the given {@link String} with the variables resolved.
-   * @see com.devonfw.tools.ide.tool.ide.IdeToolCommandlet
+   * @see AbstractIdeToolCommandlet
    */
   String resolve(String string, Object source, boolean legacySupport);
 
@@ -228,7 +229,7 @@ public interface EnvironmentVariables {
    *     {@link Object#toString() string representation} that will be used in error or log messages if the inverse resolving was not working as expected.
    * @return the given {@link String} with {@link #get(String) variable values} replaced with according {@link com.devonfw.tools.ide.variable.VariableSyntax}
    *     expressions.
-   * @see com.devonfw.tools.ide.tool.ide.IdeToolCommandlet
+   * @see AbstractIdeToolCommandlet
    */
   default String inverseResolve(String string, Object source) {
 
@@ -272,6 +273,15 @@ public interface EnvironmentVariables {
   static String getToolEditionVariable(String tool) {
 
     return getToolVariablePrefix(tool) + "_EDITION";
+  }
+
+  /**
+   * @param tool the name of the tool.
+   * @return the name of the variable listing additional plugins to activate.
+   */
+  static String getToolExtraPluginsVariable(String tool) {
+
+    return getToolVariablePrefix(tool) + "_EXTRA_PLUGINS";
   }
 
   /**

@@ -16,17 +16,14 @@ import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.environment.VariableSource;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
-import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.EnvironmentVariableCollectorContext;
 import com.devonfw.tools.ide.property.FlagProperty;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolInstallation;
-import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 
 /**
- * {@link Commandlet} to print the environment variables.
+ * {@link AbstractCommandlet} to print the environment variables.
  */
-public final class EnvironmentCommandlet extends Commandlet {
+public final class EnvironmentCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(EnvironmentCommandlet.class);
 
@@ -85,7 +82,7 @@ public final class EnvironmentCommandlet extends Commandlet {
     if (softwarePath != null) {
       EnvironmentVariableCollectorContext environmentVariableCollectorContext = new EnvironmentVariableCollectorContext(variableMap,
           new VariableSource(EnvironmentVariablesType.TOOL, softwarePath), pathSyntax);
-      setEnvironmentVariablesInLocalTools(environmentVariableCollectorContext);
+      this.context.setEnvironmentOfInstalledTools(environmentVariableCollectorContext);
     }
 
     printLines(variableMap, winCmd);
@@ -139,25 +136,6 @@ public final class EnvironmentCommandlet extends Commandlet {
     }
   }
 
-  private void setEnvironmentVariablesInLocalTools(EnvironmentContext environmentContext) {
-    // installed tools in IDE_HOME/software
-    for (Commandlet commandlet : this.context.getCommandletManager().getCommandlets()) {
-      if (commandlet instanceof LocalToolCommandlet tool) {
-        try {
-          if (tool.isInstalled()) {
-            // for performance optimization, we do a hack here and assume that the installedVersion is never used by any setEnvironment method implementation.
-            VersionIdentifier installedVersion = VersionIdentifier.LATEST;
-            ToolInstallation toolInstallation = new ToolInstallation(tool.getToolPath(), tool.getToolPath(),
-                tool.getToolBinPath(), installedVersion, false);
-            tool.setEnvironment(environmentContext, toolInstallation, false);
-          }
-        } catch (Exception e) {
-          LOG.warn("An error occurred while setting the environment variables in local tools:", e);
-        }
-      }
-    }
-  }
-
   /**
    * Prints optional Bash completion setup commands for installed local tools.
    * <p>
@@ -166,8 +144,8 @@ public final class EnvironmentCommandlet extends Commandlet {
    */
   private void printBashCompletions() {
 
-    for (Commandlet commandlet : this.context.getCommandletManager().getCommandlets()) {
-      if (commandlet instanceof LocalToolCommandlet tool) {
+    for (AbstractCommandlet commandlet : this.context.getCommandletManager().getCommandlets()) {
+      if (commandlet instanceof AbstractLocalToolCommandlet tool) {
         try {
           if (tool.isInstalled()) {
             String bashCompletion = tool.getBashCompletion();

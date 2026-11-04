@@ -37,7 +37,7 @@ class SonarUrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     SonarUrlUpdater updater = new SonarUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path sonarEditionPath = tempDir.resolve("sonar").resolve("sonar");
@@ -47,4 +47,3 @@ class SonarUrlUpdaterTest extends AbstractUrlUpdaterTest {
     }
   }
 }
-

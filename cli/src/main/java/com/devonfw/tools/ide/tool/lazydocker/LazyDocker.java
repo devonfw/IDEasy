@@ -4,13 +4,12 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 
 /**
- * {@link ToolCommandlet} for <a href="https://github.com/jesseduffield/lazydocker">lazydocker</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://github.com/jesseduffield/lazydocker">lazydocker</a>.
  */
-public class LazyDocker extends LocalToolCommandlet {
+public class LazyDocker extends AbstractLocalToolCommandlet {
 
   /**
    * The constructor.

@@ -1,12 +1,18 @@
 package com.devonfw.tools.ide.context;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
+import com.devonfw.tools.ide.commandlet.update.AbstractUpdateCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -20,18 +26,20 @@ import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.NetworkStatus;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepository;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
+import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.tool.pip.PipRepository;
-import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.tool.python.PythonRepository;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.tool.uv.UvRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -43,7 +51,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * referenced instead of duplicating such string literals across the code-base. All central components can be accessed from here such as:
  * <ul>
  * <li>{@link #getPath() system path} (abstraction of PATH environment variable)</li>
- * <li>{@link #getCommandletManager() commandlet manager} (access {@link com.devonfw.tools.ide.commandlet.Commandlet}s)</li>
+ * <li>{@link #getCommandletManager() commandlet manager} (access {@link AbstractCommandlet}s)</li>
  * <li>{@link #getFileAccess() file access} (file and I/O operations on a higher level of abstraction)</li>
  * <li>{@link #getNetworkStatus() network status} (determine if we are online or offline)</li>
  * <li>{@link #newProcess() process context} (start external programs as process including logging, error handling, background and output processing)</li>
@@ -64,7 +72,7 @@ public interface IdeContext extends IdeStartContext {
   /**
    * The default settings URL.
    *
-   * @see com.devonfw.tools.ide.commandlet.AbstractUpdateCommandlet
+   * @see AbstractUpdateCommandlet
    */
   String DEFAULT_SETTINGS_REPO_URL = "https://github.com/devonfw/ide-settings.git";
 
@@ -123,6 +131,9 @@ public interface IdeContext extends IdeStartContext {
   /** The name of the bin folder where executable files are found by default. */
   String FOLDER_BIN = "bin";
 
+  /** The name of the repository folder used to store repository data */
+  String FOLDER_REPOSITORY = "repository";
+
   /** The name of the repositories folder where properties files are stores for each repository */
   String FOLDER_REPOSITORIES = "repositories";
 
@@ -165,8 +176,8 @@ public interface IdeContext extends IdeStartContext {
    * configured every time. This is only for settings that have to be the same for every developer in the project. An example would be the number of spaces used
    * for indentation and other code-formatting settings. If all developers in a project team use the same formatter settings, this will actively prevent
    * diff-wars. However, the entire team needs to agree on these settings.<br> Never configure aspects inside this update folder that may be of personal flavor
-   * such as the color theme. Otherwise developers will hate you as you actively take away their freedom to customize the IDE to their personal needs and
-   * wishes. Therefore do all "biased" or "flavored" configurations in {@link #FOLDER_SETUP setup} so these are only pre-configured but can be changed by the
+   * such as the color theme. Otherwise, developers will hate you as you actively take away their freedom to customize the IDE to their personal needs and
+   * wishes. Therefore, do all "biased" or "flavored" configurations in {@link #FOLDER_SETUP setup} so these are only pre-configured but can be changed by the
    * user as needed.
    */
   String FOLDER_UPDATE = "update";
@@ -273,9 +284,30 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
+   * Asks the user for a single secret input (e.g. a password or API token). Unlike {@link #askForInput(String, String)} the input is not echoed to the console
+   * if a secure console is available.
+   *
+   * @param message The information message to display.
+   * @param defaultValue The default value to return when no input is provided or {@code null} to keep asking until the user entered a non empty value.
+   * @return The secret input from the user, or the default value if no input is provided.
+   */
+  String askForSecret(String message, String defaultValue);
+
+  /**
+   * Asks the user for a single secret input (e.g. a password or API token).
+   *
+   * @param message The information message to display.
+   * @return The secret input from the user.
+   */
+  default String askForSecret(String message) {
+    return askForSecret(message, null);
+  }
+
+  /**
    * @param question the question to ask.
    * @param args arguments for filling the templates
    * @return {@code true} if the user answered with "yes", {@code false} otherwise ("no").
+   * @throws CliAbortException if the question cannot be answered because we are in batch mode without force mode.
    */
   default boolean question(String question, Object... args) {
 
@@ -292,6 +324,8 @@ public interface IdeContext extends IdeStartContext {
    * @param options the available options for the user to answer. There should be at least two options given as otherwise the question cannot make sense.
    * @param question the question to ask.
    * @return the option selected by the user as answer.
+   * @throws CliAbortException if the question cannot be answered because we are in batch mode without force mode. In that case the first option is not selected
+   *     automatically - re-run the command with the force option to accept it.
    */
   @SuppressWarnings("unchecked")
   <O> O question(O[] options, String question, Object... args);
@@ -416,9 +450,41 @@ public interface IdeContext extends IdeStartContext {
   Path getIdeRoot();
 
   /**
-   * @param ideRoot the new value of {@link #getIdeRoot() IDE_ROOT}. Typically detected automatically from the environment and working directory, but may need
-   *     to be set explicitly (e.g. during the initial installation where the {@code IDE_ROOT} environment variable is not yet available but the installation
-   *     target is already known).
+   * Finds all IDEasy projects below the configured IDE root.
+   *
+   * @return the paths of all detected IDEasy projects.
+   */
+  default List<Path> findProjects() {
+
+    return findProjects(getIdeRoot());
+  }
+
+  /**
+   * Finds all IDEasy projects below the given IDE root.
+   *
+   * @param ideRoot the IDE root containing the IDEasy projects.
+   * @return the paths of all detected IDEasy projects.
+   */
+  static List<Path> findProjects(Path ideRoot) {
+
+    if ((ideRoot == null) || !Files.isDirectory(ideRoot)) {
+      return List.of();
+    }
+
+    try (Stream<Path> children = Files.list(ideRoot)) {
+      return children.filter(Files::isDirectory)
+          .filter(project -> !FOLDER_UNDERSCORE_IDE.equals(project.getFileName().toString()))
+          .filter(project -> Files.isDirectory(project.resolve(FOLDER_WORKSPACES)))
+          .toList();
+    } catch (IOException e) {
+      throw new UncheckedIOException("Failed to find IDEasy projects in " + ideRoot, e);
+    }
+  }
+
+  /**
+   * @param ideRoot the new value of {@link #getIdeRoot() IDE_ROOT}. Typically detected automatically from the environment and working directory, but may
+   *     need to be set explicitly (e.g. during the initial installation where the {@code IDE_ROOT} environment variable is not yet available but the
+   *     installation target is already known).
    */
   void setIdeRoot(Path ideRoot);
 
@@ -554,11 +620,6 @@ public interface IdeContext extends IdeStartContext {
   Path getSettingsGitRepository();
 
   /**
-   * @return {@code true} if the settings repository is a symlink or a junction to a code-repository.
-   */
-  boolean isSettingsCodeRepository();
-
-  /**
    * @return the {@link Path} to the file containing the last tracked commit Id of the settings repository.
    */
   Path getSettingsCommitIdPath();
@@ -624,6 +685,15 @@ public interface IdeContext extends IdeStartContext {
   ProcessContext newProcess();
 
   /**
+   * Sets the environment variables of all tools installed in the {@link #getSoftwarePath() software path} in the given {@link EnvironmentContext}. This is the
+   * single source of truth for the tool environment: it is used for the environment exported to the user's shell (see
+   * {@link com.devonfw.tools.ide.commandlet.EnvironmentCommandlet}) as well as for the {@link ProcessContext} of a tool that is run via IDEasy.
+   *
+   * @param environmentContext the {@link EnvironmentContext} where to set the environment variables.
+   */
+  void setEnvironmentOfInstalledTools(EnvironmentContext environmentContext);
+
+  /**
    * @param title the {@link IdeProgressBar#getTitle() title}.
    * @param size the {@link IdeProgressBar#getMaxSize() expected maximum size}.
    * @param unitName the {@link IdeProgressBar#getUnitName() unit name}.
@@ -681,7 +751,7 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
-   * @return the {@link DirectoryMerger} used to configure and merge the workspace for an {@link com.devonfw.tools.ide.tool.ide.IdeToolCommandlet IDE}.
+   * @return the {@link DirectoryMerger} used to configure and merge the workspace for an {@link AbstractIdeToolCommandlet IDE}.
    */
   DirectoryMerger getWorkspaceMerger();
 

@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           submodules: recursive
           # Full history so Spotless can resolve origin/main and compute the merge-base (ratchet).
@@ -15,7 +15,7 @@ jobs:
         shell: bash
         run: bash cli/src/test/functions-test.sh
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '25'

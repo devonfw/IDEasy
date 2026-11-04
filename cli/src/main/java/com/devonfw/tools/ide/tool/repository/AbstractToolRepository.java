@@ -18,7 +18,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.url.model.file.UrlChecksums;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlGenericChecksum;
@@ -58,14 +58,14 @@ public abstract class AbstractToolRepository implements ToolRepository {
    * @param tool the name of the tool to download.
    * @param edition the edition of the tool to download.
    * @param version the {@link VersionIdentifier} to download.
-   * @param toolCommandlet the {@link ToolCommandlet}.
+   * @param toolCommandlet the {@link AbstractToolCommandlet}.
    * @return the resolved {@link UrlDownloadFileMetadata}.
    */
-  protected abstract UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet);
+  protected abstract UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version, AbstractToolCommandlet toolCommandlet);
 
 
   @Override
-  public Path download(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
+  public Path download(String tool, String edition, VersionIdentifier version, AbstractToolCommandlet toolCommandlet) {
 
     UrlDownloadFileMetadata metadata = getMetadata(tool, edition, version, toolCommandlet);
     return download(metadata);
@@ -293,7 +293,7 @@ public abstract class AbstractToolRepository implements ToolRepository {
   }
 
   @Override
-  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, ToolCommandlet toolCommandlet) {
+  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, AbstractToolCommandlet toolCommandlet) {
 
     List<VersionIdentifier> versions = getSortedVersions(tool, edition, toolCommandlet);
     return VersionIdentifier.resolveVersionPattern(version, versions);

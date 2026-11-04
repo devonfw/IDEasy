@@ -43,7 +43,7 @@ public class SoapUiUpdaterTest extends AbstractUrlUpdaterTest {
     SoapUiUrlUpdater updater = new SoapUiUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     //act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     //assert
     Path soapUiVersionDir = tempDir.resolve("soapui").resolve("soapui");

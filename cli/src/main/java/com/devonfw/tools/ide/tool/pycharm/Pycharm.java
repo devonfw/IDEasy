@@ -7,11 +7,10 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.tool.ToolInstallation;
-import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 
 /**
- * {@link IdeToolCommandlet} for <a href="https://www.jetbrains.com/pycharm/">Pycharm</a>.
+ * {@link AbstractIdeToolCommandlet} for <a href="https://www.jetbrains.com/pycharm/">Pycharm</a>.
  */
 public class Pycharm extends IdeaBasedIdeToolCommandlet {
 

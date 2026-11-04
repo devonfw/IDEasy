@@ -127,6 +127,10 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
     }
     LOG.trace("Loading properties from {}", file);
     boolean legacyProperties = file.getFileName().toString().equals(LEGACY_PROPERTIES);
+    if (legacyProperties) {
+      LOG.warn("You are using the legacy configuration file {} from devonfw-ide, which is no longer supported. Please migrate to IDEasy as described in "
+          + "https://github.com/devonfw/IDEasy/blob/main/documentation/migration-from-devonfw.adoc", file);
+    }
     try (BufferedReader reader = Files.newBufferedReader(file)) {
       String line;
       do {

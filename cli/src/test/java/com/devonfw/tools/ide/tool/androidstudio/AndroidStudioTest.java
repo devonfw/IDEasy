@@ -10,15 +10,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.tool.claude.RecordingEnvironmentContext;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -99,7 +104,9 @@ class AndroidStudioTest extends AbstractIdeContextTest {
     androidStudio.run();
 
     // assert
-    assertThat(context.getWorkspacePath().resolve(".studio.vmoptions"))
+    Path studioVmOptions = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("android-studio").resolve(context.getWorkspaceName())
+        .resolve(".studio.vmoptions");
+    assertThat(studioVmOptions)
         .exists()
         .hasContent("""
             -Xms256m
@@ -108,6 +115,25 @@ class AndroidStudioTest extends AbstractIdeContextTest {
             -ea
             -Dsun.io.useCanonCaches=true
             """);
+  }
+
+  /**
+   * Tests if the environment variable {@code STUDIO_PROPERTIES} is set to the path of the {@code studio.properties} file in the workspace.
+   */
+  @Test
+  void testSetEnvironmentSetsStudioProperties() {
+
+    // arrange
+    AndroidStudio commandlet = new AndroidStudio(this.context);
+    Path dummy = this.context.getSoftwarePath().resolve("android-studio");
+    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.of("2024.1.1.1"), false);
+    RecordingEnvironmentContext environmentContext = new RecordingEnvironmentContext();
+
+    // act
+    commandlet.setEnvironment(environmentContext, installation, false);
+
+    // assert
+    assertThat(environmentContext.set).containsEntry("STUDIO_PROPERTIES", this.context.getWorkspacePath().resolve("studio.properties").toString());
   }
 
   private void checkInstallation(IdeTestContext context) {
@@ -125,7 +151,7 @@ class AndroidStudioTest extends AbstractIdeContextTest {
     Files.writeString(this.context.getSettingsPath().resolve("android-studio").resolve("plugins").resolve("MockedPlugin.properties"),
         content);
 
-    Path mockedPlugin = this.context.getIdeRoot().resolve("repository").resolve(MOCKED_PLUGIN_JAR);
+    Path mockedPlugin = this.context.getIdeRoot().resolve(IdeContext.FOLDER_REPOSITORY).resolve(MOCKED_PLUGIN_JAR);
     byte[] contentBytes = Files.readAllBytes(mockedPlugin);
     int contentLength = contentBytes.length;
 

@@ -1,0 +1,69 @@
+#!/bin/bash
+set -e
+
+console_user=$(stat -f "%Su" /dev/console)
+console_uid=$(id -u "$console_user")
+
+NL=$'\n'
+
+# Shows a modal error dialog in the session of the logged-in user. The message is passed as an
+# argument instead of being interpolated into the AppleScript source, so that quotes in a path
+# cannot break the script. A failing dialog must never decide the exit code of this script, hence
+# the trailing "|| true" - the caller is responsible for exiting.
+show_error() {
+  /bin/launchctl asuser "$console_uid" /usr/bin/osascript \
+    -e 'on run argv' \
+    -e 'display dialog (item 1 of argv) with title "IDEasy Installer" buttons {"OK"} with icon stop' \
+    -e 'end run' \
+    "$1" || true
+}
+
+# Without this, "set -e" would abort silently on an unexpected failure (mkdir, rm, ...) and the user
+# would only see the generic macOS installer error. "exit" does not trigger ERR, so the explicit
+# error paths below cannot produce a second dialog.
+trap 'show_error "IDEasy installation failed unexpectedly (line ${LINENO})."' ERR
+
+echo "Step 1/2: Running IDEasy installation..."
+
+TMP_INSTALL_DIR="$HOME/projects/_ide/tmp/ideasy"
+
+echo "Installing IDEasy to $TMP_INSTALL_DIR"
+
+LOG_DIR="$HOME/.ide/logs"
+mkdir -p "$LOG_DIR"
+ts=$(date +"%Y-%m-%d-%H-%M-%S")
+LOG_FILE="$LOG_DIR/install-$ts.log"
+
+echo "IDEasy installation log for this session can be found at: $LOG_FILE"
+
+if [ ! -d "$TMP_INSTALL_DIR" ]; then
+    echo "ERROR: expected install directory not found: $TMP_INSTALL_DIR" >&2
+    show_error "IDEasy installation failed: expected directory not found:${NL}${TMP_INSTALL_DIR}"
+    exit 1
+fi
+
+# The exit code is captured via "||" so that a failing install does not abort the script through
+# "set -e" - otherwise none of the error handling below would ever run.
+install_rc=0
+"$TMP_INSTALL_DIR/bin/ideasy" -ftb --no-colors install \
+  > "$LOG_FILE" 2>&1 || install_rc=$?
+
+# 1. Handle generic install errors by analyzing the log file for known error messages
+if grep -q "ide (install) failed after" "$LOG_FILE"; then
+  show_error "IDEasy installation failed. See log:${NL}${LOG_FILE}"
+  exit 1
+fi
+
+# 2. Fallback: Exit-Code != 0 and no error message could be detected in the log file. Show generic error message with log file path.
+if [ $install_rc -ne 0 ]; then
+  show_error "IDEasy installation failed (exit code $install_rc). See log:${NL}${LOG_FILE}"
+  exit 1
+fi
+
+echo "Step 2/2: Cleaning up temporary ideasy installation..."
+
+rm -rf "$TMP_INSTALL_DIR"
+
+echo "Install finished"
+
+exit 0

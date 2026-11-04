@@ -105,7 +105,7 @@ class MyWorkbenchAdvisor extends org.eclipse.ui.application.WorkbenchAdvisor {
   public void preStartup() {
     try {
       // Get path from ant properties
-      String path = antProperties.get("devonImportPath");
+      String path = antProperties.get("repositoryImportPath");
       if (path == null || path.equals("")) {
         throw new IllegalStateException("Parameter repositoryImportPath must be set.");
       }

@@ -33,6 +33,25 @@ Still we recommend to double-check your logs and comments you provide on GitHub 
 Please also note that IDEasy is automatically writing log-files to `$IDE_ROOT/_ide/logs/YYYY/mm/DD/`.
 So in case you once hit a bug but are unable to reproduce it, there is still a way to get the logs with the error details back - even if you have meanwhile closed your terminal or even shut down your computer.
 
+== Backlog
+
+If you are looking for a new story to work on, here is how to find one in our project backlog:
+
+1. Browse the https://github.com/devonfw/IDEasy/issues?q=is%3Aissue%20state%3Aopen%20no%3Aassignee%20label%3Aready-to-implement[open issues without an assignee and labelled *ready-to-implement*]^1^
+2. Look for issues with the label `good-first-issue` if you are new to the project and want to start with something smaller and more accessible.
+3. If you are a frequent contributor, also consider the `Priority` and `Size` metadata fields to pick an issue that fits your capacity and timeline.
+4. Read the issue title, description, and comments to understand the scope and make sure you feel comfortable implementing it.
+5. For a visual overview of all issues and their status, check the https://github.com/devonfw/IDEasy/projects/[project board]^2^.
+
+IMPORTANT: Before you start working, always self-assign the issue first.
+See xref:working-on-an-issue[Working on an Issue] for the detailed steps.
+
+[.footnote]
+^1^ The *ready-to-implement* label means the issue has been refined and is ready for someone to pick it up -- no further clarification is needed.
+
+[.footnote]
+^2^ The project board gives you a visual overview of the agile workflow columns. See xref:project-board.adoc[Project Board] for details.
+
 == Working on an Issue
 
 If you want to contribute to IDEasy and work on an issue, please ensure the following things:

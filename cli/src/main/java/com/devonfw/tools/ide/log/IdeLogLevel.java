@@ -6,6 +6,7 @@ import org.slf4j.MarkerFactory;
 import org.slf4j.event.Level;
 import org.slf4j.spi.LoggingEventBuilder;
 
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 
 /**
@@ -29,21 +30,20 @@ public enum IdeLogLevel {
    */
   STEP("\033[35m", Level.INFO, MarkerFactory.getMarker("STEP"), JulLogLevel.STEP),
 
-  /** {@link IdeLogLevel} for user interaction (e.g. questions or options). */
-  INTERACTION("\033[96m", Level.INFO, MarkerFactory.getMarker("INTERACTION"), JulLogLevel.INTERACTION),
-
   /** {@link IdeLogLevel} for success (an important aspect has been completed successfully). */
   SUCCESS("\033[92m", Level.INFO, MarkerFactory.getMarker("SUCCESS"), JulLogLevel.SUCCESS),
 
   /** {@link IdeLogLevel} for a warning (something unexpected or abnormal happened but can be compensated). */
   WARNING("\033[93m", Level.WARN, null, JulLogLevel.WARNING),
 
+  /** {@link IdeLogLevel} for user interaction (e.g. questions or options). */
+  INTERACTION("\033[96m", Level.INFO, MarkerFactory.getMarker("INTERACTION"), JulLogLevel.INTERACTION),
   /**
    * {@link IdeLogLevel} for an error (something failed and we cannot proceed or the user has to continue with extreme care).
    */
   ERROR("\033[91m", Level.ERROR, null, JulLogLevel.ERROR),
 
-  /** {@link IdeLogLevel} for {@link com.devonfw.tools.ide.commandlet.Commandlet#isProcessableOutput() processable output} */
+  /** {@link IdeLogLevel} for {@link AbstractCommandlet#isProcessableOutput() processable output} */
   PROCESSABLE(null, Level.INFO, MarkerFactory.getMarker("PROCESSABLE"), JulLogLevel.PROCESSABLE);
 
   private final String color;

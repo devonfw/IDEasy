@@ -11,6 +11,12 @@ public final class IdeVersion {
   /** The fallback version used if the version is undefined (in local development). */
   public static final String VERSION_UNDEFINED = "SNAPSHOT";
 
+  /**
+   * The suffix appended to the version of a local-dev build (see {@code build-local-dev.sh}) so the running binary self-identifies as a local-dev
+   * installation.
+   */
+  public static final String LOCAL_DEV_SUFFIX = "-DEV-BUILD";
+
   private static final IdeVersion INSTANCE = new IdeVersion();
 
   private String version;
@@ -66,6 +72,14 @@ public final class IdeVersion {
    */
   public static boolean isSnapshot() {
     return getVersionString().contains("SNAPSHOT");
+  }
+
+  /**
+   * @return {@code true} if the {@link #getVersionString() current version} is a local-dev build stamped with {@link #LOCAL_DEV_SUFFIX} by
+   *     {@code build-local-dev.sh}, {@code false} otherwise.
+   */
+  public static boolean isLocalDevBuild() {
+    return getVersionString().endsWith(LOCAL_DEV_SUFFIX);
   }
 
   /*
