@@ -118,7 +118,7 @@ public class Agy extends AbstractLocalToolCommandlet {
   }
 
   /**
-   * Ensures that both Agy home locations resolve to their project-local configuration directories: {@code ~/.gemini/antigravity-cli} onto
+   * Ensures that the Agy home location {@code ~/.gemini/antigravity-cli} resolves to the project-local configuration directory
    * {@code $IDE_HOME/conf/gemini/antigravity-cli}.
    */
   void linkHomeConfigDir() {
