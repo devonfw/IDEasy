@@ -13,6 +13,9 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
@@ -39,19 +42,21 @@ public class Agy extends AbstractLocalToolCommandlet {
    */
   private static final String README_CONTENT = """
       # Isolated Agy (Antigravity CLI) configuration
-
+      
       Agy has no environment variable to relocate its configuration, so IDEasy keeps it project-isolated by pointing
-      Agy's standard home locations at this project:
+      Agy's standard home location at this project:
         - ~/.gemini/antigravity-cli -> $IDE_HOME/conf/gemini/antigravity-cli   (theme, conversations, history)
-      The links are (re)created automatically every time you start Agy through IDEasy. The content is owned by you -
+      The link is (re)created automatically every time you start Agy through IDEasy. The content is owned by you -
       IDEasy only creates the directory and this file, it never modifies your data.
-
+      
       ## Using Agy
       Each IDEasy project has its own Agy binary and its own configuration. Launch Agy through IDEasy (`ide agy`) in
-      the project you want to use; the links are re-pointed first, so the right configuration is always picked.
-      Note: if you run Agy WITHOUT IDEasy, the links are not re-pointed and Agy uses the configuration of the project
-      that most recently set them up.
-
+      the project you want to use; the link is re-pointed first, so the right configuration is always picked.
+      Note: if you run Agy WITHOUT IDEasy, the link is not re-pointed and Agy uses the configuration of the project
+      that most recently set it up.
+      Note: the link is shared across all projects, so two concurrent Agy sessions in different projects use the
+      configuration of the project that last started Agy through IDEasy.
+      
       ## API key
       Put your credentials in settings.json -> env:
         { "env": { "ANTIGRAVITY_API_KEY": "..." } }
@@ -103,12 +108,24 @@ public class Agy extends AbstractLocalToolCommandlet {
     return confPath.resolve(CONFIG_FOLDER);
   }
 
+  /**
+   * Runs the tool, (re-)linking the Agy home location onto the project-local configuration directory first so that it is always correct when Agy starts.
+   *
+   * @param pc the {@link ProcessContext}.
+   * @param processMode the {@link ProcessMode}. Should typically be {@link ProcessMode#DEFAULT} or {@link ProcessMode#BACKGROUND}.
+   * @param args the command-line arguments to run the tool.
+   * @return the {@link ProcessResult result}.
+   */
+  @Override
+  public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
+
+    linkHomeConfigDir();
+    return super.runTool(pc, processMode, args);
+  }
+
   @Override
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
-    // Agy has no environment variable to relocate its configuration, so instead of setting an environment variable
-    // we (re-)link Agy's standard home location onto the project-local configuration directory.
-    linkHomeConfigDir();
     EnvironmentVariables variables = this.context.getVariables();
     for (String name : SCRUB_VARS) {
       if (isInheritedFromSystem(variables, name)) {
