@@ -42,13 +42,13 @@ public class Agy extends AbstractLocalToolCommandlet {
    */
   private static final String README_CONTENT = """
       # Isolated Agy (Antigravity CLI) configuration
-      
+
       Agy has no environment variable to relocate its configuration, so IDEasy keeps it project-isolated by pointing
       Agy's standard home location at this project:
         - ~/.gemini/antigravity-cli -> $IDE_HOME/conf/gemini/antigravity-cli   (theme, conversations, history)
       The link is (re)created automatically every time you start Agy through IDEasy. The content is owned by you -
       IDEasy only creates the directory and this file, it never modifies your data.
-      
+
       ## Using Agy
       Each IDEasy project has its own Agy binary and its own configuration. Launch Agy through IDEasy (`ide agy`) in
       the project you want to use; the link is re-pointed first, so the right configuration is always picked.
@@ -56,7 +56,7 @@ public class Agy extends AbstractLocalToolCommandlet {
       that most recently set it up.
       Note: the link is shared across all projects, so two concurrent Agy sessions in different projects use the
       configuration of the project that last started Agy through IDEasy.
-      
+
       ## API key
       Put your credentials in settings.json -> env:
         { "env": { "ANTIGRAVITY_API_KEY": "..." } }
