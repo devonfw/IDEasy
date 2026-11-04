@@ -166,7 +166,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
       return toolAlreadyInstalled(request);
     }
     String edition = toolEdition.edition();
-    ToolRepository toolRepository = this.context.getDefaultToolRepository();
+    ToolRepository toolRepository = getToolRepository();
     resolvedVersion = cveCheck(request);
     // download and install the global tool
     FileAccess fileAccess = this.context.getFileAccess();
@@ -188,7 +188,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
         executable = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
       }
       pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(executable).addArgs(getInstallerArguments());
-      int exitCode = pc.run(ProcessMode.BACKGROUND_SILENT).getExitCode();
+      int exitCode = pc.run(getInstallerProcessMode()).getExitCode();
       if (tmpDir != null) {
         fileAccess.delete(tmpDir);
       }
@@ -287,8 +287,8 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
   }
 
   /**
-   * @return {@code true} if this tool is installed via the OS native package manager (see {@link #getNativePackages()}), so that the install, version
-   *     resolution and installed-version detection flows of this class go through the package manager instead of the standard installer/artifact flow.
+   * @return {@code true} if this tool is installed via the OS native package manager (see {@link #getNativePackages()}), so that the install and version
+   *     resolution flows of this class go through the package manager instead of the standard installer/artifact flow.
    *     <p>
    *     By default this is the case on Linux only, as that is where global tools are typically installed via the package manager of the OS. Subclasses may
    *     override this to support the package manager on further operating systems.
@@ -547,6 +547,16 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
    *     this for tools whose installer requires specific arguments to run unattended.
    */
   protected List<String> getInstallerArguments() {
+
     return List.of();
+  }
+
+  /**
+   * @return the {@link ProcessMode} to run the downloaded installer executable. The default is {@link ProcessMode#BACKGROUND_SILENT}. Override this for tools
+   *     whose installer has to be awaited.
+   */
+  protected ProcessMode getInstallerProcessMode() {
+
+    return ProcessMode.BACKGROUND_SILENT;
   }
 }
