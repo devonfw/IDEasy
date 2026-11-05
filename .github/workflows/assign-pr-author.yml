@@ -2,7 +2,7 @@ name: Auto Assign PR Author
 
 on:
   pull_request_target:
-    types: [ opened, edited ]
+    types: [ opened, reopened, edited ]
 
 permissions:
   contents: read
@@ -29,6 +29,10 @@ jobs:
               console.log(`PR author ${pr.user.login} is a bot. Skipping assignment.`);
               return;
             }
+            if (pr.state !== 'open' || pr.labels?.some((label) => label.name === 'takeover')) {
+              console.log(`PR #${pr.number} is closed or taken over. Skipping assignment.`);
+              return;
+            }
 
             // Issue(s) this PR closes, resolved by GitHub; only those in this repository.
             const issueNumbers = new Set();
@@ -40,10 +44,8 @@ jobs:
                       closingIssuesReferences(first: 10) {
                         nodes {
                           number
-                          repository {
-                            owner { login }
-                            name
-                          }
+                          assignees(first: 10) { nodes { login } }
+                          repository { owner { login } name }
                         }
                       }
                     }
@@ -68,11 +70,6 @@ jobs:
 
             for (const issueNumber of issueNumbers) {
               try {
-                const issue = await github.rest.issues.get({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issueNumber
-                });
                 if (issue.data.pull_request) continue; // a pull request, not an issue
                 if (issue.data.assignees.some((a) => a.login === author)) {
                   console.log(`Issue #${issueNumber} is already assigned to ${author}. Skipping.`);
@@ -92,9 +89,9 @@ jobs:
               }
             }
 
-            // Pull Requests - Assign the author to the PR itself, do not overwrite existing assignees
-            if (pr.assignees?.some((assignee) => assignee.login === author)) {
-              console.log(`PR #${pr.number} is already assigned to ${author}. Skipping.`);
+            // Pull Requests - Assign the author only if the PR has no assignees
+            if (pr.assignees?.length > 0) {
+              console.log(`PR #${pr.number} already has assignees. Skipping.`);
             } else {
               try {
                 await github.rest.issues.addAssignees({
