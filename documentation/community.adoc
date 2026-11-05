@@ -1,0 +1,22 @@
+:toc:
+toc::[]
+
+= Community
+
+IDEasy is an open-source project and everyone is welcome to participate in the community.
+
+You can contribute to IDEasy in different ways, such as:
+
+* Asking questions and helping other users.
+* Sharing ideas and suggestions.
+* Participating in discussions about new features.
+* Reporting bugs and problems.
+* Contributing to the code or documentation.
+
+For questions, ideas, or suggestions for IDEasy, you can use the https://github.com/devonfw/IDEasy/discussions[IDEasy GitHub Discussions]
+to communicate with the community.
+
+For concrete bugs or feature requests, you can create a https://github.com/devonfw/IDEasy/issues[new issue]
+in the IDEasy GitHub repository.
+
+Every contribution helps to improve IDEasy and is appreciated.
