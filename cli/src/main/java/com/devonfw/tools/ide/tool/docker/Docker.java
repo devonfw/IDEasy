@@ -44,8 +44,6 @@ public class Docker extends GlobalToolCommandlet {
 
   private static final Pattern DOCKER_DESKTOP_VERSION_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+){1,2})");
 
-  private static final String EDITION_DOCKER = "docker";
-
   private Path downloadedDebPackageForDocker;
 
   /**
@@ -86,7 +84,7 @@ public class Docker extends GlobalToolCommandlet {
    */
   private List<NativePackage> getNativePackages(String edition) {
 
-    if (EDITION_DOCKER.equals(edition)) {
+    if (DOCKER_EDITION.equals(edition)) {
 
       List<Path> artifactPaths = (this.downloadedDebPackageForDocker == null) ? List.of() : List.of(this.downloadedDebPackageForDocker);
 
@@ -148,7 +146,7 @@ public class Docker extends GlobalToolCommandlet {
 
     if (this.context.getSystemInfo().isMac()) {
       // the cask of the installed edition has to be removed, regardless of which edition is configured
-      String cask = RANCHER_EDITION.equals(getInstalledEdition()) ? RANCHER_EDITION : EDITION_DOCKER;
+      String cask = RANCHER_EDITION.equals(getInstalledEdition()) ? RANCHER_EDITION : DOCKER_EDITION;
       return List.of(new NativePackage(NativePackageManager.BREW_CASK, List.of(cask)).uninstall());
     }
     // the packages of the installed edition have to be removed, regardless of which edition is configured
@@ -194,7 +192,7 @@ public class Docker extends GlobalToolCommandlet {
 
   private void downloadDebPackageStepAndSetPackagePath(VersionIdentifier resolvedVersion) {
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
-    this.downloadedDebPackageForDocker = toolRepository.download(this.tool, EDITION_DOCKER, resolvedVersion, this);
+    this.downloadedDebPackageForDocker = toolRepository.download(this.tool, DOCKER_EDITION, resolvedVersion, this);
   }
 
   @Override
@@ -241,7 +239,8 @@ public class Docker extends GlobalToolCommandlet {
     }
     // the rancher edition is installed via the native package manager on Linux or from the app bundle on macOS
     return switch (this.context.getSystemInfo().getOs()) {
-      case LINUX -> getNativePackageVersion();
+      // query the packages of the rancher edition, not the ones of the configured edition
+      case LINUX -> getNativePackageVersion(getNativePackages(RANCHER_EDITION));
       case MAC -> getRancherDesktopVersionMac();
       default -> null;
     };
@@ -292,7 +291,7 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   private boolean isDockerDesktopEditionConfigured() {
-    return EDITION_DOCKER.equals(getConfiguredEdition());
+    return DOCKER_EDITION.equals(getConfiguredEdition());
   }
 
   @Override

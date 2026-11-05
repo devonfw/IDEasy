@@ -333,7 +333,16 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
    *     installed via any of its {@link #getNativePackages() native packages}.
    */
   protected VersionIdentifier getNativePackageVersion() {
-    for (NativePackage nativePackage : getNativePackages()) {
+    return getNativePackageVersion(getNativePackages());
+  }
+
+  /**
+   * @param nativePackages the {@link NativePackage}s to query, e.g. the ones of an edition that is not the configured one.
+   * @return the {@link VersionIdentifier} of the first of the given {@link NativePackage}s that is installed via its {@link NativePackageManager} or
+   *     {@code null} if none of them is installed.
+   */
+  protected VersionIdentifier getNativePackageVersion(List<NativePackage> nativePackages) {
+    for (NativePackage nativePackage : nativePackages) {
       if (!isPackageManagerAvailable(nativePackage.getPackageManager())) {
         continue;
       }

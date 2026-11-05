@@ -435,6 +435,42 @@ class DockerTest extends AbstractIdeContextTest {
     assertThat(commandText(dockerInstalled)).contains("docker-desktop").doesNotContain("rancher-desktop");
   }
 
+  /**
+   * Verifies that on Linux the installed Rancher Desktop is detected and uninstalled even if Docker Desktop is the configured edition, using the real
+   * installed edition detection and not an overridden one.
+   */
+  @Test
+  void testUninstallCommandsOnLinuxDetectRancherInstalledWhileDockerConfigured() {
+
+    // arrange
+    ProcessContext processContext = Mockito.mock(ProcessContext.class);
+    IdeTestContext context = newContext(processContext);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    Docker docker = new Docker(context) {
+      @Override
+      public String getConfiguredEdition() {
+        return "docker";
+      }
+
+      @Override
+      protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
+        return packageManager == NativePackageManager.APT;
+      }
+
+      @Override
+      protected String queryNativePackageVersion(NativePackage nativePackage) {
+        return nativePackage.getPackages().contains("rancher-desktop") ? "1.13.0" : null;
+      }
+    };
+
+    // act
+    List<PackageManagerCommand> commands = docker.getUninstallPackageManagerCommands();
+
+    // assert
+    assertThat(docker.getInstalledEdition()).isEqualTo("rancher");
+    assertThat(commandText(commands)).contains("rancher-desktop").doesNotContain("docker-desktop");
+  }
+
   private static String commandText(List<PackageManagerCommand> commands) {
 
     return commands.stream().flatMap(command -> command.commands().stream()).collect(Collectors.joining("\n"));
