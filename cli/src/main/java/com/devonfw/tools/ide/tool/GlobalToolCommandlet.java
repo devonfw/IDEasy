@@ -54,6 +54,12 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
     super(context, tool, tags);
   }
 
+  @Override
+  public boolean isIdeHomeRequired() {
+
+    return false;
+  }
+
   /**
    * Performs the installation or uninstallation of the {@link #getName() tool} via a package manager.
    *

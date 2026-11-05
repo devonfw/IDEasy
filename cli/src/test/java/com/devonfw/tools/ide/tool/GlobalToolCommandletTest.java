@@ -145,8 +145,8 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that an already installed application bundle is removed before the new one is moved into the applications folder and that both privileged
-   * commands are logged before they are executed.
+   * Tests that an already installed application bundle is removed before the new one is moved into the applications folder and that both privileged commands
+   * are logged before they are executed.
    *
    * @param tempDir the temporary directory.
    * @throws IOException on test setup failure.
@@ -606,8 +606,8 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Dummy {@link GlobalToolCommandlet} that declares a non-trivial edition via {@link #getEditionNames()} and resolves its version through the native
-   * package manager, for testing that a Linux installation reports a meaningful (non-placeholder) edition.
+   * Dummy {@link GlobalToolCommandlet} that declares a non-trivial edition via {@link #getEditionNames()} and resolves its version through the native package
+   * manager, for testing that a Linux installation reports a meaningful (non-placeholder) edition.
    */
   static class EditionResolvingToolCommandlet extends GlobalToolCommandlet {
 
@@ -652,8 +652,8 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Verifies that on Linux the installed edition is resolved via {@link GlobalToolCommandlet#getEditionNames()} — a meaningful edition
-   * {@code "mytool-pro"}, not the {@code this.tool} placeholder — and the version is read from the native package manager.
+   * Verifies that on Linux the installed edition is resolved via {@link GlobalToolCommandlet#getEditionNames()} — a meaningful edition {@code "mytool-pro"},
+   * not the {@code this.tool} placeholder — and the version is read from the native package manager.
    */
   @Test
   void testLinuxInstalledEditionResolvesThroughEditionNames() {
@@ -670,5 +670,22 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("mytool-pro");
     assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("9.9.9"));
+  }
+
+  /**
+   * Tests that {@link GlobalToolCommandlet} instances do not require IDE_HOME.
+   */
+  @Test
+  void testIdeHomeIsNotRequired() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    AsyncInstallerToolCommandlet commandlet = new AsyncInstallerToolCommandlet(context);
+
+    // act
+    boolean ideHomeRequired = commandlet.isIdeHomeRequired();
+
+    // assert
+    assertThat(ideHomeRequired).isFalse();
   }
 }
