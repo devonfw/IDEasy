@@ -340,9 +340,10 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
 
   /**
    * Performs the installation of the {@link #getName() tool} managed by this {@link AbstractToolCommandlet} while recording the result in the given
-   * {@link ToolInstallTracker} so that a redundant (re)install of the same tool+version within the same process can be skipped.
+   * {@link ToolInstallTracker} so that a redundant (re)install of the same tool+version within the same operation can be skipped. This is used by
+   * <code>ide update</code> to share a single tracker across all installed tools.
    *
-   * @param tracker the {@link ToolInstallTracker} of the current process.
+   * @param tracker the {@link ToolInstallTracker} of the current operation.
    * @return the {@link ToolInstallation}.
    */
   public ToolInstallation install(ToolInstallTracker tracker) {
@@ -389,16 +390,11 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
   }
 
   /**
-   * Records a successfully installed tool in the process-wide {@link ToolInstallTracker} so that a subsequent (redundant) install request for the same
-   * tool+version can be skipped.
-   * <p>
-   * The tracker records the resolved version captured <i>before</i> the CVE check ran, because a redundant request again resolves to that same configured
-   * version, which is what the skip check compares against. Recording the post-CVE version instead would stop the dedup from working when the CVE check bumped
-   * the version.
+   * Records a successfully installed tool in the {@link ToolInstallTracker} so a redundant install of the same tool+version can be skipped.
    *
    * @param request the {@link ToolInstallRequest} that has just been installed.
    * @param tracker the {@link ToolInstallTracker} of the current process or {@code null} if not tracking.
-   * @param resolvedVersionBeforeCveCheck the resolved version captured before the CVE check ran, or {@code null} if not tracking.
+   * @param resolvedVersionBeforeCveCheck the version captured before the CVE check ran, or {@code null} if not tracking.
    */
   private void recordInstallation(ToolInstallRequest request, ToolInstallTracker tracker, VersionIdentifier resolvedVersionBeforeCveCheck) {
 
@@ -425,6 +421,21 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
     completeRequestRequested(request); // depends on completeRequestInstalled
     completeRequestProcessContext(request);
     completeRequestToolPath(request);
+    completeRequestTracker(request);
+  }
+
+  /**
+   * Ensures the request carries a {@link ToolInstallTracker}, creating one for a top-level request that does not yet (shared with all of its dependencies so a
+   * shared dependency is only installed and CVE-checked once, see issue #945). An already-provided tracker (e.g. the one shared by <code>ide update</code>) is
+   * kept.
+   *
+   * @param request the {@link ToolInstallRequest} to complete.
+   */
+  private void completeRequestTracker(ToolInstallRequest request) {
+
+    if (request.getTracker() == null) {
+      request.setTracker(new ToolInstallTracker());
+    }
   }
 
   private void completeRequestProcessContext(ToolInstallRequest request) {
