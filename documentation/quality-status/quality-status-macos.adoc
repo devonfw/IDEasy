@@ -9,13 +9,13 @@ Automatically generated open issue overview for macOS.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 201
+*Total Issues:* 203
 
-* OS-specific: 2
+* OS-specific: 3
 
 * Multi-OS: 2
 
-* Cross-platform: 197
+* Cross-platform: 198
 
 == macOS Specific Issues
 
@@ -23,6 +23,11 @@ link:quality-status.adoc[Back to overview]
 |===
 | Issue | Summary
 2+^| *0-10 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/2779[#2779]
+| macOS GUI Dock icon is oversized and misaligned with other application icons
+
+2+^| *11-30 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2706[#2706]
 | Improve Plist file generation on macOS
