@@ -4,6 +4,8 @@ include::bug-reporting.adoc[leveloffset=2]
 
 include::community.adoc[leveloffset=2]
 
+<<<<
+
 include::symlink.adoc[leveloffset=2]
 
 include::windows-file-lock.adoc[leveloffset=2]
