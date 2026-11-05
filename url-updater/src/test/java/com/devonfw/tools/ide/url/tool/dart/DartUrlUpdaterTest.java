@@ -46,16 +46,21 @@ class DartUrlUpdaterTest extends AbstractUrlUpdaterTest {
     assertUrlVersionDart(dartEditionPath.resolve("3.0.0"));
     assertUrlVersionDart(dartEditionPath.resolve("3.13.4"));
     assertUrlVersionDart(dartEditionPath.resolve("3.13.5"));
+    // a Windows arm64 archive is published only from Dart 3.3.0 onwards: recorded for a newer release, absent for one below the threshold
+    assertUrlVersionFile(dartEditionPath.resolve("3.13.4"), "windows_arm64");
+    assertThat(dartEditionPath.resolve("3.0.0").resolve("windows_arm64.urls")).doesNotExist();
     // the "latest" alias is not a concrete release and must not be recorded
     assertThat(dartEditionPath.resolve("latest")).doesNotExist();
     // releases below the minimum version (3.0.0) have no macos-arm64 archive and must be filtered out
     assertThat(dartEditionPath.resolve("1.11.0")).doesNotExist();
     assertThat(dartEditionPath.resolve("2.10.5")).doesNotExist();
+    // a release folder that is not a dotted x.y.z version must be filtered out
+    assertThat(dartEditionPath.resolve("45692")).doesNotExist();
   }
 
   /**
-   * Test of {@link DartUrlUpdater#mapVersion(String)}: the {@code latest} alias and every release below the minimum version {@code 3.0.0} are skipped
-   * (returning {@code null}) while a supported stable release is returned unchanged.
+   * Test of {@link DartUrlUpdater#mapVersion(String)}: the {@code latest} alias, every folder that is not a dotted {@code x.y.z} version, and every
+   * release below the minimum version {@code 3.0.0} are skipped (returning {@code null}) while a supported stable release is returned unchanged.
    */
   @Test
   void testDartUrlUpdaterMapVersion() {
@@ -64,6 +69,8 @@ class DartUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
     // the "latest" alias is not a concrete release and must be skipped
     assertThat(updater.mapVersion("latest")).isNull();
+    // a release folder that is not a dotted x.y.z version must be skipped
+    assertThat(updater.mapVersion("45692")).isNull();
     // a release below the minimum version has no macos-arm64 archive and must be skipped
     assertThat(updater.mapVersion("2.10.5")).isNull();
     // the minimum version itself and a newer release are returned unchanged

@@ -112,8 +112,8 @@ public class DartUrlUpdater extends AbstractUrlUpdater {
   /**
    * {@inheritDoc}
    * <p>
-   * In addition to the base class filtering, rejects the {@code latest} alias (which is not a concrete release) and every release below
-   * {@link #MIN_VERSION}.
+   * In addition to the base class filtering, rejects every release folder that is not a dotted {@code x.y.z} version (which also covers the
+   * {@code latest} alias, being a non-concrete release) and every release below {@link #MIN_VERSION}.
    *
    * @param version the stable release folder name to check (e.g. {@code 3.13.5} or {@code latest}).
    * @return the version to store, or {@code null} to skip it.
@@ -121,7 +121,7 @@ public class DartUrlUpdater extends AbstractUrlUpdater {
   @Override
   public String mapVersion(String version) {
 
-    if (VersionIdentifier.LATEST.equals(VersionIdentifier.of(version))) {
+    if (!version.matches("\\d+\\.\\d+\\.\\d+")) {
       return null;
     }
     String normalized = super.mapVersion(version);
@@ -146,5 +146,9 @@ public class DartUrlUpdater extends AbstractUrlUpdater {
     doAddVersion(urlVersion, baseUrl + "macos-x64-release.zip", MAC, X64);
     doAddVersion(urlVersion, baseUrl + "macos-arm64-release.zip", MAC, ARM64);
     doAddVersion(urlVersion, baseUrl + "windows-x64-release.zip", WINDOWS, X64);
+    // Dart does not publish a Windows arm64 archive before 3.3.0 (introduced with Dart 3.3.0), so only add it for newer releases.
+    if (!urlVersion.getVersionIdentifier().compareVersion(VersionIdentifier.of("3.3.0")).isLess()) {
+      doAddVersion(urlVersion, baseUrl + "windows-arm64-release.zip", WINDOWS, ARM64);
+    }
   }
 }
