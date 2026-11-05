@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.variable.IdeVariables;
+import com.devonfw.tools.ide.variable.VariableDefinitionString;
 
 /**
  * Service for managing nls (i18n) in the JavaFX GUI.
@@ -44,9 +46,10 @@ public class NlsService {
   public static final String EXTENSION_PROPERTIES = ".properties";
 
   /**
-   * Name of the user variable the GUI writes the selected language to and the CLI reads to launch the GUI with the corresponding locale.
+   * The user variable the GUI writes the selected language to and the CLI ({@code ide gui}) reads to launch the GUI with the corresponding locale. Declared
+   * once in {@link IdeVariables} and reused by the CLI ({@code Gui}).
    */
-  public static final String GUI_LANGUAGE = "GUI_LANGUAGE";
+  public static final VariableDefinitionString GUI_LANGUAGE = IdeVariables.GUI_LANGUAGE;
 
   private Locale locale;
 
@@ -257,16 +260,20 @@ public class NlsService {
    * on the next GUI start, as {@code ide gui} reads this variable to apply the locale to the launched JVM.
    *
    * @param languageTag the BCP 47 language tag to persist (e.g. {@code de}, {@code en}).
+   * @return {@code true} if the selection was actually written to the user configuration; {@code false} if the write failed (for example because the properties
+   *         file is not writable). Callers must rely on this to avoid falsely reporting a saved selection that a restart cannot then apply.
    */
-  public void setPersistedLocale(String languageTag) {
+  public boolean setPersistedLocale(String languageTag) {
 
     EnvironmentVariables environmentVariables = getUserEnvironmentVariables();
     try {
-      environmentVariables.set(GUI_LANGUAGE, languageTag);
+      environmentVariables.set(GUI_LANGUAGE.getName(), languageTag);
       environmentVariables.save();
       LOG.info("Persisted GUI language: {}", languageTag);
+      return true;
     } catch (RuntimeException e) {
-      LOG.warn("Failed to persist GUI language: {}", e.getMessage(), e);
+      LOG.error("Failed to persist GUI language: {}", e.getMessage(), e);
+      return false;
     }
   }
 

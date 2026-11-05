@@ -143,6 +143,13 @@ public interface IdeVariables {
   VariableDefinitionPath UV_CACHE_DIR = new VariableDefinitionPath("UV_CACHE_DIR", null,
       c -> c.getIdePath() == null ? null : c.getIdePath().resolve(IdeContext.FOLDER_SOFTWARE).resolve("uv"), true, true);
 
+  /**
+   * {@link VariableDefinition} for the GUI language selected in the GUI, written by the GUI as the {@code GUI_LANGUAGE} user variable and read by {@code ide
+   * gui} to launch the JVM with the corresponding locale. Deliberately kept out of {@link #VARIABLES}: it has no default value and is not exported/forced, so
+   * registering it would only add it to the known-variable lookup without any resolution or export behavior.
+   */
+  VariableDefinitionString GUI_LANGUAGE = new VariableDefinitionString("GUI_LANGUAGE");
+
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, USER, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, HTTP_VERSIONS,
       CREATE_START_SCRIPTS,

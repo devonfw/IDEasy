@@ -29,6 +29,8 @@ public class NavigationPanelViewModel {
 
   private final BooleanProperty restartRequired = new SimpleBooleanProperty(false);
 
+  private final BooleanProperty languageChangeFailed = new SimpleBooleanProperty(false);
+
   private final GuiStateManager guiStateManager;
 
   private final ProjectManager projectManager;
@@ -36,6 +38,7 @@ public class NavigationPanelViewModel {
   private final NlsService nlsService;
 
   public NavigationPanelViewModel(GuiStateManager guiStateManager) {
+
     this.guiStateManager = guiStateManager;
     this.projectManager = guiStateManager.getProjectManager();
     this.nlsService = guiStateManager.getNlsService();
@@ -115,7 +118,9 @@ public class NavigationPanelViewModel {
 
   /**
    * Selects the language with the given combo label. If it differs from the currently applied locale the selection is persisted (it takes effect on the next
-   * GUI start) and the restart-required flag is raised so the view can prompt the user to restart. Selecting the already-active locale is a no-op.
+   * GUI start) and the restart-required flag is raised so the view can prompt the user to restart. If the selection could not be persisted (for example because
+   * the user properties file is not writable) the persist-failed flag is raised instead, so the view can tell the user the change was not saved rather than
+   * hinting at a restart that would change nothing. Selecting the already-active locale is a no-op.
    *
    * @param displayLabel the language combo label, as produced by {@code NlsService.getLanguageDisplayName}.
    */
@@ -125,8 +130,12 @@ public class NavigationPanelViewModel {
     if (locale == null || locale.equals(this.nlsService.getLocale())) {
       return;
     }
-    this.nlsService.setPersistedLocale(locale.toLanguageTag());
-    this.restartRequired.set(true);
+    boolean persisted = this.nlsService.setPersistedLocale(locale.toLanguageTag());
+    if (persisted) {
+      this.restartRequired.set(true);
+    } else {
+      this.languageChangeFailed.set(true);
+    }
   }
 
   /**
@@ -139,11 +148,19 @@ public class NavigationPanelViewModel {
 
   /**
    * @return the property flagging that a restart is required for the selected language to take effect. The view observes it to prompt the user and resets it
-   *         after showing the prompt.
+   *     after showing the prompt.
    */
   public BooleanProperty restartRequiredProperty() {
 
     return this.restartRequired;
+  }
+
+  /**
+   * @return the property flagging that a language selection could not be persisted. The view observes it to show an error and resets it afterwards.
+   */
+  public BooleanProperty languageChangeFailedProperty() {
+
+    return this.languageChangeFailed;
   }
 
   public void updateContext() {

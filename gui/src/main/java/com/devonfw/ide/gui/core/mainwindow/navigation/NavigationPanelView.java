@@ -72,5 +72,13 @@ public class NavigationPanelView extends VBox {
         viewModel.restartRequiredProperty().set(false);
       }
     });
+
+    // The view model raises this flag when a language change could not be persisted; the view is responsible for telling the user the change was not saved.
+    viewModel.languageChangeFailedProperty().addListener((_, _, failed) -> {
+      if (failed) {
+        new IdeDialog(AlertType.ERROR, this.nlsService.get("language_change_failed_msg"), ButtonType.OK).showAndWait();
+        viewModel.languageChangeFailedProperty().set(false);
+      }
+    });
   }
 }

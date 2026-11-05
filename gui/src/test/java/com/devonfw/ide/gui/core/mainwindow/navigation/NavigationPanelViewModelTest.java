@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
@@ -101,7 +102,7 @@ public class NavigationPanelViewModelTest extends UIBasedApplicationTest {
     this.viewModel.getLanguagesViewModel().select(germanLabel);
     this.viewModel.selectLanguage(germanLabel);
 
-    assertThat(loadUserProperties().getProperty(NlsService.GUI_LANGUAGE)).isEqualTo("de");
+    assertThat(loadUserProperties().getProperty(NlsService.GUI_LANGUAGE.getName())).isEqualTo("de");
     assertThat(this.viewModel.isRestartRequired()).isTrue();
     assertThat(this.viewModel.getLanguagesViewModel().getSelectedItem()).contains(germanLabel);
   }
@@ -120,8 +121,28 @@ public class NavigationPanelViewModelTest extends UIBasedApplicationTest {
   }
 
   /**
-   * The applied locale the GUI boots with is often a regional variant (e.g. {@code de-DE}) while the available bundles are language-only (e.g. {@code de}).
-   * The combo has to resolve it to the matching language entry, not fall back to the first (English) entry, or it would disagree with the displayed language.
+   * When the language cannot be persisted (e.g. the user properties file is not writable) the restart-required flag must NOT be raised and the persist-failed
+   * flag must be raised instead, so the view can tell the user the change was not saved rather than hinting at a restart that would change nothing.
+   */
+  @Test
+  void testSelectingALanguageThatCannotBePersistedFlagsTheFailureAndDoesNotRequireRestart() throws IOException {
+
+    // block the save by making the .ide parent a regular file, so save() cannot create the folder it needs to write the properties file
+    Path ideDir = this.nlsUserHome.resolve(".ide");
+    Files.write(ideDir, "blocked".getBytes(StandardCharsets.UTF_8));
+
+    String germanLabel = getLanguageLabel(Locale.GERMAN);
+    this.viewModel.getLanguagesViewModel().select(germanLabel);
+    this.viewModel.selectLanguage(germanLabel);
+
+    assertThat(this.viewModel.isRestartRequired()).isFalse();
+    assertThat(this.viewModel.languageChangeFailedProperty().get()).isTrue();
+    assertThat(this.viewModel.getLanguagesViewModel().getSelectedItem()).contains(germanLabel);
+  }
+
+  /**
+   * The applied locale the GUI boots with is often a regional variant (e.g. {@code de-DE}) while the available bundles are language-only (e.g. {@code de}). The
+   * combo has to resolve it to the matching language entry, not fall back to the first (English) entry, or it would disagree with the displayed language.
    * (Regression: a German GUI labelled itself as English.)
    */
   @Test

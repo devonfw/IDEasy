@@ -13,9 +13,12 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
 import com.devonfw.tools.ide.io.WindowsSymlinkTestHelper;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -229,6 +232,29 @@ class GuiTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(args).contains("-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher");
+  }
+
+  /**
+   * Verifies the persisted GUI language is still readable through the exact query {@code ide gui} uses to launch the JVM with the right locale
+   * ({@code userVariables.getFlat(GUI_LANGUAGE)}), now that the variable is declared once in {@link IdeVariables}. This guards the read path against the
+   * variable being treated as a known (and thus masked) variable.
+   */
+  @Test
+  void testPersistedGuiLanguageIsReadableFromTheUserVariables() throws Exception {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    context.setSystem(new IdeSystemTestImpl());
+    Path userHome = this.tempDir.resolve("userHome");
+    context.setUserHome(userHome);
+    context.getFileAccess().mkdirs(context.getUserHomeIde());
+    Files.writeString(context.getUserHomeIde().resolve("ide.properties"), IdeVariables.GUI_LANGUAGE.getName() + "=de");
+
+    // act
+    String value = context.getVariables().getByType(EnvironmentVariablesType.USER).getFlat(IdeVariables.GUI_LANGUAGE.getName());
+
+    // assert
+    assertThat(value).isEqualTo("de");
   }
 
 }

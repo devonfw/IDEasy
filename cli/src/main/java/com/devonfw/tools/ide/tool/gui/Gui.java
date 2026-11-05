@@ -22,6 +22,8 @@ import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.variable.IdeVariables;
+import com.devonfw.tools.ide.variable.VariableDefinitionString;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -33,10 +35,10 @@ public class Gui extends AbstractCommandlet {
   private static final Logger LOG = LoggerFactory.getLogger(Gui.class);
 
   /**
-   * Name of the user variable holding the language tag selected in the GUI (e.g. {@code de}). {@code ide gui} applies it to the launched JVM via
-   * {@code -Duser.language=...}.
+   * The user variable holding the language tag selected in the GUI (e.g. {@code de}), written by the GUI and applied by {@code ide gui} to the launched JVM via
+   * {@code -Duser.language=...}. Declared once in {@link IdeVariables} and reused by the GUI ({@code NlsService}).
    */
-  public static final String GUI_LANGUAGE = "GUI_LANGUAGE";
+  static final VariableDefinitionString GUI_LANGUAGE = IdeVariables.GUI_LANGUAGE;
 
   /**
    * @param context the {@link IdeContext}.
@@ -160,13 +162,13 @@ public class Gui extends AbstractCommandlet {
     if (userVariables == null) {
       return Optional.empty();
     }
-    String value = userVariables.getFlat(GUI_LANGUAGE);
+    String value = userVariables.getFlat(GUI_LANGUAGE.getName());
     if (value == null || value.isBlank()) {
       return Optional.empty();
     }
     Locale locale = Locale.forLanguageTag(value.trim());
     if (locale.getLanguage().isEmpty()) {
-      LOG.warn("Ignoring invalid {} value: {}", GUI_LANGUAGE, value);
+      LOG.warn("Ignoring invalid {} value: {}", GUI_LANGUAGE.getName(), value);
       return Optional.empty();
     }
     return Optional.of(locale);

@@ -159,13 +159,32 @@ public class NlsServiceTest extends AbstractIdeContextTest {
   public void testSetPersistedLocaleWritesGuiLanguageToUserHomeIdeProperties() throws IOException {
 
     NlsService service = newService(Locale.ENGLISH);
-    service.setPersistedLocale(Locale.GERMAN.toLanguageTag());
+    boolean persisted = service.setPersistedLocale(Locale.GERMAN.toLanguageTag());
 
     Path propertiesFile = getUserIdeProperties();
+    assertThat(persisted).isTrue();
     assertThat(Files.exists(propertiesFile)).isTrue();
 
     Properties properties = loadUserIdeProperties(propertiesFile);
-    assertThat(properties.getProperty(NlsService.GUI_LANGUAGE)).isEqualTo("de");
+    assertThat(properties.getProperty(NlsService.GUI_LANGUAGE.getName())).isEqualTo("de");
+  }
+
+  /**
+   * A failed write (e.g. the user properties file is not writable) has to be reported via the return value and must not be swallowed, so the caller can
+   * refrain from telling the user the selection was saved.
+   */
+  @Test
+  public void testSetPersistedLocaleReportsFailureWhenTheWriteFails() throws IOException {
+
+    // block the save by making the .ide parent a regular file, so save() cannot create the folder it needs to write the properties file
+    Path ideDir = this.userHome.resolve(".ide");
+    assertThat(Files.write(ideDir, "blocked".getBytes(StandardCharsets.UTF_8))).isNotNull();
+
+    NlsService service = newService(Locale.ENGLISH);
+    boolean persisted = service.setPersistedLocale(Locale.GERMAN.toLanguageTag());
+
+    assertThat(persisted).isFalse();
+    assertThat(ideDir.resolve(IDE_PROPERTIES_FILE)).doesNotExist();
   }
 
   /**
@@ -179,9 +198,10 @@ public class NlsServiceTest extends AbstractIdeContextTest {
     Files.writeString(propertiesFile, "GUI_LANGUAGE=de");
 
     NlsService service = newService(Locale.ENGLISH);
-    service.setPersistedLocale(Locale.ENGLISH.toLanguageTag());
+    boolean persisted = service.setPersistedLocale(Locale.ENGLISH.toLanguageTag());
 
-    assertThat(loadUserIdeProperties(propertiesFile).getProperty(NlsService.GUI_LANGUAGE)).isEqualTo("en");
+    assertThat(persisted).isTrue();
+    assertThat(loadUserIdeProperties(propertiesFile).getProperty(NlsService.GUI_LANGUAGE.getName())).isEqualTo("en");
   }
 
   /**
@@ -195,10 +215,11 @@ public class NlsServiceTest extends AbstractIdeContextTest {
     Files.writeString(propertiesFile, "IDE_OPTIONS=-Dfoo=bar\nGUI_LANGUAGE=de");
 
     NlsService service = newService(Locale.ENGLISH);
-    service.setPersistedLocale(Locale.ENGLISH.toLanguageTag());
+    boolean persisted = service.setPersistedLocale(Locale.ENGLISH.toLanguageTag());
 
+    assertThat(persisted).isTrue();
     Properties properties = loadUserIdeProperties(propertiesFile);
-    assertThat(properties.getProperty(NlsService.GUI_LANGUAGE)).isEqualTo("en");
+    assertThat(properties.getProperty(NlsService.GUI_LANGUAGE.getName())).isEqualTo("en");
     assertThat(properties.getProperty("IDE_OPTIONS")).isEqualTo("-Dfoo=bar");
   }
 
