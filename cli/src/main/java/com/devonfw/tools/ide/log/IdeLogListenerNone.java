@@ -13,7 +13,7 @@ public class IdeLogListenerNone implements IdeLogListener {
   }
 
   @Override
-  public boolean onLog(IdeLogEntry entry) {
+  public boolean onLog(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error) {
 
     return true;
   }
