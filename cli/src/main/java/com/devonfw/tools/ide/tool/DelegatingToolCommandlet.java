@@ -80,4 +80,9 @@ public abstract class DelegatingToolCommandlet<D extends AbstractToolCommandlet>
   public void setEdition(String edition, boolean hint, EnvironmentVariablesFiles destination) {
     getDelegate().setEdition(edition, hint, destination);
   }
+
+  @Override
+  public boolean isIdeHomeRequired() {
+    return getDelegate().isIdeHomeRequired();
+  }
 }

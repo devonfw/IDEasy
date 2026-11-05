@@ -39,10 +39,9 @@ class KubeCtlTest extends AbstractIdeContextTest {
 
   /**
    * Verifies that the installed version of KubeCtl is determined by running {@code kubectl version --client} (and not by delegating to
-   * {@link com.devonfw.tools.ide.tool.docker.Docker}). The kubectl-specific logic lives in the
-   * {@code computeInstalledEditionAndVersion()} hook, which the final cached
-   * {@code getInstalledEditionAndVersion()} invokes directly; only if the kubectl command itself is not available does the
-   * {@code super} call fall through to the Docker delegate.
+   * {@link com.devonfw.tools.ide.tool.docker.Docker}). The kubectl-specific logic lives in the {@code computeInstalledEditionAndVersion()} hook, which the
+   * final cached {@code getInstalledEditionAndVersion()} invokes directly; only if the kubectl command itself is not available does the {@code super} call fall
+   * through to the Docker delegate.
    */
   @Test
   void testGetInstalledVersionComesFromKubectlVersionClient() {
@@ -68,8 +67,8 @@ class KubeCtlTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Verifies that the edition is still reported (the tool name) while the version is {@code null} when the output of
-   * {@code kubectl version --client} does not contain a recognizable client version.
+   * Verifies that the edition is still reported (the tool name) while the version is {@code null} when the output of {@code kubectl version --client} does not
+   * contain a recognizable client version.
    */
   @Test
   void testGetInstalledVersionIsNullWhenNoVersionFoundInOutput() {
@@ -93,4 +92,20 @@ class KubeCtlTest extends AbstractIdeContextTest {
     Mockito.verify(this.processContext).runAndGetOutput("kubectl", "version", "--client");
   }
 
+  /**
+   * Tests that {@link KubeCtl} does not require IDE_HOME.
+   */
+  @Test
+  void testIdeHomeNotRequired() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    KubeCtl kubeCtl = new KubeCtl(context);
+
+    // act
+    boolean ideHomeRequired = kubeCtl.isIdeHomeRequired();
+
+    // assert
+    assertThat(ideHomeRequired).isFalse();
+  }
 }
