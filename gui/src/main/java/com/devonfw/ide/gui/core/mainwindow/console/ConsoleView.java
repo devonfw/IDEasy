@@ -14,7 +14,8 @@ import javafx.scene.control.TextArea;
 
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
-
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 
 /**
  * View of the console
@@ -105,24 +106,38 @@ public class ConsoleView {
       textArea.setWrapText(true);
       textArea.setEditable(false);
       textArea.setFocusTraversable(false);
-      textArea.setMinHeight(TextArea.USE_PREF_SIZE);
-      textArea.setMaxHeight(TextArea.USE_PREF_SIZE);
+    }
+    private static double computeTextHeight(String text, double width) {
+
+      Text helper = new Text(text);
+
+      helper.setFont(Font.font("Consolas", 11));
+      helper.setWrappingWidth(width);
+
+      return helper.getLayoutBounds().getHeight();
     }
     @Override
     protected void updateItem(IdeLogEntry entry, boolean empty) {
 
       super.updateItem(entry, empty);
       if (empty || entry == null) {
-        textArea.setText(null);
+        textArea.clear();
         setGraphic(null);
         setStyle(BASE_STYLE);
       } else {
         String text= entry.displayValue();
-        setGraphic(textArea);
         textArea.setText(text);
-        int rows= Math.max(1, textArea.getParagraphs().size());
-        textArea.setPrefRowCount(rows);
         textArea.setStyle(getStyleForEntry(entry));
+        textArea.setText(text);
+
+        textArea.applyCss();
+
+        double textHeight = computeTextHeight(text, textArea.getWidth());
+
+        textArea.setPrefHeight(textHeight + 11);
+
+
+        setGraphic(textArea);
       }
     }
 
