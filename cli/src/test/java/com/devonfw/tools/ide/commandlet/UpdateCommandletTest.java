@@ -7,11 +7,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import com.devonfw.tools.ide.commandlet.update.UpdateCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.GitContextMock;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -25,7 +28,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 class UpdateCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_UPDATE = "update";
-  private static final String SUCCESS_UPDATE_SETTINGS = "Successfully ended step 'update (pull) settings repository'.";
+  private static final String SUCCESS_UPDATE_SETTINGS = "Successfully ended step 'Update settings repository'.";
   private static final String SUCCESS_INSTALL_OR_UPDATE_SOFTWARE = "Install or update software";
 
   @Test
@@ -153,6 +156,59 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(context).logAtSuccess().hasMessage(SUCCESS_UPDATE_SETTINGS);
+    assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
+  }
+
+  /**
+   * Tests that a settings folder that exists but is not a git repository is backed up and cloned from scratch after the user confirmed.
+   */
+  @Test
+  void testRunUpdateWithBrokenSettingsFolder() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_UPDATE);
+    Path settingsPath = context.getSettingsPath();
+    // remove the '.git' folder so the settings are present but broken
+    context.getFileAccess().delete(settingsPath.resolve(GitContext.GIT_FOLDER));
+    UpdateCommandlet update = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
+    // first answer confirms the backup of the broken settings, second answer picks the default settings repository
+    context.setAnswers("yes", "-");
+
+    // act
+    update.run();
+
+    // assert
+    assertThat(context).logAtSuccess().hasMessage(SUCCESS_UPDATE_SETTINGS);
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS)).exists();
+    assertThat(settingsPath.resolve(GitContext.GIT_FOLDER)).exists();
+    assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
+  }
+
+  /**
+   * Tests that a failing "git pull" (e.g. due to an error of a custom git server) only fails the settings step while the software is still installed.
+   * <p>
+   * See: <a href="https://github.com/devonfw/IDEasy/pull/2335">#2335</a> for reference.
+   */
+  @Test
+  void testRunUpdateContinuesWhenPullFails() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_UPDATE);
+    context.setGitContext(new GitContextMock(context) {
+      @Override
+      public void pull(Path repository) {
+
+        throw new IllegalStateException("git pull failed due to an error of the custom git server");
+      }
+    });
+    UpdateCommandlet update = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
+
+    // act
+    update.run();
+
+    // assert
+    assertThat(context).logAtError().hasMessage("Step 'Applying settings' ended with failure.");
+    assertThat(context).log().hasNoMessage(SUCCESS_UPDATE_SETTINGS);
     assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
   }
 }

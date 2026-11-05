@@ -3,7 +3,7 @@ package com.devonfw.tools.ide.property;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.validation.PropertyValidator;
@@ -69,7 +69,7 @@ public class RepositoryProperty extends FileProperty {
   }
 
   @Override
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+  protected void completeValue(String arg, IdeContext context, AbstractCommandlet commandlet, CompletionCandidateCollector collector) {
 
     Path repositoriesPath = context.getRepositoriesPath();
     if (repositoriesPath != null) {
@@ -78,7 +78,7 @@ public class RepositoryProperty extends FileProperty {
   }
 
   @Override
-  protected String getPathForCompletion(Path path, IdeContext context, Commandlet commandlet) {
+  protected String getPathForCompletion(Path path, IdeContext context, AbstractCommandlet commandlet) {
 
     String filename = path.getFileName().toString();
     if (filename.endsWith(EXTENSION_PROPERTIES)) {

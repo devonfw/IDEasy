@@ -108,6 +108,7 @@ The column `inclusion` indicates the way the component is included:
 |https://tomcat.apache.org/[tomcat]|Optional|https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0]
 |https://www.oracle.com/java/technologies/jdk-mission-control.html[Java Mission Control]|Optional|https://github.com/openjdk/jmc/blob/master/license/LICENSE.txt[UPL 1.0] and https://github.com/openjdk/jmc/blob/master/license/THIRDPARTYREADME.txt[EPL 2.0]
 |https://www.pgadmin.org/[pgAdmin]|Optional|https://www.pgadmin.org/licence/#postgresql[The PostgreSQL Licence]
+|https://obsidian.md/[Obsidian]|Optional|https://obsidian.md/license[Obsidian Terms of Service (proprietary, free for commercial use)]
 |https://docs.astral.sh/uv/[uv] |Optional|https://docs.astral.sh/uv/reference/policies/license/[Apache 2.0]
 |https://squirrel-sql.sourceforge.io/[SQuirreL SQL Client]|Optional|https://github.com/squirrel-sql-client/squirrel-sql-stable-releases/blob/main/LICENSE[LGPL 2.1]
 |https://www.soapui.org/[SoapUI]|Optional|https://github.com/SmartBear/soapui/blob/next/LICENSE.txt[EUPL 1.1]
@@ -117,9 +118,11 @@ The column `inclusion` indicates the way the component is included:
 |https://github.com/casey/just[just] |Optional|https://github.com/casey/just/blob/master/LICENSE[CC0 1.0]
 |https://taskfile.dev/[Task CLI] |Optional|https://github.com/go-task/task/blob/main/LICENSE[MIT License]
 |https://developer.konghq.com/inso-cli |Optional|https://github.com/Kong/insomnia/blob/develop/LICENSE[Apache 2.0]
+|https://docs.kubelinter.io/[KubeLinter] |Optional|https://github.com/stackrox/kube-linter/blob/main/LICENSE[Apache 2.0]
 |https://www.rust-lang.org/[Rust] |Optional|https://www.rust-lang.org/policies/licenses[MIT and Apache 2.0]
 |https://visualstudio.microsoft.com/visual-cpp-build-tools/[MSVC Build Tools] |Optional|https://visualstudio.microsoft.com/license-terms/vs2022-ga-community/[Microsoft Software License Terms]
 |https://docs.astral.sh/ruff[ruff] |Optional|https://github.com/astral-sh/ruff/blob/main/LICENSE[MIT License]
+|https://flutter.dev/[Flutter]|Optional|https://github.com/flutter/flutter/blob/master/LICENSE[BSD 3-Clause License]
 |===
 
 == Apache Software License - Version 2.0

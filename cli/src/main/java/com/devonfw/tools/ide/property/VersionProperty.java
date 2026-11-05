@@ -4,11 +4,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.validation.PropertyValidator;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -57,15 +57,15 @@ public class VersionProperty extends Property<VersionIdentifier> {
   }
 
   @Override
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+  protected void completeValue(String arg, IdeContext context, AbstractCommandlet commandlet, CompletionCandidateCollector collector) {
 
-    ToolCommandlet tool = commandlet.getToolForCompletion();
+    AbstractToolCommandlet tool = commandlet.getToolForCompletion();
     if (tool != null) {
       completeVersion(VersionIdentifier.of(arg), tool, context, commandlet, collector);
     }
   }
 
-  private void completeVersion(VersionIdentifier version2complete, ToolCommandlet tool, IdeContext context, Commandlet commandlet,
+  private void completeVersion(VersionIdentifier version2complete, AbstractToolCommandlet tool, IdeContext context, AbstractCommandlet commandlet,
       CompletionCandidateCollector collector) {
 
     collector.disableSorting();

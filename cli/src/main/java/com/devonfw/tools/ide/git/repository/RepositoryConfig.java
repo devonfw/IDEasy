@@ -1,8 +1,6 @@
 package com.devonfw.tools.ide.git.repository;
 
-import java.nio.file.Path;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -58,13 +56,12 @@ public record RepositoryConfig(
   }
 
   /**
-   * @param filePath the {@link Path} to the {@link Properties} to load.
-   * @param context the {@link IdeContext}.
-   * @return the parsed {@link RepositoryConfig}.
+   * @param properties the {@link RepositoryProperties} to parse. The caller loads them so it can inspect e.g. the
+   *     {@link RepositoryProperties#isActive() active flag} before the remaining properties are read and thereby resolved.
+   * @return the parsed {@link RepositoryConfig} or {@code null} if the properties are {@link RepositoryProperties#isInvalid() invalid}.
    */
-  public static RepositoryConfig loadProperties(Path filePath, IdeContext context) {
+  static RepositoryConfig loadProperties(RepositoryProperties properties) {
 
-    RepositoryProperties properties = new RepositoryProperties(filePath, context);
     String id = properties.getId();
     RepositoryConfig config = new RepositoryConfig(id, properties.getPath(), properties.getWorkingSets(), properties.getWorkspaces(), properties.getGitUrl(),
         properties.getGitBranch(), properties.getBuildPath(), properties.getBuildCmd(), properties.getImports(), properties.getLinks(), properties.getRemotes(),

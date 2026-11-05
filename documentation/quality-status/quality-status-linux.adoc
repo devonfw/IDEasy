@@ -9,13 +9,13 @@ Automatically generated open issue overview for Linux.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 148
+*Total Issues:* 204
 
-* OS-specific: 6
+* OS-specific: 4
 
-* Multi-OS: 1
+* Multi-OS: 2
 
-* Cross-platform: 141
+* Cross-platform: 198
 
 == Linux Specific Issues
 
@@ -24,18 +24,10 @@ link:quality-status.adoc[Back to overview]
 | Issue | Summary
 2+^| *11-30 days*
 
-| link:https://github.com/devonfw/IDEasy/issues/2345[#2345]
-| DOCKER_EDITION ignored on Linux
-
-2+^| *31-60 days*
-
-| link:https://github.com/devonfw/IDEasy/issues/2271[#2271]
-| ide install pgadmin fails on Ubuntu Linux
+| link:https://github.com/devonfw/IDEasy/issues/2726[#2726]
+| Docker Desktop installation fails on Linux
 
 2+^| *90+ days*
-
-| link:https://github.com/devonfw/IDEasy/issues/2007[#2007]
-| IDEasy can not install docker on arch linux
 
 | link:https://github.com/devonfw/IDEasy/issues/1352[#1352]
 | VSCode WSL warning prompt blocking VSCode plugin installation
@@ -50,15 +42,27 @@ link:quality-status.adoc[Back to overview]
 
 == Multi-OS Issues
 
+=== Linux + Windows + macOS (1)
+
+[%header, cols="^1,7"]
+|===
+| Issue | Summary
+2+^| *31-60 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/2464[#2464]
+| Add unit tests for `OperatingSystem`
+
+|===
+
 === Linux + macOS (1)
 
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *90+ days*
+2+^| *31-60 days*
 
-| link:https://github.com/devonfw/IDEasy/issues/802[#802]
-| az not working on Mac
+| link:https://github.com/devonfw/IDEasy/issues/2467[#2467]
+| Obsidian: fix installation on macOS/Linux and duplicate LINUX/X64 artifact in O…
 
 |===
 

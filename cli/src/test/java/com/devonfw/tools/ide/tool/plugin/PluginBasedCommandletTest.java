@@ -13,9 +13,13 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextTestImpl;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Test of {@link PluginBasedCommandlet}.
+ * Test of {@link AbstractPluginBasedCommandlet}.
  */
 class PluginBasedCommandletTest extends AbstractIdeContextTest {
 
@@ -55,18 +59,82 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
   void testInstallPluginsWithForce() {
 
     //arrange
-    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    IdeTestContext context = newContext(PROJECT_BASIC);
     context.getStartContext().setForcePlugins(true);
     final ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+    ToolPluginDescriptor plugin = ToolPluginDescriptor.of(context.getSettingsPath().resolve(ANY_EDIT_PLUGIN_PATH), context, false);
+    pluginBasedCommandlet.createPluginMarkerFile(plugin);
 
     //act
-    pluginBasedCommandlet.installPlugins(
-        List.of(ToolPluginDescriptor.of(context.getSettingsPath().resolve(ANY_EDIT_PLUGIN_PATH), context, false)),
-        new ProcessContextTestImpl(context));
+    pluginBasedCommandlet.installPlugins(List.of(plugin), new ProcessContextTestImpl(context));
 
     //assert - Check if we skip the markerfile-check because we force the plugins to install
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit (1/1)'.");
-    assertThat(context).log().hasNoMessageContaining("Skipping installation of plugin '{}' due to existing marker file: ");
+    assertThat(context).log().hasNoMessageContaining("Skipping installation of plugin 'anyedit'");
+  }
+
+  @Test
+  void testInstallPluginsProgressSkipsInstalledPlugins() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+    ToolPluginDescriptor anyedit = new ToolPluginDescriptor("anyedit", "anyedit", null, null, true, Set.of(), Set.of());
+    ToolPluginDescriptor quickrex = new ToolPluginDescriptor("quickrex", "quickrex", null, null, true, Set.of(), Set.of());
+    ToolPluginDescriptor startexplorer = new ToolPluginDescriptor("startexplorer", "startexplorer", null, null, true, Set.of(), Set.of());
+    commandlet.createPluginMarkerFile(anyedit);
+    commandlet.createPluginMarkerFile(startexplorer);
+
+    commandlet.installPlugins(List.of(anyedit, quickrex, startexplorer), new ProcessContextTestImpl(context));
+
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin quickrex (1/1)'.");
+    assertThat(context).log().hasNoMessageContaining("Install plugin anyedit");
+    assertThat(context).log().hasNoMessageContaining("Install plugin startexplorer");
+    assertThat(commandlet.retrievePluginMarkerFilePath(quickrex)).exists();
+
+    context.getTestStartContext().getEntries().clear();
+    commandlet.installPlugins(List.of(anyedit, quickrex, startexplorer), new ProcessContextTestImpl(context));
+
+    assertThat(context).log().hasNoMessageContaining("Install plugin ");
+  }
+
+  @Test
+  void testInstallPluginsProgressExcludesInactiveAndExcludedPlugins() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+    ToolPluginDescriptor installed = new ToolPluginDescriptor("installed", "installed", null, null, true, Set.of(), Set.of());
+    ToolPluginDescriptor first = new ToolPluginDescriptor("first", "first", null, null, true, Set.of(), Set.of());
+    ToolPluginDescriptor inactive = new ToolPluginDescriptor("inactive", "inactive", null, null, false, Set.of(), Set.of());
+    ToolPluginDescriptor excluded = new ToolPluginDescriptor("excluded", "excluded", null, null, true, Set.of(), Set.of(commandlet.getConfiguredEdition()));
+    ToolPluginDescriptor second = new ToolPluginDescriptor("second", "second", null, null, true, Set.of(), Set.of());
+    commandlet.createPluginMarkerFile(installed);
+
+    commandlet.installPlugins(List.of(installed, first, inactive, excluded, second), new ProcessContextTestImpl(context));
+
+    assertThat(context).logAtSuccess().hasEntries("Successfully ended step 'Install plugin first (1/2)'.",
+        "Successfully ended step 'Install plugin second (2/2)'.");
+    assertThat(context).log().hasNoMessageContaining("Install plugin installed");
+    assertThat(context).log().hasNoMessageContaining("Install plugin inactive");
+    assertThat(context).log().hasNoMessageContaining("Install plugin excluded");
+    assertThat(context).logAtDebug().hasMessageContaining("Omitting installation of inactive plugin inactive");
+    assertThat(commandlet.retrievePluginMarkerFilePath(first)).exists();
+    assertThat(commandlet.retrievePluginMarkerFilePath(second)).exists();
+  }
+
+  @Test
+  void testExtraPluginsProgressSkipsInstalledPlugins() {
+
+    IdeTestContext context = newContext(PROJECT_EXTRA_PLUGINS);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+    ToolPlugins plugins = commandlet.getPlugins();
+    commandlet.createPluginMarkerFile(plugins.getByName("spotbugs"));
+
+    commandlet.installPlugins(plugins.getPlugins(), new ProcessContextTestImpl(context));
+
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit (1/1)'.");
+    assertThat(context).log().hasNoMessageContaining("Install plugin spotbugs");
+    assertThat(context).log().hasNoMessageContaining("Install plugin checkstyle");
+    assertThat(commandlet.retrievePluginMarkerFilePath(plugins.getByName("anyedit"))).exists();
   }
 
   @Test
@@ -157,5 +225,175 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     pluginBasedCommandlet.getExtraPlugins(pluginBasedCommandlet.getPlugins().getPlugins());
 
     assertThat(context).logAtInfo().hasMessageContaining("doesnotexist");
+  }
+
+  @Test
+  void testPluginPurgeRequiredOnFreshInstallation() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+
+    ToolEditionAndVersion editionAndVersion = newEditionAndVersion(new ToolEdition(TOOL, TOOL), VersionIdentifier.of("1.90.0"));
+    ToolInstallRequest request = newPurgeRequest(null, editionAndVersion);
+
+    assertThat(commandlet.isPluginPurgeRequired(request)).isTrue();
+  }
+
+  @Test
+  void testNoPluginPurgeOnUnchangedVersion() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+
+    ToolEditionAndVersion sameEditionAndVersion = newEditionAndVersion(new ToolEdition(TOOL, TOOL), VersionIdentifier.of("1.90.0"));
+    ToolInstallRequest request = newPurgeRequest(sameEditionAndVersion, sameEditionAndVersion);
+
+    assertThat(commandlet.isPluginPurgeRequired(request)).isFalse();
+  }
+
+  @Test
+  void testNoPluginPurgeOnFixVersionChange() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+
+    ToolEdition edition = new ToolEdition(TOOL, TOOL);
+    ToolEditionAndVersion editionAndVersion1 = newEditionAndVersion(edition, VersionIdentifier.of("1.90.0"));
+    ToolEditionAndVersion editionAndVersion2 = newEditionAndVersion(edition, VersionIdentifier.of("1.90.1"));
+    ToolInstallRequest request = newPurgeRequest(editionAndVersion1, editionAndVersion2);
+
+    assertThat(commandlet.isPluginPurgeRequired(request)).isFalse();
+  }
+
+  @Test
+  void testPluginPurgeOnMinorVersionChange() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+
+    ToolEdition edition = new ToolEdition(TOOL, TOOL);
+    ToolEditionAndVersion minorToolEditionAndVersion1 = newEditionAndVersion(edition, VersionIdentifier.of("1.90.0"));
+    ToolEditionAndVersion minorToolEditionAndVersion2 = newEditionAndVersion(edition, VersionIdentifier.of("1.91.0"));
+    ToolInstallRequest request = newPurgeRequest(minorToolEditionAndVersion1, minorToolEditionAndVersion2);
+
+    assertThat(commandlet.isPluginPurgeRequired(request)).isTrue();
+  }
+
+  @Test
+  void testPluginPurgeRequiredOnMajorVersionChange() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+
+    ToolEdition edition = new ToolEdition(TOOL, TOOL);
+    ToolEditionAndVersion majorToolEditionAndVersion1 = newEditionAndVersion(edition, VersionIdentifier.of("1.90.0"));
+    ToolEditionAndVersion majorToolEditionAndVersion2 = newEditionAndVersion(edition, VersionIdentifier.of("2.0.0"));
+    ToolInstallRequest request = newPurgeRequest(majorToolEditionAndVersion1, majorToolEditionAndVersion2);
+
+    assertThat(commandlet.isPluginPurgeRequired(request)).isTrue();
+  }
+
+  @Test
+  void testPluginPurgeRequiredOnEditionChange() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+
+    ToolEditionAndVersion edition1AndVersion = newEditionAndVersion(new ToolEdition(TOOL, TOOL), VersionIdentifier.of("1.90.0"));
+    ToolEditionAndVersion edition2AndVersion = newEditionAndVersion(new ToolEdition(TOOL, "cpp"), VersionIdentifier.of("1.90.0"));
+    ToolInstallRequest request = newPurgeRequest(edition1AndVersion, edition2AndVersion);
+
+    assertThat(commandlet.isPluginPurgeRequired(request)).isTrue();
+  }
+
+  @Test
+  void testPluginPurgeRequiredOnForcePluginReinstall() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+    commandlet.forcePluginReinstall.setValue(true);
+
+    ToolEditionAndVersion sameEditionAndVersion = newEditionAndVersion(new ToolEdition(TOOL, TOOL), VersionIdentifier.of("1.90.0"));
+    ToolInstallRequest request = newPurgeRequest(sameEditionAndVersion, sameEditionAndVersion);
+
+    assertThat(commandlet.isPluginPurgeRequired(request)).isTrue();
+  }
+
+  @Test
+  void testPluginPurgeNotRequiredOnRequestedNull() {
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
+    ToolEditionAndVersion edition1AndVersion = newEditionAndVersion(new ToolEdition(TOOL, TOOL), VersionIdentifier.of("1.90.0"));
+    ToolInstallRequest request = newPurgeRequest(edition1AndVersion, null);
+
+    assertThat(commandlet.isPluginPurgeRequired(request)).isFalse();
+  }
+
+  @Test
+  void testPluginPurgeOnMinorChangeWhenMinorSegmentIsIncompatible() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = newThresholdCommandlet(context, VersionIdentifier.MINOR_SEGMENT);
+    ToolEdition edition = new ToolEdition(TOOL, TOOL);
+
+    ToolInstallRequest minorChange = newPurgeRequest(newEditionAndVersion(edition, VersionIdentifier.of("1.90.0")),
+        newEditionAndVersion(edition, VersionIdentifier.of("1.91.0")));
+    ToolInstallRequest majorChange = newPurgeRequest(newEditionAndVersion(edition, VersionIdentifier.of("1.90.0")),
+        newEditionAndVersion(edition, VersionIdentifier.of("2.0.0")));
+    ToolInstallRequest fixChange = newPurgeRequest(newEditionAndVersion(edition, VersionIdentifier.of("1.90.0")),
+        newEditionAndVersion(edition, VersionIdentifier.of("1.90.1")));
+
+    assertThat(commandlet.isPluginPurgeRequired(minorChange)).isTrue();
+    assertThat(commandlet.isPluginPurgeRequired(majorChange)).isTrue();
+    assertThat(commandlet.isPluginPurgeRequired(fixChange)).isFalse();
+  }
+
+  @Test
+  void testPluginPurgeOnAnyChangeWhenFixSegmentIsIncompatible() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    ExamplePluginBasedCommandlet commandlet = newThresholdCommandlet(context, VersionIdentifier.FIX_SEGMENT);
+    ToolEdition edition = new ToolEdition(TOOL, TOOL);
+
+    ToolInstallRequest fixChange = newPurgeRequest(newEditionAndVersion(edition, VersionIdentifier.of("1.90.0")),
+        newEditionAndVersion(edition, VersionIdentifier.of("1.90.1")));
+    ToolInstallRequest minorChange = newPurgeRequest(newEditionAndVersion(edition, VersionIdentifier.of("1.90.0")),
+        newEditionAndVersion(edition, VersionIdentifier.of("1.91.0")));
+    ToolInstallRequest majorChange = newPurgeRequest(newEditionAndVersion(edition, VersionIdentifier.of("1.90.0")),
+        newEditionAndVersion(edition, VersionIdentifier.of("2.0.0")));
+
+    assertThat(commandlet.isPluginPurgeRequired(fixChange)).isTrue();
+    assertThat(commandlet.isPluginPurgeRequired(minorChange)).isTrue();
+    assertThat(commandlet.isPluginPurgeRequired(majorChange)).isTrue();
+  }
+
+  private ExamplePluginBasedCommandlet newThresholdCommandlet(IdeTestContext context, int incompatibleSegmentIndex) {
+
+    return new ExamplePluginBasedCommandlet(context, TOOL, tags) {
+      @Override
+      public int getIncompatibleVersionSegmentIndex() {
+
+        return incompatibleSegmentIndex;
+      }
+    };
+  }
+
+  private static ToolInstallRequest newPurgeRequest(ToolEditionAndVersion installed, ToolEditionAndVersion requested) {
+
+    ToolInstallRequest request = new ToolInstallRequest(true);
+    if (installed != null) {
+      request.setInstalled(installed);
+    }
+    if (requested != null) {
+      request.setRequested(requested);
+    }
+    return request;
+  }
+
+  private static ToolEditionAndVersion newEditionAndVersion(ToolEdition edition, VersionIdentifier version) {
+
+    ToolEditionAndVersion result = new ToolEditionAndVersion(edition);
+    result.setResolvedVersion(version);
+    return result;
   }
 }

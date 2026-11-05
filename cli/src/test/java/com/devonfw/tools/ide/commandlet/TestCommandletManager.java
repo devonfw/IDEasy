@@ -3,7 +3,7 @@ package com.devonfw.tools.ide.commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 
 /**
- * Extends {@link CommandletManagerImpl} to make {@link #add(Commandlet)} method visible for testing and mocking.
+ * Extends {@link CommandletManagerImpl} to make {@link #add(AbstractCommandlet)} method visible for testing and mocking.
  */
 public class TestCommandletManager extends CommandletManagerImpl {
 
@@ -16,7 +16,7 @@ public class TestCommandletManager extends CommandletManagerImpl {
   }
 
   @Override
-  public void add(Commandlet commandlet) {
+  public void add(AbstractCommandlet commandlet) {
 
     super.add(commandlet);
   }
