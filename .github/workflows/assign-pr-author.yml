@@ -35,7 +35,7 @@ jobs:
             }
 
             // Issue(s) this PR closes, resolved by GitHub; only those in this repository.
-            const issueNumbers = new Set();
+            const issues = [];
             try {
               const { repository: repoData } = await github.graphql(
                 `query($owner: String!, $name: String!, $number: Int!) {
@@ -57,7 +57,7 @@ jobs:
                 const repo = ref.repository;
                 if ((repo?.owner?.login ?? '').toLowerCase() === context.repo.owner.toLowerCase()
                   && (repo?.name ?? '').toLowerCase() === context.repo.repo.toLowerCase()) {
-                  issueNumbers.add(ref.number);
+                  issues.push(ref);
                 }
               }
             } catch (err) {
@@ -65,27 +65,23 @@ jobs:
               core.warning(`could not fetch the PR's closing issues: ${err.message}`);
             }
 
-            // Never assign the author to the PR itself if it appears in its own references.
-            issueNumbers.delete(pr.number);
-
-            for (const issueNumber of issueNumbers) {
+            for (const issue of issues) {
               try {
-                if (issue.data.pull_request) continue; // a pull request, not an issue
-                if (issue.data.assignees.some((a) => a.login === author)) {
-                  console.log(`Issue #${issueNumber} is already assigned to ${author}. Skipping.`);
+                if (issue.assignees.nodes.some((a) => a.login === author)) {
+                  console.log(`Issue #${issue.number} is already assigned to ${author}. Skipping.`);
                   continue;
                 }
 
                 await github.rest.issues.addAssignees({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  issue_number: issueNumber,
+                  issue_number: issue.number,
                   assignees: [author]
                 });
+                console.log(`Assigned ${author} to issue #${issue.number}`);
 
-                console.log(`Assigned ${author} to issue #${issueNumber}`);
               } catch (err) {
-                core.warning(`could not assign ${author} to issue #${issueNumber}: ${err.message}`);
+                core.warning(`could not assign ${author} to issue #${issue.number}: ${err.message}`);
               }
             }
 
