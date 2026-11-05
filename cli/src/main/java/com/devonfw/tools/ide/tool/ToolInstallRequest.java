@@ -262,8 +262,8 @@ public final class ToolInstallRequest {
   }
 
   /**
-   * @return the {@link ToolInstallTracker} that records tools already installed during this process, or {@code null} if this request is not part of a
-   *     process that tracks installs (e.g. a single <code>ide install tool</code>).
+   * @return the {@link ToolInstallTracker} that records tools already installed during the current operation, or {@code null} if the request has not yet
+   *     been completed (see {@link AbstractToolCommandlet#completeRequest(ToolInstallRequest)}).
    */
   public ToolInstallTracker getTracker() {
 

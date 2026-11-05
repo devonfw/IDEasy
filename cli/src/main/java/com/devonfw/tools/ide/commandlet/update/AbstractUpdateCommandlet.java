@@ -288,8 +288,8 @@ public abstract class AbstractUpdateCommandlet extends AbstractCommandlet {
       toolCommandlets.add(customToolCommandlet);
     }
 
-    // Track tools installed during this operation so a shared dependency (e.g. java required by both mvn and itself) is not installed and CVE-checked
-    // redundantly. A single tracker is shared across all tools so cross-tool references are deduplicated too - see https://github.com/devonfw/IDEasy/issues/945
+    // Track tools installed during this operation so a shared dependency is not installed and CVE-checked redundantly. A single tracker is shared across
+    // all tools so cross-tool references are deduplicated too - see https://github.com/devonfw/IDEasy/issues/945
     ToolInstallTracker tracker = new ToolInstallTracker();
 
     // update/install the toolCommandlets

@@ -6,12 +6,12 @@ import java.util.Map;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Tracks which tools have already been installed (including their CVE check) during a single <code>ide update</code> / <code>ide create</code> process so the
- * same tool+version is not processed again when it is referenced both as a top-level tool and as a dependency. Versions are stored as strings because
- * {@link VersionIdentifier} uses identity-based {@code equals}.
+ * Tracks which tools have already been installed (including their CVE check) during a single <code>ide</code> command so the same tool+version is not
+ * processed again when it is referenced both as a top-level tool and as a dependency.
  */
 public final class ToolInstallTracker {
 
+  /** Keyed by {@link ToolEdition}; versions stored as strings because {@link VersionIdentifier} uses identity-based {@code equals}. */
   private final Map<ToolEdition, Entry> state = new HashMap<>();
 
   /** The installation state of a single {@link ToolEdition} during the current process. */
@@ -20,7 +20,7 @@ public final class ToolInstallTracker {
     /** {@code true} if this edition has been installed during the current process. */
     boolean installed;
 
-    /** The version installed, resolved before the CVE check (what a redundant reference resolves back to). */
+    /** The version installed, resolved before the CVE check. */
     String requestedVersion;
 
     /** {@code true} if the CVE check for this edition has been run during the current process. */
