@@ -366,15 +366,14 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
       return toolAlreadyInstalled(request);
     }
     ToolInstallTracker tracker = request.getTracker();
-    // Skip a standard project tool that has already been installed (including its CVE check) earlier in this process, e.g. because it was already handled
-    // as a dependency of another tool. Additional and extra installations are never skipped since they must be installed at their specific location/version.
+    // Additional and extra installations are never skipped since they must be installed at their specific location/version.
     if ((tracker != null) && !request.isAdditionalInstallation() && !request.isExtraInstallation()
         && tracker.isInstalled(request.getRequested())) {
       LOG.debug("Skipping installation of {} (already installed during this process).", request.getRequested());
       return createExistingToolInstallation(request);
     }
-    // Capture the resolved version before doInstall since the CVE check may bump it in place. The tracker must record this pre-CVE version so that a
-    // subsequent reference, which again resolves to the configured version, is still recognized as installed (see #945).
+    // Capture the resolved version before doInstall since the CVE check may bump it in place; the tracker must record the pre-CVE version so a later
+    // reference to the same tool is still recognized as installed (see #945).
     VersionIdentifier resolvedVersionBeforeCveCheck = (tracker != null) ? request.getRequested().getResolvedVersion() : null;
     ToolInstallation installation = doInstall(request);
     if (installation != null && installation.installedAsynchronously()) {
@@ -425,9 +424,9 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
   }
 
   /**
-   * Ensures the request carries a {@link ToolInstallTracker}, creating one for a top-level request that does not yet (shared with all of its dependencies so a
-   * shared dependency is only installed and CVE-checked once, see issue #945). An already-provided tracker (e.g. the one shared by <code>ide update</code>) is
-   * kept.
+   * Ensures the request carries a {@link ToolInstallTracker}, creating one for a top-level request that does not yet have one. Dependencies inherit the
+   * tracker from their parent request, so a shared dependency is only installed and CVE-checked once (see issue #945). An already-provided tracker
+   * (shared by <code>ide update</code>) is kept.
    *
    * @param request the {@link ToolInstallRequest} to complete.
    */

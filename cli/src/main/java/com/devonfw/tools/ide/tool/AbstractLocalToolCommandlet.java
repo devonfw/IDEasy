@@ -181,9 +181,8 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
     ToolEdition toolEdition = requested.getEdition();
     assert (toolEdition.tool().equals(this.tool)) : "Mismatch " + this.tool + " != " + toolEdition.tool();
     String edition = toolEdition.edition();
-    // The CVE check must run once per tool+version per process. This also covers the additional (out-of-range) installation path, which bypasses
-    // install() and calls this method directly, so the CVE check would otherwise run again for every dependent. Extra installations are excluded because
-    // they install their own fixed version and must be checked independently.
+    // The CVE check runs once per tool+version per process (also covering the out-of-range path, which bypasses install() and calls this method directly).
+    // Extra installations are excluded because they install their own fixed version and must be checked independently.
     ToolInstallTracker tracker = request.getTracker();
     VersionIdentifier resolvedVersion;
     if ((tracker != null) && !request.isExtraInstallation() && tracker.isCveChecked(toolEdition, requested.getResolvedVersion())) {
