@@ -1,0 +1,231 @@
+= Run GitHub Actions Locally with act
+:toc:
+toc::[]
+
+https://github.com/nektos/act[act] allows contributors to run GitHub Actions workflows locally.
+This can be useful for testing workflow changes before pushing them to GitHub.
+
+NOTE: Running a workflow locally with `act` does not guarantee that it will behave exactly like a workflow running on GitHub-hosted runners.
+
+== Prerequisites
+
+To run workflows locally, the following tools are required:
+
+* https://github.com/nektos/act[act]
+* A running Docker-compatible container engine
+* A local clone of the IDEasy repository
+
+The commands in this guide must be executed from the root directory of the IDEasy repository, where the `.github/workflows` directory is located.
+
+== Install act on Windows
+
+There are multiple ways to install `act` on Windows.
+One option is using https://scoop.sh/[Scoop]:
+
+[source,bash]
+----
+scoop install act
+----
+
+Verify the installation:
+
+[source,bash]
+----
+act --version
+----
+
+For other installation options, see the https://nektosact.com/installation/index.html[official act installation documentation].
+
+== Set Up Docker
+
+`act` executes workflow jobs inside containers.
+Therefore, a running Docker-compatible container engine is required.
+
+IDEasy recommends https://rancherdesktop.io/[Rancher Desktop] as an alternative to Docker Desktop.
+See link:../docker-desktop-alternative.adoc[Docker Desktop alternative] for additional information.
+
+After starting Rancher Desktop, verify that Docker is available:
+
+[source,bash]
+----
+docker version
+docker ps
+----
+
+=== Configure the Docker Host
+
+By default, `act` expects the Docker Engine provided by Docker Desktop.
+When Rancher Desktop is used, it may be necessary to set `DOCKER_HOST`.
+
+In Git Bash:
+
+[source,bash]
+----
+export DOCKER_HOST=$(docker context inspect --format '{{.Endpoints.docker.Host}}')
+----
+
+Verify the configured value:
+
+[source,bash]
+----
+echo "$DOCKER_HOST"
+----
+
+For the current PowerShell session:
+
+[source,powershell]
+----
+$env:DOCKER_HOST = docker context inspect --format "{{.Endpoints.docker.Host}}"
+----
+
+NOTE: The environment variable configured with these commands applies only to the current terminal session.
+
+== List Available Workflows and Jobs
+
+From the root directory of the IDEasy repository, list the workflows and jobs detected by `act`:
+
+[source,bash]
+----
+act --list
+----
+
+This command reads the workflow definitions from `.github/workflows`.
+
+== Run a Specific Workflow
+
+Use `-W` to select a workflow file.
+
+For example:
+
+[source,bash]
+----
+act -W .github/workflows/build.yml
+----
+
+The workflow path is relative to the root directory of the repository.
+
+== Select a Runner Image
+
+GitHub workflow jobs define a runner platform such as `ubuntu-latest`.
+With `act`, the `-P` option maps that platform to a container image.
+
+The following command runs `build.yml` using the full Ubuntu runner image:
+
+[source,bash]
+----
+act \
+  -P ubuntu-latest=catthehacker/ubuntu:full-latest \
+  -W .github/workflows/build.yml
+----
+
+On PowerShell, the same command can be written as:
+
+[source,powershell]
+----
+act `
+  -P ubuntu-latest=catthehacker/ubuntu:full-latest `
+  -W .github/workflows/build.yml
+----
+
+The `catthehacker/ubuntu:full-latest` image is large and requires significant disk space.
+The first execution downloads the image before starting the workflow.
+
+Smaller runner images may require less storage, but they may not contain all tools required by the IDEasy build.
+
+For information about available runner images and platform mappings, see the https://nektosact.com/usage/runners.html[act runner documentation].
+
+== Provide GitHub Secrets
+
+GitHub Actions workflows may use secrets that are available on GitHub but not on the local machine.
+
+A secret can be provided using `-s`:
+
+[source,bash]
+----
+act -s SECRET_NAME=SECRET_VALUE
+----
+
+To avoid putting a secret directly into the shell history, omit its value:
+
+[source,bash]
+----
+act -s SECRET_NAME
+----
+
+`act` will then request the value interactively.
+
+WARNING: Never commit tokens, passwords, or other credentials to the repository.
+
+== Known Limitations
+
+=== JmcTest.testJmcRun Fails
+
+`JmcTest.testJmcRun` may fail when executed with `act`.
+
+=== Missing COVERALLS_REPO_TOKEN
+
+After the build has completed, the Coveralls step may fail with:
+
+[source,text]
+----
+Missing COVERALLS_REPO_TOKEN
+----
+
+The workflow expects the `COVERALLS_REPO_TOKEN` secret, which is not automatically available during a local run.
+
+If access to an appropriate token is available, it can be passed to `act`:
+
+[source,bash]
+----
+act \
+  -s COVERALLS_REPO_TOKEN \
+  -P ubuntu-latest=catthehacker/ubuntu:full-latest \
+  -W .github/workflows/build.yml
+----
+
+Do not put the actual token into this documentation or commit it to Git.
+
+=== No Stages Found for nightly-build.yml
+
+Although the jobs in `nightly-build.yml` may appear in the output of `act --list`, running the workflow can produce:
+
+[source,text]
+----
+Error: Could not find any stages to run
+----
+
+The jobs may depend on GitHub event data and job-level `if` conditions that are not satisfied during the local execution.
+
+For diagnostic purposes, contributors can inspect:
+
+* The events configured below `on:`
+* Job-level `if:` expressions
+* Dependencies declared with `needs:`
+
+Changing workflow triggers or removing conditions changes the behavior of the workflow.
+Such changes should only be made in a local branch for investigation and must not be committed as a workaround without reviewing their effect on GitHub CI.
+
+== Clean Up Docker Resources
+
+List the downloaded images:
+
+[source,bash]
+----
+docker images
+----
+
+Display Docker disk usage:
+
+[source,bash]
+----
+docker system df
+----
+
+Remove an image if it is no longer required:
+
+[source,bash]
+----
+docker image rm catthehacker/ubuntu:full-latest
+----
+
+The image cannot be removed while it is used by an existing container.

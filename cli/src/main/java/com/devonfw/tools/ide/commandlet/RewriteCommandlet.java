@@ -17,9 +17,9 @@ import com.devonfw.tools.ide.tool.openrewrite.RecipeWrapper;
 import com.devonfw.tools.ide.tool.openrewrite.RewriteRecipeEnum;
 
 /**
- * {@link Commandlet} for <a href="https://docs.openrewrite.org/">OpenRewrite</a> refactoring.
+ * {@link AbstractCommandlet} for <a href="https://docs.openrewrite.org/">OpenRewrite</a> refactoring.
  */
-public class RewriteCommandlet extends Commandlet {
+public class RewriteCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(RewriteCommandlet.class);
 
@@ -93,7 +93,7 @@ public class RewriteCommandlet extends Commandlet {
     String input = this.context.askForInput(
         "***Before making actual changes to the code, please confirm it seriously."
             + " It is strongly recommended to perform a DRY-RUN first***\n" +
-        "Type yes to apply changes, or press other keys to perform DRY-RUN: ");
+            "Type yes to apply changes, or press other keys to perform DRY-RUN: ");
 
     return input.equalsIgnoreCase("yes");
 

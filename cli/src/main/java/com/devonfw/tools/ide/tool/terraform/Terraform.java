@@ -6,13 +6,12 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 
 /**
- * {@link ToolCommandlet} for terraform CLI (terraform).
+ * {@link AbstractToolCommandlet} for terraform CLI (terraform).
  */
-public class Terraform extends LocalToolCommandlet {
+public class Terraform extends AbstractLocalToolCommandlet {
 
   /**
    * The constructor.

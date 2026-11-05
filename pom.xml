@@ -26,6 +26,7 @@
     <xmlunit.version>2.11.0</xmlunit.version>
     <wiremock.version>3.11.0</wiremock.version>
     <javafx.version>25</javafx.version>
+    <mmm.version>0.9.13</mmm.version>
     <testfx.version>4.0.18</testfx.version>
     <native.maven.plugin.version>0.10.6</native.maven.plugin.version>
     <assembly.maven.plugin.version>3.8.0</assembly.maven.plugin.version>
@@ -171,6 +172,11 @@
         <artifactId>javafx-controls</artifactId>
         <version>${javafx.version}</version>
       </dependency>
+      <dependency>
+        <groupId>io.github.m-m-m</groupId>
+        <artifactId>mmm-event</artifactId>
+        <version>${mmm.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -182,6 +188,7 @@
     <module>url-updater</module>
     <module>security</module>
     <module>macos-installer</module>
+    <module>windows-installer</module>
   </modules>
 
   <build>

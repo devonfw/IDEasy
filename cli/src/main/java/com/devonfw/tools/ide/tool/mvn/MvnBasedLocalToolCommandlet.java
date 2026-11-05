@@ -5,14 +5,14 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Extends {@link LocalToolCommandlet} for {@link Mvn Maven} based tools via {@link MvnRepository}.
+ * Extends {@link AbstractLocalToolCommandlet} for {@link Mvn Maven} based tools via {@link MvnRepository}.
  */
-public abstract class MvnBasedLocalToolCommandlet extends LocalToolCommandlet {
+public abstract class MvnBasedLocalToolCommandlet extends AbstractLocalToolCommandlet {
 
   private final MvnArtifact artifact;
 

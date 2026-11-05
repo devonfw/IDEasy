@@ -10,12 +10,13 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.PackageManagerBasedLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.PackageManagerRequest;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.tool.uv.Uv;
@@ -25,7 +26,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link PackageManagerBasedLocalToolCommandlet} for python tools based on <a href="https://pip.pypa.io/">pip</a>.
  * <p>
  */
-public abstract class PipBasedCommandlet extends PackageManagerBasedLocalToolCommandlet<ToolCommandlet> {
+public abstract class PipBasedCommandlet extends PackageManagerBasedLocalToolCommandlet<AbstractToolCommandlet> {
 
   private static final Logger LOG = LoggerFactory.getLogger(PipBasedCommandlet.class);
 
@@ -51,10 +52,10 @@ public abstract class PipBasedCommandlet extends PackageManagerBasedLocalToolCom
 
   @Override
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  protected Class<ToolCommandlet> getPackageManagerClass() {
+  protected Class<AbstractToolCommandlet> getPackageManagerClass() {
 
     String edition = this.context.getVariables().getToolEdition("pip");
-    Class<? extends ToolCommandlet> result =
+    Class<? extends AbstractToolCommandlet> result =
         switch (edition) {
           case "pip" -> Pip.class;
           case "uv" -> Uv.class;
@@ -108,9 +109,11 @@ public abstract class PipBasedCommandlet extends PackageManagerBasedLocalToolCom
         return null;
       }
     }
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE);
+    this.context.setEnvironmentOfInstalledTools(pc);
     PackageManagerRequest request = new PackageManagerRequest("show", getPackageName()).setProcessMode(ProcessMode.DEFAULT_CAPTURE)
-        .setProcessContext(this.context.newProcess().errorHandling(ProcessErrorHandling.NONE));
-    ProcessResult processResult = runPackageManager(request);
+        .setProcessContext(pc);
+    ProcessResult processResult = runPackageManager(request, true);
     if (processResult.isSuccessful()) {
       for (String line : processResult.getOut()) {
         // we are looking for something like "Version: 25.3"

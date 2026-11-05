@@ -4,12 +4,12 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 
 /**
- * {@link LocalToolCommandlet} for <a href="https://squirrel-sql.sourceforge.io/">SQuirreL SQL</a>.
+ * {@link AbstractLocalToolCommandlet} for <a href="https://squirrel-sql.sourceforge.io/">SQuirreL SQL</a>.
  */
-public class SquirrelSql extends LocalToolCommandlet {
+public class SquirrelSql extends AbstractLocalToolCommandlet {
 
   private static final String SQUIRREL_SQL = "squirrel-sql";
   private static final String SQUIRREL_SQL_BAT = SQUIRREL_SQL + ".bat";

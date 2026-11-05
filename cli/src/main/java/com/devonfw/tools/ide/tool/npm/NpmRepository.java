@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.json.JsonMapping;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.node.NodeBasedCommandlet;
 import com.devonfw.tools.ide.tool.repository.AbstractToolRepository;
 import com.devonfw.tools.ide.tool.repository.ArtifactToolRepository;
@@ -20,6 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Since the registry is <a href="https://www.npmjs.com/">npmjs.com</a> it is not called node-repository but npm-repository.
  */
 public class NpmRepository extends ArtifactToolRepository<NpmArtifact, NpmArtifactMetadata> {
+
+  private static final Logger LOG = LoggerFactory.getLogger(NpmRepository.class);
 
   /** The base URL of the npm registry. */
   public static final String REGISTRY_URL = "https://registry.npmjs.org/";
@@ -45,7 +50,7 @@ public class NpmRepository extends ArtifactToolRepository<NpmArtifact, NpmArtifa
   }
 
   @Override
-  protected NpmArtifact resolveArtifact(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
+  protected NpmArtifact resolveArtifact(String tool, String edition, VersionIdentifier version, AbstractToolCommandlet toolCommandlet) {
 
     if (toolCommandlet instanceof NodeBasedCommandlet nodeBasedCommandlet) {
       String name = nodeBasedCommandlet.getPackageName();
@@ -67,7 +72,17 @@ public class NpmRepository extends ArtifactToolRepository<NpmArtifact, NpmArtifa
       Set<String> versionSet = npmJs.versions().getVersionMap().keySet();
       List<VersionIdentifier> versions = new ArrayList<>(versionSet.size());
       for (String version : versionSet) {
-        versions.add(VersionIdentifier.of(version));
+        try {
+          VersionIdentifier parsedVersion = VersionIdentifier.of(version);
+          if (parsedVersion != null) {
+            versions.add(parsedVersion);
+          } else {
+            LOG.warn("Skipping invalid npm version '{}' for package '{}': could not be parsed to a version", version, artifact.getName());
+          }
+        } catch (RuntimeException e) {
+          LOG.warn("Skipping invalid npm version '{}' for package '{}': {}", version, artifact.getName(), e.getMessage());
+        }
+
       }
       return versions;
     } catch (JsonProcessingException e) {

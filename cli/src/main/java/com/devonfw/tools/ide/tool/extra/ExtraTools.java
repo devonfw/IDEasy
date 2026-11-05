@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.json.JsonObject;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 
 /**
  * {@link ExtraTools} represents the {@code ide-extra-tools.json} file.
@@ -38,7 +39,7 @@ public class ExtraTools implements JsonObject {
   }
 
   /**
-   * @param tool the {@link com.devonfw.tools.ide.tool.LocalToolCommandlet#getName() name} of the {@link com.devonfw.tools.ide.tool.LocalToolCommandlet}.
+   * @param tool the {@link AbstractLocalToolCommandlet#getName() name} of the {@link AbstractLocalToolCommandlet}.
    * @return the {@link List} of {@link ExtraToolInstallation extra installations}. Will be empty if no extra installation is defined.
    */
   public List<ExtraToolInstallation> getExtraInstallations(String tool) {
@@ -51,7 +52,7 @@ public class ExtraTools implements JsonObject {
   }
 
   /**
-   * @param tool the {@link com.devonfw.tools.ide.tool.LocalToolCommandlet#getName() name} of the {@link com.devonfw.tools.ide.tool.LocalToolCommandlet}.
+   * @param tool the {@link AbstractLocalToolCommandlet#getName() name} of the {@link AbstractLocalToolCommandlet}.
    * @param extraInstallation the {@link ExtraToolInstallation} to add.
    */
   public void addExtraInstallations(String tool, ExtraToolInstallation extraInstallation) {

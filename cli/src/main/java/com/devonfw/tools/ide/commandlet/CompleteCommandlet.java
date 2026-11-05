@@ -13,9 +13,9 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.StringProperty;
 
 /**
- * {@link Commandlet} for auto-completion.
+ * {@link AbstractCommandlet} for auto-completion.
  */
-public final class CompleteCommandlet extends Commandlet {
+public final class CompleteCommandlet extends AbstractCommandlet {
 
   /** The name of the complete commandlet. */
   public static final String NAME = "complete";

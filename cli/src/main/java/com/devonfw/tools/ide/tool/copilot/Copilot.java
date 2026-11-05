@@ -4,13 +4,12 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 
 /**
- * {@link ToolCommandlet} for <a href="https://github.com/github/copilot-cli">GitHub Copilot CLI</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://github.com/github/copilot-cli">GitHub Copilot CLI</a>.
  */
-public class Copilot extends LocalToolCommandlet {
+public class Copilot extends AbstractLocalToolCommandlet {
 
   /**
    * The constructor.
