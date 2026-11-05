@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliFatalException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -193,6 +194,32 @@ class StepTest extends AbstractIdeContextTest {
     assertThat(step.isFailure()).isTrue();
     // the error is rethrown, so the fallback must not be returned
     assertThat(fallbackUsed).isFalse();
+  }
+
+  @Test
+  void testRunRethrowsAbort() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
+    Step step = context.newStep("Test-Step");
+    // act & assert
+    assertThatThrownBy(() -> step.run(() -> {
+      throw new CliAbortException();
+    })).isInstanceOf(CliAbortException.class);
+    assertThat(step.isFailure()).isTrue();
+  }
+
+  @Test
+  void testCallRethrowsAbort() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, "project", false);
+    Step step = context.newStep("Test-Step");
+    // act & assert
+    assertThatThrownBy(() -> step.call(() -> {
+      throw new CliAbortException();
+    }, () -> "fallback")).isInstanceOf(CliAbortException.class);
+    assertThat(step.isFailure()).isTrue();
   }
 
 }

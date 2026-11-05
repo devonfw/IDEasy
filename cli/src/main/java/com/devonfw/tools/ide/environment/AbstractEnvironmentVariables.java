@@ -334,7 +334,9 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
         if (value == null) {
           value = variable.getDefaultValueAsString(this.context);
         }
-        if (value != null) {
+        // skip empty values: they carry nothing to inverse-resolve and String.replace("", token) would
+        // insert the variable expression between every character, corrupting the value
+        if ((value != null) && !value.isEmpty()) {
           result = result.replace(value, syntax.create(name));
         }
       }

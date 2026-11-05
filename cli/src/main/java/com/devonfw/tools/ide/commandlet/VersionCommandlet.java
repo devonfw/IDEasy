@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.version.IdeVersion;
 /**
  * Prints the IDEasy version and exits
  */
-public class VersionCommandlet extends Commandlet {
+public class VersionCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(VersionCommandlet.class);
 

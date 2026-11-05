@@ -3,7 +3,7 @@ package com.devonfw.tools.ide.tool.repository;
 import java.nio.file.Path;
 import java.util.Collection;
 
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.url.model.AbstractUrlMetadata;
 import com.devonfw.tools.ide.url.model.file.json.Cve;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
@@ -12,8 +12,8 @@ import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Interface for a software repository that allows to {@link #download(String, String, VersionIdentifier, ToolCommandlet) download} software via the network. It
- * is responsible for the following aspects:
+ * Interface for a software repository that allows to {@link #download(String, String, VersionIdentifier, AbstractToolCommandlet) download} software via the
+ * network. It is responsible for the following aspects:
  * <ul>
  * <li>version resolution (e.g. resolving version patterns and determining the latest (stable) version)</li>
  * <li>discovery (compute the download URL)</li>
@@ -35,12 +35,12 @@ public interface ToolRepository extends AbstractUrlMetadata {
    * @param tool the name of the tool.
    * @param edition the edition of the tool.
    * @param version the {@link VersionIdentifier} to resolve.
-   * @param toolCommandlet the {@link ToolCommandlet}.
+   * @param toolCommandlet the {@link AbstractToolCommandlet}.
    * @return the resolved {@link VersionIdentifier}. If the given {@link VersionIdentifier} is NOT a {@link VersionIdentifier#isPattern() pattern} this method
    *     will always just return the given {@link VersionIdentifier}.
    */
   @Override
-  VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, ToolCommandlet toolCommandlet);
+  VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, AbstractToolCommandlet toolCommandlet);
 
   /**
    * Will download the requested software specified by the given arguments. If that software is already available in the download-cache it will be returned
@@ -49,16 +49,16 @@ public interface ToolRepository extends AbstractUrlMetadata {
    *
    * @param tool the name of the tool.
    * @param edition the edition of the tool.
-   * @param version the {@link #resolveVersion(String, String, GenericVersionRange, ToolCommandlet) resolved} {@link VersionIdentifier}.
-   * @param toolCommandlet the {@link ToolCommandlet}.
+   * @param version the {@link #resolveVersion(String, String, GenericVersionRange, AbstractToolCommandlet) resolved} {@link VersionIdentifier}.
+   * @param toolCommandlet the {@link AbstractToolCommandlet}.
    * @return the {@link Path} to the downloaded software package.
    */
-  Path download(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet);
+  Path download(String tool, String edition, VersionIdentifier version, AbstractToolCommandlet toolCommandlet);
 
   /**
    * @param tool the name of the tool.
    * @param edition the edition of the tool.
-   * @param version the {@link #resolveVersion(String, String, GenericVersionRange, ToolCommandlet) resolved} {@link VersionIdentifier}.
+   * @param version the {@link #resolveVersion(String, String, GenericVersionRange, AbstractToolCommandlet) resolved} {@link VersionIdentifier}.
    * @return the {@link Collection} of {@link ToolDependency tool dependencies}.
    */
   Collection<ToolDependency> findDependencies(String tool, String edition, VersionIdentifier version);

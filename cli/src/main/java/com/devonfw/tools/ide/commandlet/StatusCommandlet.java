@@ -18,9 +18,9 @@ import com.devonfw.tools.ide.tool.IdeasyCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link Commandlet} to print a status report about IDEasy.
+ * {@link AbstractCommandlet} to print a status report about IDEasy.
  */
-public class StatusCommandlet extends Commandlet {
+public class StatusCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(StatusCommandlet.class);
 
@@ -128,11 +128,10 @@ public class StatusCommandlet extends Commandlet {
 
     IdeMigrator migrator = new IdeMigrator();
     VersionIdentifier projectVersion = this.context.getProjectVersion();
-    VersionIdentifier targetVersion = migrator.getTargetVersion();
-    if (projectVersion.isLess(targetVersion)) {
+    if (projectVersion.isLess(migrator.getTargetVersion())) {
       IdeLogLevel.INTERACTION.log(LOG,
-          "Your project is on IDEasy version {} and needs an update to version {}!\nPlease run 'ide update' to migrate your project",
-          projectVersion, targetVersion);
+          "Your project '{}' was created or last updated with IDEasy version {} and needs an update.\nPlease run 'ide update' to migrate your project.",
+          this.context.getProjectName(), projectVersion);
     }
   }
 

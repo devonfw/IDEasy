@@ -2,14 +2,14 @@ package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.ToolProperty;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 
 /**
- * An internal {@link Commandlet} to list versions for a tool.
+ * An internal {@link AbstractCommandlet} to list versions for a tool.
  *
- * @see ToolCommandlet#listVersions()
+ * @see AbstractToolCommandlet#listVersions()
  */
-public class VersionListCommandlet extends Commandlet {
+public class VersionListCommandlet extends AbstractCommandlet {
 
   /** The tool to list the versions of. */
   public final ToolProperty tool;
@@ -41,7 +41,7 @@ public class VersionListCommandlet extends Commandlet {
   @Override
   protected void doRun() {
 
-    ToolCommandlet commandlet = this.tool.getValue();
+    AbstractToolCommandlet commandlet = this.tool.getValue();
     commandlet.listVersions();
   }
 

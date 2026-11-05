@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.jline.utils.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +52,8 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
     this.extension2mergerMap.put("launch", xmlMerger); // Eclipse specific
     JsonMerger jsonMerger = new JsonMerger(context);
     this.extension2mergerMap.put("json", jsonMerger);
+    IniMerger iniMerger = new IniMerger(context);
+    this.extension2mergerMap.put("ini", iniMerger);
     TextMerger textMerger = new TextMerger(context);
     this.extension2mergerMap.put("name", textMerger); // intellij specific
     this.extension2mergerMap.put("editorconfig", textMerger);
@@ -62,6 +63,23 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
 
   @Override
   public int merge(Path setup, Path update, EnvironmentVariables variables, Path workspace) {
+
+    return merge(setup, update, variables, workspace, Map.of());
+  }
+
+  /**
+   * Same as {@link #merge(Path, Path, EnvironmentVariables, Path)} but allows to merge templates of specific sub-folders to a different location outside the
+   * {@code workspace}.
+   *
+   * @param setup the setup {@link Path} for creation.
+   * @param update the update {@link Path} for creation and update.
+   * @param variables the {@link EnvironmentVariables} to {@link EnvironmentVariables#resolve(String, Object) resolve variables}.
+   * @param workspace the workspace {@link Path} to create or update.
+   * @param redirects the {@link Map} with the {@link Path}s inside the {@code workspace} as keys and the {@link Path}s where to merge them instead as
+   *     values.
+   * @return the number of errors that occurred. Should be {@code 0} for success.
+   */
+  public int merge(Path setup, Path update, EnvironmentVariables variables, Path workspace, Map<Path, Path> redirects) {
 
     int errors = 0;
     Set<String> children = null;
@@ -74,7 +92,9 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
     } else {
       // directory scan
       for (String filename : children) {
-        errors += merge(setup.resolve(filename), update.resolve(filename), variables, workspace.resolve(filename));
+        Path target = workspace.resolve(filename);
+        target = redirects.getOrDefault(target, target);
+        errors += merge(setup.resolve(filename), update.resolve(filename), variables, target, redirects);
       }
     }
     return errors;
@@ -101,10 +121,10 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
 
     if (Files.isDirectory(update)) {
       if (!Files.isDirectory(workspace)) {
-        Log.warn("Workspace is missing directory: {}", workspace);
+        LOG.warn("Workspace is missing directory: {}", workspace);
         return;
       }
-      Log.trace("Traversing directory: {}", update);
+      LOG.trace("Traversing directory: {}", update);
       try (Stream<Path> childStream = Files.list(update)) {
         Iterator<Path> iterator = childStream.iterator();
         while (iterator.hasNext()) {
@@ -117,12 +137,12 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
       }
 
     } else if (Files.exists(workspace)) {
-      Log.debug("Start merging of changes from workspace back to file: {}", update);
+      LOG.debug("Start merging of changes from workspace back to file: {}", update);
       FileMerger merger = getMerger(workspace);
-      Log.trace("Using merger {}", merger.getClass().getSimpleName());
+      LOG.trace("Using merger {}", merger.getClass().getSimpleName());
       merger.inverseMerge(workspace, variables, addNewProperties, update);
     } else {
-      Log.warn("No such file or directory: {}", update);
+      LOG.warn("No such file or directory: {}", update);
     }
   }
 

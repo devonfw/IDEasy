@@ -5,15 +5,15 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
 import com.devonfw.tools.ide.property.EnumProperty;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.property.VersionProperty;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * An internal {@link Commandlet} to set a tool version.
+ * An internal {@link AbstractCommandlet} to set a tool version.
  *
- * @see ToolCommandlet#setVersion(VersionIdentifier, boolean)
+ * @see AbstractToolCommandlet#setVersion(VersionIdentifier, boolean)
  */
-public class VersionSetCommandlet extends Commandlet {
+public class VersionSetCommandlet extends AbstractCommandlet {
 
   /** The tool to set the version of. */
   public final ToolProperty tool;
@@ -46,14 +46,14 @@ public class VersionSetCommandlet extends Commandlet {
   @Override
   protected void doRun() {
 
-    ToolCommandlet commandlet = this.tool.getValue();
+    AbstractToolCommandlet commandlet = this.tool.getValue();
     VersionIdentifier versionIdentifier = this.version.getValue();
     EnvironmentVariablesFiles env = this.cfg.getValue();
     commandlet.setVersion(versionIdentifier, true, env);
   }
 
   @Override
-  public ToolCommandlet getToolForCompletion() {
+  public AbstractToolCommandlet getToolForCompletion() {
 
     return this.tool.getValue();
   }
