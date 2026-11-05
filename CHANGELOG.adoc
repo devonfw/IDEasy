@@ -16,6 +16,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2519[#2519]: Add Flutter SDK commandlet
 * https://github.com/devonfw/IDEasy/issues/2553[#2553]: Add release support for yarn
 * https://github.com/devonfw/IDEasy/issues/2515[#2515]: Add commandlet for KubeLinter (kube-linter)
+* https://github.com/devonfw/IDEasy/issues/2512[#2512]: Add commandlet for Pandoc
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/52?closed=1[milestone 2026.11.001].
 
