@@ -62,6 +62,13 @@
       VBox.vgrow="ALWAYS"/>
   </VBox>
 
+  <Button fx:id="toolConfig"
+    disable="true"
+    maxWidth="1.7976931348623157E308"
+    prefHeight="40.0"
+    text="%tab.tool_config"
+    styleClass="chooseProject"/>
+
   <!-- Language selector -->
   <VBox maxHeight="-Infinity"
     prefWidth="100.0"

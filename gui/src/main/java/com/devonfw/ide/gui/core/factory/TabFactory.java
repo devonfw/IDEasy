@@ -8,6 +8,7 @@ import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.service.CommandletService;
 import com.devonfw.ide.gui.core.tab.TabComponent;
 import com.devonfw.ide.gui.feature.ide.launcher.IdeLauncherTab;
+import com.devonfw.ide.gui.feature.tool.config.ToolConfigTab;
 
 import io.github.mmm.event.EventBus;
 
@@ -20,6 +21,7 @@ public class TabFactory {
   private final GuiStateManager guiStateManager;
   private final CommandletService commandletService;
   private final EventBus eventBus;
+  private ToolConfigTab toolConfigTab;
 
   /**
    * Creates the factory.
@@ -49,6 +51,16 @@ public class TabFactory {
    */
   public void openLauncherTab() {
     open(new IdeLauncherTab(guiStateManager));
+  }
+
+  /**
+   * Opens the tool configuration tab, or focuses it if it is already open.
+   */
+  public void openToolConfigTab() {
+    if (this.toolConfigTab == null || !this.toolConfigTab.isOpen()) {
+      this.toolConfigTab = new ToolConfigTab(this.guiStateManager);
+    }
+    open(this.toolConfigTab);
   }
 
   private void open(TabComponent tabComponent) {
