@@ -171,6 +171,29 @@ class SystemPathTest extends AbstractIdeContextTest {
   }
 
   @Test
+  void testDartPrecedesFlutterBundledDartForBothLookupAndPathString() throws IOException {
+    // arrange - flutter bundles its own dart inside software/flutter/bin, so without an explicit order it would shadow the pristine dart
+    // copyForMutation=true: this test creates files, so it must work on a scratch copy (in target/), never the committed fixtures
+    IdeTestContext context = newContext("find-binary", "project/workspaces", true);
+    Path dartTool = context.getSoftwarePath().resolve("dart");
+    Files.createDirectories(dartTool.resolve("bin"));
+    Files.writeString(dartTool.resolve("bin/dart"), "pristine-dart");
+    Path flutterTool = context.getSoftwarePath().resolve("flutter");
+    Files.createDirectories(flutterTool.resolve("bin"));
+    Files.writeString(flutterTool.resolve("bin/dart"), "flutter-bundled-dart");
+    SystemPath systemPath = new SystemPath(context, "", context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
+    Path pristine = dartTool.resolve("bin").resolve("dart");
+    Path bundled = flutterTool.resolve("bin").resolve("dart");
+
+    // act & assert - findBinary resolves the pristine dart, not the flutter-bundled one
+    assertThat(systemPath.findBinary(Path.of("dart"))).isEqualTo(pristine).isNotEqualTo(bundled);
+    // act & assert - the pristine dart bin is also placed before the flutter dir in the PATH string
+    String pathString = systemPath.toString();
+    assertThat(pathString.indexOf(dartTool.resolve("bin").toString()))
+        .isNotNegative().isLessThan(pathString.indexOf(flutterTool.toString()));
+  }
+
+  @Test
   void testGlobalNpmPackagesInSoftwareNpmGlobalAreOnPath() throws IOException {
     // arrange - npm's per-project global prefix is software/node_modules. npm places its global shims in <prefix>/bin on POSIX but in the prefix root
     // on Windows, so the generic software scan (bin/ subdir if present, else the tool dir) picks the right entry on both platforms without special-casing.
