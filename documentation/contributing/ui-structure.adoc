@@ -182,12 +182,12 @@ gui
     │   │           └── IdeLauncher.fxml
     │   └── style
     │       ├── center.css
+    │       ├── main-window.css
     │       └── navigation.css
     └── nls
         ├── messages.properties
         ├── messages_de.properties
         └── messages_en.properties
-        └── navigation.css
 ----
 
 === Benefits
