@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.vscode;
 
+import static com.devonfw.tools.ide.version.VersionIdentifier.MAJOR_SEGMENT;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -13,11 +15,11 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -54,7 +56,6 @@ public class Vscode extends AbstractIdeToolCommandlet {
     return "code";
   }
 
-
   @Override
   public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
@@ -71,17 +72,16 @@ public class Vscode extends AbstractIdeToolCommandlet {
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, extensionsCommands);
     if (result.isSuccessful()) {
       if (versionSpecified) {
-        IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {} with version: {}", plugin.name(), plugin.version());
+        step.success("Successfully installed plugin: {} with version: {}", plugin.name(), plugin.version());
       } else {
-        IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
+        step.success("Successfully installed plugin: {}", plugin.name());
       }
-      step.success();
       return true;
     }
     if (versionSpecified) {
-      IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
+      step.error("Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
     } else {
-      IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {}", plugin.name());
+      step.error("Failed to install plugin: {}", plugin.name());
     }
     return false;
   }
@@ -102,6 +102,16 @@ public class Vscode extends AbstractIdeToolCommandlet {
     return getIdeMetadataPath().resolve("config");
   }
 
+  /**
+   * @return the {@link Path} to the VSCode shared-data folder passed via {@code --shared-data-dir}. It must have the same scope as the
+   *     {@link #getUserDataPath() user-data folder}: VSCode stores the GitHub login there but encrypts it with a key of the user-data folder, so any other
+   *     user-data folder using the same shared-data folder deletes the login (see #2581).
+   */
+  private Path getSharedDataPath() {
+
+    return getIdeMetadataPath().resolve("shared-data");
+  }
+
   @Override
   public void configureWorkspace() {
 
@@ -109,9 +119,15 @@ public class Vscode extends AbstractIdeToolCommandlet {
     super.configureWorkspace();
   }
 
+  @Override
+  public int getIncompatibleVersionSegmentIndex() {
+
+    return MAJOR_SEGMENT;
+  }
+
   /**
-   * Removes the legacy user-data folder from the workspace that VSCode does not read anymore (see #2142 and #2509). If the actual user-data folder does not
-   * yet exist, the legacy folder is moved there to preserve its content, otherwise it is backed up.
+   * Removes the legacy user-data folder from the workspace that VSCode does not read anymore (see #2142 and #2509). If the actual user-data folder does not yet
+   * exist, the legacy folder is moved there to preserve its content, otherwise it is backed up.
    */
   private void cleanupLegacyUserData() {
 
@@ -152,6 +168,7 @@ public class Vscode extends AbstractIdeToolCommandlet {
       pc.addArg("--profile=" + getProfileName());
     } else {
       pc.addArg("--user-data-dir=" + getUserDataPath());
+      pc.addArg("--shared-data-dir=" + getSharedDataPath());
     }
     Path vsCodeExtensionFolder = this.context.getIdeHome().resolve("plugins/vscode");
     pc.addArg("--extensions-dir=" + vsCodeExtensionFolder);
