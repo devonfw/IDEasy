@@ -44,7 +44,7 @@ class NgUrlUpdaterTest extends AbstractUrlUpdaterTest {
     NgUrlUpdater updater = new NgUrlUpdater(wmRuntimeInfo.getHttpBaseUrl() + "/");
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     assertUrlVersionAgnostic(tempDir.resolve("ng").resolve("ng").resolve("20.1.6"));

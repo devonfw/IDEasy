@@ -1,8 +1,10 @@
 package com.devonfw.tools.ide.tool.claude;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,6 +21,9 @@ public class RecordingEnvironmentContext implements EnvironmentContext {
   /** Variables removed via {@link #removeEnvVar(String)}. */
   public final Set<String> removed = new HashSet<>();
 
+  /** Path entries added via {@link #withPathEntry(Path)}. */
+  public final List<Path> pathEntries = new ArrayList<>();
+
   @Override
   public EnvironmentContext withEnvVar(String key, String value) {
     this.set.put(key, value);
@@ -27,6 +32,7 @@ public class RecordingEnvironmentContext implements EnvironmentContext {
 
   @Override
   public EnvironmentContext withPathEntry(Path path) {
+    this.pathEntries.add(path);
     return this;
   }
 

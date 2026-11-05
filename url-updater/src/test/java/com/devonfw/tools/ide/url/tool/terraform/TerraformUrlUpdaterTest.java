@@ -38,7 +38,7 @@ class TerraformUrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     TerraformUrlUpdater updater = new TerraformUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path terraformEditionPath = tempDir.resolve("terraform").resolve("terraform");
@@ -48,4 +48,3 @@ class TerraformUrlUpdaterTest extends AbstractUrlUpdaterTest {
     }
   }
 }
-

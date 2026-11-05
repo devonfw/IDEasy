@@ -1,15 +1,16 @@
 package com.devonfw.tools.ide.property;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.validation.PropertyValidator;
 
 /**
- * {@link Property} with {@link #getValueType() value type} {@link ToolCommandlet}.
+ * {@link Property} with {@link #getValueType() value type} {@link AbstractToolCommandlet}.
  */
-public class ToolProperty extends Property<ToolCommandlet> {
+public class ToolProperty extends Property<AbstractToolCommandlet> {
 
   /**
    * The constructor.
@@ -45,33 +46,33 @@ public class ToolProperty extends Property<ToolCommandlet> {
    * @param multivalued the boolean flag about multiple arguments
    * @param validator the {@link PropertyValidator} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public ToolProperty(String name, boolean required, String alias, boolean multivalued, PropertyValidator<ToolCommandlet> validator) {
+  public ToolProperty(String name, boolean required, String alias, boolean multivalued, PropertyValidator<AbstractToolCommandlet> validator) {
 
     super(name, required, alias, multivalued, validator);
   }
 
   @Override
-  public Class<ToolCommandlet> getValueType() {
+  public Class<AbstractToolCommandlet> getValueType() {
 
-    return ToolCommandlet.class;
+    return AbstractToolCommandlet.class;
   }
 
   @Override
-  protected String format(ToolCommandlet valueToFormat) {
+  protected String format(AbstractToolCommandlet valueToFormat) {
 
     return valueToFormat.getName();
   }
 
   @Override
-  public ToolCommandlet parse(String valueAsString, IdeContext context) {
+  public AbstractToolCommandlet parse(String valueAsString, IdeContext context) {
 
     return context.getCommandletManager().getRequiredToolCommandlet(valueAsString);
   }
 
   @Override
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+  protected void completeValue(String arg, IdeContext context, AbstractCommandlet commandlet, CompletionCandidateCollector collector) {
 
-    for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
+    for (AbstractCommandlet cmd : context.getCommandletManager().getCommandlets()) {
       if (cmd instanceof ToolCommandlet) {
         String cmdName = cmd.getName();
         if (cmdName.startsWith(arg)) {

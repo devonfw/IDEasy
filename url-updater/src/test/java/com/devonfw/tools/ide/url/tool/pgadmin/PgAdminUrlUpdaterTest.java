@@ -39,7 +39,7 @@ class PgAdminUrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     PgAdminUrlUpdater updater = new PgAdminUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path pgadminEditionPath = tempDir.resolve("pgadmin").resolve("pgadmin");
@@ -50,4 +50,3 @@ class PgAdminUrlUpdaterTest extends AbstractUrlUpdaterTest {
     }
   }
 }
-

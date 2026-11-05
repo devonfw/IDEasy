@@ -9,9 +9,12 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.migration.v2025.Mig202502001;
 import com.devonfw.tools.ide.migration.v2025.Mig202510001;
+import com.devonfw.tools.ide.migration.v2026.Mig202609002;
+import com.devonfw.tools.ide.migration.v2026.Mig202610001;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+
 
 /**
  * The entry point to {@link IdeMigration} that orchestrates all {@link IdeVersionMigration}s.
@@ -31,7 +34,11 @@ public class IdeMigrator implements IdeMigration {
   public IdeMigrator() {
 
     // migrations must be strictly in ascending order (from oldest to newest version)
-    this(List.of(new Mig202502001(), new Mig202510001()));
+    this(List.of(
+        new Mig202502001(),
+        new Mig202510001(),
+        new Mig202609002(),
+        new Mig202610001()));
   }
 
   /**

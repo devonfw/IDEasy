@@ -40,7 +40,7 @@ class AzureUrlUpdaterTest extends AbstractUrlUpdaterTest {
     AzureUrlUpdater updater = new AzureUrlUpdater(wmRuntimeInfo.getHttpBaseUrl());
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     Path azEditionDir = tempDir.resolve("az").resolve("az");

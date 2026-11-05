@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.tool.intellij;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -11,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
@@ -20,18 +18,17 @@ import com.devonfw.tools.ide.environment.ExtensibleEnvironmentVariables;
 import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
 import com.devonfw.tools.ide.merge.xml.XmlMerger;
 import com.devonfw.tools.ide.process.EnvironmentContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
-import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link IdeToolCommandlet} for <a href="https://www.jetbrains.com/idea/">IntelliJ</a>.
+ * {@link AbstractIdeToolCommandlet} for <a href="https://www.jetbrains.com/idea/">IntelliJ</a>.
  */
 public class Intellij extends IdeaBasedIdeToolCommandlet {
 
@@ -51,7 +48,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   private static final String MISC_XML = "misc.xml";
   private static final String IDEA_PROPERTIES = "idea.properties";
 
-  private static final Map<Class<? extends LocalToolCommandlet>, String> BUILD_TOOL_TO_IJ_TEMPLATE = Map.of(Mvn.class, MISC_XML, Gradle.class, GRADLE_XML);
+  private static final Map<Class<?>, String> BUILD_TOOL_TO_IJ_TEMPLATE = Map.of(Mvn.class, MISC_XML, Gradle.class, GRADLE_XML);
 
   /**
    * The constructor.
@@ -61,6 +58,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   public Intellij(IdeContext context) {
 
     super(context, "intellij", Set.of(Tag.INTELLIJ));
+    registerExtraSdkTemplate("java", Path.of(".intellij/config/options/jdk.table.xml"));
   }
 
   @Override
@@ -97,7 +95,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     ToolEdition edition = requested.getEdition();
     // Check if edition is set as "ultimate"
     if ("ultimate".equals(edition.edition())) {
-      
+
       VersionIdentifier version;
       if (requested.getVersion() != null) {
         version = VersionIdentifier.of(requested.getVersion().toString());
@@ -105,15 +103,18 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
         version = getConfiguredVersion();
       }
       // Check whether set version warrants switching editions
-      if ((version.isGreater(INTELLIJ_LAST_SEPARATE_VERSION)) || // Specified version is > 2025.2.6.1 **OR** no specified version but configured version is > 2025.2.6.1
-        (VersionIdentifier.LATEST.equals(version)) || // No version specified and no configured version
-        (VersionIdentifier.LATEST_UNSTABLE.equals(version))) { // No version specified and no configured version
+      if ((version.isGreater(INTELLIJ_LAST_SEPARATE_VERSION)) ||
+          // Specified version is > 2025.2.6.1 **OR** no specified version but configured version is > 2025.2.6.1
+          (VersionIdentifier.LATEST.equals(version)) || // No version specified and no configured version
+          (VersionIdentifier.LATEST_UNSTABLE.equals(version))) { // No version specified and no configured version
         // Switching to IntelliJ Standard edition
         LOG.warn("""
-                 Notice: You have configured IDEasy to use the IntelliJ Ultimate Edition. Since version 2025.3, the Ultimate and Community editions of IntelliJ have been unified into a single edition.
-                 Since you are attempting to install a version of IntelliJ that is 2025.3 or newer, we are automatically switching your edition to the unified edition to ensure compatibility.
-                 To specifically install the last true ultimate version of IntelliJ, please run "ide install intellij 2025.2.6.1".
-                 Otherwise, we recommend permanently switching to the unified edition by running "ide set-edition intellij intellij".""");
+            Notice: You have configured IDEasy to use the IntelliJ Ultimate Edition.
+            Since version 2025.3, the Ultimate and Community editions of IntelliJ have been unified into a single edition.
+            Since you are attempting to install a version of IntelliJ that is 2025.3 or newer,
+            we are automatically switching your edition to the unified edition to ensure compatibility.
+            To specifically install the last true ultimate version of IntelliJ, please run "ide install intellij 2025.2.6.1".
+            Otherwise, we recommend permanently switching to the unified edition by running "ide set-edition intellij intellij".""");
         edition = new ToolEdition(this.tool, "intellij");
         requested.replaceEdition(edition);
       }
@@ -157,17 +158,13 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
   @Override
   public void importRepository(Path repositoryPath) {
-    CommandletManager commandletManager = this.context.getCommandletManager();
-    for (Entry<Class<? extends LocalToolCommandlet>, String> entry : BUILD_TOOL_TO_IJ_TEMPLATE.entrySet()) {
-      LocalToolCommandlet buildTool = commandletManager.getCommandlet(entry.getKey());
-      Path buildDescriptor = buildTool.findBuildDescriptor(repositoryPath);
-      if (buildDescriptor != null) {
-        String templateFilename = entry.getValue();
-        LOG.debug("Found build descriptor {} so merging template {}", buildDescriptor, templateFilename);
-        mergeConfig(repositoryPath, templateFilename);
-        return;
-      }
+    BuildTool buildTool = this.context.getCommandletManager().findBuildTool(repositoryPath);
+    String templateFilename = (buildTool == null) ? null : BUILD_TOOL_TO_IJ_TEMPLATE.get(buildTool.getClass());
+    if (templateFilename == null) {
+      LOG.warn("No supported build descriptor was found for project import in {}", repositoryPath);
+      return;
     }
-    LOG.warn("No supported build descriptor was found for project import in {}", repositoryPath);
+    LOG.debug("Found build tool {} so merging template {}", buildTool.getName(), templateFilename);
+    mergeConfig(repositoryPath, templateFilename);
   }
 }

@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Assumptions;
@@ -12,11 +13,13 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
+import com.devonfw.tools.ide.migration.v2026.Mig202610001;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+
 
 /**
  * Test of {@link IdeasyCommandlet}.
@@ -125,7 +128,7 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
       assertThat(desktopFile).exists();
       assertThat(desktopFile).content()
           .contains("Exec=" + installationPath.resolve("bin/ideasy") + " gui")
-          .contains("Icon=" + installationPath.resolve("gui/logo.png"));
+          .contains("Icon=" + installationPath.resolve("gui/icon.png"));
     } else if (systemInfo.isMac()) {
       Path commandFile = context.getUserHome().resolve("Applications/IDEasy.command");
       assertThat(commandFile).exists();
@@ -142,9 +145,9 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that {@link IdeasyCommandlet#installIdeasy(Path)} updates {@link IdeContext#getIdeRoot()} to the derived installation target when {@code IDE_ROOT}
-   * is not set in the environment (as is the case during a fresh MSI installation). This ensures downstream code reading {@link IdeContext#getIdeRoot()}
-   * during the same install run gets a consistent value. See <a href="https://github.com/devonfw/IDEasy/issues/1517">#1517</a> for reference.
+   * Test that {@link IdeasyCommandlet#installIdeasy(Path)} updates {@link IdeContext#getIdeRoot()} to the derived installation target when {@code IDE_ROOT} is
+   * not set in the environment (as is the case during a fresh MSI installation). This ensures downstream code reading {@link IdeContext#getIdeRoot()} during
+   * the same install run gets a consistent value. See <a href="https://github.com/devonfw/IDEasy/issues/1517">#1517</a> for reference.
    */
   @Test
   void testInstallIdeasyUpdatesIdeRoot() {
@@ -221,6 +224,41 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Test that the icon migration regenerates the desktop shortcut on upgrade, so existing installations keep a valid icon path (see #2567).
+   */
+  @Test
+  void testIconMigrationRefreshesDesktopShortcut() throws Exception {
+
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of("linux");
+    IdeTestContext context = newContext("install");
+    context.setSystemInfo(systemInfo);
+    context.setIdeRoot(context.getUserHome().resolve("projects"));
+    Path installationPath = context.getIdeInstallationPath();
+
+    // simulate a stale shortcut (or none) from a previous version
+    Path desktopFile = context.getUserHome().resolve(".local/share/applications/ideasy-gui.desktop");
+    context.getFileAccess().mkdirs(desktopFile.getParent());
+    context.getFileAccess().writeFileContent("stale icon path", desktopFile);
+
+    // provide the template the refresh step reads from the (new) installation
+    Path template = Path.of("src/main/package/gui/linux/ideasy-gui.desktop");
+    Path templateTarget = installationPath.resolve("gui/linux/ideasy-gui.desktop");
+    context.getFileAccess().mkdirs(templateTarget.getParent());
+    context.getFileAccess().writeFileContent(Files.readString(template), templateTarget);
+
+    Mig202610001 migration = new Mig202610001();
+
+    // act
+    migration.run(context);
+
+    // assert
+    assertThat(desktopFile).content()
+        .contains("Exec=" + installationPath.resolve("bin/ideasy") + " gui")
+        .contains("Icon=" + installationPath.resolve("gui/icon.png"));
+  }
+
+  /**
    * Test of {@link IdeasyCommandlet#checkIfUpdateIsAvailable()} with same snapshot versions.
    */
   @Test
@@ -231,8 +269,8 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     context.getStartContext().setOfflineMode(false);
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context) {
       @Override
-      public VersionIdentifier getInstalledVersion() {
-        return VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT");
+      protected EditionAndVersion computeInstalledEditionAndVersion() {
+        return new EditionAndVersion("ideasy", VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT"));
       }
 
       @Override
@@ -246,7 +284,7 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(updateAvailable).isFalse();
-    assertThat(context).logAtSuccess().hasMessage("Your are using the latest snapshot version of IDEasy and no update is available.");
+    assertThat(context).logAtSuccess().hasMessage("You are using the latest snapshot version of IDEasy and no update is available.");
   }
 
   /**
@@ -260,8 +298,8 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     context.getStartContext().setOfflineMode(false);
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context) {
       @Override
-      public VersionIdentifier getInstalledVersion() {
-        return VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT");
+      protected EditionAndVersion computeInstalledEditionAndVersion() {
+        return new EditionAndVersion("ideasy", VersionIdentifier.of("2025.04.002-04_17_02-SNAPSHOT"));
       }
 
       @Override

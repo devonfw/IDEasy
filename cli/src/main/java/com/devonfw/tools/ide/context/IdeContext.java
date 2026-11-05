@@ -10,7 +10,9 @@ import java.util.stream.Stream;
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
+import com.devonfw.tools.ide.commandlet.update.AbstractUpdateCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -30,6 +32,7 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepository;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
+import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.Npm;
@@ -48,7 +51,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * referenced instead of duplicating such string literals across the code-base. All central components can be accessed from here such as:
  * <ul>
  * <li>{@link #getPath() system path} (abstraction of PATH environment variable)</li>
- * <li>{@link #getCommandletManager() commandlet manager} (access {@link com.devonfw.tools.ide.commandlet.Commandlet}s)</li>
+ * <li>{@link #getCommandletManager() commandlet manager} (access {@link AbstractCommandlet}s)</li>
  * <li>{@link #getFileAccess() file access} (file and I/O operations on a higher level of abstraction)</li>
  * <li>{@link #getNetworkStatus() network status} (determine if we are online or offline)</li>
  * <li>{@link #newProcess() process context} (start external programs as process including logging, error handling, background and output processing)</li>
@@ -69,7 +72,7 @@ public interface IdeContext extends IdeStartContext {
   /**
    * The default settings URL.
    *
-   * @see com.devonfw.tools.ide.commandlet.AbstractUpdateCommandlet
+   * @see AbstractUpdateCommandlet
    */
   String DEFAULT_SETTINGS_REPO_URL = "https://github.com/devonfw/ide-settings.git";
 
@@ -128,6 +131,9 @@ public interface IdeContext extends IdeStartContext {
   /** The name of the bin folder where executable files are found by default. */
   String FOLDER_BIN = "bin";
 
+  /** The name of the repository folder used to store repository data */
+  String FOLDER_REPOSITORY = "repository";
+
   /** The name of the repositories folder where properties files are stores for each repository */
   String FOLDER_REPOSITORIES = "repositories";
 
@@ -170,8 +176,8 @@ public interface IdeContext extends IdeStartContext {
    * configured every time. This is only for settings that have to be the same for every developer in the project. An example would be the number of spaces used
    * for indentation and other code-formatting settings. If all developers in a project team use the same formatter settings, this will actively prevent
    * diff-wars. However, the entire team needs to agree on these settings.<br> Never configure aspects inside this update folder that may be of personal flavor
-   * such as the color theme. Otherwise developers will hate you as you actively take away their freedom to customize the IDE to their personal needs and
-   * wishes. Therefore do all "biased" or "flavored" configurations in {@link #FOLDER_SETUP setup} so these are only pre-configured but can be changed by the
+   * such as the color theme. Otherwise, developers will hate you as you actively take away their freedom to customize the IDE to their personal needs and
+   * wishes. Therefore, do all "biased" or "flavored" configurations in {@link #FOLDER_SETUP setup} so these are only pre-configured but can be changed by the
    * user as needed.
    */
   String FOLDER_UPDATE = "update";
@@ -278,9 +284,30 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
+   * Asks the user for a single secret input (e.g. a password or API token). Unlike {@link #askForInput(String, String)} the input is not echoed to the console
+   * if a secure console is available.
+   *
+   * @param message The information message to display.
+   * @param defaultValue The default value to return when no input is provided or {@code null} to keep asking until the user entered a non empty value.
+   * @return The secret input from the user, or the default value if no input is provided.
+   */
+  String askForSecret(String message, String defaultValue);
+
+  /**
+   * Asks the user for a single secret input (e.g. a password or API token).
+   *
+   * @param message The information message to display.
+   * @return The secret input from the user.
+   */
+  default String askForSecret(String message) {
+    return askForSecret(message, null);
+  }
+
+  /**
    * @param question the question to ask.
    * @param args arguments for filling the templates
    * @return {@code true} if the user answered with "yes", {@code false} otherwise ("no").
+   * @throws CliAbortException if the question cannot be answered because we are in batch mode without force mode.
    */
   default boolean question(String question, Object... args) {
 
@@ -297,6 +324,8 @@ public interface IdeContext extends IdeStartContext {
    * @param options the available options for the user to answer. There should be at least two options given as otherwise the question cannot make sense.
    * @param question the question to ask.
    * @return the option selected by the user as answer.
+   * @throws CliAbortException if the question cannot be answered because we are in batch mode without force mode. In that case the first option is not selected
+   *     automatically - re-run the command with the force option to accept it.
    */
   @SuppressWarnings("unchecked")
   <O> O question(O[] options, String question, Object... args);
@@ -591,11 +620,6 @@ public interface IdeContext extends IdeStartContext {
   Path getSettingsGitRepository();
 
   /**
-   * @return {@code true} if the settings repository is a symlink or a junction to a code-repository.
-   */
-  boolean isSettingsCodeRepository();
-
-  /**
    * @return the {@link Path} to the file containing the last tracked commit Id of the settings repository.
    */
   Path getSettingsCommitIdPath();
@@ -727,7 +751,7 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
-   * @return the {@link DirectoryMerger} used to configure and merge the workspace for an {@link com.devonfw.tools.ide.tool.ide.IdeToolCommandlet IDE}.
+   * @return the {@link DirectoryMerger} used to configure and merge the workspace for an {@link AbstractIdeToolCommandlet IDE}.
    */
   DirectoryMerger getWorkspaceMerger();
 

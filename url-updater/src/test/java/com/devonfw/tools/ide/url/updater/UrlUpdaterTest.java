@@ -19,14 +19,14 @@ import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFile;
-import com.devonfw.tools.ide.url.model.file.UrlStatusFile;
-import com.devonfw.tools.ide.url.model.file.json.StatusJson;
-import com.devonfw.tools.ide.url.model.file.json.UrlStatus;
-import com.devonfw.tools.ide.url.model.file.json.UrlStatusState;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
+import com.devonfw.tools.ide.url.updater.status.StatusJson;
+import com.devonfw.tools.ide.url.updater.status.UrlStatus;
+import com.devonfw.tools.ide.url.updater.status.UrlStatusFile;
+import com.devonfw.tools.ide.url.updater.status.UrlStatusState;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -54,7 +54,7 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlUpdaterMock updater = new UrlUpdaterMock(wmRuntimeInfo);
 
     // when
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     Path versionsPath = tempDir.resolve("mocked").resolve("mocked").resolve("1.0");
 
@@ -74,7 +74,7 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
 
     // re-initialize UrlRepository
     UrlRepository urlRepositoryNew = UrlRepository.load(tempDir);
-    updater.update(urlRepositoryNew);
+    update(updater, urlRepositoryNew);
 
     assertThat(versionsPath.resolve("linux_x64.urls")).exists();
     assertThat(versionsPath.resolve("linux_x64.urls.sha256")).exists();
@@ -91,7 +91,7 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlUpdaterMockSingle updater = new UrlUpdaterMockSingle(wmRuntimeInfo);
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
     Path versionsPath = Path.of(TEST_DATA_ROOT).resolve("mocked").resolve("mocked").resolve("1.0");
 
     // assert
@@ -123,21 +123,24 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlEdition urlEdition = urlTool.getOrCreateChild(editionName);
     UrlVersion urlVersion = urlEdition.getOrCreateChild(versionName);
     // we create the structure of our tool version and URL to simulate it was valid last moth
-    UrlStatusFile statusFile = urlVersion.getOrCreateStatus();
+    Path statusPath = urlVersion.getPath().resolve(UrlStatusFile.STATUS_JSON);
+    UrlStatusFile statusFile = new UrlStatusFile(statusPath);
     UrlStatus status = statusFile.getStatusJson().getOrCreateUrlStatus(url);
     UrlStatusState successState = new UrlStatusState(lastMonth); // ensure that we trigger a recheck of the URL
     status.setSuccess(successState);
+    statusFile.markModified();
     UrlDownloadFile urlDownloadFile = urlVersion.getOrCreateUrls(OperatingSystem.WINDOWS, SystemArchitecture.X64);
     urlDownloadFile.addUrl(url);
     UrlChecksum urlChecksum = urlVersion.getOrCreateChecksum(urlDownloadFile.getName());
     urlChecksum.setChecksum("1234567890");
     urlVersion.save();
+    statusFile.save();
     UrlUpdaterMockSingle updater = new UrlUpdaterMockSingle(wmRuntimeInfo);
     // now we want to simulate that the url got broken (404) and the updater is properly handling this
     stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(404)));
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     StatusJson statusJson = retrieveStatusJson(urlRepository, toolName, editionName, versionName);
@@ -175,24 +178,27 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlEdition urlEdition = urlTool.getOrCreateChild(editionName);
     UrlVersion urlVersion = urlEdition.getOrCreateChild(versionName);
     // we create the structure of our tool version and URL to simulate it was valid last moth
-    UrlStatusFile statusFile = urlVersion.getOrCreateStatus();
+    Path statusPath = urlVersion.getPath().resolve(UrlStatusFile.STATUS_JSON);
+    UrlStatusFile statusFile = new UrlStatusFile(statusPath);
     UrlStatus status = statusFile.getStatusJson().getOrCreateUrlStatus(url);
     UrlStatusState successState = new UrlStatusState(lastSuccess);
     status.setSuccess(successState);
     UrlStatusState errorState = new UrlStatusState(lastMonth);
     errorState.setCode(404);
     status.setError(errorState);
+    statusFile.markModified();
     UrlDownloadFile urlDownloadFile = urlVersion.getOrCreateUrls(OperatingSystem.WINDOWS, SystemArchitecture.X64);
     urlDownloadFile.addUrl(url);
     UrlChecksum urlChecksum = urlVersion.getOrCreateChecksum(urlDownloadFile.getName());
     urlChecksum.setChecksum("1234567890");
     urlVersion.save();
+    statusFile.save();
     UrlUpdaterMockSingle updater = new UrlUpdaterMockSingle(wmRuntimeInfo);
     // now we want to simulate that the broken url is working again
     stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withHeader("Content-Type", "text/plain")));
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     status = retrieveStatusJson(urlRepository, toolName, editionName, versionName).getStatus(url);
@@ -227,24 +233,27 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlEdition urlEdition = urlTool.getOrCreateChild(editionName);
     UrlVersion urlVersion = urlEdition.getOrCreateChild(versionName);
     // we create the structure of our tool version and URL to simulate it was valid last moth
-    UrlStatusFile statusFile = urlVersion.getOrCreateStatus();
+    Path statusPath = urlVersion.getPath().resolve(UrlStatusFile.STATUS_JSON);
+    UrlStatusFile statusFile = new UrlStatusFile(statusPath);
     UrlStatus status = statusFile.getStatusJson().getOrCreateUrlStatus(url);
     UrlStatusState successState = new UrlStatusState(lastSuccess);
     status.setSuccess(successState);
     UrlStatusState errorState = new UrlStatusState(lastMonth);
     errorState.setCode(404);
     status.setError(errorState);
+    statusFile.markModified();
     UrlDownloadFile urlDownloadFile = urlVersion.getOrCreateUrls(OperatingSystem.WINDOWS, SystemArchitecture.X64);
     urlDownloadFile.addUrl(url);
     UrlChecksum urlChecksum = urlVersion.getOrCreateChecksum(urlDownloadFile.getName());
     urlChecksum.setChecksum("1234567890");
     urlVersion.save();
+    statusFile.save();
     UrlUpdaterMockSingle updater = new UrlUpdaterMockSingle(wmRuntimeInfo);
     // now we want to simulate that the url got broken (404) and the updater is properly handling this
     stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(404)));
 
     // act
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // assert
     assertThat(urlVersion.getPath()).doesNotExist();
@@ -268,7 +277,7 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlUpdaterMockSingle updater = new UrlUpdaterMockSingle(wmRuntimeInfo);
 
     // when
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     Path versionsPath = tempDir.resolve("mocked").resolve("mocked").resolve("1.0");
 
@@ -292,7 +301,7 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     updater.setVersion("latest");
 
     // when
-    updater.update(urlRepository);
+    update(updater, urlRepository);
 
     // then
     Path versionsPath = tempDir.resolve("mocked").resolve("mocked").resolve("latest");

@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.cli;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
@@ -38,7 +39,7 @@ class CliAdvancedParsingTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_MVN);
-    CliArguments args = new CliArguments("repository", "setup");
+    CliArguments args = new CliArguments(IdeContext.FOLDER_REPOSITORY, "setup");
     args.next();
     // act
     int success = context.run(args);

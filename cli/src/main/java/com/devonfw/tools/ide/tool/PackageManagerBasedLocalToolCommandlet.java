@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool;
 
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
@@ -7,9 +9,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.cache.CachedValue;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -17,15 +19,13 @@ import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link LocalToolCommandlet} for tools that have their own {@link #getToolRepository() repository} and do not follow standard installation mechanism.
+ * {@link AbstractLocalToolCommandlet} for tools that have their own {@link #getToolRepository() repository} and do not follow standard installation mechanism.
  *
- * @param <P> type of the {@link ToolCommandlet} acting as {@link #getPackageManagerClass() package manager}.
+ * @param <P> type of the {@link AbstractToolCommandlet} acting as {@link #getPackageManagerClass() package manager}.
  */
-public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolCommandlet> extends LocalToolCommandlet {
+public abstract class PackageManagerBasedLocalToolCommandlet<P extends AbstractToolCommandlet> extends AbstractLocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(PackageManagerBasedLocalToolCommandlet.class);
-
-  private final CachedValue<VersionIdentifier> installedVersion;
 
   /**
    * The constructor.
@@ -37,7 +37,6 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
   public PackageManagerBasedLocalToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context, tool, tags);
-    this.installedVersion = new CachedValue<>(this::determineInstalledVersion);
   }
 
   @Override
@@ -51,13 +50,31 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
   public boolean isInstalled() {
 
     // Check if parent tool is installed first - if not, this tool cannot be installed
-    LocalToolCommandlet parentTool = getParentTool();
+    AbstractLocalToolCommandlet parentTool = getParentTool();
     if (!parentTool.isInstalled()) {
       return false;
     }
 
     // Check if the tool binary is found
     return getBinaryExecutable() != null;
+  }
+
+  @Override
+  public void uninstall() {
+    // Since the tool path points to the parent tool, a tool that is not installed would be uninstalled via the package
+    // manager which is not wanted (e.g. it may even install the package manager). So only the software/«tool» entry is
+    // cleaned up here, never the parent tool or the package manager.
+    if (!isInstalled()) {
+      Path leftover = this.context.getSoftwarePath() == null ? null : this.context.getSoftwarePath().resolve(this.tool);
+      if (leftover != null && !leftover.equals(getToolPath()) && Files.exists(leftover, LinkOption.NOFOLLOW_LINKS)) {
+        this.context.getFileAccess().delete(leftover);
+        IdeLogLevel.SUCCESS.log(LOG, "Successfully uninstalled {}", this.tool);
+      } else {
+        LOG.warn("An installed version of {} does not exist.", this.tool);
+      }
+      return;
+    }
+    super.uninstall();
   }
 
   protected abstract Class<P> getPackageManagerClass();
@@ -89,11 +106,20 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
 
     completeRequest(request);
     ProcessContext pc = request.getProcessContext();
-    ToolCommandlet pm = request.getPackageManager();
-    if (!skipInstallation) { // See Node.postInstallOnNewInstallation
-      ToolInstallRequest installRequest = new ToolInstallRequest(true);
-      installRequest.setProcessContext(pc.createChild());
-      pm.install(installRequest);
+    AbstractToolCommandlet pm = request.getPackageManager();
+    if (!skipInstallation) {
+      ToolInstallRequest parentRequest = request.getToolInstallRequest();
+      if (parentRequest != null) {
+        // this package-manager installation is triggered by a tool installation
+        // (e.g. "ide install ng" triggers the npm install), so the package-manager's
+        // install request gets the triggering tool's request as its parent
+        pm.install(new ToolInstallRequest(parentRequest));
+      } else {
+        // no triggering tool installation (e.g. the uninstall path), install standalone
+        ToolInstallRequest installRequest = new ToolInstallRequest(true);
+        installRequest.setProcessContext(pc.createChild());
+        pm.install(installRequest);
+      }
     }
     return pm.runTool(pc, request.getProcessMode(), request.getArgs());
   }
@@ -156,10 +182,15 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
     return true;
   }
 
-  private VersionIdentifier determineInstalledVersion() {
+  @Override
+  protected EditionAndVersion computeInstalledEditionAndVersion() {
 
     try {
-      return computeInstalledVersion();
+      VersionIdentifier version = computeInstalledPackageVersion();
+      if (version == null) {
+        return null;
+      }
+      return new EditionAndVersion(this.tool, version);
     } catch (Exception e) {
       LOG.debug("Failed to compute installed version of {}", this.tool, e);
       return null;
@@ -167,18 +198,12 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
   }
 
   /**
-   * @return the computed value of the {@link #getInstalledVersion() installed version}.
+   * @return the computed value of the installed version.
    * @implNote Implementations of this method should NOT trigger any tool installation or download. If you need to call
    *     {@link #runPackageManager(PackageManagerRequest)}, make sure to use {@link #runPackageManager(PackageManagerRequest, boolean)} with
    *     {@code skipInstallation=true} to avoid inadvertently triggering installations when only checking the version.
    */
-  protected abstract VersionIdentifier computeInstalledVersion();
-
-  @Override
-  public VersionIdentifier getInstalledVersion() {
-
-    return this.installedVersion.get();
-  }
+  protected abstract VersionIdentifier computeInstalledPackageVersion();
 
   /**
    * Override to ignore the {@code toolPath} parameter and use the package-manager based detection of the actually installed version.
@@ -195,9 +220,9 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
   protected final void performToolInstallation(ToolInstallRequest request, Path installationPath) {
 
     PackageManagerRequest packageManagerRequest = new PackageManagerRequest(PackageManagerRequest.TYPE_INSTALL, getPackageName())
-        .setProcessContext(request.getProcessContext()).setVersion(request.getRequested().getResolvedVersion());
+        .setToolInstallRequest(request).setProcessContext(request.getProcessContext()).setVersion(request.getRequested().getResolvedVersion());
     runPackageManager(packageManagerRequest, isSkipInstallation()).failOnError();
-    this.installedVersion.invalidate();
+    invalidateInstalledEditionAndVersion();
   }
 
   /**
@@ -220,7 +245,7 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
     if (canBeUninstalled()) {
       PackageManagerRequest request = new PackageManagerRequest(PackageManagerRequest.TYPE_UNINSTALL, getPackageName());
       runPackageManager(request).failOnError();
-      this.installedVersion.invalidate();
+      invalidateInstalledEditionAndVersion();
     } else {
       LOG.info("IDEasy does not support uninstalling the tool {} since this will break your installation.\n"
           + "If you really want to uninstall it, please uninstall its parent tool via:\n"
@@ -228,7 +253,7 @@ public abstract class PackageManagerBasedLocalToolCommandlet<P extends ToolComma
     }
   }
 
-  protected abstract LocalToolCommandlet getParentTool();
+  protected abstract AbstractLocalToolCommandlet getParentTool();
 
   @Override
   public Path getToolPath() {
