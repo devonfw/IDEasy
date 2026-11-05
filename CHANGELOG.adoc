@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2685[#2685]: Require integration tests in the PR template and add read-only smoke tests
 * https://github.com/devonfw/IDEasy/issues/2436[#2436]: Plugin step progress index broken
 * https://github.com/devonfw/IDEasy/issues/2581[#2581]: VSCode GitHub login is deleted on Windows whenever another VSCode instance starts
 * https://github.com/devonfw/IDEasy/issues/992[#992]: Support multiple attributes for merge:id
