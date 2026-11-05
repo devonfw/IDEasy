@@ -443,7 +443,6 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
     assertThat(saved).doesNotContain("MVN_VERSION=");
   }
 
-
   @Test
   void testApplyAndSave_disabledToolRemovesExistingVersionAndEditionLines(@TempDir Path tempDir) throws IOException {
 
