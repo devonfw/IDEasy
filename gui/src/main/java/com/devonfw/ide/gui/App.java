@@ -51,8 +51,6 @@ public class App extends Application {
     final MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager);
     final MainWindowView mainWindow = new MainWindowView(mainWindowViewModel, guiStateManager);
 
-    //this.nlsService.addLocaleChangeListener(this::reloadMainView);
-
     Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
     Scene scene = new Scene(mainWindow, bounds.getWidth() / 2, bounds.getHeight() / 2);
 
@@ -97,12 +95,6 @@ public class App extends Application {
 
     Platform.exit();
     System.exit(0);
-  }
-
-  @Override
-  public void stop() {
-
-    //this.nlsService.removeLocaleChangeListener(this::reloadMainView);
   }
 
   private void setIconInMacOsDock() {

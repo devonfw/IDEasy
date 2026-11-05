@@ -68,16 +68,19 @@ public class AppBaseTest extends UIBasedApplicationTest {
   @Override
   public void start(Stage stage) {
 
+    // The UI tests assert on the English UI text; the active locale is fixed for the NlsService's lifetime from the JVM default at construction time, so the
+    // default locale is pinned to English before the state manager (and with it the NlsService) is created.
+    Locale.setDefault(Locale.ENGLISH);
+
     // We simply use project-0 here, as we only use the ide root for this test
     setTestContext("testProject", "project-0");
 
-    // isolate the NlsService from the developer's real user home and the IDE_OPTIONS environment variable: persisting the locale must not rewrite the
-    // real ~/.ide/ide.properties, so point an isolated IdeTestContext at a throw-away home and hand it to the NlsService via the state manager
+    // isolate the NlsService from the developer's real user home and the GUI_LANGUAGE user variable: persisting the language must not rewrite the real
+    // ~/.ide/ide.properties, so point an isolated IdeTestContext at a throw-away home and hand it to the NlsService via the state manager
     final IdeTestContext nlsContext = new IdeTestContext();
     nlsContext.setSystem(new IdeSystemTestImpl());
     nlsContext.setUserHome(nlsUserHome);
     this.guiStateManager = new GuiStateManager(getTestContext().getIdeRoot().toString(), nlsContext);
-    this.guiStateManager.getNlsService().setLocale(Locale.ENGLISH);
     this.taskManager = guiStateManager.getTaskManager();
     this.viewModel = new MainWindowViewModel(guiStateManager);
     MainWindowView mainWindow = new MainWindowView(this.viewModel, guiStateManager);

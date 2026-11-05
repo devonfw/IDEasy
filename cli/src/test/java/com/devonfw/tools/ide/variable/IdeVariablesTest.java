@@ -39,6 +39,24 @@ class IdeVariablesTest extends Assertions {
     assertThat(httpVersions2_11).containsExactly(Version.HTTP_2, Version.HTTP_1_1);
   }
 
+  /**
+   * {@link IdeVariables#GUI_LANGUAGE} is the single source of truth for the GUI language variable name, shared by the CLI ({@code ide gui}) and the GUI
+   * ({@code NlsService}). It has no default value and is not exported/forced, so it stays out of {@link IdeVariables#VARIABLES}.
+   */
+  @Test
+  void testGuiLanguageDefinition() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    // act
+    String guiLanguage = IdeVariables.GUI_LANGUAGE.get(context);
+    // assert
+    assertThat(IdeVariables.GUI_LANGUAGE.getName()).isEqualTo("GUI_LANGUAGE");
+    assertThat(guiLanguage).isNull();
+    assertThat(IdeVariables.GUI_LANGUAGE.isExport()).isFalse();
+    assertThat(IdeVariables.VARIABLES).doesNotContain(IdeVariables.GUI_LANGUAGE);
+  }
+
   /** Test of {@link IdeVariables#USER} on Linux and macOS where the USER environment variable is defined. */
   @Test
   void testUserFromEnvironmentVariable() {
