@@ -1,6 +1,5 @@
 :toc:
 toc::[]
-= Docker Desktop Alternative
 
 == Introduction
 

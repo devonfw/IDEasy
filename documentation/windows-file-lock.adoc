@@ -1,4 +1,4 @@
-= Windows File Locks
+= Guide: Finding Processes that Block Specific Files
 
 == Introduction
 
