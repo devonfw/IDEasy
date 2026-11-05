@@ -74,6 +74,7 @@ class PipBasedIdeToolCommandletTest extends AbstractIdeContextTest {
     // the package manager request carries the tool install request propagated down from postInstall (the actual fix)
     assertThat(commandlet.getLastPackageManagerRequest()).isNotNull();
     assertThat(commandlet.getLastPackageManagerRequest().getToolInstallRequest()).isSameAs(request);
+    assertThat(context).logAtSuccess().hasNoMessageContaining("Successfully ended step 'Install plugin TestPlugin");
   }
 
   /**
