@@ -22,8 +22,12 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.process.ProcessResultImpl;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.plugin.AbstractPluginBasedCommandlet;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Test of {@link Vscode} class.
@@ -75,7 +79,8 @@ class VscodeTest extends AbstractIdeContextTest {
     commandlet.run();
 
     assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin");
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin mockedPlugin (1/1)'.");
+    assertThat(context).logAtSuccess().hasNoMessageContaining("Successfully ended step 'Install plugin mockedPlugin");
+    assertThat(context).log().hasMessage("Start: Install plugin mockedPlugin (1/1)");
 
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("mockedPlugin"))).exists();
@@ -88,7 +93,7 @@ class VscodeTest extends AbstractIdeContextTest {
     // act
     commandlet.run();
     // assert
-    assertThat(context).logAtDebug().hasNoMessage("Successfully installed plugin: ActivePlugin");
+    assertThat(context).log().hasNoMessageContaining("Install plugin mockedPlugin");
   }
 
   @Test
@@ -102,6 +107,8 @@ class VscodeTest extends AbstractIdeContextTest {
     step.run(() -> vscodeCommandlet.installPlugin(plugin, step, new ProcessContextTestImpl(context)));
 
     assertThat(vscodeCommandlet.lastArgs).contains("--install-extension", "publisher.extension@1.2.3");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin with version: 1.2.3");
+    assertThat(context).logAtSuccess().hasNoMessageContaining("Successfully ended step 'Install plugin mockedPlugin'");
   }
 
   @Test
@@ -125,7 +132,7 @@ class VscodeTest extends AbstractIdeContextTest {
 
     assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.92.1");
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed vscode in version 1.92.1");
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin mockedPlugin (1/1)'.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin");
   }
 
   @Test
@@ -174,8 +181,29 @@ class VscodeTest extends AbstractIdeContextTest {
     // assert
     Path expectedUserData = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve(context.getWorkspaceName()).resolve("config");
     assertThat(pc.capturedArgs).contains("--user-data-dir=" + expectedUserData);
+    assertThat(pc.capturedArgs).contains("--shared-data-dir=" + expectedUserData.resolveSibling("shared-data"));
     assertThat(pc.capturedArgs).noneMatch(arg -> arg.contains(".vscode"));
     assertThat(pc.capturedArgs).noneMatch(arg -> arg.startsWith("--profile="));
+  }
+
+  /**
+   * Tests that by default {@link Vscode#configureToolArgs(ProcessContext, ProcessMode, List)} also passes {@code --shared-data-dir} with the same scope as
+   * {@code --user-data-dir} ({@code $IDE_HOME/.ide/vscode/«workspace»/shared-data}). Otherwise all VS Code instances share {@code ~/.vscode-shared} that holds
+   * the GitHub login encrypted with a key of the user-data-dir so every other instance deletes it (see #2581).
+   */
+  @Test
+  void testConfigureToolArgsUsesSharedDataDirNextToUserData() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    Vscode commandlet = new Vscode(context);
+    ArgCapturingProcessContext pc = new ArgCapturingProcessContext(context);
+    // act
+    commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
+    // assert
+    Path metadataPath = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("vscode").resolve(context.getWorkspaceName());
+    assertThat(pc.capturedArgs).contains("--user-data-dir=" + metadataPath.resolve("config"), "--shared-data-dir=" + metadataPath.resolve("shared-data"));
   }
 
   /**
@@ -198,6 +226,8 @@ class VscodeTest extends AbstractIdeContextTest {
     commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());
     // assert
     assertThat(pc.capturedArgs).noneMatch(arg -> arg.startsWith("--user-data-dir="));
+    // the default user-data-dir needs the default shared-data-dir, otherwise the GitHub login cannot be decrypted (see #2581)
+    assertThat(pc.capturedArgs).noneMatch(arg -> arg.startsWith("--shared-data-dir="));
     // the profile has to contain the project name so that different projects with the same workspace name do not share a single profile (see #2058)
     assertThat(pc.capturedArgs).contains("--profile=ideasy-" + context.getProjectName() + "-" + context.getWorkspaceName());
   }
@@ -404,6 +434,36 @@ class VscodeTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(excludedEditions).contains("vscode", "vscodium");
+  }
+
+  @Test
+  void testPluginPurgeRequiredOnMajorVersionChangeOnly() {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode vscodeCommandlet = new Vscode(context);
+    ToolEdition edition = new ToolEdition(PROJECT_VSCODE, PROJECT_VSCODE);
+
+    ToolEditionAndVersion installed = new ToolEditionAndVersion(edition);
+    installed.setResolvedVersion(VersionIdentifier.of("1.90.0"));
+    ToolEditionAndVersion requestedMajor = new ToolEditionAndVersion(edition);
+    requestedMajor.setResolvedVersion(VersionIdentifier.of("2.90.0"));
+    ToolInstallRequest majorVersionChange = new ToolInstallRequest(true);
+    majorVersionChange.setInstalled(installed);
+    majorVersionChange.setRequested(requestedMajor);
+
+    ToolEditionAndVersion requestedMinor = new ToolEditionAndVersion(edition);
+    requestedMinor.setResolvedVersion(VersionIdentifier.of("1.91.0"));
+    ToolInstallRequest minorVersionChange = new ToolInstallRequest(true);
+    minorVersionChange.setInstalled(installed);
+    minorVersionChange.setRequested(requestedMinor);
+
+    // act
+    boolean purgeOnMajor = vscodeCommandlet.isPluginPurgeRequired(majorVersionChange);
+    boolean purgeOnMinor = vscodeCommandlet.isPluginPurgeRequired(minorVersionChange);
+
+    // assert
+    assertThat(purgeOnMajor).isTrue();
+    assertThat(purgeOnMinor).isFalse();
   }
 
   /**

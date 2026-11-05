@@ -125,6 +125,8 @@ public class PythonTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(variables.get("VIRTUAL_ENV").getValue().replace('\\', '/')).endsWith("/software/python");
-    assertThat(variables.get("UV_PROJECT_ENVIRONMENT").getValue().replace('\\', '/')).endsWith("/software/python");
+    // UV_PROJECT_ENVIRONMENT must not be set: pointing uv at the shared installation breaks all uv projects, see
+    // https://github.com/devonfw/IDEasy/issues/2701
+    assertThat(variables).doesNotContainKey("UV_PROJECT_ENVIRONMENT");
   }
 }

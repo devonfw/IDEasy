@@ -6,7 +6,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.CapturingProcessContextTest;
+import com.devonfw.tools.ide.context.CapturingProcessContextMock;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -94,7 +94,7 @@ class SpyderTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_PIP);
     Spyder commandlet = new Spyder(context);
-    CapturingProcessContextTest pc = new CapturingProcessContextTest(context);
+    CapturingProcessContextMock pc = new CapturingProcessContextMock(context);
 
     // act
     commandlet.configureToolArgs(pc, ProcessMode.DEFAULT, List.of());

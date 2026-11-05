@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.tool.npm.Npm;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -59,5 +60,8 @@ class TaskTest extends AbstractIdeContextTest {
 
     assertThat(context).logAtInfo().hasMessageContaining("npm install -gf @go-task/cli@3.43.3");
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed task in version 3.43.3");
+    // the success message must report the actual location (the per-project global npm prefix) and not the parent tool path (software/node)
+    assertThat(context).logAtSuccess()
+        .hasMessageContaining("at " + context.getSoftwarePath().resolve(Npm.NPM_GLOBAL_FOLDER));
   }
 }

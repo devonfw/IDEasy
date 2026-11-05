@@ -5,6 +5,8 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
+import com.devonfw.ide.gui.App;
+
 /**
  * Custom Alert class for IDEasy to allow interaction via the CLIs questions/modals/selections.
  */
@@ -36,7 +38,7 @@ public class IdeDialog extends Alert {
 
     setOnShowing(event -> {
       Stage stage = (Stage) getDialogPane().getScene().getWindow();
-      stage.getIcons().add(new Image("com/devonfw/ide/gui/assets/devonfw.png"));
+      stage.getIcons().add(new Image(App.ICON_PATH));
     });
   }
 }
