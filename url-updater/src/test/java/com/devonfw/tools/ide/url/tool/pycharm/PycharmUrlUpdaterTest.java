@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
+import com.devonfw.tools.ide.url.tool.intellij.IntellijJsonObject;
+import com.devonfw.tools.ide.url.tool.intellij.IntellijJsonRelease;
 import com.devonfw.tools.ide.url.updater.AbstractUrlUpdaterTest;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -133,5 +135,61 @@ class PycharmUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
     // assert
     assertUrlVersionFile(pycharmVersionsPath, "linux_x64");
+  }
+
+  /**
+   * Test if the {@link PycharmUrlUpdater} correctly moves unified releases to the community edition JSON object, so that they are correctly recognized as
+   * community edition releases by the rest of the code. This is done by providing a mocked JSON response with a unified release and checking whether this
+   * release is moved to the community edition JSON object by the {@link PycharmUrlUpdater}.
+   */
+  @Test
+  void testPycharmJsonResponseMovesUnifiedReleasesToCommunity() throws Exception {
+
+    String response = """
+        [
+          {
+            "releases": [
+              {
+                "version": "2026.3",
+                "downloads": {}
+              },
+              {
+                "version": "2025.3",
+                "downloads": {}
+              },
+              {
+                "version": "2025.2",
+                "downloads": {}
+              },
+              {
+                "version": "2024.3.5",
+                "downloads": {}
+              }
+            ]
+          },
+          {
+            "releases": [
+              {
+                "version": "2025.2",
+                "downloads": {}
+              },
+              {
+                "version": "2024.3.5",
+                "downloads": {}
+              }
+            ]
+          }
+        ]
+        """;
+
+    PycharmUrlUpdater updater = new PycharmUrlUpdater();
+
+    IntellijJsonObject communityEdition = updater.getJsonObjectFromResponse(response, "pycharm");
+    IntellijJsonObject professionalEdition = updater.getJsonObjectFromResponse(response, "professional");
+
+    assertThat(communityEdition.releases()).extracting(IntellijJsonRelease::version)
+        .containsExactly("2026.3", "2025.3", "2025.2", "2024.3.5");
+    assertThat(professionalEdition.releases()).extracting(IntellijJsonRelease::version)
+        .containsExactly("2025.2", "2024.3.5");
   }
 }
