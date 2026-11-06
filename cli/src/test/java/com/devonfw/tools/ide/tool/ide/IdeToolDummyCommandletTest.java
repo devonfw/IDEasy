@@ -14,7 +14,6 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.AbstractIdeTestContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -83,7 +82,7 @@ class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
     }
 
     @Override
-    public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
+    public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ToolInstallRequest request) {
 
       this.installedPlugins.add(plugin);
       step.success("Dummy plugin " + plugin.name() + " installed.");

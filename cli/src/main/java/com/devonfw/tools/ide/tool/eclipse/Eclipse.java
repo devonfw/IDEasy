@@ -16,6 +16,7 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
@@ -85,8 +86,9 @@ public class Eclipse extends AbstractIdeToolCommandlet {
   }
 
   @Override
-  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
+  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ToolInstallRequest request) {
 
+    ProcessContext pc = request.getProcessContext();
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT_CAPTURE, List.of("-application", "org.eclipse.equinox.p2.director",
         "-repository", plugin.url(), "-installIU", plugin.id()));
     if (result.isSuccessful()) {

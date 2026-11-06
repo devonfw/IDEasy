@@ -8,6 +8,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaPluginDownloader;
@@ -64,7 +65,8 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
   }
 
   @Override
-  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
+  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ToolInstallRequest request) {
+    ProcessContext pc = request.getProcessContext();
     IdeaPluginDownloader ideaPluginDownloader = new IdeaPluginDownloader(this.context, this);
     return ideaPluginDownloader.installPlugin(plugin, step, pc);
   }

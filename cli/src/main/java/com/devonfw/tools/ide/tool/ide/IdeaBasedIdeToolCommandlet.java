@@ -16,6 +16,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
@@ -44,8 +45,9 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
   }
 
   @Override
-  public boolean installPlugin(ToolPluginDescriptor plugin, final Step step, ProcessContext pc) {
+  public boolean installPlugin(ToolPluginDescriptor plugin, final Step step, ToolInstallRequest request) {
 
+    ProcessContext pc = request.getProcessContext();
     // In case of plugins with a custom repo url
     boolean customRepo = plugin.url() != null;
     List<String> args = new ArrayList<>();

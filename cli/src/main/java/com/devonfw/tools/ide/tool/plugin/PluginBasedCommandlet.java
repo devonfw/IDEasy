@@ -7,7 +7,6 @@ import java.util.Collection;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
@@ -116,11 +115,12 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
    * Installs the given active plugins and handles the inactive ones. The default implementation is shared by all plugin-capable tools.
    *
    * @param plugins the {@link Collection} of {@link ToolPluginDescriptor plugins} to install.
-   * @param pc the {@link ProcessContext} to use.
+   * @param request the {@link ToolInstallRequest} of the tool installation that triggers the plugin installation (carries the
+   *     {@link com.devonfw.tools.ide.process.ProcessContext} and the real install context, e.g. for the CVE check).
    */
-  default void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
+  default void installPlugins(Collection<ToolPluginDescriptor> plugins, ToolInstallRequest request) {
 
-    getPluginManager().installPlugins(plugins, pc);
+    getPluginManager().installPlugins(plugins, request);
   }
 
   /**
@@ -128,10 +128,10 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
    *
    * @param plugin the {@link ToolPluginDescriptor} to install.
    * @param step the {@link Step} for the plugin installation.
-   * @param pc the {@link ProcessContext} to use.
+   * @param request the {@link ToolInstallRequest} of the tool installation that triggers the plugin installation.
    * @return {@code true} if the installation of the plugin succeeded, {@code false} if not.
    */
-  boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc);
+  boolean installPlugin(ToolPluginDescriptor plugin, Step step, ToolInstallRequest request);
 
   /**
    * Ensures that the tool itself is installed and then installs the plugin.

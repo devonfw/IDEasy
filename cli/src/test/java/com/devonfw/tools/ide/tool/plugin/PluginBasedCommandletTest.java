@@ -12,7 +12,6 @@ import org.junit.jupiter.api.io.TempDir;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.context.ProcessContextTestImpl;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
@@ -66,7 +65,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     pluginBasedCommandlet.createPluginMarkerFile(plugin);
 
     //act
-    pluginBasedCommandlet.installPlugins(List.of(plugin), new ProcessContextTestImpl(context));
+    pluginBasedCommandlet.installPlugins(List.of(plugin), new ToolInstallRequest(true));
 
     //assert - Check if we skip the markerfile-check because we force the plugins to install
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit (1/1)'.");
@@ -84,7 +83,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     commandlet.createPluginMarkerFile(anyedit);
     commandlet.createPluginMarkerFile(startexplorer);
 
-    commandlet.installPlugins(List.of(anyedit, quickrex, startexplorer), new ProcessContextTestImpl(context));
+    commandlet.installPlugins(List.of(anyedit, quickrex, startexplorer), new ToolInstallRequest(true));
 
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin quickrex (1/1)'.");
     assertThat(context).log().hasNoMessageContaining("Install plugin anyedit");
@@ -92,7 +91,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     assertThat(commandlet.retrievePluginMarkerFilePath(quickrex)).exists();
 
     context.getTestStartContext().getEntries().clear();
-    commandlet.installPlugins(List.of(anyedit, quickrex, startexplorer), new ProcessContextTestImpl(context));
+    commandlet.installPlugins(List.of(anyedit, quickrex, startexplorer), new ToolInstallRequest(true));
 
     assertThat(context).log().hasNoMessageContaining("Install plugin ");
   }
@@ -109,7 +108,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     ToolPluginDescriptor second = new ToolPluginDescriptor("second", "second", null, null, true, Set.of(), Set.of());
     commandlet.createPluginMarkerFile(installed);
 
-    commandlet.installPlugins(List.of(installed, first, inactive, excluded, second), new ProcessContextTestImpl(context));
+    commandlet.installPlugins(List.of(installed, first, inactive, excluded, second), new ToolInstallRequest(true));
 
     assertThat(context).logAtSuccess().hasEntries("Successfully ended step 'Install plugin first (1/2)'.",
         "Successfully ended step 'Install plugin second (2/2)'.");
@@ -129,7 +128,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     ToolPlugins plugins = commandlet.getPlugins();
     commandlet.createPluginMarkerFile(plugins.getByName("spotbugs"));
 
-    commandlet.installPlugins(plugins.getPlugins(), new ProcessContextTestImpl(context));
+    commandlet.installPlugins(plugins.getPlugins(), new ToolInstallRequest(true));
 
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin anyedit (1/1)'.");
     assertThat(context).log().hasNoMessageContaining("Install plugin spotbugs");
@@ -191,7 +190,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     context.getStartContext().setForcePlugins(true);
     ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
 
-    pluginBasedCommandlet.installPlugins(pluginBasedCommandlet.getPlugins().getPlugins(), new ProcessContextTestImpl(context));
+    pluginBasedCommandlet.installPlugins(pluginBasedCommandlet.getPlugins().getPlugins(), new ToolInstallRequest(true));
 
     // anyedit is configured as inactive but listed in ECLIPSE_EXTRA_PLUGINS - has to be installed
     assertThat(context).logAtSuccess().hasMessageContaining("Install plugin anyedit (");

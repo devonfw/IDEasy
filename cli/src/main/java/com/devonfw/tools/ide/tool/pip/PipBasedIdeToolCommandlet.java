@@ -114,12 +114,12 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     if (isPluginPurgeRequired(request)) {
       this.pluginManager.resetPlugins(request);
     }
-    installPlugins(getPlugins().getPlugins(), request.getProcessContext());
+    installPlugins(getPlugins().getPlugins(), request);
   }
 
   @Override
-  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
-    ProcessResult result = runPluginPackageManager(PackageManagerRequest.TYPE_INSTALL, plugin, pc);
+  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ToolInstallRequest request) {
+    ProcessResult result = runPluginPackageManager(PackageManagerRequest.TYPE_INSTALL, plugin, request);
     if (result.isSuccessful()) {
       step.success("Successfully installed plugin: {}", plugin.name());
       return true;
@@ -136,7 +136,7 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     ToolInstallRequest request = new ToolInstallRequest(true);
     request.setProcessContext(pc);
     install(request);
-    installPlugin(plugin, step, pc);
+    installPlugin(plugin, step, request);
   }
 
   @Override
@@ -167,18 +167,24 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
    *     {@link PackageManagerRequest#TYPE_UNINSTALL uninstall}).
    * @param plugin the {@link ToolPluginDescriptor} to install or uninstall. Its {@link ToolPluginDescriptor#id() ID} is used as name of the python
    *     package.
-   * @param pc the {@link ProcessContext} to use or {@code null} to create a new one.
+   * @param request the {@link ToolInstallRequest} carrying the {@link com.devonfw.tools.ide.process.ProcessContext} and the real install context for the
+   *     install case, or {@code null} for the uninstall path only (the install path requires a non-{@code null} request).
    * @return the {@link ProcessResult}
    */
-  private ProcessResult runPluginPackageManager(String type, ToolPluginDescriptor plugin, ProcessContext pc) {
+  private ProcessResult runPluginPackageManager(String type, ToolPluginDescriptor plugin, ToolInstallRequest request) {
 
-    PackageManagerRequest request = new PackageManagerRequest(type, plugin.id()).setProcessMode(ProcessMode.DEFAULT_CAPTURE).setProcessContext(pc);
+    PackageManagerRequest pmRequest = new PackageManagerRequest(type, plugin.id()).setProcessMode(ProcessMode.DEFAULT_CAPTURE);
     if (PackageManagerRequest.TYPE_INSTALL.equals(type)) {
+      // the plugin is installed as part of the tool installation, so the package manager install is tracked as a dependency of that tool installation
+      // (the CVE check covers the package manager tools such as pip/uv, not the plugin package itself)
+      pmRequest.setToolInstallRequest(request).setProcessContext(request.getProcessContext());
       String version = plugin.version();
       if ((version != null) && !version.isBlank()) {
-        request.setVersion(VersionIdentifier.of(version));
+        pmRequest.setVersion(VersionIdentifier.of(version));
       }
+    } else {
+      pmRequest.setProcessContext((request != null) ? request.getProcessContext() : null);
     }
-    return runPackageManager(request);
+    return runPackageManager(pmRequest);
   }
 }
