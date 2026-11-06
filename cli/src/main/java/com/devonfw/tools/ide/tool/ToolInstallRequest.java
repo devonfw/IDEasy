@@ -38,6 +38,8 @@ public final class ToolInstallRequest {
 
   private boolean ignoreProject;
 
+  private ToolInstallTracker tracker;
+
   private Step step;
 
   /**
@@ -72,6 +74,7 @@ public final class ToolInstallRequest {
     if (parent != null) {
       this.processContext = parent.processContext;
       this.ignoreProject = parent.ignoreProject;
+      this.tracker = parent.tracker;
     }
   }
 
@@ -256,6 +259,26 @@ public final class ToolInstallRequest {
   public void setIgnoreProject(boolean ignoreProject) {
 
     this.ignoreProject = ignoreProject;
+  }
+
+  /**
+   * @return the {@link ToolInstallTracker} that records tools already installed during the current operation, or {@code null} if the request has not yet
+   *     been completed (see {@link AbstractToolCommandlet#completeRequest(ToolInstallRequest)}).
+   */
+  public ToolInstallTracker getTracker() {
+
+    return this.tracker;
+  }
+
+  /**
+   * @param tracker new value of {@link #getTracker()}.
+   */
+  public void setTracker(ToolInstallTracker tracker) {
+
+    if (this.tracker != null) {
+      throw new IllegalStateException();
+    }
+    this.tracker = tracker;
   }
 
   /**
