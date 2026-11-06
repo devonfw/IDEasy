@@ -339,6 +339,21 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
   }
 
   /**
+   * Performs the installation of the {@link #getName() tool} managed by this {@link AbstractToolCommandlet} while recording the result in the given
+   * {@link ToolInstallTracker} so that a redundant (re)install of the same tool+version within the same operation can be skipped. This is used by
+   * <code>ide update</code> to share a single tracker across all installed tools.
+   *
+   * @param tracker the {@link ToolInstallTracker} of the current operation.
+   * @return the {@link ToolInstallation}.
+   */
+  public ToolInstallation install(ToolInstallTracker tracker) {
+
+    ToolInstallRequest request = new ToolInstallRequest(false);
+    request.setTracker(tracker);
+    return install(request);
+  }
+
+  /**
    * Performs the installation (install, update, downgrade) of the {@link #getName() tool} managed by this {@link AbstractToolCommandlet}.
    *
    * @param request the {@link ToolInstallRequest}.
@@ -350,6 +365,16 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
     if (request.isInstallLoop()) {
       return toolAlreadyInstalled(request);
     }
+    ToolInstallTracker tracker = request.getTracker();
+    // Additional and extra installations are never skipped since they must be installed at their specific location/version.
+    if ((tracker != null) && !request.isAdditionalInstallation() && !request.isExtraInstallation()
+        && tracker.isInstalled(request.getRequested())) {
+      LOG.debug("Skipping installation of {} (already installed during this process).", request.getRequested());
+      return createExistingToolInstallation(request);
+    }
+    // Capture the resolved version before doInstall since the CVE check may bump it in place; the tracker must record the pre-CVE version so a later
+    // reference to the same tool is still recognized as installed (see #945).
+    VersionIdentifier resolvedVersionBeforeCveCheck = (tracker != null) ? request.getRequested().getResolvedVersion() : null;
     ToolInstallation installation = doInstall(request);
     if (installation != null && installation.installedAsynchronously()) {
       LOG.warn(
@@ -357,8 +382,25 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
               + "You need to complete the installation, potentially reboot and rerun your 'ide' command in a new terminal session"
               + " after the installation has completed.",
           request.getRequested());
+    } else if (installation != null) {
+      recordInstallation(request, tracker, resolvedVersionBeforeCveCheck);
     }
     return installation;
+  }
+
+  /**
+   * Records a successfully installed tool in the {@link ToolInstallTracker} so a redundant install of the same tool+version can be skipped.
+   *
+   * @param request the {@link ToolInstallRequest} that has just been installed.
+   * @param tracker the {@link ToolInstallTracker} of the current process or {@code null} if not tracking.
+   * @param resolvedVersionBeforeCveCheck the version captured before the CVE check ran, or {@code null} if not tracking.
+   */
+  private void recordInstallation(ToolInstallRequest request, ToolInstallTracker tracker, VersionIdentifier resolvedVersionBeforeCveCheck) {
+
+    if ((tracker == null) || request.isAdditionalInstallation() || request.isExtraInstallation()) {
+      return;
+    }
+    tracker.recordInstalled(request.getRequested().getEdition(), resolvedVersionBeforeCveCheck);
   }
 
   /**
@@ -378,6 +420,21 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
     completeRequestRequested(request); // depends on completeRequestInstalled
     completeRequestProcessContext(request);
     completeRequestToolPath(request);
+    completeRequestTracker(request);
+  }
+
+  /**
+   * Ensures the request carries a {@link ToolInstallTracker}, creating one for a top-level request that does not yet have one. Dependencies inherit the
+   * tracker from their parent request, so a shared dependency is only installed and CVE-checked once (see issue #945). An already-provided tracker
+   * (shared by <code>ide update</code>) is kept.
+   *
+   * @param request the {@link ToolInstallRequest} to complete.
+   */
+  private void completeRequestTracker(ToolInstallRequest request) {
+
+    if (request.getTracker() == null) {
+      request.setTracker(new ToolInstallTracker());
+    }
   }
 
   private void completeRequestProcessContext(ToolInstallRequest request) {
