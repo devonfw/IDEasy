@@ -185,7 +185,7 @@ class IntellijTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests the full CLI launch path ({@code ide intellij --project <path>}) with an already-installed IDE: the workspace configuration must not run, i.e. no
+   * Tests the full CLI launch path ({@code ide intellij --project=<path>}) with an already-installed IDE: the workspace configuration must not run, i.e. no
    * {@code "Configuring workspace …"} step. This covers the {@code postInstall} call site that is reached by the launch's ensure-install step
    * ({@code toolAlreadyInstalled -> postInstall -> configureWorkspace}), in addition to the {@code runTool} launch seam.
    */

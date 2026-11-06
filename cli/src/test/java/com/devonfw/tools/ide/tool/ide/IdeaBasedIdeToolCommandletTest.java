@@ -94,7 +94,7 @@ class IdeaBasedIdeToolCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests the "two-phase agreement" end-to-end: a real {@code ide intellij --project <path>} launch must pass the launched IDE an {@code IDEA_PROPERTIES}
+   * Tests the "two-phase agreement" end-to-end: a real {@code ide intellij --project=<path>} launch must pass the launched IDE an {@code IDEA_PROPERTIES}
    * environment variable pointing at the opened folder's {@code idea.properties} (the same folder the IDE is told to open). The IntelliJ mock binary
    * captures the {@code IDEA_PROPERTIES} env var it is launched with (see {@code ideaprops}), so we assert both the launch args and the env var point at the
    * same external folder - proving the {@code setEnvironment} (shell env) and {@code runTool} (launch) phases agree.
