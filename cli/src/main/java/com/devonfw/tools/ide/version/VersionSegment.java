@@ -13,6 +13,9 @@ public class VersionSegment implements VersionObject<VersionSegment> {
   /** Pattern to match a {@link VersionPhase#isStable() stable} version that matches the prefix. Value is: {@value} */
   public static final String PATTERN_MATCH_ANY_STABLE_VERSION = "*";
 
+  /** The maximum {@link #getNumber() number} the {@link #getDigits() digits} are clamped to when they overflow the {@code int} range. */
+  public static final int MAX_NUMBER = Integer.MAX_VALUE;
+
   private static final VersionSegment EMPTY = new VersionSegment("", "", "", "");
 
   private final String separator;
@@ -24,6 +27,8 @@ public class VersionSegment implements VersionObject<VersionSegment> {
   private final String digits;
 
   private final int number;
+
+  private final boolean overflow;
 
   private VersionSegment next;
 
@@ -65,8 +70,20 @@ public class VersionSegment implements VersionObject<VersionSegment> {
     this.digits = digits;
     if (this.digits.isEmpty()) {
       this.number = -1;
+      this.overflow = false;
     } else {
-      this.number = Integer.parseInt(this.digits);
+      int parsedNumber;
+      boolean overflowed;
+      try {
+        parsedNumber = Integer.parseInt(this.digits);
+        overflowed = false;
+      } catch (NumberFormatException e) {
+        // the digits do not fit into an int, so clamping the number to MAX_NUMBER is here the solution
+        parsedNumber = MAX_NUMBER;
+        overflowed = true;
+      }
+      this.number = parsedNumber;
+      this.overflow = overflowed;
     }
     if (EMPTY != null) {
       assert (!this.letters.isEmpty() || !this.digits.isEmpty() || !this.separator.isEmpty()
@@ -82,6 +99,7 @@ public class VersionSegment implements VersionObject<VersionSegment> {
     this.pattern = pattern;
     this.digits = digits;
     this.number = number;
+    this.overflow = false;
   }
 
   /**
@@ -141,6 +159,16 @@ public class VersionSegment implements VersionObject<VersionSegment> {
   public int getNumber() {
 
     return this.number;
+  }
+
+  /**
+   * @return {@code true} if the {@link #getNumber() number} was clamped to {@link #MAX_NUMBER} because the {@link #getDigits() digits} overflow the {@code int}
+   *     range. In this case the {@link #getNumber() number} alone is not enough to compare this segment against another one (two different very large values
+   *     both clamp to {@link #MAX_NUMBER}) and the {@link #getDigits() digits} have to be used instead.
+   */
+  public boolean isOverflow() {
+
+    return this.overflow;
   }
 
   /**
@@ -262,6 +290,18 @@ public class VersionSegment implements VersionObject<VersionSegment> {
       } else {
         return VersionComparisonResult.GREATER;
       }
+    } else if (this.overflow || other.overflow) {
+      // both numbers are equal (e.g. both clamped to MAX_NUMBER) so fall back to comparing the digits to distinguish overflowed values
+      int compare = compareDigits(this.digits, other.digits);
+      if (compare < 0) {
+        return VersionComparisonResult.LESS;
+      } else if (compare > 0) {
+        return VersionComparisonResult.GREATER;
+      } else if (this.separator.equals(other.separator)) {
+        return VersionComparisonResult.EQUAL;
+      } else {
+        return VersionComparisonResult.EQUAL_UNSAFE;
+      }
     } else if (this.number < 0 && (isPattern() || other.isPattern())) {
       // Numbers are equal and one of them is a pattern
       if (isPattern() && !other.isPattern()) {
@@ -284,6 +324,40 @@ public class VersionSegment implements VersionObject<VersionSegment> {
     } else {
       return VersionComparisonResult.EQUAL_UNSAFE;
     }
+  }
+
+  /**
+   * Compares two {@link String} by their numeric value (not lexicographically): the value with more significant digits (fewer leading zeros) is larger,
+   * otherwise the first digit that differs decides. Used to compare {@link #getDigits() digits} that overflow {@code int} (see {@link #isOverflow()}) and hence
+   * cannot be compared via their clamped {@link #getNumber() number}.
+   *
+   * @param digits1 the first digit {@link String} (must not be {@link String#isEmpty() empty}).
+   * @param digits2 the second digit {@link String} (must not be {@link String#isEmpty() empty}).
+   * @return a {@code negative}, {@code zero} or {@code positive} integer as {@link Integer#compare(int, int)} comparing the numeric values of the digits.
+   */
+  private static int compareDigits(String digits1, String digits2) {
+
+    int startIndex1 = 0;
+    while (startIndex1 < digits1.length() - 1 && digits1.charAt(startIndex1) == '0') {
+      startIndex1++;
+    }
+    int startIndex2 = 0;
+    while (startIndex2 < digits2.length() - 1 && digits2.charAt(startIndex2) == '0') {
+      startIndex2++;
+    }
+    int length1 = digits1.length() - startIndex1;
+    int length2 = digits2.length() - startIndex2;
+    //Comparison of the length
+    if (length1 != length2) {
+      return length1 < length2 ? -1 : 1;
+    }
+    // Comparison, digit by digit
+    for (int i = 0; i < length1; i++) {
+      if (digits1.charAt(startIndex1 + i) != digits2.charAt(startIndex2 + i)) {
+        return digits1.charAt(startIndex1 + i) < digits2.charAt(startIndex2 + i) ? -1 : 1;
+      }
+    }
+    return 0;
   }
 
   /**

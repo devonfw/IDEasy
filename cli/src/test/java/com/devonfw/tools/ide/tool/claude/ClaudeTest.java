@@ -57,7 +57,7 @@ class ClaudeTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_CLAUDE, null, false);
     Claude claude = new Claude(context);
     Path dummy = context.getSoftwarePath().resolve("claude");
-    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.of(CLAUDE_VERSION), false);
+    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.ofRequired(CLAUDE_VERSION), false);
     RecordingEnvironmentContext ec = new RecordingEnvironmentContext();
 
     // act
@@ -84,7 +84,7 @@ class ClaudeTest extends AbstractIdeContextTest {
     context.getSystem().setEnv("ANTHROPIC_API_KEY", "leaked-ambient-key");
     Claude claude = new Claude(context);
     Path dummy = context.getSoftwarePath().resolve("claude");
-    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.of(CLAUDE_VERSION), false);
+    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.ofRequired(CLAUDE_VERSION), false);
     RecordingEnvironmentContext ec = new RecordingEnvironmentContext();
 
     // act

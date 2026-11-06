@@ -127,8 +127,7 @@ public class BuildSecurityJsonFiles implements Runnable {
    */
   public static void main(String[] args) {
     if (args.length == 0) {
-      String usage = "Usage: " + BuildSecurityJsonFiles.class.getSimpleName() + " <path-to-ide-urls>";
-      System.err.println(usage); // checkstyle:ignore SystemOut - usage of a main method must always go to the console
+      LOG.error("Usage: " + BuildSecurityJsonFiles.class.getSimpleName() + " <path-to-ide-urls>");
       System.exit(1);
     }
     Path urlsPath = Path.of(args[0]);
@@ -216,17 +215,17 @@ public class BuildSecurityJsonFiles implements Runnable {
         LOG.error("Vulnerability {} has no interval of affected versions or single affected version.", id);
         return null;
       }
-      VersionIdentifier singleAffectedVersion = VersionIdentifier.of(singleVersion);
-      return new OsVersionRange(VersionRange.of(singleAffectedVersion, singleAffectedVersion, BoundaryType.CLOSED), os);
+      VersionIdentifier singleAffectedVersion = VersionIdentifier.ofOptional(singleVersion);
+      return new OsVersionRange(VersionRange.ofRequired(singleAffectedVersion, singleAffectedVersion, BoundaryType.CLOSED), os);
     } else {
       VersionIdentifier min;
       boolean leftExclusive;
       if (startIncluding != null) {
         assert (startExcluding == null);
-        min = VersionIdentifier.of(startIncluding);
+        min = VersionIdentifier.ofOptional(startIncluding);
         leftExclusive = false;
       } else if (startExcluding != null) {
-        min = VersionIdentifier.of(startExcluding);
+        min = VersionIdentifier.ofOptional(startExcluding);
         leftExclusive = true;
       } else {
         min = null;
@@ -236,10 +235,10 @@ public class BuildSecurityJsonFiles implements Runnable {
       boolean rightExclusive;
       if (endIncluding != null) {
         assert (endExcluding == null);
-        max = VersionIdentifier.of(endIncluding);
+        max = VersionIdentifier.ofOptional(endIncluding);
         rightExclusive = false;
       } else if (endExcluding != null) {
-        max = VersionIdentifier.of(endExcluding);
+        max = VersionIdentifier.ofOptional(endExcluding);
         rightExclusive = true;
       } else {
         max = null;

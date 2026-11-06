@@ -28,7 +28,7 @@ class CustomToolMetadataTest extends Assertions {
     CustomToolMetadata tool = new CustomToolMetadata(name, version, os, arch, url, checksums, repositoryUrl);
     // assert
     assertThat(tool.getTool()).isEqualTo(name);
-    assertThat(tool.getVersion()).isEqualTo(VersionIdentifier.of(version));
+    assertThat(tool.getVersion()).isEqualTo(VersionIdentifier.ofRequired(version));
     assertThat(tool.getOs()).isEqualTo(os);
     assertThat(tool.getArch()).isEqualTo(arch);
     assertThat(tool.getUrl()).isEqualTo(url);
@@ -51,7 +51,7 @@ class CustomToolMetadataTest extends Assertions {
     CustomToolMetadata tool = new CustomToolMetadata(name, version, os, arch, url, checksums, repositoryUrl);
     // assert
     assertThat(tool.getTool()).isEqualTo(name);
-    assertThat(tool.getVersion()).isEqualTo(VersionIdentifier.of(version));
+    assertThat(tool.getVersion()).isEqualTo(VersionIdentifier.ofRequired(version));
     assertThat(tool.getOs()).isEqualTo(os);
     assertThat(tool.getArch()).isEqualTo(arch);
     assertThat(tool.getUrl()).isEqualTo(url);

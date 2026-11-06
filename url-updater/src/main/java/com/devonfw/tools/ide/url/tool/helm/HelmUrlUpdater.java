@@ -11,7 +11,7 @@ public class HelmUrlUpdater extends GithubUrlTagUpdater {
 
   private static final String DOWNLOAD_BASE_URL = "https://get.helm.sh";
 
-  private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("3.4.0");
+  private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.ofRequired("3.4.0");
 
   /**
    * The Constructor.

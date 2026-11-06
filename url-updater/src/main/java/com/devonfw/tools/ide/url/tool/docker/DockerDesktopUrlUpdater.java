@@ -17,9 +17,9 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
   private static final String DOWNLOAD_BASE_URL = "https://desktop.docker.com";
   private static final String VERSION_BASE_URL = "https://docs.docker.com";
 
-  private static final Set<VersionIdentifier> WINDOWS_ONLY_VERSIONS = Set.of(VersionIdentifier.of("4.16.3"),
-      VersionIdentifier.of("4.4.3"), VersionIdentifier.of("4.4.4"), VersionIdentifier.of("4.17.1"),
-      VersionIdentifier.of("4.5.1"));
+  private static final Set<VersionIdentifier> WINDOWS_ONLY_VERSIONS = Set.of(VersionIdentifier.ofRequired("4.16.3"),
+      VersionIdentifier.ofRequired("4.4.3"), VersionIdentifier.ofRequired("4.4.4"), VersionIdentifier.ofRequired("4.17.1"),
+      VersionIdentifier.ofRequired("4.5.1"));
 
   private static final Pattern VERSION_PATTERN = Pattern.compile("(4\\.\\d{1,4}+\\.\\d+)");
 
@@ -39,7 +39,7 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    VersionIdentifier vid = VersionIdentifier.of(urlVersion.getName());
+    VersionIdentifier vid = VersionIdentifier.ofOptional(urlVersion.getName());
     String body = doGetResponseBodyAsString(getVersionUrl());
     String regex = "## " + Pattern.quote(urlVersion.getName())
         + ".*?\\[Windows]\\(https://desktop\\.docker\\.com/win/main/amd64/(\\d{5,6})/";

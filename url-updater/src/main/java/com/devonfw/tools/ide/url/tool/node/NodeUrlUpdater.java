@@ -11,11 +11,11 @@ public class NodeUrlUpdater extends GithubUrlTagUpdater {
 
   private static final String DOWNLOAD_BASE_URL = "https://nodejs.org";
 
-  private static final VersionIdentifier MIN_NODE_VID = VersionIdentifier.of("v3.9.9");
+  private static final VersionIdentifier MIN_NODE_VID = VersionIdentifier.ofRequired("v3.9.9");
 
-  private static final VersionIdentifier MIN_WIN_ARM_VID = VersionIdentifier.of("v19.9.9");
+  private static final VersionIdentifier MIN_WIN_ARM_VID = VersionIdentifier.ofRequired("v19.9.9");
 
-  private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("v15.9.9");
+  private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.ofRequired("v15.9.9");
 
   /**
    * The Constructor.

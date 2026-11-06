@@ -12,7 +12,7 @@ public class MvndUrlUpdater extends GithubUrlReleaseUpdater {
 
   private static final String DOWNLOAD_BASE_URL = "https://dlcdn.apache.org/maven/mvnd/";
 
-  private static final VersionIdentifier MIN_MVND_VID = VersionIdentifier.of("1.0.2");
+  private static final VersionIdentifier MIN_MVND_VID = VersionIdentifier.ofRequired("1.0.2");
 
   /**
    * The Constructor.
@@ -61,7 +61,7 @@ public class MvndUrlUpdater extends GithubUrlReleaseUpdater {
     String mappedVersion = super.mapVersion(version);
     if (mappedVersion != null) {
       // Require minimum version (1.0.2)
-      VersionIdentifier vid = VersionIdentifier.of(mappedVersion);
+      VersionIdentifier vid = VersionIdentifier.ofRequired(mappedVersion);
       if (vid.isGreaterOrEqual(MIN_MVND_VID)) {
         return mappedVersion;
       }

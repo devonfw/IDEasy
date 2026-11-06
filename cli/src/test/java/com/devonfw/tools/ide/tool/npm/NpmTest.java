@@ -105,7 +105,7 @@ class NpmTest extends AbstractIdeContextTest {
     Npm commandlet = new Npm(context);
     context.getFileAccess().mkdirs(context.getSoftwarePath().resolve("npm"));
     ToolInstallation installation = new ToolInstallation(context.getSoftwarePath(), context.getSoftwarePath(), context.getSoftwarePath(),
-        VersionIdentifier.of("9.9.2"), false);
+        VersionIdentifier.ofRequired("9.9.2"), false);
     RecordingEnvironmentContext environmentContext = new RecordingEnvironmentContext();
 
     // act
@@ -130,7 +130,7 @@ class NpmTest extends AbstractIdeContextTest {
     Npm commandlet = new Npm(context);
     context.getFileAccess().mkdirs(context.getSoftwarePath().resolve("npm"));
     Path softwareNpm = context.getSoftwarePath().resolve("npm");
-    ToolInstallation installation = new ToolInstallation(softwareNpm, softwareNpm, softwareNpm, VersionIdentifier.of("9.9.2"), false);
+    ToolInstallation installation = new ToolInstallation(softwareNpm, softwareNpm, softwareNpm, VersionIdentifier.ofRequired("9.9.2"), false);
     RecordingEnvironmentContext environmentContext = new RecordingEnvironmentContext();
 
     // act
@@ -156,7 +156,7 @@ class NpmTest extends AbstractIdeContextTest {
     Npm commandlet = new Npm(context);
     context.getFileAccess().mkdirs(context.getSoftwarePath().resolve("npm"));
     Path softwareNpm = context.getSoftwarePath().resolve("npm");
-    ToolInstallation installation = new ToolInstallation(softwareNpm, softwareNpm, softwareNpm, VersionIdentifier.of("9.9.2"), false);
+    ToolInstallation installation = new ToolInstallation(softwareNpm, softwareNpm, softwareNpm, VersionIdentifier.ofRequired("9.9.2"), false);
 
     // act
     commandlet.setEnvironment(new RecordingEnvironmentContext(), installation, false);

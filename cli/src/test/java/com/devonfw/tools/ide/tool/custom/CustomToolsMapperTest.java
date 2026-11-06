@@ -105,7 +105,7 @@ class CustomToolsMapperTest extends Assertions {
     List<CustomToolMetadata> customToolMetadata = CustomToolsMapper.convert(customTools, context);
     // assert
     assertThat(customToolMetadata.get(0).getTool()).isEqualTo(name);
-    assertThat(customToolMetadata.get(0).getVersion()).isEqualTo(VersionIdentifier.of(version));
+    assertThat(customToolMetadata.get(0).getVersion()).isEqualTo(VersionIdentifier.ofRequired(version));
     assertThat(customToolMetadata.get(0).getOs()).isEqualTo(os);
     assertThat(customToolMetadata.get(0).getArch()).isEqualTo(arch);
     assertThat(customToolMetadata.get(0).getUrl()).isEqualTo(url);
@@ -113,7 +113,7 @@ class CustomToolsMapperTest extends Assertions {
     assertThat(customToolMetadata.get(0).getRepositoryUrl()).isEqualTo(repositoryUrl);
 
     assertThat(customToolMetadata.get(1).getTool()).isEqualTo(name1);
-    assertThat(customToolMetadata.get(1).getVersion()).isEqualTo(VersionIdentifier.of(version1));
+    assertThat(customToolMetadata.get(1).getVersion()).isEqualTo(VersionIdentifier.ofRequired(version1));
     assertThat(customToolMetadata.get(1).getOs()).isEqualTo(os1);
     assertThat(customToolMetadata.get(1).getArch()).isEqualTo(arch1);
     // assert that url was properly created

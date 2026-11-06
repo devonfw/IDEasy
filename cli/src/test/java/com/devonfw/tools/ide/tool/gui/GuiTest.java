@@ -45,7 +45,7 @@ class GuiTest extends AbstractIdeContextTest {
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }
-    return new ToolInstallation(binDir.getParent(), binDir.getParent(), binDir, VersionIdentifier.of("25.0.0"), false);
+    return new ToolInstallation(binDir.getParent(), binDir.getParent(), binDir, VersionIdentifier.ofRequired("25.0.0"), false);
   }
 
   @Test

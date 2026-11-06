@@ -17,7 +17,7 @@ import com.devonfw.tools.ide.cli.CliException;
 class VersionIdentifierTest extends Assertions {
 
   /**
-   * Test of {@link VersionIdentifier#of(String)}.
+   * Test of {@link VersionIdentifier#ofRequired(String)}.
    */
   @Test
   void testOf() {
@@ -26,7 +26,7 @@ class VersionIdentifierTest extends Assertions {
     // given
     String version = "1.0-release-candidate2_-.HF1";
     // when
-    VersionIdentifier vid = VersionIdentifier.of(version);
+    VersionIdentifier vid = VersionIdentifier.ofRequired(version);
     // then
     assertThat(vid.isPattern()).isFalse();
     assertThat(vid.getBoundaryType()).isSameAs(BoundaryType.CLOSED);
@@ -68,7 +68,7 @@ class VersionIdentifierTest extends Assertions {
   void testValid(String version) {
 
     // act
-    VersionIdentifier vid = VersionIdentifier.of(version);
+    VersionIdentifier vid = VersionIdentifier.ofRequired(version);
 
     // assert
     assertThat(vid.isValid()).as(version).isTrue();
@@ -86,7 +86,7 @@ class VersionIdentifierTest extends Assertions {
   void testInvalid(String version) {
 
     // act
-    VersionIdentifier vid = VersionIdentifier.of(version);
+    VersionIdentifier vid = VersionIdentifier.ofRequired(version);
 
     // assert
     assertThat(vid.isValid()).as(version).isFalse();
@@ -104,7 +104,7 @@ class VersionIdentifierTest extends Assertions {
     String version = "2026.08.002" + IdeVersion.LOCAL_DEV_SUFFIX;
 
     // act
-    VersionIdentifier vid = VersionIdentifier.of(version);
+    VersionIdentifier vid = VersionIdentifier.ofRequired(version);
 
     // assert
     assertThat(vid).hasToString(version);
@@ -126,7 +126,7 @@ class VersionIdentifierTest extends Assertions {
         "10-alpha2", "10-alpha*", "10.*", "*", "*!" };
     List<VersionIdentifier> vids = new ArrayList<>(versions.length);
     for (String version : versions) {
-      VersionIdentifier vid = VersionIdentifier.of(version);
+      VersionIdentifier vid = VersionIdentifier.ofRequired(version);
       vids.add(vid);
       assertThat(vid).hasToString(version);
     }
@@ -145,12 +145,12 @@ class VersionIdentifierTest extends Assertions {
   @Test
   void testCompareSpecial() {
 
-    assertThat(VersionIdentifier.LATEST.compareVersion(VersionIdentifier.of("2.0"))).isSameAs(VersionComparisonResult.GREATER_UNSAFE);
-    assertThat(VersionIdentifier.of("2").compareVersion(VersionIdentifier.of("2.0"))).isSameAs(VersionComparisonResult.LESS);
-    assertThat(VersionIdentifier.of("2.0").compareVersion(VersionIdentifier.of("2"))).isSameAs(VersionComparisonResult.GREATER);
-    assertThat(VersionIdentifier.of("2.*").compareVersion(VersionIdentifier.of("2-release"))).isSameAs(VersionComparisonResult.GREATER_UNSAFE);
-    assertThat(VersionIdentifier.of("2.*").compareVersion(VersionIdentifier.of("2.1"))).isSameAs(VersionComparisonResult.GREATER_UNSAFE);
-    assertThat(VersionIdentifier.of("2.*").compareVersion(VersionIdentifier.of("2.*!"))).isSameAs(VersionComparisonResult.LESS_UNSAFE);
+    assertThat(VersionIdentifier.LATEST.compareVersion(VersionIdentifier.ofRequired("2.0"))).isSameAs(VersionComparisonResult.GREATER_UNSAFE);
+    assertThat(VersionIdentifier.ofRequired("2").compareVersion(VersionIdentifier.ofRequired("2.0"))).isSameAs(VersionComparisonResult.LESS);
+    assertThat(VersionIdentifier.ofRequired("2.0").compareVersion(VersionIdentifier.ofRequired("2"))).isSameAs(VersionComparisonResult.GREATER);
+    assertThat(VersionIdentifier.ofRequired("2.*").compareVersion(VersionIdentifier.ofRequired("2-release"))).isSameAs(VersionComparisonResult.GREATER_UNSAFE);
+    assertThat(VersionIdentifier.ofRequired("2.*").compareVersion(VersionIdentifier.ofRequired("2.1"))).isSameAs(VersionComparisonResult.GREATER_UNSAFE);
+    assertThat(VersionIdentifier.ofRequired("2.*").compareVersion(VersionIdentifier.ofRequired("2.*!"))).isSameAs(VersionComparisonResult.LESS_UNSAFE);
   }
 
   /**
@@ -162,69 +162,69 @@ class VersionIdentifierTest extends Assertions {
     VersionIdentifier pattern = VersionIdentifier.LATEST;
     assertThat(pattern.isValid()).isFalse();
     assertThat(pattern.isPattern()).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0.8_7"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17_0.8_7"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("170"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("171.1"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.rc1"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.M1"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.pre4"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.alpha7"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.beta2"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17-SNAPSHOT"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.2.3-SNAPSHOT"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0.8_7"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17_0.8_7"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("170"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("171.1"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.rc1"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.M1"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.pre4"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.alpha7"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.beta2"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17-SNAPSHOT"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.2.3-SNAPSHOT"))).isFalse();
 
-    pattern = VersionIdentifier.of("17*");
+    pattern = VersionIdentifier.ofRequired("17*");
     assertThat(pattern.isValid()).isFalse();
     assertThat(pattern.isPattern()).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0.8_7"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17_0.8_7"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("170"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("171.1"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.rc1"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.M1"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.pre4"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.alpha7"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.beta2"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17-SNAPSHOT"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("18.0"))).isFalse();
-    pattern = VersionIdentifier.of("17.*");
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0.8_7"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17_0.8_7"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("170"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("171.1"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.rc1"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.M1"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.pre4"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.alpha7"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.beta2"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17-SNAPSHOT"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("18.0"))).isFalse();
+    pattern = VersionIdentifier.ofRequired("17.*");
     assertThat(pattern.isValid()).isFalse();
     assertThat(pattern.isPattern()).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0.8_7"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17_0.8_7"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("170"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("170.0"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1-rc1"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1.M1"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1.pre4"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1.pre-alpha7"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1-beta2"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1-SNAPSHOT"))).isFalse();
-    pattern = VersionIdentifier.of("17.0*");
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0.8_7"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17_0.8_7"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("170"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("170.0"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1-rc1"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1.M1"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1.pre4"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1.pre-alpha7"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1-beta2"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1-SNAPSHOT"))).isFalse();
+    pattern = VersionIdentifier.ofRequired("17.0*");
     assertThat(pattern.isValid()).isFalse();
     assertThat(pattern.isPattern()).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0.8_7"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17_0.8_7"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("170"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("170.0"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0-rc1"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0.M1"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0.pre4"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0.alpha7"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0-beta2"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0-SNAPSHOT"))).isFalse();
-    pattern = VersionIdentifier.of("8*");
-    assertThat(pattern.matches(VersionIdentifier.of("8u412b08"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0.8_7"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17_0.8_7"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("170"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("170.0"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0-rc1"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0.M1"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0.pre4"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0.alpha7"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0-beta2"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0-SNAPSHOT"))).isFalse();
+    pattern = VersionIdentifier.ofRequired("8*");
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("8u412b08"))).isTrue();
   }
 
   /**
@@ -233,61 +233,61 @@ class VersionIdentifierTest extends Assertions {
   @Test
   void testMatchAny() {
 
-    VersionIdentifier pattern = VersionIdentifier.of("17*!");
+    VersionIdentifier pattern = VersionIdentifier.ofRequired("17*!");
     assertThat(pattern.isValid()).isFalse();
     assertThat(pattern.isPattern()).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0.8_7"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17_0.8_7"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("170"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("171.1"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.rc1"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.M1"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.pre4"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.alpa7"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.beta2"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17-SNAPSHOT"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.2.3-SNAPSHOT"))).isTrue();
-    pattern = VersionIdentifier.of("17.*!");
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0.8_7"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17_0.8_7"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("170"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("171.1"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.rc1"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.M1"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.pre4"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.alpa7"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.beta2"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17-SNAPSHOT"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.2.3-SNAPSHOT"))).isTrue();
+    pattern = VersionIdentifier.ofRequired("17.*!");
     assertThat(pattern.isValid()).isFalse();
     assertThat(pattern.isPattern()).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0.8_7"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17_0.8_7"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("170"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("170.0"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1-rc1"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1.M1"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1.pre4"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1.alpa7"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1-beta2"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1-SNAPSHOT"))).isTrue();
-    pattern = VersionIdentifier.of("17.0*!");
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0.8_7"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17_0.8_7"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("170"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("170.0"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1-rc1"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1.M1"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1.pre4"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1.alpa7"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1-beta2"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1-SNAPSHOT"))).isTrue();
+    pattern = VersionIdentifier.ofRequired("17.0*!");
     assertThat(pattern.isValid()).isFalse();
     assertThat(pattern.isPattern()).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0.8_7"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17_0.8_7"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.1"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("170"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("170.0"))).isFalse();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0-rc1"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0.M1"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0.pre4"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0.alpa7"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0-beta2"))).isTrue();
-    assertThat(pattern.matches(VersionIdentifier.of("17.0-SNAPSHOT"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0.8_7"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17_0.8_7"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.1"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("170"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("170.0"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0-rc1"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0.M1"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0.pre4"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0.alpa7"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0-beta2"))).isTrue();
+    assertThat(pattern.matches(VersionIdentifier.ofRequired("17.0-SNAPSHOT"))).isTrue();
   }
 
   @Test
   void testCompareJavaVersions() {
 
-    VersionIdentifier v21_35 = VersionIdentifier.of("21_35");
-    VersionIdentifier v21_0_2_13 = VersionIdentifier.of("21.0.2_13");
-    VersionIdentifier v21_0_3_9 = VersionIdentifier.of("21.0.3_9");
+    VersionIdentifier v21_35 = VersionIdentifier.ofRequired("21_35");
+    VersionIdentifier v21_0_2_13 = VersionIdentifier.ofRequired("21.0.2_13");
+    VersionIdentifier v21_0_3_9 = VersionIdentifier.ofRequired("21.0.3_9");
     assertThat(v21_35).isLessThan(v21_0_2_13);
     assertThat(v21_0_2_13).isLessThan(v21_0_3_9);
     assertThat(v21_0_3_9).isGreaterThan(v21_35);
@@ -298,11 +298,11 @@ class VersionIdentifierTest extends Assertions {
    */
   @Test
   void testSnapshotStarFindsUnstableVersions() {
-    VersionIdentifier snapshot_star = VersionIdentifier.of("*!-SNAPSHOT");
+    VersionIdentifier snapshot_star = VersionIdentifier.ofRequired("*!-SNAPSHOT");
     assertThat(snapshot_star.isValid()).isFalse();
     assertThat(snapshot_star.isPattern()).isTrue();
-    assertThat(snapshot_star.matches(VersionIdentifier.of("2025.03.001-SNAPSHOT"))).isTrue();
-    assertThat(snapshot_star.matches(VersionIdentifier.of("2025.02.001-beta-SNAPSHOT"))).isTrue();
+    assertThat(snapshot_star.matches(VersionIdentifier.ofRequired("2025.03.001-SNAPSHOT"))).isTrue();
+    assertThat(snapshot_star.matches(VersionIdentifier.ofRequired("2025.02.001-beta-SNAPSHOT"))).isTrue();
   }
 
   /**
@@ -310,11 +310,11 @@ class VersionIdentifierTest extends Assertions {
    */
   @Test
   void testSnapshotStarNotMatchingUnstableVersions() {
-    VersionIdentifier snapshot_star = VersionIdentifier.of("*-SNAPSHOT");
+    VersionIdentifier snapshot_star = VersionIdentifier.ofRequired("*-SNAPSHOT");
     assertThat(snapshot_star.isValid()).isFalse();
     assertThat(snapshot_star.isPattern()).isTrue();
-    assertThat(snapshot_star.matches(VersionIdentifier.of("2025.03.001-beta-SNAPSHOT"))).isFalse();
-    assertThat(snapshot_star.matches(VersionIdentifier.of("2025.03.001-SNAPSHOT"))).isFalse();
+    assertThat(snapshot_star.matches(VersionIdentifier.ofRequired("2025.03.001-beta-SNAPSHOT"))).isFalse();
+    assertThat(snapshot_star.matches(VersionIdentifier.ofRequired("2025.03.001-SNAPSHOT"))).isFalse();
   }
 
   /** Test of {@link VersionIdentifier#incrementSegment(int, boolean)} and related methods. */
@@ -336,7 +336,7 @@ class VersionIdentifierTest extends Assertions {
     assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 6, false, "1.2beta.3-4foo.5bar-SNAPSHOT");
     assertIncrement("1.2beta.3-4foo.5bar-SNAPSHOT", 6, true, "1.2beta.3-4foo.5bar-SNAPSHOT");
     // devonfw/IDEasy (we are not planning to implement semantic detection that in this case we should start new segments with 1 instead of 0)
-    VersionIdentifier versionIdentifier = VersionIdentifier.of("2025.01.002");
+    VersionIdentifier versionIdentifier = VersionIdentifier.ofRequired("2025.01.002");
     assertThat(versionIdentifier.incrementMajor(false)).hasToString("2026.00.000");
     assertThat(versionIdentifier.incrementMinor(false)).hasToString("2025.02.000");
     assertThat(versionIdentifier.incrementPatch(false)).hasToString("2025.01.003");
@@ -344,7 +344,7 @@ class VersionIdentifierTest extends Assertions {
 
   private static void assertIncrement(String version, int digit, boolean keepLetters, String expectedVersion) {
 
-    VersionIdentifier identifier = VersionIdentifier.of(version);
+    VersionIdentifier identifier = VersionIdentifier.ofRequired(version);
     VersionIdentifier incremented =
         switch (digit) {
           case 0 -> identifier.incrementMajor(keepLetters);
@@ -369,7 +369,7 @@ class VersionIdentifierTest extends Assertions {
 
   private static void assertIncrementLastDigit(String version, boolean keepLetters, String expectedVersion) {
 
-    VersionIdentifier identifier = VersionIdentifier.of(version);
+    VersionIdentifier identifier = VersionIdentifier.ofRequired(version);
     VersionIdentifier incremented = identifier.incrementLastDigit(keepLetters);
     assertThat(incremented).hasToString(expectedVersion);
   }
@@ -378,23 +378,23 @@ class VersionIdentifierTest extends Assertions {
   @Test
   void testIsStable() {
 
-    assertThat(VersionIdentifier.of("2025.01.002").isStable()).isTrue();
-    assertThat(VersionIdentifier.of("8u412b08").isStable()).isTrue();
-    assertThat(VersionIdentifier.of("1.0-rc1").isStable()).isFalse();
-    assertThat(VersionIdentifier.of("1.0-alpha1.rc2").isStable()).isFalse();
+    assertThat(VersionIdentifier.ofRequired("2025.01.002").isStable()).isTrue();
+    assertThat(VersionIdentifier.ofRequired("8u412b08").isStable()).isTrue();
+    assertThat(VersionIdentifier.ofRequired("1.0-rc1").isStable()).isFalse();
+    assertThat(VersionIdentifier.ofRequired("1.0-alpha1.rc2").isStable()).isFalse();
     assertThat(VersionIdentifier.LATEST.isStable()).isTrue();
     assertThat(VersionIdentifier.LATEST_UNSTABLE.isStable()).isFalse();
-    assertThat(VersionIdentifier.of("1.0-SNAPSHOT").isStable()).isFalse();
-    assertThat(VersionIdentifier.of("2025.03.001-SNAPSHOT").isStable()).isFalse();
-    assertThat(VersionIdentifier.of("1.0-beta-SNAPSHOT").isStable()).isFalse();
-    assertThat(VersionIdentifier.of("1.2.3-SNAPSHOT").isStable()).isFalse();
+    assertThat(VersionIdentifier.ofRequired("1.0-SNAPSHOT").isStable()).isFalse();
+    assertThat(VersionIdentifier.ofRequired("2025.03.001-SNAPSHOT").isStable()).isFalse();
+    assertThat(VersionIdentifier.ofRequired("1.0-beta-SNAPSHOT").isStable()).isFalse();
+    assertThat(VersionIdentifier.ofRequired("1.2.3-SNAPSHOT").isStable()).isFalse();
   }
 
   /** Test of {@link VersionIdentifier#resolveVersionPattern(GenericVersionRange, List)} - exact version found. */
   @Test
   void testResolveVersionPatternVersionFound() {
 
-    final VersionIdentifier identifier = VersionIdentifier.of("2025.01.002");
+    final VersionIdentifier identifier = VersionIdentifier.ofRequired("2025.01.002");
     final List<VersionIdentifier> availableVersions = List.of(identifier);
     final VersionIdentifier resolvedVersion = VersionIdentifier.resolveVersionPattern(identifier, availableVersions);
     assertThat(resolvedVersion).isEqualTo(identifier);
@@ -404,8 +404,8 @@ class VersionIdentifierTest extends Assertions {
   @Test
   void testResolveVersionPatternVersionFoundPattern() {
 
-    final VersionIdentifier identifier = VersionIdentifier.of("2025.01.002");
-    final VersionIdentifier identifierPattern = VersionIdentifier.of("2025.01.*");
+    final VersionIdentifier identifier = VersionIdentifier.ofRequired("2025.01.002");
+    final VersionIdentifier identifierPattern = VersionIdentifier.ofRequired("2025.01.*");
     final List<VersionIdentifier> availableVersions = List.of(identifier);
     final VersionIdentifier resolvedVersion = VersionIdentifier.resolveVersionPattern(identifierPattern, availableVersions);
     assertThat(resolvedVersion).isEqualTo(identifier);
@@ -415,8 +415,8 @@ class VersionIdentifierTest extends Assertions {
   @Test
   void testResolveVersionPatternNoVersionFound() {
 
-    final VersionIdentifier identifier = VersionIdentifier.of("2025.01.002");
-    final VersionIdentifier identifierPattern = VersionIdentifier.of("2026.01.*");
+    final VersionIdentifier identifier = VersionIdentifier.ofRequired("2025.01.002");
+    final VersionIdentifier identifierPattern = VersionIdentifier.ofRequired("2026.01.*");
     final List<VersionIdentifier> availableVersions = List.of(identifier);
     final String expectedMessage = "Could not find any version matching '" + identifierPattern
         + "' - there are " + availableVersions.size() + " version(s) available but none matched!\nDid you mean one of: " + identifier + "?";
@@ -425,4 +425,31 @@ class VersionIdentifierTest extends Assertions {
         .isInstanceOf(CliException.class)
         .hasMessage(expectedMessage);
   }
+
+  @Test
+  void testOfRequired() {
+    VersionIdentifier vid = VersionIdentifier.ofRequired("1.2.3");
+    assertThat(vid).hasToString("1.2.3");
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = { "hello\nworld", "hello\tworld" })
+  void testOfRequiredInvalidInput(String version) {
+    assertThatThrownBy(() -> VersionIdentifier.ofRequired(version))
+        .isInstanceOf(VersionParseException.class);
+  }
+
+  @Test
+  void testOfOptional() {
+    VersionIdentifier vid = VersionIdentifier.ofOptional("1.2.3");
+    assertThat(vid).hasToString("1.2.3");
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = { "hello\nworld", "hello\tworld" })
+  void testOfOptionalInvalidInput(String version) {
+    VersionIdentifier vid = VersionIdentifier.ofOptional(version);
+    assertThat(vid).isNull();
+  }
+
 }

@@ -35,7 +35,7 @@ public final class IdeVersion {
       v = VERSION_UNDEFINED;
     }
     this.version = v;
-    this.versionIdentifier = VersionIdentifier.of(v);
+    this.versionIdentifier = VersionIdentifier.ofRequired(v);
   }
 
   private String getValue(Manifest manifest, Name name) {
@@ -88,7 +88,7 @@ public final class IdeVersion {
    */
   public static void setMockVersionForTesting(String mockVersion) {
     INSTANCE.version = mockVersion;
-    INSTANCE.versionIdentifier = VersionIdentifier.of(mockVersion);
+    INSTANCE.versionIdentifier = VersionIdentifier.ofRequired(mockVersion);
   }
 
   /*
@@ -97,7 +97,7 @@ public final class IdeVersion {
    */
   public static void setSnapshotVersionForTesting() {
     INSTANCE.version = VERSION_UNDEFINED;
-    INSTANCE.versionIdentifier = VersionIdentifier.of(VERSION_UNDEFINED);
+    INSTANCE.versionIdentifier = VersionIdentifier.ofRequired(VERSION_UNDEFINED);
   }
 
 }

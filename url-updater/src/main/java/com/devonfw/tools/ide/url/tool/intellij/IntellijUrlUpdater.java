@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class IntellijUrlUpdater extends IdeaBasedUrlUpdater {
 
   private static final String JSON_URL = "products?code=IIU%2CIIC&release.type=release";
-  private static final VersionIdentifier LAST_SEPARATE_VERSION = VersionIdentifier.of("2025.2.6.1");
+  private static final VersionIdentifier LAST_SEPARATE_VERSION = VersionIdentifier.ofRequired("2025.2.6.1");
   protected static final List<String> EDITIONS = List.of("ultimate", "intellij");
   protected static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
 
@@ -92,7 +92,7 @@ public class IntellijUrlUpdater extends IdeaBasedUrlUpdater {
    */
   private boolean isUnifiedRelease(IntellijJsonRelease release) {
 
-    return VersionIdentifier.of(release.version()).isGreater(LAST_SEPARATE_VERSION);
+    return VersionIdentifier.ofRequired(release.version()).isGreater(LAST_SEPARATE_VERSION);
   }
 
 

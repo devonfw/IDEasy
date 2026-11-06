@@ -12,9 +12,9 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class AzureUrlUpdater extends GithubUrlTagUpdater {
 
   private static final String DOWNLOAD_BASE_URL = "https://azcliprod.blob.core.windows.net";
-  private static final VersionIdentifier MIN_AZURE_VID = VersionIdentifier.of("2.17.0");
+  private static final VersionIdentifier MIN_AZURE_VID = VersionIdentifier.ofRequired("2.17.0");
 
-  private static final VersionIdentifier MIN_AZURE_MAC_VID = VersionIdentifier.of("2.84.0");
+  private static final VersionIdentifier MIN_AZURE_MAC_VID = VersionIdentifier.ofRequired("2.84.0");
 
   /**
    * The Constructor.
@@ -80,7 +80,7 @@ public class AzureUrlUpdater extends GithubUrlTagUpdater {
   public String mapVersion(String version) {
 
     version = version.substring(version.lastIndexOf("-") + 1);
-    VersionIdentifier vid = VersionIdentifier.of(version);
+    VersionIdentifier vid = VersionIdentifier.ofOptional(version);
     if (vid.isValid() && vid.compareVersion(MIN_AZURE_VID).isGreater()) {
       return super.mapVersion(version);
     } else {

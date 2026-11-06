@@ -32,7 +32,7 @@ public class PypiObjectJsonDeserializer extends JsonObjectDeserializer<PypiObjec
       while (token == JsonToken.FIELD_NAME) {
         String property = p.currentName();
         token = p.nextToken();
-        VersionIdentifier version = VersionIdentifier.of(property);
+        VersionIdentifier version = VersionIdentifier.ofRequired(property);
         releases.add(version);
         JsonMapping.skipCurrentField(p, null);
         token = p.nextToken();

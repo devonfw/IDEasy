@@ -358,11 +358,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
       LOG.warn("Variable {} is configured with empty value, please fix your configuration.", variable);
       return VersionIdentifier.LATEST;
     }
-    VersionIdentifier version = VersionIdentifier.of(value);
-    if (version == null) {
-      // can actually never happen, but for robustness
-      version = VersionIdentifier.LATEST;
-    }
+    VersionIdentifier version = VersionIdentifier.ofRequired(value);
     return version;
   }
 
