@@ -6,6 +6,8 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2393[#2393]: Open a project folder of my choice (`--project`) instead of always the main workspace (IntelliJ, Android Studio, PyCharm, VS Code)
+* https://github.com/devonfw/IDEasy/issues/2462[#2462]: Add Codex url-updater
 * https://github.com/devonfw/IDEasy/issues/2372[#2372]: Add `--retention-delay` option to `ide cleanup` so that stale files and unused tool versions are only deleted once they are older than the given retention delay
 * https://github.com/devonfw/IDEasy/issues/945[#945]: Improve ide update with smart dependency handling
 * https://github.com/devonfw/IDEasy/issues/2740[#2740]: Duplicate CVE check

@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import com.devonfw.tools.ide.cli.CliArguments;
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -61,6 +63,25 @@ public class EclipseTest extends AbstractIdeContextTest {
     //if tool already installed
     eclipse.install();
     assertThat(context).logAtDebug().hasMessageContaining("Version 2024-09 of tool eclipse is already installed");
+  }
+
+  /**
+   * Tests that Eclipse does not support the {@code --project} flag: an {@code ide eclipse --project=<path>} launch aborts with a clear error instead of
+   * silently opening the managed workspace (Eclipse always opens the managed workspace via {@code -data}).
+   */
+  @Test
+  void testEclipseRejectsProjectOption() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_ECLIPSE, "eclipseproject");
+    context.setSystemInfo(SystemInfoMock.of("linux"));
+    Path external = context.getIdeHome().resolve("external-project").normalize();
+    context.getFileAccess().mkdirs(external);
+    // act - the CLI launch passes --project=<path>, which Eclipse must reject
+    // assert
+    assertThatThrownBy(() -> context.run(new CliArguments("eclipse", "--project=" + external.toString())))
+        .isInstanceOf(CliException.class)
+        .hasMessageContaining("Eclipse does not support the --project option");
   }
 
   /**
