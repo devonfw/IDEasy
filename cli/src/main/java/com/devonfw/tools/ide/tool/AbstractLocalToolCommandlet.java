@@ -41,38 +41,14 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
     super(context, tool, tags);
   }
 
-  @Override
-  public Path getToolPath() {
-    if (this.context.getSoftwarePath() == null) {
-      return null;
-    }
-    return this.context.getSoftwarePath().resolve(getName());
-  }
-
   /**
    * @return the {@link Path} where the installed artifact of this tool actually lives, as reported in the install success message. Defaults to
-   *     {@link #getToolPath() tool path}, which for package-manager based tools is the runtime tool's path and not the location where the managed package
-   *     is actually installed (e.g. a global npm package lives in the per-project npm prefix, not in {@code software/node}).
+   *     {@link #getToolPath() tool path}, which for package-manager based tools is the runtime tool's path and not the location where the managed package is
+   *     actually installed (e.g. a global npm package lives in the per-project npm prefix, not in {@code software/node}).
    */
   protected Path getInstalledLocation() {
 
     return getToolPath();
-  }
-
-  /**
-   * @return the {@link Path} where the executables of the tool can be found. Typically, a "bin" folder inside {@link #getToolPath() tool path}.
-   */
-  public Path getToolBinPath() {
-
-    Path toolPath = getToolPath();
-    if (toolPath == null) {
-      return null;
-    }
-    Path binPath = toolPath.resolve(IdeContext.FOLDER_BIN);
-    if (Files.isDirectory(binPath)) {
-      return binPath;
-    }
-    return toolPath;
   }
 
   /**
@@ -617,14 +593,5 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
       installationPath = softwareRepoPath.resolve(resolvedVersion.toString());
     }
     return installationPath;
-  }
-
-
-  /**
-   * @return Bash completion command for this tool or {@code null} if this tool does not provide Bash completion.
-   */
-  public String getBashCompletion() {
-
-    return null;
   }
 }
