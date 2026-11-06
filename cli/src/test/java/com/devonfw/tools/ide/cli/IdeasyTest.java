@@ -66,6 +66,67 @@ class IdeasyTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Test that an unexpected error in a regular (non-processable-output) commandlet reaches {@link BugReportHelper#offerAfterError}, so that the user is
+   * offered the derived bug report and, when declining it, the prefilled issue URL is printed instead.
+   */
+  @Test
+  void testUnexpectedCommandletErrorOffersBugReport() {
+
+    // arrange
+    IdeTestContext context = newContext(Path.of("/"));
+    context.setAnswers("Do not report");
+    context.addCommandlet(new ThrowingCommandlet(context));
+    Ideasy ideasy = new Ideasy(context);
+
+    // act
+    int exitCode = ideasy.run("boom");
+
+    // assert - the unexpected error is the primary outcome (exit code 255)
+    assertThat(exitCode).isEqualTo(255);
+    // assert - the derived bug report summary is shown before the question
+    assertThat(context).logAtInteraction().hasMessageContaining("Title: IllegalStateException: boom");
+    assertThat(context).logAtInteraction().hasMessageContaining("Actual behaviour: java.lang.IllegalStateException: boom");
+    assertThat(context).logAtInteraction().hasMessageContaining("Do you want to create a bug report for this error?");
+    // assert - declining offers the prefilled issue URL and nothing is reported
+    assertThat(context).logAtInfo().hasMessageContaining("You can also open the prefilled issue URL later:");
+    assertThat(context).logAtInfo().hasMessageContaining(BugReportHelper.createIssueUrl("IllegalStateException: boom"));
+  }
+
+  /**
+   * A minimal {@link AbstractCommandlet} that always fails with an unexpected {@link IllegalStateException}, used to verify that the user is offered to
+   * create a bug report after an unexpected error.
+   */
+  private static final class ThrowingCommandlet extends AbstractCommandlet {
+
+    /**
+     * @param context the {@link IdeContext}.
+     */
+    ThrowingCommandlet(IdeContext context) {
+
+      super(context);
+      addKeyword("boom");
+    }
+
+    @Override
+    public String getName() {
+
+      return "boom";
+    }
+
+    @Override
+    public boolean isIdeRootRequired() {
+
+      return false;
+    }
+
+    @Override
+    protected void doRun() {
+
+      throw new IllegalStateException("boom");
+    }
+  }
+
+  /**
    * A minimal {@link AbstractCommandlet} that produces processable output (like {@code complete}) but always fails, used to verify how a failure in such a
    * commandlet is reported.
    */

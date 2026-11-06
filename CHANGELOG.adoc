@@ -10,6 +10,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/945[#945]: Improve ide update with smart dependency handling
 * https://github.com/devonfw/IDEasy/issues/2740[#2740]: Duplicate CVE check
 * https://github.com/devonfw/IDEasy/issues/2718[#2718]: Trace log writes the values of secret variables
+* https://github.com/devonfw/IDEasy/issues/2410[#2410]: Improve support for bug report
 * https://github.com/devonfw/IDEasy/issues/2436[#2436]: Plugin step progress index broken
 * https://github.com/devonfw/IDEasy/issues/2581[#2581]: VSCode GitHub login is deleted on Windows whenever another VSCode instance starts
 * https://github.com/devonfw/IDEasy/issues/992[#992]: Support multiple attributes for merge:id
