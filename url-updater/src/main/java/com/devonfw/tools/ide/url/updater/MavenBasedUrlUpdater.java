@@ -24,6 +24,16 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
+  /**
+   * The constructor used for testing, allowing the download and version base URLs to be injected.
+   *
+   * @param downloadBaseUrl mock url used for download base.
+   * @param versionBaseUrl mock url used for version base.
+   */
+  public MavenBasedUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
+    super(downloadBaseUrl, versionBaseUrl);
+  }
+
   private String getDownloadArtifactUrl() {
 
     return getDownloadBaseUrl() + "/" + getMavenGroupIdPath() + "/" + getMavenArtifcatId() + "/";

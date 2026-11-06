@@ -37,6 +37,7 @@ import com.devonfw.tools.ide.url.tool.go.GoUrlUpdater;
 import com.devonfw.tools.ide.url.tool.graalvm.GraalVmCommunityUpdater;
 import com.devonfw.tools.ide.url.tool.graalvm.GraalVmOracleUrlUpdater;
 import com.devonfw.tools.ide.url.tool.gradle.GradleUrlUpdater;
+import com.devonfw.tools.ide.url.tool.helidon.HelidonUrlUpdater;
 import com.devonfw.tools.ide.url.tool.helm.HelmUrlUpdater;
 import com.devonfw.tools.ide.url.tool.inso.InsoUrlUpdater;
 import com.devonfw.tools.ide.url.tool.intellij.IntellijUrlUpdater;
@@ -94,7 +95,8 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new CopilotUrlUpdater(), new CorepackUrlUpdater(), new DockerDesktopUrlUpdater(), new DotNetUrlUpdater(), new EclipseCppUrlUpdater(),
       new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new FlutterUrlUpdater(), new GcLogAnalyzerUrlUpdater(), new GCloudUrlUpdater(),
       new GcViewerUrlUpdater(), new GhUrlUpdater(), new GitUrlUpdater(), new GoUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
-      new GradleUrlUpdater(), new HelmUrlUpdater(), new InsoUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(), new JavaAzulUrlUpdater(),
+      new GradleUrlUpdater(), new HelidonUrlUpdater(), new HelmUrlUpdater(), new InsoUrlUpdater(), new IntellijUrlUpdater(),
+      new JasyptUrlUpdater(), new JavaAzulUrlUpdater(),
       new JavaUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(), new KubeLinterUrlUpdater(), new KotlincNativeUrlUpdater(),
       new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new MvndUrlUpdater(), new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(),
       new ObsidianUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(), new QuarkusUrlUpdater(),
