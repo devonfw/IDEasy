@@ -16,6 +16,7 @@
     <fileSet>
       <directory>${project.build.directory}/natives-windows-11-arm</directory>
       <outputDirectory>./bin</outputDirectory>
+      <fileMode>0755</fileMode>
       <includes>
         <include>${imageName}.exe</include>
       </includes>
