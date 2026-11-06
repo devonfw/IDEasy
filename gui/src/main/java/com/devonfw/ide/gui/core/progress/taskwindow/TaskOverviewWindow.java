@@ -12,7 +12,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-import com.devonfw.ide.gui.core.context.TaskManager;
+import com.devonfw.ide.gui.core.progress.TaskListViewModel;
 
 /**
  * This window is displayed when the user clicks on the task label in main-view.fxml.
@@ -24,24 +24,21 @@ public class TaskOverviewWindow {
   private static TaskOverviewWindow INSTANCE;
 
   /**
-   * @param taskManager the {@link TaskManager} to link to this TaskOverviewWindow.
+   * @param taskListViewModel the {@link TaskListViewModel} providing the tasks to display.
    * @return instance of the TaskOverviewWindow.
    */
-  public static TaskOverviewWindow getInstance(TaskManager taskManager) {
+  public static TaskOverviewWindow getInstance(TaskListViewModel taskListViewModel) {
 
     if (INSTANCE == null) {
-      INSTANCE = new TaskOverviewWindow(taskManager);
+      INSTANCE = new TaskOverviewWindow(taskListViewModel);
     }
     return INSTANCE;
   }
 
-  /**
-   *
-   */
-  private TaskOverviewWindow(TaskManager taskManager) {
+  private TaskOverviewWindow(TaskListViewModel taskListViewModel) {
 
     FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("task_overview_window.fxml"));
-    fxmlLoader.setController(new TaskOverviewWindowController(taskManager));
+    fxmlLoader.setController(new TaskOverviewWindowController(taskListViewModel));
 
     Parent root;
     try {

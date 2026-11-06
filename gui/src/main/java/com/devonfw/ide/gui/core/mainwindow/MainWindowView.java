@@ -183,7 +183,7 @@ public class MainWindowView extends BorderPane {
 
     this.statusLabel.setOnMouseClicked(_ -> {
       if (this.viewModel.statusClickableProperty().get()) {
-        TaskOverviewWindow.getInstance(this.guiStateManager.getTaskManager()).showRelativeToReferenceNode(this.statusLabel);
+        TaskOverviewWindow.getInstance(this.guiStateManager.getTaskListViewModel()).showRelativeToReferenceNode(this.statusLabel);
       }
     });
   }
