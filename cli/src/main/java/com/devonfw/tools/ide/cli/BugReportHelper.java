@@ -153,22 +153,18 @@ public final class BugReportHelper {
   }
 
   /**
-   * Sanitizes a value that is going to be published in the bug report (e.g. the issue title or the full stacktrace). Registered secrets are always
-   * replaced (regardless of the privacy mode) via {@link AbstractIdeContext#formatArgument(Object)}, and, on top of that, any path is masked
+   * Sanitizes a value that is going to be published in the bug report (e.g. the issue title or the full stacktrace) by masking any path it contains,
    * unconditionally (a public issue must not leak paths even when the privacy mode is off).
    *
-   * @param context the {@link AbstractIdeContext}.
    * @param value the value to sanitize; may be {@code null}.
    * @return the sanitized value, or {@code null} if {@code value} is {@code null}.
    */
-  private static String sanitize(AbstractIdeContext context, String value) {
+  private static String sanitize(String value) {
 
     if (value == null) {
       return null;
     }
-    // first let the context replace registered secrets (always) and, when the privacy mode is on, the privacy map, then mask the paths unconditionally
-    String result = context.formatArgument(value);
-    return mask(result);
+    return mask(value);
   }
 
   /**
@@ -186,9 +182,9 @@ public final class BugReportHelper {
       return;
     }
     try {
-      // the title and the full stacktrace are going to be published in the issue, so sanitize them (secrets and paths) before anything else
-      String title = sanitize(context, createTitle(error));
-      String actualBehavior = sanitize(context, stackTraceToString(error));
+      // the title and the full stacktrace are going to be published in the issue, so mask any path they contain before anything else
+      String title = sanitize(createTitle(error));
+      String actualBehavior = sanitize(stackTraceToString(error));
       String reproduce = maskedCommandDescription(joinCommandArgs(commandArgs));
       String related = null;
       String comments = "";

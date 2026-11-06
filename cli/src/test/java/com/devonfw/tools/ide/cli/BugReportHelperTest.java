@@ -443,20 +443,16 @@ class BugReportHelperTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that the values published in the GitHub issue are sanitized: a registered secret (e.g. a token embedded in the error message) is always
-   * replaced and any path the message contains is masked, so neither leaks into the public issue title or body.
+   * Test that any path in the published GitHub issue title and body is masked, so the user's file system layout does not leak into the public issue.
    */
   @Test
-  void testOfferAfterErrorSanitizesPublishedTitleAndBody() {
+  void testOfferAfterErrorMasksPathsInPublishedTitleAndBody() {
 
     // arrange
     IdeTestContext context = IdeTestContext.of();
     context.getNetworkStatus().simulateOnline();
     context.setAnswers("Report as is");
-    String token = "secrettoken12345";
-    context.addSecretVariable("API_TOKEN");
-    context.addSecretValue("API_TOKEN", token);
-    String message = "cannot reach git@github.com:hdawoud/myproject, token " + token + " is invalid";
+    String message = "failed to read C:/Users/hdawoud/myproject/config.xml: access denied";
     final String[] createdTitle = {null};
     final String[] createdBody = {null};
     useGhStub(context, new Gh(context) {
@@ -484,12 +480,8 @@ class BugReportHelperTest extends AbstractIdeContextTest {
     // act
     BugReportHelper.offerAfterError(context, new IllegalStateException(message), "status");
 
-    // assert (neither the secret nor any path segment survives into the published title or body)
-    assertThat(createdTitle[0]).doesNotContain(token);
-    assertThat(createdTitle[0]).doesNotContain("hdawoud");
-    assertThat(createdTitle[0]).doesNotContain("ide-project");
-    assertThat(createdBody[0]).doesNotContain(token);
-    assertThat(createdBody[0]).doesNotContain("hdawoud");
-    assertThat(createdBody[0]).doesNotContain("ide-project");
+    // assert (no path segment of the message survives into the published title or body)
+    assertThat(createdTitle[0]).doesNotContain("hdawoud").doesNotContain("myproject");
+    assertThat(createdBody[0]).doesNotContain("hdawoud").doesNotContain("myproject");
   }
 }
