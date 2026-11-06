@@ -1,0 +1,35 @@
+[
+  {
+    "url": "https://api.github.com/repos/VirtusLab/scala-cli/releases/1",
+    "html_url": "https://github.com/VirtusLab/scala-cli/releases/tag/v1.17.1",
+    "id": 1,
+    "tag_name": "v1.17.1",
+    "name": "v1.17.1",
+    "draft": false,
+    "prerelease": false,
+    "created_at": "2026-09-01T10:00:00Z",
+    "published_at": "2026-09-01T10:00:00Z"
+  },
+  {
+    "url": "https://api.github.com/repos/VirtusLab/scala-cli/releases/2",
+    "html_url": "https://github.com/VirtusLab/scala-cli/releases/tag/v1.17.0",
+    "id": 2,
+    "tag_name": "v1.17.0",
+    "name": "v1.17.0",
+    "draft": false,
+    "prerelease": false,
+    "created_at": "2026-08-15T10:00:00Z",
+    "published_at": "2026-08-15T10:00:00Z"
+  },
+  {
+    "url": "https://api.github.com/repos/VirtusLab/scala-cli/releases/3",
+    "html_url": "https://github.com/VirtusLab/scala-cli/releases/tag/v1.16.0",
+    "id": 3,
+    "tag_name": "v1.16.0",
+    "name": "v1.16.0",
+    "draft": false,
+    "prerelease": false,
+    "created_at": "2026-07-01T10:00:00Z",
+    "published_at": "2026-07-01T10:00:00Z"
+  }
+]
