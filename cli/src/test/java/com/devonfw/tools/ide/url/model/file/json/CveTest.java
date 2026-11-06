@@ -31,6 +31,32 @@ class CveTest extends Assertions {
   }
 
   @Test
+  void testOsOnlyCveWithEmptyGeneralVersions() {
+
+    // arrange
+    Cve cve = new Cve("CVE-2024-88888", 7.0, List.of(), Map.of("windows", List.of(VersionRange.of("[1.0.0,1.2.0]"))));
+
+    // act + assert
+    assertThat(cve.versions()).isEmpty();
+    assertThat(cve.isAffected(VersionIdentifier.of("1.1.0"), OperatingSystem.WINDOWS)).isTrue();
+    assertThat(cve.isAffected(VersionIdentifier.of("1.1.0"), OperatingSystem.LINUX)).isFalse();
+    assertThat(cve.isAffected(VersionIdentifier.of("1.1.0"), null)).isFalse();
+  }
+
+  @Test
+  void testToStringContainsOsSpecificConditions() {
+
+    // arrange
+    Cve cve = new Cve("CVE-2024-88888", 7.0, List.of(), Map.of("windows", List.of(VersionRange.of("[1.0.0,1.2.0]"))));
+
+    // act
+    String result = cve.toString();
+
+    // assert
+    assertThat(result).contains("CVE-2024-88888", "windows", "[1.0.0,1.2.0]");
+  }
+
+  @Test
   void testMerge() {
 
     // arrange
