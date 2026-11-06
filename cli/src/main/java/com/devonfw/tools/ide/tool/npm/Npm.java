@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.npm;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -11,8 +12,11 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link AbstractLocalToolCommandlet} for <a href="https://www.npmjs.org/">npm</a>.
@@ -25,7 +29,7 @@ import com.devonfw.tools.ide.tool.ToolInstallation;
  * itself on Windows); in addition {@link #setEnvironment} adds that folder to the PATH explicitly so that packages installed within the same IDEasy run are
  * already resolvable.
  */
-public class Npm extends AbstractLocalToolCommandlet {
+public class Npm extends AbstractLocalToolCommandlet implements BuildTool {
 
   private static final Logger LOG = LoggerFactory.getLogger(Npm.class);
 
@@ -79,7 +83,7 @@ public class Npm extends AbstractLocalToolCommandlet {
     if (Files.exists(buildDescriptor)) {
       return buildDescriptor;
     }
-    return super.findBuildDescriptor(directory);
+    return null;
   }
 
   /**
@@ -106,6 +110,21 @@ public class Npm extends AbstractLocalToolCommandlet {
     return softwarePath == null ? null : softwarePath.resolve(NPM_GLOBAL_FOLDER);
   }
 
+  /**
+   * @param context the {@link IdeContext}.
+   * @return the {@link Path} to the folder where npm places the launchers of global packages in the per-project global npm prefix (see
+   *     {@link #NPM_GLOBAL_FOLDER}), or {@code null} if not running inside a project. npm places them in the prefix root on Windows but in
+   *     {@code <prefix>/bin} on POSIX.
+   */
+  static Path getGlobalNpmBin(IdeContext context) {
+
+    Path npmGlobalPath = getGlobalNpmPrefix(context);
+    if (npmGlobalPath == null) {
+      return null;
+    }
+    return context.getSystemInfo().isWindows() ? npmGlobalPath : npmGlobalPath.resolve(IdeContext.FOLDER_BIN);
+  }
+
   @Override
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
@@ -123,8 +142,7 @@ public class Npm extends AbstractLocalToolCommandlet {
 
     // npm places the global shims in the prefix root on Windows but in <prefix>/bin on POSIX, so the PATH entry must
     // differ per platform - otherwise the globally installed packages (e.g. task, cdk) are not resolvable.
-    Path npmGlobalBin = this.context.getSystemInfo().isWindows() ? npmGlobalPath : npmGlobalPath.resolve(IdeContext.FOLDER_BIN);
-    environmentContext.withPathEntry(npmGlobalBin);
+    environmentContext.withPathEntry(getGlobalNpmBin(this.context));
   }
 
   /**
@@ -246,5 +264,25 @@ public class Npm extends AbstractLocalToolCommandlet {
     return "#!/usr/bin/env bash\n" //
         + "basedir=\"$(dirname \"$0\")\"\n" //
         + "exec node \"$basedir/" + cliJs + "\" \"$@\"\n";
+  }
+
+  @Override
+  public VersionIdentifier getProjectVersion(Path projectPath) {
+
+    // TODO: release not yet implemented for npm, see #2552
+    return null;
+  }
+
+  @Override
+  public void setProjectVersion(Path projectPath, VersionIdentifier version) {
+
+    // TODO: release not yet implemented for npm, see #2552
+  }
+
+  @Override
+  public ProcessResult buildAndDeploy(List<String> additionalArgs) {
+
+    // TODO: release not yet implemented for npm, see #2552
+    return null;
   }
 }

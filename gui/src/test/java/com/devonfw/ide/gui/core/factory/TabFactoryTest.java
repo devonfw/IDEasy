@@ -15,7 +15,7 @@ import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.devonfw.ide.gui.HeadlessApplicationTest;
+import com.devonfw.ide.gui.UIBasedApplicationTest;
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.event.TabChangeEvent;
@@ -23,7 +23,7 @@ import com.devonfw.ide.gui.core.event.TabChangeEvent;
 /**
  * Tests for {@link TabFactory}.      <
  */
-class TabFactoryTest extends HeadlessApplicationTest {
+class TabFactoryTest extends UIBasedApplicationTest {
 
   @TempDir
   Path ideRoot;
@@ -78,7 +78,7 @@ class TabFactoryTest extends HeadlessApplicationTest {
     assertThat(this.emittedTabs).as("The factory must publish a tab for each open").hasSize(2);
     for (Tab tab : this.emittedTabs) {
       assertThat(tab.getContent()).as("The published tab must carry its view as content").isInstanceOf(Node.class);
-      assertThat(tab.isClosable()).as("The published launcher tab must be closable").isTrue();
+      assertThat(tab.isClosable()).as("The published launcher tab must be non-closable").isFalse();
     }
   }
 

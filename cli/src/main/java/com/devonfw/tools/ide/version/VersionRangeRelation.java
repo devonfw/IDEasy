@@ -44,11 +44,15 @@ package com.devonfw.tools.ide.version;
  *     <td>{@link #DISJUNCT}</td>
  *   </tr>
  * </table>
- * For readability, we sorted the {@link VersionRange}s in the examples from the table above but there is no order in the {@link VersionRange}s to be considered.
- * Further, the last example seems to raise some question: Why is a gap of "(2.2, 2.3)" accepted as {@link #CONNECTED_LOOSELY} while a gap of only exactly "[2.2, 2.2]" is not?
- * From a strictly mathematical point of view this seems confusing. However, in the last example version "2.2" is considered to be known and is explicitly not included in both ranges.
+ * For readability, we sorted the {@link VersionRange}s in the examples from the table above but there is no order in the {@link VersionRange}s to be
+ * considered.
+ * Further, the last example seems to raise some question: Why is a gap of "(2.2, 2.3)" accepted as {@link #CONNECTED_LOOSELY} while a gap of only
+ * exactly "[2.2, 2.2]" is not?
+ * From a strictly mathematical point of view this seems confusing. However, in the last example version "2.2" is considered to be known and is
+ * explicitly not included in both ranges.
  * In contrast, the example for {@link #CONNECTED_LOOSELY} explicitly includes versions "2.2" and "2.3" and if we assume a strict versioning schema, then
- * "2.3" is the {@link VersionIdentifier#incrementSegment(int, boolean) next version build by incrementing only the last digit}. Even though in math there are infinite numbers in "(2.2, 2.3)" but from a pragmatical view
+ * "2.3" is the {@link VersionIdentifier#incrementSegment(int, boolean) next version build by incrementing only the last digit}. Even though in math
+ * there are infinite numbers in "(2.2, 2.3)" but from a pragmatical view
  * of a product versioning scheme we could assume that "(2.2, 2.3)" is actually empty.
  *
  * @see VersionRange#union(VersionRange, VersionRangeRelation)
