@@ -333,7 +333,16 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
    *     installed via any of its {@link #getNativePackages() native packages}.
    */
   protected VersionIdentifier getNativePackageVersion() {
-    for (NativePackage nativePackage : getNativePackages()) {
+    return getNativePackageVersion(getNativePackages());
+  }
+
+  /**
+   * @param nativePackages the {@link NativePackage}s to query, e.g. the ones of an edition that is not the configured one.
+   * @return the {@link VersionIdentifier} of the first of the given {@link NativePackage}s that is installed via its {@link NativePackageManager} or
+   *     {@code null} if none of them is installed.
+   */
+  protected VersionIdentifier getNativePackageVersion(List<NativePackage> nativePackages) {
+    for (NativePackage nativePackage : nativePackages) {
       if (!isPackageManagerAvailable(nativePackage.getPackageManager())) {
         continue;
       }
@@ -386,6 +395,13 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
   public Map<String, String> getWindowsRegistryAppNames() {
 
     return Map.of(this.tool, getWindowsRegistryAppName());
+  }
+
+  private String getInstalledWindowsRegistryAppName() {
+
+    String installedEdition = getInstalledEdition();
+    String appName = (installedEdition == null) ? null : getWindowsRegistryAppNames().get(installedEdition);
+    return (appName == null) ? getWindowsRegistryAppName() : appName;
   }
 
   @Override
@@ -455,7 +471,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
   @Override
   public void uninstall() {
     if (this.context.getSystemInfo().isWindows()) {
-      WindowsHelper.get(this.context).uninstallApplication(getWindowsRegistryAppName());
+      WindowsHelper.get(this.context).uninstallApplication(getInstalledWindowsRegistryAppName());
     } else if (this.context.getSystemInfo().isLinux() && !getNativePackages().isEmpty()) {
       runWithPackageManager(false, getUninstallPackageManagerCommands(), NativePackageAction.UNINSTALL);
     } else if (this.context.getSystemInfo().isMac()) {
@@ -504,10 +520,10 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
 
   /**
    * @return the {@link Path} to the *.app bundle of this tool as found in one of the well-known macOS application folders, or {@code null} if
-   *     {@link #getMacApplicationName() unknown} or not found there.
+   *     {@link #getMacApplicationName(String) unknown} or not found there.
    */
   private Path findMacApplicationBundle() {
-    String appName = getMacApplicationName();
+    String appName = getMacApplicationName(getInstalledEdition());
     if (appName == null) {
       return null;
     }
@@ -529,5 +545,14 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
    */
   public String getMacApplicationName() {
     return null;
+  }
+
+  /**
+   * @param edition the {@link #getInstalledEdition() installed edition} or {@code null} if unknown.
+   * @return the name (without the ".app" suffix) of the application bundle of the given edition. By default this is {@link #getMacApplicationName()}. Override
+   *     for tools with multiple editions that use different application bundles on macOS.
+   */
+  public String getMacApplicationName(String edition) {
+    return getMacApplicationName();
   }
 }

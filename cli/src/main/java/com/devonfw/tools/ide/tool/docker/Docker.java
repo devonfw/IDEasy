@@ -44,8 +44,6 @@ public class Docker extends GlobalToolCommandlet {
 
   private static final Pattern DOCKER_DESKTOP_VERSION_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+){1,2})");
 
-  private static final String EDITION_DOCKER = "docker";
-
   private Path downloadedDebPackageForDocker;
 
   /**
@@ -76,7 +74,17 @@ public class Docker extends GlobalToolCommandlet {
   @Override
   protected List<NativePackage> getNativePackages() {
 
-    if (isDockerDesktopEditionConfigured()) {
+    return getNativePackages(getConfiguredEdition());
+  }
+
+  /**
+   * @param edition the edition to get the {@link NativePackage}s for. Use the {@link #getConfiguredEdition() configured edition} to install and the
+   *     {@link #getInstalledEdition() installed edition} to uninstall.
+   * @return the {@link List} of {@link NativePackage}s of the given edition.
+   */
+  private List<NativePackage> getNativePackages(String edition) {
+
+    if (DOCKER_EDITION.equals(edition)) {
 
       List<Path> artifactPaths = (this.downloadedDebPackageForDocker == null) ? List.of() : List.of(this.downloadedDebPackageForDocker);
 
@@ -134,9 +142,31 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   @Override
+  protected List<PackageManagerCommand> getUninstallPackageManagerCommands() {
+
+    if (this.context.getSystemInfo().isMac()) {
+      // the cask of the installed edition has to be removed, regardless of which edition is configured
+      String cask = RANCHER_EDITION.equals(getInstalledEdition()) ? RANCHER_EDITION : DOCKER_EDITION;
+      return List.of(new NativePackage(NativePackageManager.BREW_CASK, List.of(cask)).uninstall());
+    }
+    // the packages of the installed edition have to be removed, regardless of which edition is configured
+    String installedEdition = getInstalledEdition();
+    if (installedEdition == null) {
+      return super.getUninstallPackageManagerCommands();
+    }
+    return getNativePackages(installedEdition).stream().map(NativePackage::uninstall).toList();
+  }
+
+  @Override
   public String getMacApplicationName() {
 
     return "Docker";
+  }
+
+  @Override
+  public String getMacApplicationName(String edition) {
+
+    return RANCHER_EDITION.equals(edition) ? "Rancher Desktop" : getMacApplicationName();
   }
 
   @Override
@@ -144,9 +174,9 @@ public class Docker extends GlobalToolCommandlet {
 
     if (this.context.getSystemInfo().isLinux()) {
       ToolEdition edition = requested.getEdition();
-      if (!"rancher".equals(edition.edition())) {
+      if (!RANCHER_EDITION.equals(edition.edition())) {
         LOG.warn("Docker Desktop is not yet supported by IDEasy on Linux, installing Rancher Desktop instead.");
-        requested.replaceEdition(new ToolEdition(this.tool, "rancher"));
+        requested.replaceEdition(new ToolEdition(this.tool, RANCHER_EDITION));
       }
     }
     return requested;
@@ -162,7 +192,7 @@ public class Docker extends GlobalToolCommandlet {
 
   private void downloadDebPackageStepAndSetPackagePath(VersionIdentifier resolvedVersion) {
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
-    this.downloadedDebPackageForDocker = toolRepository.download(this.tool, EDITION_DOCKER, resolvedVersion, this);
+    this.downloadedDebPackageForDocker = toolRepository.download(this.tool, DOCKER_EDITION, resolvedVersion, this);
   }
 
   @Override
@@ -209,7 +239,8 @@ public class Docker extends GlobalToolCommandlet {
     }
     // the rancher edition is installed via the native package manager on Linux or from the app bundle on macOS
     return switch (this.context.getSystemInfo().getOs()) {
-      case LINUX -> getNativePackageVersion();
+      // query the packages of the rancher edition, not the ones of the configured edition
+      case LINUX -> getNativePackageVersion(getNativePackages(RANCHER_EDITION));
       case MAC -> getRancherDesktopVersionMac();
       default -> null;
     };
@@ -260,7 +291,7 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   private boolean isDockerDesktopEditionConfigured() {
-    return EDITION_DOCKER.equals(getConfiguredEdition());
+    return DOCKER_EDITION.equals(getConfiguredEdition());
   }
 
   @Override
