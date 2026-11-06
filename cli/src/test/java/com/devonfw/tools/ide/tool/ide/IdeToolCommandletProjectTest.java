@@ -5,17 +5,18 @@ import java.util.ArrayList;
 
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.context.ProcessContextTestImpl;
-import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 
 /**
- * Test of the {@code --project} flag and the {@link AbstractIdeToolCommandlet#getOpenPath() open path} foundation of {@link AbstractIdeToolCommandlet}.
+ * Tests the {@link AbstractIdeToolCommandlet#getOpenPath() open path} resolution of the {@code --project} flag of
+ * {@link AbstractIdeToolCommandlet}: an explicit absolute folder, a relative folder resolved against the current working directory, the default fallback to the
+ * managed workspace, and the invalid-path guard that aborts the launch. Because the flag is remembered on the {@code AbstractIdeToolCommandlet}
+ * (the {@code project} field is package-private to the {@code tool.ide} package), these foundation tests live in this package. The Intellij-specific launch
+ * behavior is covered by {@link com.devonfw.tools.ide.tool.intellij.IntellijTest}.
  */
 class IdeToolCommandletProjectTest extends AbstractIdeContextTest {
 
@@ -88,80 +89,5 @@ class IdeToolCommandletProjectTest extends AbstractIdeContextTest {
     context.getFileAccess().writeFileContent("content", file);
     intellij.project.setValue(file);
     assertThatThrownBy(() -> intellij.runTool(ProcessMode.BACKGROUND, null, new ArrayList<>())).isInstanceOf(CliException.class);
-  }
-
-  /**
-   * Tests that the {@code --project} flag is consumed by IDEasy and not passed through to the IDE binary. The flag arrives in the multi-valued passthrough
-   * {@code args} of the tool commandlet, so IDEasy extracts and remembers it instead of forwarding it to the IDE. As of {@code #2492} the IntelliJ launch
-   * arguments also point at the selected folder ({@link AbstractIdeToolCommandlet#getOpenPath()}) instead of the managed workspace.
-   */
-  @Test
-  void testIntellijRunWithProjectFlagConsumedByIdeasy() {
-
-    // arrange
-    IdeTestContext context = newContext("intellij");
-    context.setSystemInfo(SystemInfoMock.of("linux"));
-    Path external = context.getIdeHome().resolve("external-project").normalize();
-    context.getFileAccess().mkdirs(external);
-    // act
-    CliArguments args = new CliArguments("intellij", "--project", external.toString());
-    args.next();
-    int exitCode = context.run(args);
-    // assert
-    Intellij intellij = context.getCommandletManager().getCommandlet(Intellij.class);
-    assertThat(exitCode).isEqualTo(0);
-    // IDEasy consumed the flag and remembered the folder
-    assertThat(intellij.project.getValue()).isEqualTo(external);
-    assertThat(intellij.getOpenPath()).isEqualTo(external);
-    // the --project flag token was stripped from the arguments passed to the IDE binary, and the IDE launch now targets the selected folder (not the managed
-    // workspace)
-    String launchedArgs = context.getFileAccess().readFileContent(intellij.getToolBinPath().resolve("intellijtest")).trim();
-    assertThat(launchedArgs).doesNotContain("--project");
-    assertThat(launchedArgs).contains(external.toString());
-    assertThat(launchedArgs).doesNotContain(context.getWorkspacePath().toString());
-  }
-
-  /**
-   * Tests that without a {@code --project} flag the launch still runs the workspace configuration (regression guard): the {@code "Configuring workspace …"}
-   * step is logged as today.
-   */
-  @Test
-  void testDefaultLaunchRunsWorkspaceConfiguration() {
-
-    // arrange
-    IdeTestContext context = newContext("intellij");
-    context.setSystemInfo(SystemInfoMock.of("linux"));
-    Intellij intellij = context.getCommandletManager().getCommandlet(Intellij.class);
-    intellij.install(); // make the IDE binary available so the launch path under test can run
-    context.getTestStartContext().getEntries().clear(); // ignore the merge that happened during install
-    // act - invoke the launch seam directly without a --project folder (bypassing the ensure-install phase)
-    intellij.runTool(new ProcessContextTestImpl(context), ProcessMode.BACKGROUND, new ArrayList<>());
-    // assert
-    assertThat(context).log().hasMessageContaining("Configuring workspace");
-  }
-
-  /**
-   * Tests the full CLI launch path ({@code ide intellij --project <path>}) with an already-installed IDE: the workspace configuration must not run, i.e. no
-   * {@code "Configuring workspace …"} step. This covers the {@code postInstall} call site that is reached by the launch's ensure-install step
-   * ({@code toolAlreadyInstalled -> postInstall -> configureWorkspace}), in addition to the {@link #runTool} launch seam.
-   */
-  @Test
-  void testExternalLaunchViaCliSkipsWorkspaceConfiguration() {
-
-    // arrange
-    IdeTestContext context = newContext("intellij");
-    context.setSystemInfo(SystemInfoMock.of("linux"));
-    Intellij intellij = context.getCommandletManager().getCommandlet(Intellij.class);
-    intellij.install(); // pre-install so the launch takes the ensure-install (toolAlreadyInstalled -> postInstall) path
-    Path external = context.getIdeHome().resolve("external-project").normalize();
-    context.getFileAccess().mkdirs(external);
-    context.getTestStartContext().getEntries().clear(); // ignore the merge that happened during install
-    // act - a real CLI launch exactly like `ide intellij --project <path>`
-    int exitCode = context.run(new CliArguments("intellij", "--project", external.toString()));
-    // assert
-    assertThat(exitCode).isEqualTo(0);
-    assertThat(intellij.getOpenPath()).isEqualTo(external);
-    // the managed workspace must not be configured for an external launch (covers both the runTool seam and the postInstall call site)
-    assertThat(context).log().hasNoMessageContaining("Configuring workspace");
   }
 }

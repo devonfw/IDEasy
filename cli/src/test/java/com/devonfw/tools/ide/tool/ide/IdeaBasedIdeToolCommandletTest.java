@@ -20,13 +20,13 @@ import com.devonfw.tools.ide.tool.pycharm.Pycharm;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Tests that the {@code «IDE»_PROPERTIES} environment variables ({@code IDEA_PROPERTIES}, {@code STUDIO_PROPERTIES},
- * {@code PYCHARM_PROPERTIES}) point at the {@link AbstractIdeToolCommandlet#getOpenPath() folder being opened} rather than unconditionally at the managed
- * workspace. This is the "two-phase wiring" of #2494: {@code setEnvironment} (shell env / install phase) and {@code runTool} (launch) must agree on the
+ * Tests the {@code «IDE»_PROPERTIES} environment variables ({@code IDEA_PROPERTIES}, {@code STUDIO_PROPERTIES}, {@code PYCHARM_PROPERTIES}) of
+ * {@link AbstractIdeToolCommandlet}: they point at the {@link AbstractIdeToolCommandlet#getOpenPath() folder being opened} rather than unconditionally at the
+ * managed workspace. This is the "two-phase wiring" of #2494: {@code setEnvironment} (shell env / install phase) and {@code runTool} (launch) must agree on the
  * opened folder. Because the {@code --project} flag is remembered on the commandlet before the ensure-install step runs {@code setEnvironment}
  * (see {@link AbstractIdeToolCommandlet#extractProjectOption}), {@code getOpenPath()} is already the correct folder in both phases.
  */
-class IdeaPropertiesRetargetTest extends AbstractIdeContextTest {
+class IdeaBasedIdeToolCommandletTest extends AbstractIdeContextTest {
 
   private static final Path DUMMY = Path.of("/dummy/tool");
 

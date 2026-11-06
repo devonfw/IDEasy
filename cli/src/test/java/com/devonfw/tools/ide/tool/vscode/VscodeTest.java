@@ -5,12 +5,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -370,6 +372,27 @@ class VscodeTest extends AbstractIdeContextTest {
     context.getFileAccess().writeFileContent("content", file);
     commandlet.setProject(file);
     assertThatThrownBy(() -> commandlet.runTool(pc, ProcessMode.BACKGROUND, List.of())).isInstanceOf(CliException.class);
+  }
+
+  /**
+   * Test of {@link HelpCommandlet} renders the {@code --project} option for the {@link Vscode} commandlet (the flag is declared on
+   * {@link com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet} and inherited here). The assertion is form-independent so it does not depend on whether
+   * the option is spelled {@code --project} or {@code --project=<path>} in the help text.
+   */
+  @Test
+  void testVscodeHelpDocumentsProjectOption() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    context.getStartContext().setLocale(Locale.ROOT);
+    HelpCommandlet help = context.getCommandletManager().getCommandlet(HelpCommandlet.class);
+    help.commandlet.setValueAsString("vscode", context);
+    // act
+    help.run();
+    // assert - the option shows up in the usage line and its help text is rendered
+    assertThat(context).logAtInfo().hasMessageContaining("[--project]");
+    assertThat(context).logAtInfo()
+        .hasMessageContaining("the folder to open in the IDE instead of the default workspace");
   }
 
   /**
