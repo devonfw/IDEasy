@@ -33,6 +33,6 @@ class InstallPluginCommandletTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertThat(context).logAtSuccess().hasEntries("Successfully ended step 'Install plugin: ActivePlugin'.");
+    assertThat(context).logAtSuccess().hasEntries("Successfully installed plugin: ActivePlugin");
   }
 }

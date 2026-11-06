@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -26,6 +24,12 @@ class GitContextTest extends AbstractIdeContextTest {
 
   private static final String CONTENT_ORIGINAL = "original";
   private static final String CONTENT_CHANGED = "changed";
+
+  /**
+   * Exit code with which a real {@code git rev-parse} invocation fails on a repository without the requested revision (e.g. {@code HEAD} on a commit-less
+   * repository), used to simulate a failing command in the tests.
+   */
+  private static final int REV_PARSE_FAILURE_EXIT_CODE = 128;
 
   private ProcessContextGitMock processContext;
 
@@ -328,24 +332,126 @@ class GitContextTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test for isRepositoryUpdateAvailable when local and remote commits are the same.
+   * Sets up the mock so that the current branch is configured with an upstream, which lets {@link GitContextImpl#isRepositoryUpdateAvailable(Path)} pass the
+   * {@code hasUpstream} guard and reach the commit id comparison. A {@code null} commit id simulates a failing {@code rev-parse} (non-zero exit code), so the
+   * failure handling of the command is exercised rather than the single-output success path.
+   *
+   * @param localCommitId the commit id returned for {@code rev-parse HEAD}; {@code null} simulates the command failing.
+   * @param remoteCommitId the commit id returned for {@code rev-parse @{u}}; {@code null} simulates the command failing.
+   */
+  private void simulateUpstreamAndCommitIds(String localCommitId, String remoteCommitId) {
+    this.processContext.addCommandOutput(new OutputMessage(false, "master"));
+    this.processContext.addCommandOutput(new OutputMessage(false, "origin"));
+    this.processContext.addCommandOutput(new OutputMessage(false, "refs/heads/master"));
+    if (localCommitId == null) {
+      this.processContext.addCommandFailure(REV_PARSE_FAILURE_EXIT_CODE, new OutputMessage(true, "fatal: ambiguous argument 'HEAD': unknown revision"));
+    } else {
+      this.processContext.addCommandOutput(new OutputMessage(false, localCommitId));
+    }
+    if (remoteCommitId == null) {
+      this.processContext.addCommandFailure(REV_PARSE_FAILURE_EXIT_CODE, new OutputMessage(true, "fatal: no upstream configured for branch 'master'"));
+    } else {
+      this.processContext.addCommandOutput(new OutputMessage(false, remoteCommitId));
+    }
+  }
+
+  /**
+   * Test for isRepositoryUpdateAvailable when local and remote commit ids are identical, so no update is available. This reaches the actual comparison of
+   * {@code rev-parse HEAD} against {@code rev-parse @{u}}.
    *
    * @param tempDir a {@link TempDir} {@link Path}.
    */
   @Test
   void testIsRepositoryUpdateAvailableNoUpdates(@TempDir Path tempDir) {
     // arrange
-    List<String> errors = new ArrayList<>();
-    List<String> outs = new ArrayList<>();
-    outs.add("local_commit_hash");
-    outs.add("local_commit_hash"); // same as remote to simulate no updates
     IdeContext context = newGitContext(tempDir);
+    simulateUpstreamAndCommitIds("local_commit_hash", "local_commit_hash");
 
     // act
     boolean result = context.getGitContext().isRepositoryUpdateAvailable(tempDir);
 
     // assert
     assertThat(result).isFalse(); // No updates should be available
+  }
+
+  /**
+   * Test for isRepositoryUpdateAvailable when local and remote commit ids differ, so an update is available.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  void testIsRepositoryUpdateAvailableUpdates(@TempDir Path tempDir) {
+    // arrange
+    IdeContext context = newGitContext(tempDir);
+    simulateUpstreamAndCommitIds("local_commit_hash", "remote_commit_hash");
+
+    // act
+    boolean result = context.getGitContext().isRepositoryUpdateAvailable(tempDir);
+
+    // assert
+    assertThat(result).isTrue(); // Updates should be available
+  }
+
+  /**
+   * Simulates a repository without an upstream: the current branch is known, but no {@code branch.<name>.remote} is configured. The {@code rev-parse} commands
+   * are never reached.
+   */
+  private void simulateNoUpstream() {
+    this.processContext.addCommandOutput(new OutputMessage(false, "master"));
+  }
+
+  /**
+   * Test for isRepositoryUpdateAvailable when the current branch has no upstream remote configured.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  void testIsRepositoryUpdateAvailableNoUpstream(@TempDir Path tempDir) {
+    // arrange
+    IdeContext context = newGitContext(tempDir);
+    simulateNoUpstream();
+
+    // act
+    boolean result = context.getGitContext().isRepositoryUpdateAvailable(tempDir);
+
+    // assert
+    assertThat(result).isFalse(); // No upstream means no update is available
+  }
+
+  /**
+   * Test for isRepositoryUpdateAvailable when the local commit id (rev-parse HEAD) is not available.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  void testIsRepositoryUpdateAvailableLocalCommitIdMissing(@TempDir Path tempDir) {
+    // arrange
+    IdeContext context = newGitContext(tempDir);
+    simulateUpstreamAndCommitIds(null, "remote_commit_hash");
+
+    // act
+    boolean result = context.getGitContext().isRepositoryUpdateAvailable(tempDir);
+
+    // assert
+    assertThat(result).isFalse();
+  }
+
+  /**
+   * Test for isRepositoryUpdateAvailable when the remote commit id (rev-parse @{u}) is not available.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  void testIsRepositoryUpdateAvailableRemoteCommitIdMissing(@TempDir Path tempDir) {
+    // arrange
+    IdeContext context = newGitContext(tempDir);
+    simulateUpstreamAndCommitIds("local_commit_hash", null);
+
+    // act
+    boolean result = context.getGitContext().isRepositoryUpdateAvailable(tempDir);
+
+    // assert
+    assertThat(result).isFalse(); // A missing remote commit id means no update can be reported
   }
 
 
