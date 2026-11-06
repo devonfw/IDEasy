@@ -136,9 +136,7 @@ public final class BugReportHelper {
     }
     status.append("Your version of IDEasy is ").append(IdeVersion.getVersionString()).append('\n');
     SystemInfo systemInfo = context.getSystemInfo();
-    status.append("Your operating system is ").append(systemInfo.getOs()).append('(').append(systemInfo.getOsVersion())
-        .append(")@").append(systemInfo.getArchitecture()).append(" [").append(systemInfo.getOsName()).append('@')
-        .append(systemInfo.getArchitectureName()).append(']').append('\n');
+    status.append("Your operating system is ").append(systemInfo.describe()).append('\n');
     return status.toString();
   }
 
