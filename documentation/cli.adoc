@@ -101,7 +101,7 @@ ide «ide» --project=<path>    # open the given folder
 ```
 
 A bare `--project` opens the current working directory (e.g. the repo you are standing in).
-`--project=<path>` opens the given folder: an absolute path is used as-is, a relative one is resolved against the current working directory, and it is safe for paths with spaces.
+`--project=<path>` opens the given folder: an absolute path is used as-is, a path starting with `~/` is resolved against your home directory, a relative one is resolved against the current working directory, and it is safe for paths with spaces.
 If the resolved path does not exist or is not a folder, the launch aborts with an error.
 
 This is meant to open a project that uses the same toolchain with your managed IDE without it being part of your workspace.

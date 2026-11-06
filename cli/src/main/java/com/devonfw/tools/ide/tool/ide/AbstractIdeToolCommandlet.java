@@ -89,7 +89,8 @@ public abstract class AbstractIdeToolCommandlet extends AbstractPluginBasedComma
    * Extracts the optional {@code --project} flag from the given launch arguments and remembers the folder it selects via {@link #project}, returning the
    * remaining arguments to pass through to the IDE. The flag is consumed by IDEasy (and never passed to the IDE) because the trailing arguments of an IDE
    * command are passed verbatim to the IDE binary. Two forms are supported: {@code --project} opens the current working directory, while
-   * {@code --project=<path>} opens the given folder (absolute, or relative resolved against the current working directory).
+   * {@code --project=<path>} opens the given folder (absolute, a {@code ~/} or bare {@code ~} prefix resolved against the user home, or relative
+   * resolved against the current working directory).
    *
    * @param args the raw command-line arguments to launch this IDE.
    * @return a copy of {@code args} with the {@code --project} flag removed (if present).
@@ -108,6 +109,10 @@ public abstract class AbstractIdeToolCommandlet extends AbstractPluginBasedComma
           throw new CliException(
               "The " + PROJECT_OPTION_PREFIX + " option of command '" + this.tool + "' is missing the folder to open. Use '" + PROJECT_OPTION
                   + "' to open the current folder.");
+        }
+        // the shell does not expand '~' inside '--project=<value>', so resolve it against the user home here
+        if ("~".equals(folder) || folder.startsWith("~/")) {
+          folder = this.context.getUserHome() + folder.substring(1);
         }
         this.project.setValue(Path.of(folder));
         effectiveArgs.remove(i);

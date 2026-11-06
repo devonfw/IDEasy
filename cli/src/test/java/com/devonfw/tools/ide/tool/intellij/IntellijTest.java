@@ -233,6 +233,45 @@ class IntellijTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that a {@code ~/} prefix in {@code --project=<path>} is expanded against the user home (the shell does not expand {@code ~} inside
+   * {@code --project=<value>}, so IDEasy must resolve it itself): {@code ~/my-project} opens {@code <userHome>/my-project}.
+   */
+  @Test
+  void testIntellijRunWithProjectTildePathExpandsUserHome() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_INTELLIJ);
+    context.setSystemInfo(SystemInfoMock.of("linux"));
+    Path external = context.getUserHome().resolve("my-project").normalize();
+    context.getFileAccess().mkdirs(external);
+    // act
+    int exitCode = context.run(new CliArguments("intellij", "--project=~/my-project"));
+    // assert
+    Intellij intellij = context.getCommandletManager().getCommandlet(Intellij.class);
+    assertThat(exitCode).isEqualTo(0);
+    assertThat(intellij.getOpenPath()).isEqualTo(external);
+    String launchedArgs = context.getFileAccess().readFileContent(intellij.getToolBinPath().resolve("intellijtest")).trim();
+    assertThat(launchedArgs).endsWith(external.toString());
+  }
+
+  /**
+   * Tests that a bare {@code --project=~} opens the user home (shell convention: a lone {@code ~} denotes the home directory).
+   */
+  @Test
+  void testIntellijRunWithProjectBareTildeOpensUserHome() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_INTELLIJ);
+    context.setSystemInfo(SystemInfoMock.of("linux"));
+    // act
+    int exitCode = context.run(new CliArguments("intellij", "--project=~"));
+    // assert
+    Intellij intellij = context.getCommandletManager().getCommandlet(Intellij.class);
+    assertThat(exitCode).isEqualTo(0);
+    assertThat(intellij.getOpenPath()).isEqualTo(context.getUserHome().normalize());
+  }
+
+  /**
    * Tests that {@code --project=<path>} is safe for paths with spaces (the shell passes such a path as a single token, and the equals form keeps it intact),
    * unlike a space-separated {@code --project <path>} which would leak the tail to the IDE.
    */
