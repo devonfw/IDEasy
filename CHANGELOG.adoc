@@ -7,7 +7,6 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/2372[#2372]: Add `--retention-delay` option to `ide cleanup` so that stale files and unused tool versions are only deleted once they are older than the given retention delay
-* https://github.com/devonfw/IDEasy/issues/2462[#2462]: Add Codex url-updater
 * https://github.com/devonfw/IDEasy/issues/945[#945]: Improve ide update with smart dependency handling
 * https://github.com/devonfw/IDEasy/issues/2740[#2740]: Duplicate CVE check
 * https://github.com/devonfw/IDEasy/issues/2718[#2718]: Trace log writes the values of secret variables
