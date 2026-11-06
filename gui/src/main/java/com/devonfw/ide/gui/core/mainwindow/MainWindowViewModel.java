@@ -18,7 +18,8 @@ import com.devonfw.ide.gui.core.progress.ProgressBarTask;
 import com.devonfw.ide.gui.core.service.NlsService;
 
 /**
- * View model of the main window. It holds the observable state behind the status bar (status text, progress and clickability) and the console visibility, and
+ * View model of the main window. It holds the observable state behind the status bar (status text, progress and clickability), the console visibility and the
+ * visibility of the welcome pane shown while no tab is open, and
  * reflects the task list held by the {@link GuiStateManager} onto the status bar.
  */
 public class MainWindowViewModel {
@@ -38,6 +39,8 @@ public class MainWindowViewModel {
   private final BooleanProperty statusClickable = new SimpleBooleanProperty(false);
 
   private final BooleanProperty consoleVisible = new SimpleBooleanProperty(false);
+
+  private final BooleanProperty welcomeVisible = new SimpleBooleanProperty(true);
 
   /**
    * Initializes the view model and wires the task-list listener that drives the status bar.
@@ -160,6 +163,27 @@ public class MainWindowViewModel {
     this.consoleVisible.set(visible);
   }
 
+  /**
+   * @return the property flagging whether the welcome pane is visible, which is the case while no tab is open.
+   */
+  public BooleanProperty welcomeVisibleProperty() {
+
+    return this.welcomeVisible;
+  }
+
+  /**
+   * Updates the number of currently open tabs, showing the welcome pane when there are none.
+   *
+   * @param openTabCount the number of tabs currently open in the main window.
+   */
+  public void setOpenTabCount(int openTabCount) {
+
+    this.welcomeVisible.set(openTabCount == 0);
+  }
+
+  /**
+   * Opens (or focuses) the IDE launcher tab.
+   */
   public void openLauncherTab() {
 
     this.tabFactory.openLauncherTab();
