@@ -95,7 +95,18 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersi
   protected String doGetVersionUrl() {
 
     return getVersionBaseUrl()
-        + "/v3/info/release_versions?architecture=x64&heap_size=normal&image_type=jdk&jvm_impl=hotspot&page=0&page_size=50&project=jdk&release_type=ga&sort_method=DEFAULT&sort_order=DESC&vendor=eclipse";
+        + "/v3/info/release_versions"
+        + "?architecture=x64"
+        + "&heap_size=normal"
+        + "&image_type=jdk"
+        + "&jvm_impl=hotspot"
+        + "&page=0"
+        + "&page_size=50"
+        + "&project=jdk"
+        + "&release_type=ga"
+        + "&sort_method=DEFAULT"
+        + "&sort_order=DESC"
+        + "&vendor=eclipse";
   }
 
   @Override
