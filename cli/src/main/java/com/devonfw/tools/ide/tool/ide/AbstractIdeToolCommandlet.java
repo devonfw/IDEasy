@@ -28,10 +28,10 @@ public abstract class AbstractIdeToolCommandlet extends AbstractPluginBasedComma
 
   private static final String OPTIONS_ENV_SUFFIX = "_OPTIONS";
 
-  /** The {@code --project} flag consumed by IDEasy to select the folder the IDE opens instead of the default workspace. */
+  /** The bare {@code --project} flag, consumed by IDEasy so the IDE opens the current working directory instead of the default workspace. */
   private static final String PROJECT_OPTION = "--project";
 
-  /** The {@code --project=} form of {@link #PROJECT_OPTION} that carries the folder as its value (e.g. {@code --project=/path/to/folder}). */
+  /** The {@code --project=} form of {@link #PROJECT_OPTION} that carries the folder as its value. */
   private static final String PROJECT_OPTION_PREFIX = "--project=";
 
   private final IdeWorkspaceConfigurer workspaceConfigurer;
@@ -56,8 +56,8 @@ public abstract class AbstractIdeToolCommandlet extends AbstractPluginBasedComma
   @Override
   protected void initProperties() {
 
-    // mustExist=false on purpose: the value is only set in extractProjectOption() (after CLI validation), so the property's own
-    // exists/is-directory check would never fire anyway; validateOpenPath() is the real guard for the opened folder
+    // mustExist=false on purpose: the value is set in extractProjectOption() after the framework validation, so the property's own
+    // path checks never inspect it; validateOpenPath() is the real guard for the opened folder
     this.project = add(new FolderProperty("--project", false, null, false));
     super.initProperties();
   }
@@ -87,15 +87,9 @@ public abstract class AbstractIdeToolCommandlet extends AbstractPluginBasedComma
 
   /**
    * Extracts the optional {@code --project} flag from the given launch arguments and remembers the folder it selects via {@link #project}, returning the
-   * remaining arguments that should be passed through to the IDE. Because the remaining trailing arguments of an IDE command are passed verbatim to the IDE
-   * binary, this flag is consumed by IDEasy and never passed through to the IDE.
-   * <p>
-   * Two forms are supported:
-   * <ul>
-   * <li>{@code --project} opens the current working directory (the most common case, e.g. {@code ide intellij --project} from inside a Git checkout),</li>
-   * <li>{@code --project=<path>} opens the given folder (absolute, or relative resolved against the current working directory).</li>
-   * </ul>
-   * The {@code --project=<path>} form is unambiguous and safe for paths with spaces, so it is the form to use for an explicit folder.
+   * remaining arguments to pass through to the IDE. The flag is consumed by IDEasy (and never passed to the IDE) because the trailing arguments of an IDE
+   * command are passed verbatim to the IDE binary. Two forms are supported: {@code --project} opens the current working directory, while
+   * {@code --project=<path>} opens the given folder (absolute, or relative resolved against the current working directory).
    *
    * @param args the raw command-line arguments to launch this IDE.
    * @return a copy of {@code args} with the {@code --project} flag removed (if present).
@@ -150,11 +144,10 @@ public abstract class AbstractIdeToolCommandlet extends AbstractPluginBasedComma
   }
 
   /**
-   * @return the {@link Path} that this IDE launch will open. This is the single source of truth for "which folder does this launch open?": it returns the
+   * @return the {@link Path} that this IDE launch will open - the single source of truth for "which folder does this launch open?". Returns the
    *     {@link #project explicit {@code --project} folder} (relative paths resolved against the current working directory) if the flag was given, or the
-   *     {@link IdeContext#getWorkspacePath() workspace path} otherwise (today's default behavior). The IDE-specific property environment variables
-   *     (e.g. {@code IDEA_PROPERTIES}) point at this same folder so the shell env and the launch agree: the opened project's own properties file when a
-   *     {@code --project} folder was given, the managed workspace's otherwise.
+   *     {@link IdeContext#getWorkspacePath() workspace path} otherwise. The IDE-specific properties environment variables (e.g. {@code IDEA_PROPERTIES})
+   *     point at this same folder.
    */
   public Path getOpenPath() {
 
@@ -191,17 +184,16 @@ public abstract class AbstractIdeToolCommandlet extends AbstractPluginBasedComma
   protected void postInstall(ToolInstallRequest request) {
     if (!hasExplicitProject()) {
       // an explicit --project launch opens an external folder that must not be written into, so skip the workspace configuration
-      // (template merge and extra-SDK sync); a plain `ide install` keeps merging into the managed workspace as today
+      // (template merge and extra-SDK sync); a plain `ide install` still merges into the managed workspace
       configureWorkspace();
     }
     super.postInstall(request);
   }
 
   /**
-   * @return {@code true} if an explicit {@code --project} folder was given for this run, i.e. the launch opens an external folder that IDEasy must not
-   *     write into. Such launches skip the workspace configuration ({@link #configureWorkspace() template merge and extra-SDK sync}) on every call site of
-   *     the launch path (the {@link #runTool} seam and the {@link #postInstall postInstall} of the launch's ensure-install step); a plain
-   *     {@code ide install} (no flag) still merges into the managed workspace.
+   * @return {@code true} if an explicit {@code --project} folder was given for this run. Such a launch opens an external folder that IDEasy must not write
+   *     into, so it skips the workspace configuration ({@link #configureWorkspace() template merge and extra-SDK sync}); a plain {@code ide install}
+   *     (no flag) still merges into the managed workspace.
    */
   private boolean hasExplicitProject() {
 

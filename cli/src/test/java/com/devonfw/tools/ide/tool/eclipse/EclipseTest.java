@@ -67,8 +67,7 @@ public class EclipseTest extends AbstractIdeContextTest {
 
   /**
    * Tests that Eclipse does not support the {@code --project} flag: an {@code ide eclipse --project=<path>} launch aborts with a clear error instead of
-   * silently opening the managed workspace. Follow-up on the review of PR #2565 (Eclipse has a different workspace concept and always opens the managed
-   * workspace via {@code -data}).
+   * silently opening the managed workspace (Eclipse always opens the managed workspace via {@code -data}).
    */
   @Test
   void testEclipseRejectsProjectOption() {

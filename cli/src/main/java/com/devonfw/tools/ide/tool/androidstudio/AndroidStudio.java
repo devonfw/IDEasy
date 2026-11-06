@@ -60,7 +60,7 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
-    // point at the opened folder's own studio.properties (see getOpenPath() for the single source of truth)
+    // point at the opened folder's own studio.properties
     environmentContext.withEnvVar("STUDIO_PROPERTIES", getOpenPath().resolve("studio.properties").toString());
   }
 
