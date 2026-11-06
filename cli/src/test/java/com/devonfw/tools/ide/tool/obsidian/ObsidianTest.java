@@ -1,11 +1,16 @@
 package com.devonfw.tools.ide.tool.obsidian;
 
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.os.WindowsAppInstallation;
+import com.devonfw.tools.ide.os.WindowsHelperMock;
 
 /**
  * Test of {@link Obsidian}.
@@ -87,5 +92,27 @@ class ObsidianTest extends AbstractIdeContextTest {
 
     // act + assert
     assertThat(obsidian.getWindowsRegistryAppName()).isEqualTo("Obsidian");
+  }
+
+  /**
+   * Test that an existing installation on Windows is found via the registry, even though Obsidian is not in the PATH.
+   *
+   * @param installDir the {@link Path} to the installation directory of Obsidian.
+   */
+  @Test
+  void testGetInstallationPathFromWindowsRegistry(@TempDir Path installDir) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    WindowsHelperMock windowsHelper = (WindowsHelperMock) context.getWindowsHelper();
+    windowsHelper.setAppInstallationFromRegistry("Obsidian", new WindowsAppInstallation("1.8.9", null, null, installDir.toString()));
+    Obsidian obsidian = context.getCommandletManager().getCommandlet(Obsidian.class);
+
+    // act
+    Path installationPath = obsidian.getInstallationPath("obsidian", null);
+
+    // assert
+    assertThat(installationPath).isEqualTo(installDir);
   }
 }
