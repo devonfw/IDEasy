@@ -1,6 +1,10 @@
 = Support
 
-//TODO: community, bug-reporting, etc.
+include::bug-reporting.adoc[leveloffset=2]
+
+include::community.adoc[leveloffset=2]
+
+<<<<
 
 include::symlink.adoc[leveloffset=2]
 
