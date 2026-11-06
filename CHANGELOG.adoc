@@ -20,6 +20,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2553[#2553]: Add release support for yarn
 * https://github.com/devonfw/IDEasy/issues/2515[#2515]: Add commandlet for KubeLinter (kube-linter)
 * https://github.com/devonfw/IDEasy/issues/2427[#2427]: Improve update-cve workflow to detect and add OS specific CVEs to security.json files
+* https://github.com/devonfw/IDEasy/issues/2514[#2514]: Add commandlet for Ollama CLI
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/52?closed=1[milestone 2026.11.001].
 
