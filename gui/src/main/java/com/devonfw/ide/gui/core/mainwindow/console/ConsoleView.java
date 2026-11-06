@@ -1,5 +1,6 @@
 package com.devonfw.ide.gui.core.mainwindow.console;
 
+
 import java.text.MessageFormat;
 
 import javafx.collections.ListChangeListener.Change;
@@ -9,6 +10,9 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextArea;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
@@ -88,26 +92,52 @@ public class ConsoleView {
    */
   private static class LogEntryCell extends ListCell<IdeLogEntry> {
 
-    private static final String BASE_STYLE = "-fx-font-family: 'Consolas', monospace; -fx-font-size: 11;";
-    private static final String ERROR_STYLE = BASE_STYLE + " -fx-text-fill: #cc0000;";
-    private static final String WARNING_STYLE = BASE_STYLE + " -fx-text-fill: #cc8800;";
+    private static final String BASE_STYLE = "-fx-font-family: 'Consolas', monospace; -fx-font-size: 11; -fx-background-insets: 0; "
+        + "-fx-background-color: transparent; -fx-border-color: transparent;";
+    private static final String ERROR_STYLE = BASE_STYLE + " -fx-text-fill: #cc0000; -fx-control-inner-background: #fff0e0;";
+    private static final String WARNING_STYLE = BASE_STYLE + " -fx-text-fill: #cc8800; -fx-control-inner-background: #fff8e0;";
     private static final String INFO_STYLE = BASE_STYLE + " -fx-text-fill: #000000;";
     private static final String DEBUG_STYLE = BASE_STYLE + " -fx-text-fill: #666666;";
     private static final String TRACE_STYLE = BASE_STYLE + " -fx-text-fill: #888888;";
     private static final String PLAIN_STYLE = BASE_STYLE + " -fx-text-fill: #333333;";
-    private static final String ERROR_BG = "-fx-background-color: #fff0f0;";
-    private static final String WARNING_BG = "-fx-background-color: #fff8e0;";
+    private final TextArea textArea;
+    public LogEntryCell(){
+      textArea = new TextArea();
+      textArea.setWrapText(true);
+      textArea.setEditable(false);
+      textArea.setFocusTraversable(false);
+    }
+    private static double computeTextHeight(String text, double width) {
 
+      Text helper = new Text(text);
+
+      helper.setFont(Font.font("Consolas", 11));
+      helper.setWrappingWidth(width);
+
+      return helper.getLayoutBounds().getHeight();
+    }
     @Override
     protected void updateItem(IdeLogEntry entry, boolean empty) {
 
       super.updateItem(entry, empty);
       if (empty || entry == null) {
-        setText(null);
+        textArea.clear();
+        setGraphic(null);
         setStyle(BASE_STYLE);
       } else {
-        setText(entry.displayValue());
-        setStyle(getStyleForEntry(entry));
+        String text= entry.displayValue();
+        textArea.setText(text);
+        textArea.setStyle(getStyleForEntry(entry));
+        textArea.setText(text);
+
+        textArea.applyCss();
+
+        double textHeight = computeTextHeight(text, textArea.getWidth());
+
+        textArea.setPrefHeight(textHeight + 11);
+
+
+        setGraphic(textArea);
       }
     }
 
@@ -117,8 +147,8 @@ public class ConsoleView {
         return PLAIN_STYLE;
       }
       return switch (entry.level()) {
-        case ERROR -> ERROR_STYLE + " " + ERROR_BG;
-        case WARNING -> WARNING_STYLE + " " + WARNING_BG;
+        case ERROR -> ERROR_STYLE;
+        case WARNING -> WARNING_STYLE;
         case INFO -> INFO_STYLE;
         case DEBUG -> DEBUG_STYLE;
         case TRACE -> TRACE_STYLE;
