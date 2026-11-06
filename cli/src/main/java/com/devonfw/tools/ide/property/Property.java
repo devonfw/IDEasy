@@ -199,6 +199,18 @@ public abstract class Property<V> {
   }
 
   /**
+   * @param defaultValue the default value to use if no value is available.
+   * @return the {@link #getValue() value} but {@code defaultValue} as fallback if no value is available.
+   */
+  public V getValueOrDefault(V defaultValue) {
+    if (this.value.isEmpty()) {
+      return defaultValue;
+    } else {
+      return this.value.getFirst();
+    }
+  }
+
+  /**
    * @param i the position to get.
    * @return the value of this property.
    */

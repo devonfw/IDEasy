@@ -35,7 +35,7 @@ public class RewriteCommandlet extends AbstractCommandlet {
 
     super(context);
     addKeyword(getName());
-    this.command = add(new EnumProperty<>("", true, "recipe_name", RewriteRecipeEnum.class));
+    this.command = add(new EnumProperty<>("", true, RewriteRecipeEnum.class, "recipe_name"));
     this.recipeManager = new RecipeManager();
   }
 

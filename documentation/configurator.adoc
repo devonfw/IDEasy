@@ -34,7 +34,7 @@ The configurator will recursively traverse the directory structure of these `set
 For each located file `«relative-path»/«file»` it will create or update such file in the current link:workspaces.adoc[workspace] (by default `workspaces/main/`) according to the following rules:
 
 * If `«relative-path»/«file»` is present in the current workspace it will be loaded and used as basis.
-* Otherwise if `«relative-path»/«file»` is present in `setup` it will be loaded and used as basis.
+* Otherwise, if `«relative-path»/«file»` is present in `setup` it will be loaded and used as basis.
 * If `«relative-path»/«file»` is present in `update` it will be loaded and merged with the current basis.
 * Variables in the from `$[«variable-name»]` get resolved if `«variable-name»` is defined.
 Please note that in devonfw-ide the syntax was `${«variable-name»}` and legacy support for this can be enabled/disabled.
@@ -72,15 +72,13 @@ Functions may also be nested, so an argument can itself contain a call of anothe
 
 Each function is a small class implementing `ExpressionFunction` and registered by name in `ExpressionFunctionManager`.
 For the up-to-date list of available functions and their arguments, defaults and examples, see the sources of the
-link:https://github.com/devonfw/IDEasy/tree/main/cli/src/main/java/com/devonfw/tools/ide/expression/function[function package] instead of a second copy of
-that information here, so the documentation cannot drift out of sync with the code:
+link:https://github.com/devonfw/IDEasy/tree/main/cli/src/main/java/com/devonfw/tools/ide/expression[expression package] instead of a second copy of that information here, so the documentation cannot drift out of sync with the code:
 
 * `@path` normalizes a path (e.g. to convert `$[IDE_HOME]/software/node/node.exe` to a form usable on the current operating system).
 The optional 2nd argument is `unix` (the default, slashes) or `native` (backslashes on Windows).
 * `@ask-variable` and `@ask-secret` ask the user for the value of a variable (in plain text, respectively with masked input) unless it is already defined.
 The optional further arguments are the question, the configuration location to persist to (`settings`, `workspace`, `conf` or `home`, default `conf`, `@ask-variable` only) and a default value (`null` for none).
-* `@if-windows`, `@if-mac`, `@if-linux` and `@if-unix` insert their single argument only if the current operating system matches and otherwise resolve to the
-empty string, e.g. to select an OS specific value inline: `$[IDE_HOME]/software/mvn/bin/mvn@if-windows('.bat')@if-unix('.sh')`.
+* `@if-windows`, `@if-mac`, `@if-linux` and `@if-unix` insert their single argument only if the current operating system matches and otherwise resolve to the empty string, e.g. to select an OS specific value inline: `$[IDE_HOME]/software/mvn/bin/mvn@if-windows('.bat')@if-unix('.sh')`.
 
 A function that is not registered by `IDEasy` is passed through entirely untouched.
 This is essential since foreign configuration formats may use an `@` for their own purposes (e.g. a CSS rule `@media(max-width:600px)` or an Eclipse `@param`) and `IDEasy` must never try to resolve placeholders that are not its own.
@@ -98,7 +96,7 @@ Expressions are typically used in the `update` templates to build up OS-specific
 +
 [source]
 ----
-<local-interpreter path="@path('$[IDE_HOME]/software/node/node', native)" merge:id="name()"/>
+<local-interpreter path="@path('$[IDE_HOME]/software/node/node', 'native')" merge:id="name()"/>
 ----
 
 == How to customize
