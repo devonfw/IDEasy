@@ -27,10 +27,10 @@ public class IdeLogListenerCollector extends IdeLogListenerBuffer {
   }
 
   @Override
-  public boolean onLog(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error) {
-    boolean accept = super.onLog(level, message, rawMessage, args, error);
+  public boolean onLog(IdeLogEntry entry) {
+    boolean accept = super.onLog(entry);
     if (accept) {
-      this.entries.add(new IdeLogEntry(level, message, rawMessage, args, error));
+      this.entries.add(entry);
     }
     return accept;
   }
