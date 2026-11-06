@@ -6,11 +6,14 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.migration.v2026.Mig202610001;
@@ -145,6 +148,41 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that the GUI shortcuts on Windows are only created if enabled via the variables passed from the checkboxes of the MSI installer.
+   *
+   * @param createDesktopShortcut whether the desktop shortcut checkbox is checked.
+   * @param createStartMenuShortcut whether the Start Menu shortcut checkbox is checked.
+   */
+  @ParameterizedTest
+  @CsvSource({ "true, true", "false, true", "true, false", "false, false" })
+  void testInstallIdeasyWithShortcutSelectionOnWindows(boolean createDesktopShortcut, boolean createStartMenuShortcut) {
+
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    IdeTestContext context = newContext("install");
+    context.setIdeRoot(null);
+    context.setSystemInfo(systemInfo);
+    context.getStartContext().setForceMode(true);
+    EnvironmentVariables variables = context.getVariables().getByType(EnvironmentVariablesType.CONF);
+    variables.set(IdeasyCommandlet.VAR_CREATE_DESKTOP_SHORTCUT, createDesktopShortcut ? "1" : "0");
+    variables.set(IdeasyCommandlet.VAR_CREATE_STARTMENU_SHORTCUT, createStartMenuShortcut ? "1" : "0");
+    Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
+    FileAccess fileAccess = new FileAccessImpl(context);
+    fileAccess.writeFileContent("", gitconfigPath);
+    fileAccess.copy(Path.of("src/main/package/gui"), context.getUserHome().resolve("Downloads/ide-cli"));
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
+    // act
+    ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
+    // assert
+    Assumptions.assumeTrue(System.getProperty("os.name", "").toLowerCase().startsWith("win"),
+        "Skipped: .lnk creation requires PowerShell, which is only available on Windows");
+    assertThat(Files.exists(context.getUserHome().resolve("Desktop/IDEasy.lnk"))).as("desktop shortcut exists")
+        .isEqualTo(createDesktopShortcut);
+    assertThat(Files.exists(context.getUserHome().resolve("AppData/Roaming/Microsoft/Windows/Start Menu/Programs/IDEasy.lnk")))
+        .as("Start Menu shortcut exists").isEqualTo(createStartMenuShortcut);
+  }
+
+  /**
    * Test that {@link IdeasyCommandlet#installIdeasy(Path)} updates {@link IdeContext#getIdeRoot()} to the derived installation target when {@code IDE_ROOT} is
    * not set in the environment (as is the case during a fresh MSI installation). This ensures downstream code reading {@link IdeContext#getIdeRoot()} during
    * the same install run gets a consistent value. See <a href="https://github.com/devonfw/IDEasy/issues/1517">#1517</a> for reference.
@@ -256,6 +294,55 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     assertThat(desktopFile).content()
         .contains("Exec=" + installationPath.resolve("bin/ideasy") + " gui")
         .contains("Icon=" + installationPath.resolve("gui/icon.png"));
+  }
+
+  /**
+   * Test that the icon migration on Windows only refreshes GUI shortcuts that already exist. A missing shortcut may be the choice of the user made via the
+   * checkboxes of the MSI installer. That choice is not persisted, so the migration must not create the shortcut.
+   *
+   * @param desktopShortcutExists whether the desktop shortcut exists before the migration.
+   * @param startMenuShortcutExists whether the Start Menu shortcut exists before the migration.
+   */
+  @ParameterizedTest
+  @CsvSource({ "true, true", "true, false", "false, true", "false, false" })
+  void testIconMigrationOnlyRefreshesExistingShortcutsOnWindows(boolean desktopShortcutExists, boolean startMenuShortcutExists) {
+
+    // arrange
+    IdeTestContext context = newContext("install");
+    context.setSystemInfo(SystemInfoMock.of("windows"));
+    context.setIdeRoot(context.getUserHome().resolve("projects"));
+    Path desktopShortcut = context.getUserHome().resolve("Desktop/IDEasy.lnk");
+    Path startMenuShortcut = context.getUserHome().resolve("AppData/Roaming/Microsoft/Windows/Start Menu/Programs/IDEasy.lnk");
+    createStaleShortcut(context, desktopShortcut, desktopShortcutExists);
+    createStaleShortcut(context, startMenuShortcut, startMenuShortcutExists);
+    Mig202610001 migration = new Mig202610001();
+
+    // act
+    migration.run(context);
+
+    // assert
+    verifyShortcutRefreshed(context, desktopShortcut, desktopShortcutExists);
+    verifyShortcutRefreshed(context, startMenuShortcut, startMenuShortcutExists);
+  }
+
+  private void createStaleShortcut(IdeTestContext context, Path shortcut, boolean exists) {
+
+    if (exists) {
+      context.getFileAccess().mkdirs(shortcut.getParent());
+      context.getFileAccess().writeFileContent("stale", shortcut);
+    }
+  }
+
+  private void verifyShortcutRefreshed(IdeTestContext context, Path shortcut, boolean expected) {
+
+    assertThat(Files.exists(shortcut)).as("shortcut exists: %s", shortcut).isEqualTo(expected);
+    // matches the outcome of both success and failure, as PowerShell is only available on real Windows systems
+    String message = "shortcut at " + shortcut;
+    if (expected) {
+      assertThat(context).log().hasMessageContaining(message);
+    } else {
+      assertThat(context).log().hasNoMessageContaining(message);
+    }
   }
 
   /**
