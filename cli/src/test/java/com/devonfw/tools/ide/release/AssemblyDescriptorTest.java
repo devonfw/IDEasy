@@ -15,11 +15,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
- * Guard against https://github.com/devonfw/IDEasy/issues/2753 - the {@code bin/} native launcher must be
- * archived with an explicit {@code fileMode=0755}. Without it the Windows PE is archived without the
- * executable bit, so {@code sh}/Git Bash refuses to run {@code ./bin/ideasy} with "Permission denied" when the
- * archive is produced by the release build. The Linux and macOS descriptors already set this mode; this test
- * keeps all active descriptors in sync.
+ * Consistency guard (related to https://github.com/devonfw/IDEasy/issues/2753): every release assembly
+ * descriptor must archive the {@code bin/} native launcher with an explicit {@code fileMode=0755}. The Linux
+ * and macOS descriptors already set this mode; this test keeps all active descriptors in sync.
  */
 class AssemblyDescriptorTest extends Assertions {
 
