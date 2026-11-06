@@ -28,7 +28,8 @@
       "Bash(mvn -q -o test *)",
       "Bash(mvn -Dtest=* test *)",
       "Bash(mvn checkstyle:check *)",
-      "Bash(mvn spotless:check *)"
+      "Bash(mvn spotless:check *)",
+      "Bash(gh search *)"
     ]
   }
 }

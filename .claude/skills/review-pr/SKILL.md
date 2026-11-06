@@ -1,7 +1,7 @@
 ---
 name: review-pr
 description: Review an IDEasy pull request against its referenced issue and the project conventions, then post an actionable GitHub review after the user confirmed. Use when asked to review a PR or ticket.
-argument-hint: [pr-number]
+argument-hint: <pr-number>
 model: opus
 ---
 

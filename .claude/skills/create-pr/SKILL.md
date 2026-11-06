@@ -2,7 +2,7 @@
 name: create-pr
 description: Finalize local changes for an issue into a feature branch and open a pull request. Use when asked to create, open or update a pull request for IDEasy.
 argument-hint: [issue-number]
-model: haiku
+model: sonnet
 ---
 
 The user asked to finalize the work on an issue with local changes and potentially an already
