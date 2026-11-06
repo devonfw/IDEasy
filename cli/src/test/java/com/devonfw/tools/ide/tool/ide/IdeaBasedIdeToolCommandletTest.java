@@ -109,8 +109,8 @@ class IdeaBasedIdeToolCommandletTest extends AbstractIdeContextTest {
     Intellij intellij = context.getCommandletManager().getCommandlet(Intellij.class);
     Path external = context.getIdeHome().resolve("external-project").normalize();
     context.getFileAccess().mkdirs(external);
-    // act - a real CLI launch exactly like `ide intellij --project <path>`
-    int exitCode = context.run(new CliArguments("intellij", "--project", external.toString()));
+    // act - a real CLI launch exactly like `ide intellij --project=<path>`
+    int exitCode = context.run(new CliArguments("intellij", "--project=" + external.toString()));
     // assert
     assertThat(exitCode).isEqualTo(0);
     // the IDE is launched with the opened folder as its argument (launch phase)

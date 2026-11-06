@@ -149,8 +149,8 @@ class IntellijTest extends AbstractIdeContextTest {
     context.setSystemInfo(SystemInfoMock.of("linux"));
     Path external = context.getIdeHome().resolve("external-project").normalize();
     context.getFileAccess().mkdirs(external);
-    // act
-    CliArguments args = new CliArguments("intellij", "--project", external.toString());
+    // act - the --project=<path> (equals) form
+    CliArguments args = new CliArguments("intellij", "--project=" + external.toString());
     args.next();
     int exitCode = context.run(args);
     // assert
@@ -200,13 +200,59 @@ class IntellijTest extends AbstractIdeContextTest {
     Path external = context.getIdeHome().resolve("external-project").normalize();
     context.getFileAccess().mkdirs(external);
     context.getTestStartContext().getEntries().clear(); // ignore the merge that happened during install
-    // act - a real CLI launch exactly like `ide intellij --project <path>`
-    int exitCode = context.run(new CliArguments("intellij", "--project", external.toString()));
+    // act - a real CLI launch exactly like `ide intellij --project=<path>`
+    int exitCode = context.run(new CliArguments("intellij", "--project=" + external.toString()));
     // assert
     assertThat(exitCode).isEqualTo(0);
     assertThat(intellij.getOpenPath()).isEqualTo(external);
     // the managed workspace must not be configured for an external launch (covers both the runTool seam and the postInstall call site)
     assertThat(context).log().hasNoMessageContaining("Configuring workspace");
+  }
+
+  /**
+   * Tests that a bare {@code --project} flag (no value) opens the current working directory instead of the managed workspace (the {@code #2236} case: the IDE
+   * opens the folder the user is standing in).
+   */
+  @Test
+  void testIntellijRunWithBareProjectFlagOpensCurrentDir() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_INTELLIJ);
+    context.setSystemInfo(SystemInfoMock.of("linux"));
+    // act - bare --project, no value
+    int exitCode = context.run(new CliArguments("intellij", "--project"));
+    // assert
+    Intellij intellij = context.getCommandletManager().getCommandlet(Intellij.class);
+    assertThat(exitCode).isEqualTo(0);
+    // a bare --project selects the current working directory
+    assertThat(intellij.getOpenPath()).isEqualTo(context.getCwd());
+    // the launched IDE targets the current working directory, not the managed workspace
+    String launchedArgs = context.getFileAccess().readFileContent(intellij.getToolBinPath().resolve("intellijtest")).trim();
+    assertThat(launchedArgs).doesNotContain(context.getWorkspacePath().toString());
+    assertThat(launchedArgs).contains(context.getCwd().toString());
+  }
+
+  /**
+   * Tests that {@code --project=<path>} is safe for paths with spaces (the shell passes such a path as a single token, and the equals form keeps it intact),
+   * unlike a space-separated {@code --project <path>} which would leak the tail to the IDE.
+   */
+  @Test
+  void testIntellijRunWithProjectEqualsPathWithSpaces() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_INTELLIJ);
+    context.setSystemInfo(SystemInfoMock.of("linux"));
+    Path external = context.getIdeHome().resolve("some project with spaces").normalize();
+    context.getFileAccess().mkdirs(external);
+    // act
+    int exitCode = context.run(new CliArguments("intellij", "--project=" + external.toString()));
+    // assert
+    Intellij intellij = context.getCommandletManager().getCommandlet(Intellij.class);
+    assertThat(exitCode).isEqualTo(0);
+    assertThat(intellij.getOpenPath()).isEqualTo(external);
+    // the whole path (including the spaces) is passed to the IDE, and nothing leaked as extra tokens
+    String launchedArgs = context.getFileAccess().readFileContent(intellij.getToolBinPath().resolve("intellijtest")).trim();
+    assertThat(launchedArgs).endsWith(external.toString());
   }
 
   /**

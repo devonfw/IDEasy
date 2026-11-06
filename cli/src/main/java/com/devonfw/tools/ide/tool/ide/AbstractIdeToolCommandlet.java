@@ -31,6 +31,9 @@ public abstract class AbstractIdeToolCommandlet extends AbstractPluginBasedComma
   /** The {@code --project} flag consumed by IDEasy to select the folder the IDE opens instead of the default workspace. */
   private static final String PROJECT_OPTION = "--project";
 
+  /** The {@code --project=} form of {@link #PROJECT_OPTION} that carries the folder as its value (e.g. {@code --project=/path/to/folder}). */
+  private static final String PROJECT_OPTION_PREFIX = "--project=";
+
   private final IdeWorkspaceConfigurer workspaceConfigurer;
 
   /** The {@link FolderProperty} for the optional {@code --project} flag. */
@@ -83,27 +86,39 @@ public abstract class AbstractIdeToolCommandlet extends AbstractPluginBasedComma
   }
 
   /**
-   * Extracts the optional {@code --project} flag from the given launch arguments and remembers its folder value via {@link #project}, returning the
+   * Extracts the optional {@code --project} flag from the given launch arguments and remembers the folder it selects via {@link #project}, returning the
    * remaining arguments that should be passed through to the IDE. Because the remaining trailing arguments of an IDE command are passed verbatim to the IDE
    * binary, this flag is consumed by IDEasy and never passed through to the IDE.
+   * <p>
+   * Two forms are supported:
+   * <ul>
+   * <li>{@code --project} opens the current working directory (the most common case, e.g. {@code ide intellij --project} from inside a Git checkout),</li>
+   * <li>{@code --project=<path>} opens the given folder (absolute, or relative resolved against the current working directory).</li>
+   * </ul>
+   * The {@code --project=<path>} form is unambiguous and safe for paths with spaces, so it is the form to use for an explicit folder.
    *
    * @param args the raw command-line arguments to launch this IDE.
-   * @return a copy of {@code args} with the {@code --project} flag and its value removed (if present).
+   * @return a copy of {@code args} with the {@code --project} flag removed (if present).
    */
   private List<String> extractProjectOption(List<String> args) {
 
     List<String> effectiveArgs = new ArrayList<>(args);
-    int optionIndex = effectiveArgs.indexOf(PROJECT_OPTION);
-    if (optionIndex < 0) {
-      return effectiveArgs;
+    for (int i = 0; i < effectiveArgs.size(); i++) {
+      String arg = effectiveArgs.get(i);
+      if (PROJECT_OPTION.equals(arg)) {
+        this.project.setValue(this.context.getCwd());
+        effectiveArgs.remove(i);
+      } else if (arg.startsWith(PROJECT_OPTION_PREFIX)) {
+        String folder = arg.substring(PROJECT_OPTION_PREFIX.length());
+        if (folder.isEmpty()) {
+          throw new CliException(
+              "The " + PROJECT_OPTION_PREFIX + " option of command '" + this.tool + "' is missing the folder to open. Use '" + PROJECT_OPTION
+                  + "' to open the current folder.");
+        }
+        this.project.setValue(Path.of(folder));
+        effectiveArgs.remove(i);
+      }
     }
-    int valueIndex = optionIndex + 1;
-    if (valueIndex >= effectiveArgs.size()) {
-      throw new CliException("Missing folder argument for the " + PROJECT_OPTION + " option of command '" + this.tool + "'.");
-    }
-    this.project.setValue(Path.of(effectiveArgs.get(valueIndex)));
-    effectiveArgs.remove(valueIndex); // remove the value first so the option index stays valid
-    effectiveArgs.remove(optionIndex);
     return effectiveArgs;
   }
 
