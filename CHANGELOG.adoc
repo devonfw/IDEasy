@@ -6,6 +6,10 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2372[#2372]: Add `--retention-delay` option to `ide cleanup` so that stale files and unused tool versions are only deleted once they are older than the given retention delay
+* https://github.com/devonfw/IDEasy/issues/945[#945]: Improve ide update with smart dependency handling
+* https://github.com/devonfw/IDEasy/issues/2740[#2740]: Duplicate CVE check
+* https://github.com/devonfw/IDEasy/issues/2718[#2718]: Trace log writes the values of secret variables
 * https://github.com/devonfw/IDEasy/issues/2436[#2436]: Plugin step progress index broken
 * https://github.com/devonfw/IDEasy/issues/2581[#2581]: VSCode GitHub login is deleted on Windows whenever another VSCode instance starts
 * https://github.com/devonfw/IDEasy/issues/992[#992]: Support multiple attributes for merge:id
@@ -16,6 +20,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2779[#2779]: macOS GUI Dock icon is oversized and misaligned with other application icons
 * https://github.com/devonfw/IDEasy/issues/2553[#2553]: Add release support for yarn
 * https://github.com/devonfw/IDEasy/issues/2515[#2515]: Add commandlet for KubeLinter (kube-linter)
+* https://github.com/devonfw/IDEasy/issues/2427[#2427]: Improve update-cve workflow to detect and add OS specific CVEs to security.json files
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/52?closed=1[milestone 2026.11.001].
 
