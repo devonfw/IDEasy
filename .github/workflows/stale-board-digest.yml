@@ -1,0 +1,273 @@
+name: Stale board digest
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Preview without posting to Teams'
+        type: boolean
+        default: true
+  schedule:
+    - cron: '0 7 * * 1-5'   # 07:00 UTC, Mon-Fri (= 09:00 CEST / 08:00 CET)
+
+permissions: {}
+
+jobs:
+  watch:
+    if: >
+      github.repository == 'devonfw/IDEasy' &&
+      (github.event_name == 'workflow_dispatch' || vars.ENABLE_AUTOMATIC_WORKFLOWS == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check project board and notify Teams
+        env:
+          GH_TOKEN: ${{ secrets.ACTION_PUSH_TOKEN }}
+          WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+          STALE_BOARD_DAYS: ${{ vars.STALE_BOARD_DAYS }}
+          # Comma-separated status names.
+          STALE_BOARD_LANES: ${{ vars.STALE_BOARD_LANES }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { setTimeout } from 'node:timers/promises';
+
+          const DAY = 24 * 60 * 60 * 1000;
+          const MAX_CARD_BYTES = 27_000; // Teams allows 28 KB per message.
+          const DEFAULT_LANES = '🏗 In progress,Team Review';
+
+          const ITEMS_QUERY = `
+          query StaleBoardItems($after: String, $filter: String!, $cutoff: DateTime!) {
+            organization(login: "devonfw") {
+              projectV2(number: 5) {
+                id
+                items(first: 50, after: $after, query: $filter) {
+                  pageInfo { hasNextPage endCursor }
+                  nodes {
+                    isArchived
+                    updatedAt
+                    status: fieldValueByName(name: "Status") {
+                      ... on ProjectV2ItemFieldSingleSelectValue { name }
+                    }
+                    content {
+                      __typename
+                      ... on Issue {
+                        id number title url updatedAt
+                        assignees(first: 10) { nodes { login } }
+                        activity: timelineItems(first: 1, since: $cutoff, itemTypes: [ISSUE_COMMENT, LABELED_EVENT, UNLABELED_EVENT]) {
+                          nodes { __typename }
+                        }
+                      }
+                      ... on PullRequest {
+                        id number title url updatedAt
+                        author { login }
+                        commits(last: 1) { nodes { commit { committedDate } } }
+                        activity: timelineItems(first: 1, since: $cutoff,
+                          itemTypes: [ISSUE_COMMENT, LABELED_EVENT, UNLABELED_EVENT, PULL_REQUEST_COMMIT,
+                            PULL_REQUEST_COMMIT_COMMENT_THREAD, PULL_REQUEST_REVIEW, PULL_REQUEST_REVIEW_THREAD, HEAD_REF_FORCE_PUSHED_EVENT]) {
+                          nodes { __typename }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }`;
+
+          const STATUS_HISTORY_QUERY = `
+          query BoardStatusHistory($ids: [ID!]!, $before: String) {
+            nodes(ids: $ids) {
+              ... on Issue {
+                history: timelineItems(last: 10, before: $before, itemTypes: [PROJECT_V2_ITEM_STATUS_CHANGED_EVENT]) {
+                  pageInfo { hasPreviousPage startCursor }
+                  nodes { ...LaneChange }
+                }
+              }
+              ... on PullRequest {
+                history: timelineItems(last: 10, before: $before, itemTypes: [PROJECT_V2_ITEM_STATUS_CHANGED_EVENT]) {
+                  pageInfo { hasPreviousPage startCursor }
+                  nodes { ...LaneChange }
+                }
+              }
+            }
+          }
+          fragment LaneChange on ProjectV2ItemStatusChangedEvent {
+            createdAt
+            project { id }
+          }`;
+
+          function readSettings(env) {
+            const rawDays = env.STALE_BOARD_DAYS || '7';
+            const thresholdDays = Number(rawDays);
+            if (!/^\d+$/.test(rawDays) || !Number.isSafeInteger(thresholdDays) || thresholdDays < 1) {
+              throw new Error('STALE_BOARD_DAYS must be a positive whole number.');
+            }
+            const lanes = [...new Set((env.STALE_BOARD_LANES || DEFAULT_LANES).split(',').map((lane) => lane.trim()).filter(Boolean))];
+            if (lanes.length === 0) {
+              throw new Error('STALE_BOARD_LANES must list at least one board status.');
+            }
+            return { lanes, thresholdDays };
+          }
+
+          function hasRecentActivity(content, cutoff) {
+            const committedDate = content.commits?.nodes[0]?.commit.committedDate;
+            return content.activity?.nodes.length > 0 || Date.parse(content.updatedAt) >= cutoff || Date.parse(committedDate) >= cutoff;
+          }
+
+          async function laneEntryTime(graphql, projectId, item, history) {
+            let page = history;
+            while (page) {
+              // An item can have status changes on other boards.
+              const change = page.nodes.findLast((event) => event?.project?.id === projectId);
+              if (change) {
+                return Date.parse(change.createdAt);
+              }
+              if (!page.pageInfo.hasPreviousPage) {
+                return Date.parse(item.updatedAt);
+              }
+              const { nodes } = await graphql(STATUS_HISTORY_QUERY, { ids: [item.content.id], before: page.pageInfo.startCursor });
+              page = nodes[0]?.history;
+            }
+            throw new Error(`Could not read project status history for ${item.content.url}.`);
+          }
+
+          async function findStaleItems(graphql, { lanes, thresholdDays }) {
+            const now = Date.now();
+            const cutoff = now - thresholdDays * DAY;
+            const cutoffDate = new Date(cutoff).toISOString();
+            const filter = `status:${lanes.map((lane) => JSON.stringify(lane)).join(',')}`;
+            const stale = [];
+            let after = null;
+            do {
+              const data = await graphql(ITEMS_QUERY, { after, filter, cutoff: cutoffDate });
+              const project = data.organization?.projectV2;
+              if (!project) {
+                throw new Error('Cannot read devonfw project #5. Check the Projects permission.');
+              }
+              const candidates = project.items.nodes.filter((item) =>
+                item && !item.isArchived && lanes.includes(item.status?.name) &&
+                ['Issue', 'PullRequest'].includes(item.content?.__typename) && !hasRecentActivity(item.content, cutoff),
+              );
+              if (candidates.length > 0) {
+                const ids = candidates.map((item) => item.content.id);
+                const { nodes } = await graphql(STATUS_HISTORY_QUERY, { ids, before: null });
+                for (const [index, item] of candidates.entries()) {
+                  const enteredAt = await laneEntryTime(graphql, project.id, item, nodes[index]?.history);
+                  if (enteredAt < cutoff) {
+                    const { __typename, number, title, url, author, assignees } = item.content;
+                    const logins = __typename === 'PullRequest'
+                      ? [author?.login].filter(Boolean)
+                      : assignees.nodes.map((user) => user.login);
+                    stale.push({ number, title, url, lane: item.status.name, daysInLane: Math.floor((now - enteredAt) / DAY), logins });
+                  }
+                }
+              }
+              const { pageInfo } = project.items;
+              after = pageInfo.hasNextPage ? pageInfo.endCursor : null;
+            } while (after);
+            return stale.sort((left, right) => right.daysInLane - left.daysInLane || left.number - right.number);
+          }
+
+          function newCard(count) {
+            return {
+              type: 'AdaptiveCard',
+              $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+              version: '1.4',
+              body: [
+                {
+                  type: 'TextBlock', size: 'Large', weight: 'Bolder', wrap: true, color: 'warning',
+                  text: `⚠️ IDEasy-Board: Inaktive Einträge (${count})`,
+                },
+              ],
+            };
+          }
+
+          function buildDigestCards(items) {
+            if (items.length === 0) {
+              return [];
+            }
+            const cards = [];
+            let card = newCard(items.length);
+            let bytes = Buffer.byteLength(JSON.stringify(card));
+            for (const { number, title, url, lane, daysInLane, logins } of items) {
+              const safeTitle = title.replace(/[\\`*_[\]<>]/g, '\\$&');
+              const row = {
+                type: 'Container', separator: true, spacing: 'Medium',
+                items: [
+                  { type: 'TextBlock', weight: 'Bolder', wrap: true, text: `#${number} ${safeTitle}` },
+                  {
+                    type: 'TextBlock', spacing: 'None', isSubtle: true, size: 'Small', wrap: true,
+                    text: `${lane} · ${daysInLane} Tage · ${logins.join(', ') || '–'} · [Auf GitHub öffnen](${url})`,
+                  },
+                ],
+              };
+              const rowBytes = Buffer.byteLength(JSON.stringify(row)) + 1;
+              if (bytes + rowBytes > MAX_CARD_BYTES) {
+                cards.push(card);
+                card = newCard(items.length);
+                bytes = Buffer.byteLength(JSON.stringify(card));
+              }
+              card.body.push(row);
+              bytes += rowBytes;
+            }
+            cards.push(card);
+            return cards;
+          }
+
+          async function run(env) {
+            const settings = readSettings(env);
+            if (!env.GH_TOKEN) {
+              throw new Error('Missing GitHub Projects token.');
+            }
+            const graphql = async (query, variables) => {
+              const response = await fetch('https://api.github.com/graphql', {
+                method: 'POST',
+                redirect: 'error',
+                headers: { Authorization: `Bearer ${env.GH_TOKEN}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query, variables }),
+              });
+              if (!response.ok) {
+                throw new Error(`GitHub GraphQL request failed (HTTP ${response.status}).`);
+              }
+              const { data, errors } = await response.json();
+              if (errors?.length) {
+                const message = errors.map((error) => error.message.replace(/\s+/g, ' ')).join('; ');
+                throw new Error(`GitHub GraphQL: ${message}`);
+              }
+              return data;
+            };
+            const items = await findStaleItems(graphql, settings);
+            console.log(`Inactive board items: ${items.length}`);
+            const cards = buildDigestCards(items);
+            if (env.DRY_RUN === 'true') {
+              console.log(JSON.stringify(cards, null, 2));
+              return;
+            }
+            if (cards.length > 0 && !env.WEBHOOK?.startsWith('https://')) {
+              throw new Error('TEAMS_WEBHOOK_URL must be an HTTPS URL.');
+            }
+            for (const [index, card] of cards.entries()) {
+              if (index > 0) {
+                await setTimeout(300);
+              }
+              const label = `Teams card ${index + 1}/${cards.length}`;
+              const response = await fetch(env.WEBHOOK, {
+                method: 'POST',
+                redirect: 'error',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(card),
+              }).catch(() => {
+                throw new Error(`Could not send ${label}.`);
+              });
+              if (!response.ok) {
+                throw new Error(`${label} failed (HTTP ${response.status}).`);
+              }
+            }
+          }
+
+          await run(process.env).catch((error) => {
+            console.error(error.message);
+            process.exitCode = 1;
+          });
+          NODE
