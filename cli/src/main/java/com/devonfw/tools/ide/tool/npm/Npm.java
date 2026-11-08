@@ -61,6 +61,7 @@ public class Npm extends AbstractLocalToolCommandlet implements BuildTool {
    * The folder name for the per-project global npm packages, located inside the {@link IdeContext#getSoftwarePath() software} folder.
    */
   public static final String NPM_GLOBAL_FOLDER = "node_modules";
+
   /** The default value of the {@code NPM_RELEASE_OPTS} variable used to build and deploy a release. */
   private static final String DEFAULT_RELEASE_OPTS = "publish";
 
@@ -310,25 +311,5 @@ public class Npm extends AbstractLocalToolCommandlet implements BuildTool {
     return "#!/usr/bin/env bash\n" //
         + "basedir=\"$(dirname \"$0\")\"\n" //
         + "exec node \"$basedir/" + cliJs + "\" \"$@\"\n";
-  }
-
-  @Override
-  public VersionIdentifier getProjectVersion(Path projectPath) {
-
-    // TODO: release not yet implemented for npm, see #2552
-    return null;
-  }
-
-  @Override
-  public void setProjectVersion(Path projectPath, VersionIdentifier version) {
-
-    // TODO: release not yet implemented for npm, see #2552
-  }
-
-  @Override
-  public ProcessResult buildAndDeploy(List<String> additionalArgs) {
-
-    // TODO: release not yet implemented for npm, see #2552
-    return null;
   }
 }
