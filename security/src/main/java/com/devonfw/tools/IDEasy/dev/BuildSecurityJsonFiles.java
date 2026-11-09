@@ -216,7 +216,7 @@ public class BuildSecurityJsonFiles implements Runnable {
         return null;
       }
       VersionIdentifier singleAffectedVersion = VersionIdentifier.ofOptional(singleVersion);
-      return new OsVersionRange(VersionRange.ofRequired(singleAffectedVersion, singleAffectedVersion, BoundaryType.CLOSED), os);
+      return new OsVersionRange(VersionRange.of(singleAffectedVersion, singleAffectedVersion, BoundaryType.CLOSED), os);
     } else {
       VersionIdentifier min;
       boolean leftExclusive;

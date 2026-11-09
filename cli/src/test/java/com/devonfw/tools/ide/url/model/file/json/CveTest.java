@@ -38,9 +38,9 @@ class CveTest extends Assertions {
 
     // act + assert
     assertThat(cve.versions()).isEmpty();
-    assertThat(cve.isAffected(VersionIdentifier.of("1.1.0"), OperatingSystem.WINDOWS)).isTrue();
-    assertThat(cve.isAffected(VersionIdentifier.of("1.1.0"), OperatingSystem.LINUX)).isFalse();
-    assertThat(cve.isAffected(VersionIdentifier.of("1.1.0"), null)).isFalse();
+    assertThat(cve.isAffected(VersionIdentifier.ofRequired("1.1.0"), OperatingSystem.WINDOWS)).isTrue();
+    assertThat(cve.isAffected(VersionIdentifier.ofRequired("1.1.0"), OperatingSystem.LINUX)).isFalse();
+    assertThat(cve.isAffected(VersionIdentifier.ofRequired("1.1.0"), null)).isFalse();
   }
 
   @Test
