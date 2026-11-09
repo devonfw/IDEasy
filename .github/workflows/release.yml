@@ -70,6 +70,33 @@ jobs:
         run: |
           codesign --force --sign - cli/target/ideasy
           codesign --verify --verbose cli/target/ideasy
+      # Sign the Windows native image (exe) before it is packaged so that the exe is signed both
+      # inside the MSI and in the tar.gz / "natives" artifact - i.e. even when IDEasy is installed
+      # without the MSI. The signed exe replaces the unsigned one, which the "Upload native image"
+      # and "Build MSI" steps below then consume. (see #2808, parent of #2753)
+      - name: Upload unsigned exe
+        if: runner.os == 'Windows'
+        id: upload-exe
+        uses: actions/upload-artifact@v7
+        with:
+          name: exe-unsigned
+          path: cli/target/ideasy.exe
+      - name: Sign exe
+        if: runner.os == 'Windows'
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
+          organization-id: '428e13ed-ca0c-47ca-8a73-63b76cabb59b'
+          project-slug: 'IDEasy'
+          signing-policy-slug: 'release-signing'
+          artifact-configuration-slug: 'IDEasy'
+          github-artifact-id: '${{ steps.upload-exe.outputs.artifact-id }}'
+          wait-for-completion: true
+          output-artifact-directory: 'cli/target/signed-exe'
+      - name: Replace unsigned exe with signed exe
+        if: runner.os == 'Windows'
+        shell: bash
+        run: cp -f cli/target/signed-exe/ideasy.exe cli/target/ideasy.exe
       - name: Upload native image
         uses: actions/upload-artifact@v7
         with:
