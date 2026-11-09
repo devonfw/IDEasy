@@ -23,13 +23,12 @@ import com.devonfw.tools.ide.common.SimpleSystemPath;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.io.ini.IniFile;
-import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.tool.git.Git;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.mvn.MvnBasedLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
@@ -459,18 +458,13 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
   private void setGitLongpaths() {
 
-    // Git is optional: a fresh machine may not have Git installed yet (it can be installed via `ide install git`). Enabling long paths is a nice-to-have
-    // only, so skip it instead of aborting the (possibly automated) IDEasy installation.
+    // Git is optional: a fresh machine may not have Git installed yet. Then long paths are enabled by `ide install git` instead of aborting the (possibly
+    // automated) IDEasy installation.
     if (this.context.getGitContext().findGit() == null) {
-      LOG.info("Git is not installed, skipping enabling long paths in the git configuration.");
+      LOG.info("Git is not installed, long paths will be enabled in the git configuration when installing Git via 'ide install git'.");
       return;
     }
-    Path configPath = this.context.getUserHome().resolve(".gitconfig");
-    FileAccess fileAccess = this.context.getFileAccess();
-    IniFile iniFile = fileAccess.readIniFile(configPath);
-    IniSection coreSection = iniFile.getOrCreateSection("core");
-    coreSection.setProperty("longpaths", "true");
-    fileAccess.writeIniFile(iniFile, configPath);
+    this.context.getCommandletManager().getCommandlet(Git.class).enableLongpaths();
   }
 
   /**

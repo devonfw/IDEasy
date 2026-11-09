@@ -7,6 +7,9 @@ import java.util.Set;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.io.ini.IniFile;
+import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageAction;
@@ -106,6 +109,7 @@ public class Git extends GlobalToolCommandlet {
             + IdeContext.PLEASE_DOWNLOAD_AND_INSTALL_GIT + ":\n " + IdeContext.WINDOWS_GIT_DOWNLOAD_URL);
       }
       invalidateInstalledEditionAndVersion();
+      enableLongpaths();
     } else {
       logToolAlreadyInstalled(request);
     }
@@ -115,6 +119,19 @@ public class Git extends GlobalToolCommandlet {
       return new ToolInstallation(null, null, null, installedVersion, newInstallation, true);
     }
     return createToolInstallation(rootDir, installedVersion, newInstallation, request.getProcessContext(), request.isAdditionalInstallation());
+  }
+
+  /**
+   * Enables long paths in the global git configuration as Git for Windows is limited to 260 characters per path by default.
+   */
+  public void enableLongpaths() {
+
+    Path configPath = this.context.getUserHome().resolve(".gitconfig");
+    FileAccess fileAccess = this.context.getFileAccess();
+    IniFile iniFile = fileAccess.readIniFile(configPath);
+    IniSection coreSection = iniFile.getOrCreateSection("core");
+    coreSection.setProperty("longpaths", "true");
+    fileAccess.writeIniFile(iniFile, configPath);
   }
 
   private boolean isInstallationRequiredOnWindows(VersionIdentifier requestedVersion) {
