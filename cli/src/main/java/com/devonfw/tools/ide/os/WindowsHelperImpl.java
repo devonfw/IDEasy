@@ -147,18 +147,28 @@ public class WindowsHelperImpl implements WindowsHelper {
       if (out == null) {
         continue;
       }
-      // reg also matches on any other value (e.g. comments or paths of unrelated apps), so we only accept a key whose DisplayName matches
+      // reg also matches on any other value (e.g. comments or paths of unrelated apps), so we only accept a key whose DisplayName matches.
+      // An exact match wins over a key whose DisplayName only contains the app name (e.g. "Obsidian Web" next to "Obsidian").
       String key = null;
+      String firstContaining = null;
       for (String line : out) {
         String trimmed = line.trim();
         if (trimmed.startsWith("HKEY_")) {
           key = trimmed;
         } else if ((key != null) && line.startsWith("    " + DISPLAY_NAME + " ")) {
           String displayName = retrieveRegString(DISPLAY_NAME, List.of(line));
-          if ((displayName != null) && displayName.toLowerCase(Locale.ROOT).contains(appName.toLowerCase(Locale.ROOT))) {
-            return key; // exact registry path (key) for tool
+          if (displayName != null) {
+            if (displayName.trim().equalsIgnoreCase(appName)) {
+              return key; // exact registry path (key) for tool
+            }
+            if ((firstContaining == null) && displayName.toLowerCase(Locale.ROOT).contains(appName.toLowerCase(Locale.ROOT))) {
+              firstContaining = key;
+            }
           }
         }
+      }
+      if (firstContaining != null) {
+        return firstContaining;
       }
     }
     return null;
