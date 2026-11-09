@@ -65,14 +65,14 @@ public abstract class AbstractExpressionFunction extends AbstractParameterizedFu
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
   private void applyParameter(Property property, Object param, ExpressionContext context, int propertyCount) {
-    if (param instanceof String) {
-      property.setValueAsString(param.toString(), context.getIdeContext());
-    } else {
-      try {
+    try {
+      if (param instanceof String) {
+        property.setValueAsString(param.toString(), context.getIdeContext());
+      } else {
         property.setValue(param);
-      } catch (Exception e) {
-        throw throwParameterMismatch("Invalid argument '" + param + "' for parameter " + property.getName(), e);
       }
+    } catch (Exception e) {
+      throw throwParameterMismatch("Invalid argument '" + param + "' for parameter " + property.getName(), e);
     }
   }
 

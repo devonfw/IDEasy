@@ -325,7 +325,7 @@ class ExpressionFunctionTest extends AbstractIdeContextTest {
 
     // act + assert
     assertThatThrownBy(() -> context.getVariables().resolve("@ask-variable('MY_VARIABLE', 'Q:', 'somewhere')", "test", false))
-        .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Invalid Enum option somewhere");
+        .isInstanceOf(CliException.class).hasMessageContaining("Invalid argument 'somewhere' for parameter location");
   }
 
   /**
@@ -405,8 +405,8 @@ class ExpressionFunctionTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC);
 
     // act + assert
-    assertThatThrownBy(() -> context.getVariables().resolve("@path('x', 'dos')", "test", false)).isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("Invalid Enum option dos");
+    assertThatThrownBy(() -> context.getVariables().resolve("@path('x', 'dos')", "test", false)).isInstanceOf(CliException.class)
+        .hasMessageContaining("Invalid argument 'dos' for parameter mode");
   }
 
   /**

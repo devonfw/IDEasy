@@ -203,7 +203,7 @@ public abstract class Property<V> {
    * @return the {@link #getValue() value} but {@code defaultValue} as fallback if no value is available.
    */
   public V getValueOrDefault(V defaultValue) {
-    if (this.value.isEmpty()) {
+    if (getValue() == null) {
       return defaultValue;
     } else {
       return this.value.getFirst();
