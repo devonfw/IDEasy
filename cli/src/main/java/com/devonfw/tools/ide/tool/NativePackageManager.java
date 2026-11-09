@@ -30,9 +30,14 @@ public enum NativePackageManager {
   BREW("brew", "install", "uninstall", "@", "", false),
 
   /** <a href="https://brew.sh/">Homebrew</a> cask installation, used for macOS GUI applications distributed as *.app bundles. */
-  BREW_CASK("brew", "install --cask", "uninstall --cask", "@", "", false);
+  BREW_CASK("brew", "install --cask", "uninstall --cask", "@", "", false),
+
+  /** <a href="https://github.com/microsoft/winget-cli">WinGet</a> is the package manager of Windows. */
+  WINGET("winget", "install --exact --source winget", "uninstall --exact --source winget", " --version ", "", false);
 
   private static final String DPKG_STATUS_INSTALLED = "installed";
+  /** The exit code of {@link #WINGET} if the latest version is already installed (APPINSTALLER_CLI_ERROR_UPDATE_NOT_APPLICABLE). */
+  private static final int WINGET_NO_APPLICABLE_UPDATE = 0x8A15002B;
   private static final String SUDO = "sudo";
 
   private final String binaryName;
@@ -98,6 +103,24 @@ public enum NativePackageManager {
   }
 
   /**
+   * @return {@code true} if commands of this {@link NativePackageManager} need to be run with bash, {@code false} if they are run with cmd (e.g. for
+   *     {@link #WINGET} that is used to install Git and hence bash on Windows).
+   */
+  public boolean isRunWithBash() {
+
+    return this != WINGET;
+  }
+
+  /**
+   * @param exitCode the exit code of a command of this {@link NativePackageManager}.
+   * @return {@code true} if the given {@code exitCode} indicates success, {@code false} otherwise.
+   */
+  public boolean isSuccessExitCode(int exitCode) {
+
+    return (exitCode == 0) || ((this == WINGET) && (exitCode == WINGET_NO_APPLICABLE_UPDATE));
+  }
+
+  /**
    * Builds the package specification pinning the given package to the given version.
    *
    * @param pkg the name of the package.
@@ -127,6 +150,7 @@ public enum NativePackageManager {
       case PACMAN, YAY -> List.of("pacman", "-Q");
       case BREW -> List.of(getBinaryName(), "list", "--versions");
       case BREW_CASK -> List.of(getBinaryName(), "list", "--cask", "--versions");
+      case WINGET -> throw new UnsupportedOperationException("On Windows the installed version is determined from the registry.");
     });
     command.add(pkg);
     return command;

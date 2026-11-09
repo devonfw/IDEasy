@@ -1,16 +1,15 @@
 package com.devonfw.tools.ide.tool;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.nio.file.Path;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
  * Test of {@link NativePackageManager}.
  */
-class NativePackageManagerTest {
+class NativePackageManagerTest extends Assertions {
 
   @Test
   void testAptInstallCommand() {
@@ -297,6 +296,39 @@ class NativePackageManagerTest {
   }
 
   @Test
+  void testInstallAndUninstallForWinget() {
+    NativePackage np = NativePackage.of(NativePackageManager.WINGET, "Git.Git");
+
+    assertThat(NativePackageManager.WINGET.install(np, null).commands()).containsExactly(
+        "winget install --exact --source winget Git.Git");
+    assertThat(NativePackageManager.WINGET.install(np, "2.56.0.4").commands()).containsExactly(
+        "winget install --exact --source winget Git.Git --version 2.56.0.4");
+    assertThat(NativePackageManager.WINGET.uninstall(np).commands()).containsExactly("winget uninstall --exact --source winget Git.Git");
+  }
+
+  @Test
+  void testVersionQueryCommandForWingetIsNotSupported() {
+    assertThatThrownBy(() -> NativePackageManager.WINGET.getVersionQueryCommand("Git.Git")).isInstanceOf(UnsupportedOperationException.class);
+  }
+
+  @Test
+  void testIsRunWithBash() {
+    assertThat(NativePackageManager.APT.isRunWithBash()).isTrue();
+    assertThat(NativePackageManager.BREW.isRunWithBash()).isTrue();
+    assertThat(NativePackageManager.WINGET.isRunWithBash()).isFalse();
+  }
+
+  @Test
+  void testIsSuccessExitCode() {
+    assertThat(NativePackageManager.APT.isSuccessExitCode(0)).isTrue();
+    assertThat(NativePackageManager.APT.isSuccessExitCode(1)).isFalse();
+    assertThat(NativePackageManager.APT.isSuccessExitCode(0x8A15002B)).isFalse();
+    assertThat(NativePackageManager.WINGET.isSuccessExitCode(0)).isTrue();
+    assertThat(NativePackageManager.WINGET.isSuccessExitCode(0x8A15002B)).as("no applicable update found").isTrue();
+    assertThat(NativePackageManager.WINGET.isSuccessExitCode(0x8A15003A)).as("blocked by group policy").isFalse();
+  }
+
+  @Test
   void testIsNeedSudo() {
     assertThat(NativePackageManager.APT.isNeedSudo()).isTrue();
     assertThat(NativePackageManager.ZYPPER.isNeedSudo()).isTrue();
@@ -304,5 +336,6 @@ class NativePackageManagerTest {
     assertThat(NativePackageManager.DNF.isNeedSudo()).isTrue();
     assertThat(NativePackageManager.BREW.isNeedSudo()).isFalse();
     assertThat(NativePackageManager.BREW_CASK.isNeedSudo()).isFalse();
+    assertThat(NativePackageManager.WINGET.isNeedSudo()).isFalse();
   }
 }
