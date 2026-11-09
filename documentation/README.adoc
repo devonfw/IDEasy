@@ -1,0 +1,233 @@
+= IDEasy Documentation
+:toc: macro
+:toclevels: 1
+:idprefix:
+:idseparator: -
+
+image::images/logo.png[IDEasy,width=200]
+
+== Install IDEasy
+
+[%header,cols="1,3,2"]
+|===
+|Operating system |Setup |Known issues
+
+|Windows
+|link:setup.adoc#install[Run setup.bat] or link:setup.adoc#quick-install[install from Git Bash]
+|link:quality-status/quality-status-windows.adoc[Windows issues]
+
+|Linux
+|link:setup.adoc#install[Run ./setup] or use the link:setup.adoc#quick-install[Bash installer]
+|link:quality-status/quality-status-linux.adoc[Linux issues]
+
+|macOS
+|link:setup.adoc#homebrew-macos[Install with Homebrew] or link:setup.adoc#install[install manually]
+|link:quality-status/quality-status-macos.adoc[macOS issues]
+|===
+
+See the link:setup.adoc[setup guide] for prerequisites and downloads, or link:setup.adoc#uninstall[uninstall IDEasy].
+Next, link:project.adoc[create a project] or open the link:usage.adoc[usage guide].
+
+Use `Ctrl+F` on Windows or Linux, or `Cmd+F` on macOS, to find a word or an exact phrase on this page.
+See the <<keyword-index,keyword index>> or the <<all-guides,full guide list>>.
+To match separate words across the guides, see <<search-the-documentation,Search the Documentation>>.
+
+toc::[]
+
+== Daily Use
+
+* link:usage.adoc#working-with-multiple-workspaces[Work with multiple workspaces].
+* link:usage.adoc#update[Update tools] or link:usage.adoc#upgrade[upgrade IDEasy].
+* link:usage.adoc#working-with-multiple-versions-of-the-same-tool[Use multiple versions of the same tool].
+
+== Commands and Tools
+
+* link:cli.adoc[Command Line Interface]
+* See link:cli.adoc#commandlets[Commandlets] and link:cli.adoc#auto-completion[tab completion].
+* link:cli.adoc#tool-commandlets[Install and run tools]
+* link:plugin.adoc[Plugins]
+* link:advanced-tooling.adoc[Advanced Tooling] and link:advanced-tooling-generic.adoc[Cross-Platform Tooling]
+* Tooling on link:advanced-tooling-windows.adoc[Windows], link:advanced-tooling-linux.adoc[Linux] and link:advanced-tooling-mac.adoc[macOS]
+* link:ai.adoc[Artificial Intelligence] and link:coding-assistant.adoc[Coding Assistant]
+
+== Configuration
+
+* See link:configuration.adoc[Configuration] for link:configuration.adoc#ide-properties[ide.properties] and link:variables.adoc[environment variables].
+* See link:settings.adoc[Settings] and how to link:settings.adoc#customize-settings[customize settings] for your team.
+* link:conf.adoc[Tool configuration]
+* See the link:structure.adoc[directory structure] for link:workspaces.adoc[workspaces] and link:software.adoc[software].
+* link:repository.adoc[Configure project repositories]
+* link:security.adoc[Security] and the link:sandbox.adoc[Sandbox]
+
+== Troubleshooting
+
+* If installation fails, check the link:setup.adoc#installation-logs[installation logs]. See also the link:log.adoc[IDEasy logs].
+* link:proxy-support.adoc[Proxy support] and link:proxy-support.adoc#configuring-proxy-settings[proxy settings for a corporate network].
+* If the proxy requires credentials, see link:proxy-support.adoc#authentication[proxy authentication].
+* For SSL or TLS certificate errors (`SSLHandshakeException`, `PKIX`),
+  see link:proxy-support.adoc#tls-certificate-issues[certificate issues] and the link:proxy-support.adoc#truststore[truststore].
+* If a file is in use on Windows, see how to link:windows-file-lock.adoc#finding-processes-that-block-specific-files[find the process that locks it].
+* If macOS blocks IDEasy, see the link:mac-gatekeeper.adoc#workaround[Gatekeeper workaround].
+* See link:quality-status/quality-status.adoc[Quality Status] for known issues across platforms.
+
+== Keyword Index
+
+* link:cli.adoc#auto-completion[Auto-completion] (tab completion, shell completion)
+* link:proxy-support.adoc#tls-certificate-issues[Certificate errors] (SSL, TLS, PKIX, SSLHandshakeException, VPN)
+* link:cli.adoc#commandlets[Commands] (CLI, commandlet, command help, `icd`)
+* link:windows-file-lock.adoc#finding-processes-that-block-specific-files[File locks] (file in use, locked file, Windows)
+* link:mac-gatekeeper.adoc#workaround[Gatekeeper] (blocked application, macOS)
+* link:contributing/commandlet.adoc#create-a-commandlet-for-the-new-tool[How to create a new commandlet] (implement a commandlet, add a tool)
+* link:setup.adoc#installation-logs[Installation logs] (installation failed, setup failed)
+* link:quality-status/quality-status.adoc[Known issues] (compatibility, quality status)
+* link:usage.adoc#working-with-multiple-versions-of-the-same-tool[Multiple tool versions] (switch version, parallel versions)
+* link:project.adoc[New project] (`ide create`, settings repository)
+* link:proxy-support.adoc#authentication[Proxy authentication] (proxy password, credentials)
+* link:proxy-support.adoc#configuring-proxy-settings[Proxy settings] (corporate network, `http_proxy`, `https_proxy`, `no_proxy`)
+* link:settings.adoc#customize-settings[Team settings] (team configuration, templates, configuration repository)
+* link:cli.adoc#tool-commandlets[Tool installation] (Java, Maven, IntelliJ, Eclipse, version, edition)
+* link:setup.adoc#uninstall[Uninstall IDEasy] (remove, cleanup)
+* link:usage.adoc#working-with-multiple-workspaces[Workspaces] (multiple projects, workspace configuration)
+
+== Search the Documentation
+
+To search the docs on GitHub, open
+https://github.com/search?q=repo%3Adevonfw%2FIDEasy%20path%3Adocumentation%2F&type=code[GitHub Code Search]
+and add the main words after the filters. Separate words match in any order in the same file.
+Use quotes around a phrase if you want an exact match. Sign in to search the default branch.
+
+[source,text]
+----
+repo:devonfw/IDEasy path:documentation/ create commandlet
+----
+
+To search a local checkout, run the following command from the repository root. Use Git Bash on Windows.
+Change the words after `-e` to list files that contain both terms.
+
+[source,shell]
+----
+git grep -l -i -F --all-match -e 'create' -e 'commandlet' -- 'documentation/*.adoc'
+----
+
+== Reference
+
+* link:features.adoc[Features], link:alternatives.adoc[Alternatives] and link:migration-from-devonfw.adoc[Migration]
+* link:IDEasy.adoc[IDEasy reference book]
+** link:IDEasy-introduction.adoc[Introduction]
+** link:IDEasy-usage.adoc[Usage]
+** link:IDEasy-advanced.adoc[Advanced Features]
+** link:IDEasy-support.adoc[Support]
+* link:LICENSE.adoc[Tool licenses]
+
+== Contributing
+
+* link:contributing/README.adoc[Contributing Guidelines] and link:contributing/faq.adoc[Contributor FAQ]
+* link:contributing/run-ideasy-locally.adoc[Build, run and debug IDEasy locally]
+* https://github.com/devonfw/IDEasy/discussions[GitHub Discussions] for questions
+* link:contributing/issue.adoc[How to report an issue]
+
+See the link:../README.adoc[IDEasy README] for an overview of the project.
+
+== All Guides
+
+=== Setup and Daily Use
+
+* link:setup.adoc[Setup]
+* link:project.adoc[Create a project]
+* link:usage.adoc[Usage]
+* link:workspaces.adoc[Workspaces]
+* link:migration-from-devonfw.adoc[Migration to IDEasy]
+* link:features.adoc[Features]
+* link:alternatives.adoc[Alternatives]
+
+=== Configuration and Project Layout
+
+* link:configuration.adoc[Configuration]
+* link:configurator.adoc[Configurator]
+* link:variables.adoc[Variables]
+* link:settings.adoc[Settings]
+* link:conf.adoc[Tool configuration (`conf`)]
+* link:repository.adoc[Repository]
+* link:structure.adoc[Directory structure]
+* link:software.adoc[Software directory]
+* link:system.adoc[System integration]
+* link:tmp.adoc[Temporary files (`tmp`)]
+* link:updates.adoc[Updates directory]
+* link:sandbox.adoc[Sandbox Principle]
+* link:security.adoc[Security]
+
+=== Commands and Tooling
+
+* link:cli.adoc[Command Line Interface]
+* link:plugin.adoc[Plugins]
+* link:advanced-tooling.adoc[Advanced Tooling]
+* link:advanced-tooling-generic.adoc[Cross-Platform Tooling]
+* link:advanced-tooling-windows.adoc[Windows Tooling]
+* link:advanced-tooling-linux.adoc[Linux Tooling]
+* link:advanced-tooling-mac.adoc[macOS Tooling]
+* link:ai.adoc[Artificial Intelligence]
+* link:coding-assistant.adoc[Coding Assistant]
+* link:docker-desktop-alternative.adoc[Docker Desktop alternative]
+* link:lombok.adoc[Lombok]
+* link:symlink.adoc[Symbolic links]
+* link:urls.adoc[Tool download URLs]
+* link:tool-vendor-plea.adoc[A plea to all tool vendors]
+
+=== Troubleshooting and Known Issues
+
+* link:log.adoc[Logs]
+* link:proxy-support.adoc[Proxy support]
+* link:windows-file-lock.adoc[Finding Processes that Block Specific Files on Windows]
+* link:mac-gatekeeper.adoc[macOS Gatekeeper]
+* link:cygwin.adoc[Cygwin is not supported]
+* link:quality-status/quality-status.adoc[IDEasy Quality Status]
+* link:quality-status/quality-status-windows.adoc[Windows Quality Status]
+* link:quality-status/quality-status-linux.adoc[Linux Quality Status]
+* link:quality-status/quality-status-macos.adoc[macOS Quality Status]
+
+=== Reference and Releases
+
+* link:IDEasy.adoc[IDEasy reference book]
+* link:IDEasy-introduction.adoc[Reference book introduction]
+* link:IDEasy-usage.adoc[Reference book usage]
+* link:IDEasy-advanced.adoc[Advanced Features]
+* link:IDEasy-support.adoc[Support]
+* link:design.adoc[IDEasy Design]
+* link:github-release.adoc[Building IDEasy Releases]
+* link:LICENSE.adoc[Tool licenses]
+
+=== Contributor Workflow
+
+* link:contributing/README.adoc[Contributing to IDEasy]
+* link:contributing/contributing.adoc[Contribution guide]
+* link:contributing/cla.adoc[Contributor License Agreement]
+* link:contributing/coding-conventions.adoc[Coding Conventions]
+* link:contributing/DoD.adoc[Definition of Done]
+* link:contributing/commit.adoc[Commit guidelines]
+* link:contributing/issue.adoc[Issues]
+* link:contributing/milestone.adoc[Milestones]
+* link:contributing/project-board.adoc[Project Board]
+* link:contributing/pull-request.adoc[Pull Requests]
+* link:contributing/retest.adoc[Retesting Pull Requests]
+
+=== Development and Testing
+
+* link:contributing/setup.adoc[IDEasy Development Setup Guide]
+* link:contributing/run-ideasy-locally.adoc[Run IDEasy locally]
+* link:contributing/faq.adoc[Contributor FAQ]
+* link:contributing/graalvm-build-guide.adoc[GraalVM Build Guide]
+* link:contributing/junit-testing.adoc[JUnit Tests]
+* link:contributing/integration-testing.adoc[Integration Tests]
+* link:contributing/testing-linux-on-windows.adoc[IDEasy Installation on Ubuntu in WSL2]
+* link:contributing/testing-mac-in-vm.adoc[IDEasy Installation on a macOS VM]
+* link:contributing/workflow-testing.adoc[Run GitHub Actions Locally with act]
+* link:contributing/update-access-token.adoc[Update GitHub Access Token]
+
+=== Commandlets, URL Updaters and GUI
+
+* link:contributing/commandlet.adoc[Creating New Commandlets]
+* link:contributing/url-updater.adoc[Creating New URL Updaters]
+* link:contributing/cpe-url-updater.adoc[CPE Integration for URL Updaters]
+* link:contributing/commandlet-and-url-updater.adoc[Commandlet and URL Updater] (empty file)
+* link:contributing/ui-contribution-process.adoc[Contributing to the IDEasy GUI]
+* link:contributing/ui-structure.adoc[IDEasy UI Architecture and Structure]
