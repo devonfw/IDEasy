@@ -114,13 +114,16 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
    */
   private boolean executePackageManagerCommand(PackageManagerCommand pmCommand, boolean silent, NativePackageAction action) {
 
-    String bashPath = this.context.findBashRequired().toString();
+    NativePackageManager packageManager = pmCommand.packageManager();
+    // winget installs Git and hence bash on Windows, so it is run via cmd as bash may not exist yet
+    String shell = packageManager.isRunWithBash() ? this.context.findBashRequired().toString() : "cmd";
+    String shellOption = packageManager.isRunWithBash() ? "-c" : "/c";
     logCommands(pmCommand.commands(), pmCommand.packageManager().isNeedSudo());
     for (String command : pmCommand.commands()) {
-      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(bashPath)
-          .addArgs("-c", command);
+      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(shell)
+          .addArgs(shellOption, command).withExitCodeAcceptor(packageManager::isSuccessExitCode);
       int exitCode = pc.run();
-      if (exitCode != 0) {
+      if (!packageManager.isSuccessExitCode(exitCode)) {
         LOG.warn("{} command did not execute successfully", command);
         return false;
       }
@@ -166,7 +169,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
       return toolAlreadyInstalled(request);
     }
     String edition = toolEdition.edition();
-    ToolRepository toolRepository = getToolRepository();
+    ToolRepository toolRepository = this.context.getDefaultToolRepository();
     resolvedVersion = cveCheck(request);
     // download and install the global tool
     FileAccess fileAccess = this.context.getFileAccess();
@@ -187,8 +190,8 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
         fileAccess.extract(target, downloadBinaryPath);
         executable = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
       }
-      pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(executable).addArgs(getInstallerArguments());
-      int exitCode = pc.run(getInstallerProcessMode()).getExitCode();
+      pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(executable);
+      int exitCode = pc.run(ProcessMode.BACKGROUND_SILENT).getExitCode();
       if (tmpDir != null) {
         fileAccess.delete(tmpDir);
       }
@@ -321,7 +324,8 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
   protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
     Path binary = Path.of(packageManager.getBinaryName());
     Path binaryPath = this.context.getPath().findBinary(binary);
-    return (binaryPath != binary) && Files.exists(binaryPath);
+    // do not follow links: on Windows winget is an app execution alias that exists but cannot be followed
+    return (binaryPath != binary) && Files.exists(binaryPath, LinkOption.NOFOLLOW_LINKS);
   }
 
   /**
@@ -540,23 +544,5 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
    */
   public String getMacApplicationName() {
     return null;
-  }
-
-  /**
-   * @return the additional arguments passed to the downloaded installer executable (e.g. silent mode flags). The default is an empty {@link List}. Override
-   *     this for tools whose installer requires specific arguments to run unattended.
-   */
-  protected List<String> getInstallerArguments() {
-
-    return List.of();
-  }
-
-  /**
-   * @return the {@link ProcessMode} to run the downloaded installer executable. The default is {@link ProcessMode#BACKGROUND_SILENT}. Override this for tools
-   *     whose installer has to be awaited.
-   */
-  protected ProcessMode getInstallerProcessMode() {
-
-    return ProcessMode.BACKGROUND_SILENT;
   }
 }
