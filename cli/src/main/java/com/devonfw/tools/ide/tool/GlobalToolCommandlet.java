@@ -154,9 +154,13 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
       if (!commands.isEmpty()) {
         boolean newInstallation = runWithPackageManager(request.isSilent(), commands, NativePackageAction.INSTALL);
 
+        invalidateInstalledEditionAndVersion();
         VersionIdentifier installedVersion = getInstalledVersion();
         Path rootDir = getInstallationPath(getConfiguredEdition(), installedVersion);
-
+        if ((rootDir == null) && (installedVersion != null)) {
+          // installed but not found on the PATH, e.g. on Windows the installer cannot change the PATH of the current terminal
+          return new ToolInstallation(null, null, null, installedVersion, newInstallation, true);
+        }
         return createToolInstallation(rootDir, installedVersion, newInstallation, request.getProcessContext(),
             request.isAdditionalInstallation());
       }

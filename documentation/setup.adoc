@@ -24,8 +24,9 @@ On Windows before Version 10 (1803) use https://www.7-zip.org/[7-zip].
 On all other platforms this comes out of the box.
 * You need to have https://git-scm.com[git].
 ** Alternatively you can let IDEasy install Git for you via `ide install git`.
-On a fresh Windows machine without Git and without local URL metadata, IDEasy then installs the https://github.com/git-for-windows/git/releases/latest[latest version of Git for Windows].
+IDEasy uses the package manager of your operating system for this, which is https://github.com/microsoft/winget-cli[WinGet] on Windows.
 Afterwards the https://github.com/devonfw/ide-urls[`ide-urls`] repository is cloned as soon as it is needed.
+Like on Linux and macOS, Git is then kept up to date via the package manager whenever it is used via `ide git`.
 ** On Windows you only need to download and install https://git-scm.com/download/win[git for windows].
 ** On Linux you might need to install the git in case it is not present (e.g. `sudo apt-get install git` or `sudo yum install git-core`)
 ** On MacOS you only need to download and install https://git-scm.com/download/mac[git for mac].

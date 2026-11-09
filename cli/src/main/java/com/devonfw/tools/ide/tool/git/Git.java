@@ -12,7 +12,6 @@ import com.devonfw.tools.ide.io.ini.IniFile;
 import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
-import com.devonfw.tools.ide.tool.NativePackageAction;
 import com.devonfw.tools.ide.tool.NativePackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
@@ -92,33 +91,21 @@ public class Git extends GlobalToolCommandlet {
   }
 
   /**
-   * On Windows the package manager is only run if required, since unlike on Linux and macOS it is not idempotent and this method is called on every
-   * {@code ide git} call. An installed Git is only available in a new terminal as the installer cannot change the PATH of the current one.
+   * Like on Linux and macOS the package manager is run on every call so that Git gets upgraded if a newer version is available. On Windows Git cannot be used
+   * without the installation and long paths have to be enabled.
    */
   @Override
   protected ToolInstallation doInstall(ToolInstallRequest request) {
 
-    if (!this.context.getSystemInfo().isWindows()) {
-      return super.doInstall(request);
-    }
-    VersionIdentifier requestedVersion = request.getRequested().getResolvedVersion();
-    boolean newInstallation = isInstallationRequiredOnWindows(requestedVersion);
-    if (newInstallation) {
-      if (!runWithPackageManager(request.isSilent(), getInstallPackageManagerCommands(requestedVersion), NativePackageAction.INSTALL)) {
+    ToolInstallation installation = super.doInstall(request);
+    if (this.context.getSystemInfo().isWindows()) {
+      if (installation.resolvedVersion() == null) {
         throw new CliException("Failed to install Git via winget, it may not be installed or may be disabled by your IT administrators.\n"
             + IdeContext.PLEASE_DOWNLOAD_AND_INSTALL_GIT + ":\n " + IdeContext.WINDOWS_GIT_DOWNLOAD_URL);
       }
-      invalidateInstalledEditionAndVersion();
       enableLongpaths();
-    } else {
-      logToolAlreadyInstalled(request);
     }
-    VersionIdentifier installedVersion = getInstalledVersion();
-    Path rootDir = getInstallationPath(getConfiguredEdition(), installedVersion);
-    if (rootDir == null) {
-      return new ToolInstallation(null, null, null, installedVersion, newInstallation, true);
-    }
-    return createToolInstallation(rootDir, installedVersion, newInstallation, request.getProcessContext(), request.isAdditionalInstallation());
+    return installation;
   }
 
   /**
@@ -130,19 +117,9 @@ public class Git extends GlobalToolCommandlet {
     FileAccess fileAccess = this.context.getFileAccess();
     IniFile iniFile = fileAccess.readIniFile(configPath);
     IniSection coreSection = iniFile.getOrCreateSection("core");
-    coreSection.setProperty("longpaths", "true");
-    fileAccess.writeIniFile(iniFile, configPath);
-  }
-
-  private boolean isInstallationRequiredOnWindows(VersionIdentifier requestedVersion) {
-
-    if (this.context.isForceMode()) {
-      return true;
+    if (!coreSection.getPropertyKeys().contains("longpaths") || !"true".equals(coreSection.getPropertyValue("longpaths"))) {
+      coreSection.setProperty("longpaths", "true");
+      fileAccess.writeIniFile(iniFile, configPath);
     }
-    VersionIdentifier installedVersion = getInstalledVersion();
-    if (installedVersion == null) {
-      return getInstallationPath(getConfiguredEdition(), null) == null;
-    }
-    return (requestedVersion != null) && !requestedVersion.equals(installedVersion);
   }
 }

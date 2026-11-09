@@ -13,6 +13,8 @@ import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -280,6 +282,63 @@ public class IdeContextTest extends AbstractIdeContextTest {
         .hasMessage("A proper bash executable was found in your PATH environment variable at: " + bashExePath);
 
     assertThat(bash).isEqualTo(bashExePath);
+  }
+
+  /**
+   * Tests that a missing bash on a fresh Windows machine is only logged on debug level, as every caller of {@code findBash()} reports it in its own context if
+   * it is relevant.
+   */
+  @Test
+  void testFindBashDoesNotSpamLogOnFreshWindowsMachine() {
+
+    // arrange
+    IdeTestContext context = newWindowsContextWithoutGitAndBash();
+
+    // act
+    Path bash = context.findBash();
+
+    // assert
+    assertThat(bash).isNull();
+    assertThat(context).logAtDebug().hasMessageContaining("No bash executable could be found on your system.");
+    assertThat(context).logAtInfo().hasNoMessageContaining("bash");
+    assertThat(context).logAtWarning().hasNoMessageContaining("bash");
+    assertThat(context).logAtError().hasNoMessageContaining("bash");
+  }
+
+  /**
+   * Tests that {@link GitContextImpl#findGit()} returns {@code null} instead of failing on a fresh Windows machine where neither Git nor bash is available
+   * yet.
+   */
+  @Test
+  void testFindGitReturnsNullOnFreshWindowsMachineWithoutGitAndBash() {
+
+    // arrange
+    IdeTestContext context = newWindowsContextWithoutGitAndBash();
+    GitContext gitContext = new GitContextImpl(context);
+
+    // act
+    Path gitPath = gitContext.findGit();
+
+    // assert
+    assertThat(gitPath).isNull();
+  }
+
+  /**
+   * @return an {@link IdeTestContext} (Windows) where neither git nor bash can be found, independent of the PATH of the machine running the test.
+   */
+  private static IdeTestContext newWindowsContextWithoutGitAndBash() {
+
+    IdeTestContext supportContext = newContext("find-bash-git", "project/workspaces", true);
+    Path home = supportContext.getUserHome();
+    FileAccess fileAccess = supportContext.getFileAccess();
+    Path environmentFile = home.resolve("environment.properties");
+    Properties properties = fileAccess.readProperties(environmentFile);
+    properties.put("PATH", home.resolve("notexisting").toAbsolutePath().toString());
+    properties.remove("BASH_PATH");
+    fileAccess.writeProperties(properties, environmentFile);
+    IdeTestContext context = new IdeTestContext(home, IdeLogLevel.DEBUG, null);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    return context;
   }
 
   @Test
