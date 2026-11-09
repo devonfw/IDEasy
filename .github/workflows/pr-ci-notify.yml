@@ -1,0 +1,143 @@
+name: Notify Teams of failed PR CI
+
+on:
+  workflow_run:
+    # Keep this list in sync with the required checks on main.
+    workflows: [ CI Build PR ]
+    types: [ completed ]
+  pull_request_target:
+    types: [ ready_for_review ]
+
+permissions: {}
+
+jobs:
+  notify:
+    if: >
+      github.repository == 'devonfw/IDEasy' &&
+      vars.ENABLE_AUTOMATIC_WORKFLOWS == 'true' &&
+      (github.event_name == 'pull_request_target' ||
+       (github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'failure'))
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+      pull-requests: read
+    steps:
+      # This job has a write token, so keep PR code out of it.
+      - name: Notify Teams once per PR commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          READY_PR_NUMBER=''
+          if [ "$GITHUB_EVENT_NAME" = 'pull_request_target' ]; then
+            # Check the existing CI result when a PR leaves draft.
+            READY_PR=$(jq -c '.pull_request' "$GITHUB_EVENT_PATH")
+            READY_PR_NUMBER=$(jq -r '.number' <<< "$READY_PR")
+            HEAD_BRANCH=$(jq -r '.head.ref' <<< "$READY_PR")
+            HEAD_SHA=$(jq -r '.head.sha' <<< "$READY_PR")
+            RUN=$(gh api --method GET --paginate --slurp "repos/$REPO/actions/workflows/build-pr.yml/runs" \
+              -f event=pull_request -f "branch=$HEAD_BRANCH" -f "head_sha=$HEAD_SHA" -f per_page=100 \
+              | jq -c --argjson pr "$READY_PR" '
+                [.[] | .workflow_runs[]
+                  | select(.head_sha == $pr.head.sha and .head_branch == $pr.head.ref
+                    and .head_repository.id == $pr.head.repo.id)
+                  | select(((.pull_requests // []) | length) == 0
+                    or any(.pull_requests[]?; .number == $pr.number))]
+                | max_by(.run_number)')
+            if ! jq -e '.status == "completed" and .conclusion == "failure"' <<< "$RUN" > /dev/null; then
+              echo "No latest failed CI run for PR #$READY_PR_NUMBER at $HEAD_SHA."
+              exit 0
+            fi
+          else
+            RUN=$(jq -c '.workflow_run' "$GITHUB_EVENT_PATH")
+          fi
+
+          if ! jq -e '.head_repository != null' <<< "$RUN" > /dev/null; then
+            echo "The failed run no longer has a head repository."
+            exit 0
+          fi
+
+          RUN_ID=$(jq -r '.id' <<< "$RUN")
+          PR_NUMBERS=$(jq -r '[.pull_requests[]?.number] | unique[]' <<< "$RUN")
+          if [ -n "$PR_NUMBERS" ]; then
+            CANDIDATES=$(while IFS= read -r PR_NUMBER; do
+              gh api "repos/$REPO/pulls/$PR_NUMBER" || exit 1
+            done <<< "$PR_NUMBERS" | jq -cs '.')
+          else
+            # Fork runs can have an empty pull_requests list.
+            HEAD=$(jq -r '.head_repository.owner.login + ":" + .head_branch' <<< "$RUN")
+            CANDIDATES=$(gh api --method GET --paginate --slurp "repos/$REPO/pulls" \
+              -f state=open -f "head=$HEAD" -f per_page=100 | jq -c 'add // []')
+          fi
+
+          OPEN_PULLS=$(jq -c --argjson run "$RUN" '
+            [.[] | select(.state == "open" and .head.sha == $run.head_sha
+              and .head.ref == $run.head_branch and .head.repo.id == $run.head_repository.id)]
+          ' <<< "$CANDIDATES")
+          if [ -z "$PR_NUMBERS" ] && [ "$(jq 'length' <<< "$OPEN_PULLS")" -gt 1 ]; then
+            echo "Run $RUN_ID matches multiple open PRs without a GitHub PR association." >&2
+            exit 1
+          fi
+
+          PULLS=$(jq -c --arg ready "$READY_PR_NUMBER" '
+            .[] | select((.draft | not) and ($ready == "" or (.number | tostring) == $ready))
+          ' <<< "$OPEN_PULLS")
+          if [ -z "$PULLS" ]; then
+            echo "No open PR ready for review has the failed head of run $RUN_ID."
+            exit 0
+          fi
+
+          if [ -z "${WEBHOOK:-}" ]; then
+            echo "No Teams webhook set; notification cannot be delivered." >&2
+            exit 1
+          fi
+
+          # The event SHA can be stale on a rerun. Tag the current default branch tip.
+          DEFAULT_BRANCH=$(jq -r '.repository.default_branch' "$GITHUB_EVENT_PATH")
+          TAG_TARGET=$(gh api "repos/$REPO/git/ref/heads/$DEFAULT_BRANCH" --jq '.object.sha')
+          RUN_ATTEMPT=$(jq -r '.run_attempt' <<< "$RUN")
+          RUN_URL="$GITHUB_SERVER_URL/$REPO/actions/runs/$RUN_ID/attempts/$RUN_ATTEMPT"
+          SEND_FAILED=0
+          while IFS= read -r PR; do
+            PR_NUMBER=$(jq -r '.number' <<< "$PR")
+            HEAD_SHA=$(jq -r '.head.sha' <<< "$PR")
+            CARD=$(jq -c --arg url "$RUN_URL" '
+              {
+                type: "AdaptiveCard",
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                version: "1.4",
+                body: [
+                  { type: "TextBlock", size: "Large", weight: "Bolder", color: "attention", text: "🔴 PR-CI ist rot" },
+                  { type: "RichTextBlock", inlines: [{ type: "TextRun", text: "#\(.number) \(.title)" }] },
+                  { type: "RichTextBlock", inlines: [{ type: "TextRun", text: "GitHub: \(.user.login // "unknown")" }] }
+                ],
+                actions: [{ type: "Action.OpenUrl", title: "Run-Log öffnen", url: $url }]
+              }
+            ' <<< "$PR")
+
+            # Claim the PR and commit before sending so concurrent runs cannot both post.
+            REF="tags/ci-alerts/pr-$PR_NUMBER/$HEAD_SHA"
+            if ! RESPONSE=$(gh api --include --method POST "repos/$REPO/git/refs" \
+              -f "ref=refs/$REF" -f "sha=$TAG_TARGET"); then
+              read -r _ HTTP_STATUS _ <<< "$RESPONSE"
+              case "$HTTP_STATUS" in
+                409|422)
+                  gh api "repos/$REPO/git/ref/$REF" > /dev/null
+                  echo "An alert was already claimed for PR #$PR_NUMBER at $HEAD_SHA."
+                  continue
+                  ;;
+                *) exit 1 ;;
+              esac
+            fi
+
+            # Keep the tag on failure. Teams might already have received the card.
+            if ! curl -sS --fail -X POST -H "Content-Type: application/json" -d "$CARD" "$WEBHOOK"; then
+              echo "Teams notification for PR #$PR_NUMBER failed." >&2
+              SEND_FAILED=1
+            fi
+          done <<< "$PULLS"
+          exit "$SEND_FAILED"
