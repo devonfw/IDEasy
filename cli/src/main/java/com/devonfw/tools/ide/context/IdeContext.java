@@ -307,6 +307,7 @@ public interface IdeContext extends IdeStartContext {
    * @param question the question to ask.
    * @param args arguments for filling the templates
    * @return {@code true} if the user answered with "yes", {@code false} otherwise ("no").
+   * @throws CliAbortException if the question cannot be answered because we are in batch mode without force mode.
    */
   default boolean question(String question, Object... args) {
 
@@ -323,6 +324,8 @@ public interface IdeContext extends IdeStartContext {
    * @param options the available options for the user to answer. There should be at least two options given as otherwise the question cannot make sense.
    * @param question the question to ask.
    * @return the option selected by the user as answer.
+   * @throws CliAbortException if the question cannot be answered because we are in batch mode without force mode. In that case the first option is not selected
+   *     automatically - re-run the command with the force option to accept it.
    */
   @SuppressWarnings("unchecked")
   <O> O question(O[] options, String question, Object... args);

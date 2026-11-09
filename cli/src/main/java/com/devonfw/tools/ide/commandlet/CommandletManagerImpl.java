@@ -34,6 +34,7 @@ import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.docker.Docker;
 import com.devonfw.tools.ide.tool.dotnet.DotNet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
+import com.devonfw.tools.ide.tool.flutter.Flutter;
 import com.devonfw.tools.ide.tool.gcloganalyzer.GcLogAnalyzer;
 import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
 import com.devonfw.tools.ide.tool.gemini.Gemini;
@@ -52,6 +53,7 @@ import com.devonfw.tools.ide.tool.just.Just;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.kubectl.KubeCtl;
+import com.devonfw.tools.ide.tool.kubelinter.KubeLinter;
 import com.devonfw.tools.ide.tool.lazydocker.LazyDocker;
 import com.devonfw.tools.ide.tool.msvc.Msvc;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
@@ -159,6 +161,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Kotlinc(context));
     add(new KotlincNative(context));
     add(new KubeCtl(context));
+    add(new KubeLinter(context));
     add(new Tomcat(context));
     add(new Task(context));
     add(new Vscode(context));
@@ -197,6 +200,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Ruff(context));
     add(new CheckCommandlet(context));
     add(new Obsidian(context));
+    add(new Flutter(context));
     add(new Gemini(context));
   }
 
