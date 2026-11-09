@@ -53,6 +53,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     // arrange
     WindowsSymlinkTestHelper.assumeSymlinksSupported();
     IdeTestContext context = new IdeTestContext();
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
     Files.createSymbolicLink(tempDir.resolve("winget"), tempDir.resolve("not-existing"));
     context.getPath().setPath("winget", tempDir);
     GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, tempDir);
@@ -74,12 +75,43 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     // arrange
     WindowsSymlinkTestHelper.assumeSymlinksSupported();
     IdeTestContext context = new IdeTestContext();
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
     Files.createSymbolicLink(tempDir.resolve("brew"), tempDir.resolve("not-existing"));
     context.getPath().setPath("brew", tempDir);
     GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, tempDir);
 
     // act + assert
     assertThat(globalTool.isPackageManagerAvailable(NativePackageManager.BREW)).isFalse();
+  }
+
+  /**
+   * Tests that a package manager is only available on its operating system (winget only on Windows, all others never on Windows), independent of the binaries
+   * found on the PATH (e.g. apt on the Linux machine running a test that simulates Windows).
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  void testIsPackageManagerAvailableOnlyOnItsOperatingSystem(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    for (String binary : List.of("apt", "apt.exe", "winget", "winget.exe")) {
+      Files.createFile(tempDir.resolve(binary));
+    }
+    IdeTestContext windows = new IdeTestContext();
+    windows.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    windows.getPath().setPath("apt", tempDir);
+    windows.getPath().setPath("winget", tempDir);
+    IdeTestContext linux = new IdeTestContext();
+    linux.setSystemInfo(SystemInfoMock.LINUX_X64);
+    linux.getPath().setPath("apt", tempDir);
+    linux.getPath().setPath("winget", tempDir);
+
+    // act + assert
+    assertThat(new GlobalToolDummyCommandlet(windows, tempDir).isPackageManagerAvailable(NativePackageManager.WINGET)).isTrue();
+    assertThat(new GlobalToolDummyCommandlet(windows, tempDir).isPackageManagerAvailable(NativePackageManager.APT)).isFalse();
+    assertThat(new GlobalToolDummyCommandlet(linux, tempDir).isPackageManagerAvailable(NativePackageManager.APT)).isTrue();
+    assertThat(new GlobalToolDummyCommandlet(linux, tempDir).isPackageManagerAvailable(NativePackageManager.WINGET)).isFalse();
   }
 
   /**

@@ -109,7 +109,8 @@ class InstallCommandletTest extends AbstractIdeContextTest {
 
     // act + assert
     assertThatCode(install::run).doesNotThrowAnyException();
-    Mockito.verify(processContext).executable("cmd");
+    // on Windows only winget may be used, even if e.g. apt is on the PATH of the (Linux) machine running the test
+    Mockito.verify(processContext, Mockito.never()).addArgs(Mockito.eq("-c"), Mockito.anyString());
   }
 
   /**
