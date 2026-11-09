@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mockito;
 
 import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -17,6 +18,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsAppInstallation;
 import com.devonfw.tools.ide.os.WindowsHelperMock;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -91,12 +93,20 @@ class InstallCommandletTest extends AbstractIdeContextTest {
     VersionIdentifier version = VersionIdentifier.of("2.56.0.4");
     WindowsHelperMock helper = (WindowsHelperMock) context.getWindowsHelper();
     helper.setAppInstallationFromRegistry("Git", new WindowsAppInstallation(version.toString(), null, null, null));
+    Path gitBinPath = directory.resolve("git/bin");
+    context.getFileAccess().mkdirs(gitBinPath);
+    context.getFileAccess().writeFileContent("", gitBinPath.resolve("git.exe"));
+    context.getPath().setPath("git", gitBinPath);
+    // never run a real package manager on the machine executing the test
+    ProcessContext processContext = Mockito.mock(ProcessContext.class, Mockito.RETURNS_SELF);
+    context.setProcessContext(processContext);
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("git", context);
     install.version.setValueAsString(version.toString(), context);
 
     // act + assert
     assertThatCode(install::run).doesNotThrowAnyException();
+    Mockito.verify(processContext, Mockito.never()).run();
   }
 
   /**
