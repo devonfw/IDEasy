@@ -20,6 +20,7 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.CapturingProcessContextMock;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.io.WindowsSymlinkTestHelper;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsAppInstallation;
@@ -38,6 +39,27 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   private static final String TOOL_NAME = "docker";
 
   private static final String TOOL_VERSION = "1.21.0";
+
+  /**
+   * Tests that a package manager is available if its binary is a link that cannot be followed, as on Windows {@code winget.exe} is an app execution alias for
+   * which {@link Files#exists(Path, java.nio.file.LinkOption...)} returns {@code false} unless links are not followed.
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  void testIsPackageManagerAvailableIfBinaryIsLinkThatCannotBeFollowed(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+    IdeTestContext context = new IdeTestContext();
+    Files.createSymbolicLink(tempDir.resolve("winget"), tempDir.resolve("not-existing"));
+    context.getPath().setPath("winget", tempDir);
+    GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, tempDir);
+
+    // act + assert
+    assertThat(globalTool.isPackageManagerAvailable(NativePackageManager.WINGET)).isTrue();
+  }
 
   /**
    * Tests that on macOS the installation path is resolved from the app bundle in the applications folder and its executable folder is registered.
