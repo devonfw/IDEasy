@@ -214,32 +214,6 @@ class GitOperationTest extends AbstractIdeContextTest {
     Mockito.verify(mock).pullOrClone(GIT_URL, repo);
   }
 
-  /**
-   * Verifies that a missing Git is only reported as a WARNING pointing to {@code ide install git} and does not abort, whether or not URL metadata exists.
-   */
-  @Test
-  void testUpdateUrlsRepositoryLogsWarningWhenGitMissing() {
-
-    // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC, null, true);
-
-    GitContext mock = Mockito.mock(GitContext.class);
-    context.setGitContext(mock);
-    Mockito.when(mock.findGit()).thenReturn(null);
-
-    // act
-    context.updateUrlsRepository();
-
-    // assert
-    assertThat(context).logAtWarning()
-        .hasMessageContaining("ide install git");
-
-    Mockito.verify(mock).findGit();
-    Mockito.verify(mock, Mockito.never()).findGitRequired();
-    Mockito.verify(mock, Mockito.never())
-        .pullOrCloneAndResetIfNeeded(Mockito.any(), Mockito.any(), Mockito.any());
-  }
-
   private Path createFakeGitRepo(Path dir, String file) throws Exception {
 
     return createFakeGitRepo(dir, file, false);

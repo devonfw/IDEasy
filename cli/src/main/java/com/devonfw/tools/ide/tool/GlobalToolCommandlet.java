@@ -157,10 +157,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
         invalidateInstalledEditionAndVersion();
         VersionIdentifier installedVersion = getInstalledVersion();
         Path rootDir = getInstallationPath(getConfiguredEdition(), installedVersion);
-        if ((rootDir == null) && (installedVersion != null)) {
-          // installed but not found on the PATH, e.g. on Windows the installer cannot change the PATH of the current terminal
-          return new ToolInstallation(null, null, null, installedVersion, newInstallation, true);
-        }
+
         return createToolInstallation(rootDir, installedVersion, newInstallation, request.getProcessContext(),
             request.isAdditionalInstallation());
       }
@@ -328,8 +325,14 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
   protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
     Path binary = Path.of(packageManager.getBinaryName());
     Path binaryPath = this.context.getPath().findBinary(binary);
-    // do not follow links: on Windows winget is an app execution alias that exists but cannot be followed
-    return (binaryPath != binary) && Files.exists(binaryPath, LinkOption.NOFOLLOW_LINKS);
+    if (binaryPath == binary) {
+      return false;
+    }
+    if (packageManager == NativePackageManager.WINGET) {
+      // winget is an app execution alias that exists but cannot be followed
+      return Files.exists(binaryPath, LinkOption.NOFOLLOW_LINKS);
+    }
+    return Files.exists(binaryPath);
   }
 
   /**

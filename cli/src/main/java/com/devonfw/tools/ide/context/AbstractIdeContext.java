@@ -819,7 +819,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     if (this.urlMetadata == null) {
       if (!isTest()) {
-        updateUrlsRepository();
+        getGitContext().pullOrCloneAndResetIfNeeded(IDE_URLS_GIT, getUrlsPath(), null);
       }
       this.urlMetadata = new UrlMetadata(this);
     }
@@ -1994,18 +1994,5 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
    */
   public String getDefaultWindowsGitPath() {
     return DEFAULT_WINDOWS_GIT_PATH;
-  }
-
-  /**
-   * Updates the local {@code ide-urls} repository. If Git is not available, this is only reported as warning so that existing metadata can still be used.
-   */
-  public void updateUrlsRepository() {
-
-    GitContext gitContext = getGitContext();
-    if (gitContext.findGit() != null) {
-      gitContext.pullOrCloneAndResetIfNeeded(IDE_URLS_GIT, getUrlsPath(), null);
-    } else {
-      LOG.warn("Git is not available, so the URL metadata cannot be updated. Please run 'ide install git' to install it.");
-    }
   }
 }

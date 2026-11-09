@@ -338,6 +338,7 @@ class GitTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = windowsContextWithoutGitInPath();
     setGitInRegistry(context, LATEST_WINGET_VERSION);
+    setGitOnPath(context);
     ProcessContext processContext = wingetProcess(context, ProcessResult.SUCCESS, TOOL_VERSION);
     Git git = git(context, NativePackageManager.WINGET);
 
@@ -390,30 +391,50 @@ class GitTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Verifies that Git being installed but not yet on the PATH of the current terminal points the user to a new terminal.
+   * Verifies that winget is not run if Git was found on the PATH without being known to the registry (e.g. PortableGit or Scoop), as winget cannot manage
+   * such a Git and would install a second one with the installation wizard. Also a missing or blocked winget must not break such a Git.
    */
   @Test
-  void testInstallOnWindowsReportsGitOnlyAvailableInNewTerminal() {
+  void testInstallOnWindowsSkipsWingetIfOnlyFoundOnPath() {
 
     // arrange
     IdeTestContext context = windowsContextWithoutGitInPath();
-    setGitInRegistry(context, TOOL_VERSION);
-    wingetProcess(context, WINGET_NO_APPLICABLE_UPDATE, null);
+    setGitOnPath(context);
+    ProcessContext processContext = wingetProcess(context, ProcessResult.SUCCESS, null);
     Git git = git(context, NativePackageManager.WINGET);
 
     // act
     ToolInstallation installation = git.install(installRequest(VersionIdentifier.LATEST));
 
     // assert
-    assertThat(installation.resolvedVersion()).isEqualTo(VersionIdentifier.of(TOOL_VERSION));
-    assertThat(installation.installedAsynchronously()).isTrue();
+    assertThat(installation.newInstallation()).isFalse();
+    assertThat(installation.installedAsynchronously()).isFalse();
+    Mockito.verify(processContext, Mockito.never()).run();
   }
 
   /**
-   * Verifies that a failing upgrade of an installed Git (e.g. offline) only logs a warning, so that the installed Git can still be used.
+   * Verifies that an installed Git that is not on the PATH (e.g. installed with the option "Use Git from Git Bash only") results in an error instead of
+   * silently skipping the git command.
    */
   @Test
-  void testInstallOnWindowsKeepsInstalledVersionIfUpgradeFails() {
+  void testInstallOnWindowsFailsIfInstalledGitIsNotOnPath() {
+
+    // arrange
+    IdeTestContext context = windowsContextWithoutGitInPath();
+    setGitInRegistry(context, TOOL_VERSION);
+    wingetProcess(context, WINGET_NO_APPLICABLE_UPDATE, null);
+    Git git = git(context, NativePackageManager.WINGET);
+    ToolInstallRequest request = installRequest(VersionIdentifier.LATEST);
+
+    // act + assert
+    assertThatThrownBy(() -> git.install(request)).isInstanceOf(CliException.class).hasMessageContaining("PATH");
+  }
+
+  /**
+   * Verifies that a failing upgrade only logs a warning if Git is already installed, so that the installed Git can still be used (e.g. offline).
+   */
+  @Test
+  void testInstallOnWindowsKeepsInstalledVersionIfWingetFails() {
 
     // arrange
     IdeTestContext context = windowsContextWithoutGitInPath();
@@ -428,7 +449,24 @@ class GitTest extends AbstractIdeContextTest {
     // assert
     assertThat(installation.resolvedVersion()).isEqualTo(VersionIdentifier.of(TOOL_VERSION));
     assertThat(installation.newInstallation()).isFalse();
-    assertThat(context).logAtWarning().hasMessageContaining("did not execute successfully");
+    assertThat(context).logAtWarning().hasMessageContaining("Failed to install Git");
+  }
+
+  /**
+   * Verifies that a version that could inject further commands into the command line of {@code cmd} is rejected before winget is run.
+   */
+  @Test
+  void testInstallOnWindowsRejectsUnsafeVersion() {
+
+    // arrange
+    IdeTestContext context = windowsContextWithoutGitInPath();
+    ProcessContext processContext = wingetProcess(context, ProcessResult.SUCCESS, null);
+    Git git = git(context, NativePackageManager.WINGET);
+    ToolInstallRequest request = installRequest(VersionIdentifier.of("2.45.0&calc"));
+
+    // act + assert
+    assertThatThrownBy(() -> git.install(request)).isInstanceOf(CliException.class).hasMessageContaining("2.45.0&calc");
+    Mockito.verify(processContext, Mockito.never()).run();
   }
 
   /**

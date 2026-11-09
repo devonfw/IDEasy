@@ -4,6 +4,9 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -12,6 +15,7 @@ import com.devonfw.tools.ide.io.ini.IniFile;
 import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
+import com.devonfw.tools.ide.tool.NativePackageAction;
 import com.devonfw.tools.ide.tool.NativePackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
@@ -22,6 +26,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link GlobalToolCommandlet} for <a href="https://git-scm.com/">Git</a>.
  */
 public class Git extends GlobalToolCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Git.class);
 
   /**
    * The constructor.
@@ -91,21 +97,43 @@ public class Git extends GlobalToolCommandlet {
   }
 
   /**
-   * Like on Linux and macOS the package manager is run on every call so that Git gets upgraded if a newer version is available. On Windows Git cannot be used
-   * without the installation and long paths have to be enabled.
+   * Like on Linux and macOS the package manager is run on every call so that Git gets upgraded if a newer version is available. Only a Git that is found on
+   * the PATH without being known to the registry (e.g. PortableGit or Scoop) is used as is, since winget cannot manage it and would install a second Git. An
+   * installed Git is only available in a new terminal, as the installer cannot change the PATH of the current one.
    */
   @Override
   protected ToolInstallation doInstall(ToolInstallRequest request) {
 
-    ToolInstallation installation = super.doInstall(request);
-    if (this.context.getSystemInfo().isWindows()) {
-      if (installation.resolvedVersion() == null) {
-        throw new CliException("Failed to install Git via winget, it may not be installed or may be disabled by your IT administrators.\n"
-            + IdeContext.PLEASE_DOWNLOAD_AND_INSTALL_GIT + ":\n " + IdeContext.WINDOWS_GIT_DOWNLOAD_URL);
-      }
-      enableLongpaths();
+    if (!this.context.getSystemInfo().isWindows()) {
+      return super.doInstall(request);
     }
-    return installation;
+    VersionIdentifier previousVersion = getInstalledVersion();
+    Path rootDir = getInstallationPath(getConfiguredEdition(), previousVersion);
+    if ((previousVersion == null) && (rootDir != null) && !this.context.isForceMode()) {
+      logToolAlreadyInstalled(request);
+      return createToolInstallation(rootDir, null, false, request.getProcessContext(), request.isAdditionalInstallation());
+    }
+    VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
+    boolean success = runWithPackageManager(request.isSilent(), getInstallPackageManagerCommands(resolvedVersion), NativePackageAction.INSTALL);
+    if (success) {
+      invalidateInstalledEditionAndVersion();
+      enableLongpaths();
+    } else if (previousVersion == null) {
+      throw new CliException("Failed to install Git via winget, it may not be installed or may be disabled by your IT administrators.\n"
+          + IdeContext.PLEASE_DOWNLOAD_AND_INSTALL_GIT + ":\n " + IdeContext.WINDOWS_GIT_DOWNLOAD_URL);
+    } else {
+      LOG.warn("Failed to install Git via winget, continuing with the installed version {}.", previousVersion);
+    }
+    VersionIdentifier installedVersion = getInstalledVersion();
+    rootDir = getInstallationPath(getConfiguredEdition(), installedVersion);
+    if (rootDir == null) {
+      if (previousVersion == null) {
+        return new ToolInstallation(null, null, null, installedVersion, true, true);
+      }
+      throw new CliException("Git " + installedVersion + " is installed but not available on your PATH. Please open a new terminal. If this does not "
+          + "help, reinstall Git with the option to use it from the command line.");
+    }
+    return createToolInstallation(rootDir, installedVersion, success, request.getProcessContext(), request.isAdditionalInstallation());
   }
 
   /**

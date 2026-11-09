@@ -62,6 +62,27 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that a broken link to any other package manager (e.g. a left over {@code brew} after a migration from Intel to Apple Silicon) is not considered
+   * available, as it cannot be executed.
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  void testIsPackageManagerNotAvailableIfBinaryIsBrokenLink(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+    IdeTestContext context = new IdeTestContext();
+    Files.createSymbolicLink(tempDir.resolve("brew"), tempDir.resolve("not-existing"));
+    context.getPath().setPath("brew", tempDir);
+    GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, tempDir);
+
+    // act + assert
+    assertThat(globalTool.isPackageManagerAvailable(NativePackageManager.BREW)).isFalse();
+  }
+
+  /**
    * Tests that on macOS the installation path is resolved from the app bundle in the applications folder and its executable folder is registered.
    *
    * @param tempDir the temporary directory.

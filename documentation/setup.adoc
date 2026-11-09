@@ -27,6 +27,7 @@ On all other platforms this comes out of the box.
 IDEasy uses the package manager of your operating system for this, which is https://github.com/microsoft/winget-cli[WinGet] on Windows.
 Afterwards the https://github.com/devonfw/ide-urls[`ide-urls`] repository is cloned as soon as it is needed.
 Like on Linux and macOS, Git is then kept up to date via the package manager whenever it is used via `ide git`.
+A Git that is only found on your PATH (e.g. PortableGit) is used as is.
 ** On Windows you only need to download and install https://git-scm.com/download/win[git for windows].
 ** On Linux you might need to install the git in case it is not present (e.g. `sudo apt-get install git` or `sudo yum install git-core`)
 ** On MacOS you only need to download and install https://git-scm.com/download/mac[git for mac].

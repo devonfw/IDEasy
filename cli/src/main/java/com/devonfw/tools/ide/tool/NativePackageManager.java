@@ -3,6 +3,9 @@ package com.devonfw.tools.ide.tool;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
+
+import com.devonfw.tools.ide.cli.CliException;
 
 /**
  * Represents an OS native package manager used for managing software packages.
@@ -34,6 +37,9 @@ public enum NativePackageManager {
 
   /** <a href="https://github.com/microsoft/winget-cli">WinGet</a> is the package manager of Windows. */
   WINGET("winget", "install --exact --source winget", "uninstall --exact --source winget", " --version ", "", false);
+
+  /** The characters allowed in a version (including Debian epochs like {@code 1:2.43.0-1ubuntu7}). */
+  private static final Pattern SAFE_VERSION = Pattern.compile("[A-Za-z0-9._+~:-]+");
 
   private static final String DPKG_STATUS_INSTALLED = "installed";
   /** The exit code of {@link #WINGET} if the latest version is already installed (APPINSTALLER_CLI_ERROR_UPDATE_NOT_APPLICABLE). */
@@ -131,6 +137,10 @@ public enum NativePackageManager {
   public String getPackageSpec(String pkg, String version) {
     if ((version == null) || version.isBlank() || (this.versionSeparator == null)) {
       return pkg;
+    }
+    if (!SAFE_VERSION.matcher(version).matches()) {
+      // the version is part of a command line run via bash or cmd, so it must not contain any shell syntax
+      throw new CliException("Invalid version '" + version + "' for package " + pkg + ".");
     }
     String spec = pkg + this.versionSeparator + version + this.versionWildCard;
     if (this.versionWildCard.isEmpty()) {

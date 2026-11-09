@@ -35,6 +35,18 @@ class NativePackageManagerTest extends Assertions {
         "sudo apt --allow-downgrades install -y 'pkg1=1.0.0*'");
   }
 
+  /**
+   * Tests that real versions (including a Debian epoch) are accepted, while a version containing shell syntax is rejected, as it is part of a command line.
+   */
+  @Test
+  void testGetPackageSpecRejectsUnsafeVersion() {
+
+    assertThat(NativePackageManager.APT.getPackageSpec("git", "1:2.43.0-1ubuntu7.3")).isEqualTo("'git=1:2.43.0-1ubuntu7.3*'");
+    assertThat(NativePackageManager.WINGET.getPackageSpec("Git.Git", "2.56.0.4")).isEqualTo("Git.Git --version 2.56.0.4");
+    assertThatThrownBy(() -> NativePackageManager.WINGET.getPackageSpec("Git.Git", "2.45.0&calc")).hasMessageContaining("2.45.0&calc");
+    assertThatThrownBy(() -> NativePackageManager.APT.getPackageSpec("git", "2.45.0';id;'")).hasMessageContaining("2.45.0';id;'");
+  }
+
   @Test
   void testAptUninstallCommand() {
     NativePackage np = new NativePackage(

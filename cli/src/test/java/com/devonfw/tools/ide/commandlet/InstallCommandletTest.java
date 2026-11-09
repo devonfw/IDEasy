@@ -97,16 +97,19 @@ class InstallCommandletTest extends AbstractIdeContextTest {
     context.getFileAccess().mkdirs(gitBinPath);
     context.getFileAccess().writeFileContent("", gitBinPath.resolve("git.exe"));
     context.getPath().setPath("git", gitBinPath);
-    // never run a real package manager on the machine executing the test
+    // never run a real package manager or write to the real user home on the machine executing the test
     ProcessContext processContext = Mockito.mock(ProcessContext.class, Mockito.RETURNS_SELF);
     context.setProcessContext(processContext);
+    Path userHome = directory.resolve("home");
+    context.getFileAccess().mkdirs(userHome);
+    context.setUserHome(userHome);
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("git", context);
     install.version.setValueAsString(version.toString(), context);
 
     // act + assert
     assertThatCode(install::run).doesNotThrowAnyException();
-    Mockito.verify(processContext, Mockito.never()).run();
+    Mockito.verify(processContext).executable("cmd");
   }
 
   /**
