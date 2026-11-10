@@ -169,6 +169,11 @@ This attribute is used to determine which elements in the source and target docu
 The `merge:id` can be set to one of the following:
 
 * An attribute name prefixed with @ (e.g., `@id`, `@name`)
+* Multiple attribute names prefixed with @ and separated by commas (e.g., `@default,@type`).
+The element is matched only if *all* of the listed attributes match.
+Whitespace after each comma is ignored.
+* The special value `@@` to match on *all* attributes of the element.
+Attributes from the merge namespace (like `merge:id`) and namespace declarations (`xmlns:…`) are excluded, as they are not part of the actual payload.
 * The string `name()` to match by element name
 * The string `text()` to match by text content
 * A full XPath expression (see e.g. https://github.com/devonfw/ide-settings/blob/9551c1a222b64e958cdf1e8b01a952fa537241a6/intellij/workspace/update/.intellij/config/options/jdk.table.xml#L4[this advanced example])

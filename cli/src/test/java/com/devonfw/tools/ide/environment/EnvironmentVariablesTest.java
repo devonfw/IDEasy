@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.environment;
 
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -262,7 +261,6 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
    * Test that an already defined secret variable does not show up in log output either, although the user is not asked for it. Since @ask-secret is not
    * persisted, a stored secret is here defined directly in conf/ide.properties.
    */
-  @Disabled("Fails until #2718 is fixed: EnvironmentVariablesMap logs the value of every variable it reads at trace level.")
   @Test
   void testAlreadyDefinedSecretIsNotLoggedInLogOutput() {
 
