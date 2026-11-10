@@ -1,12 +1,20 @@
 package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.completion.CompletionCandidate;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.validation.ValidationResult;
 
 /**
  * Tests for {@link RewriteCommandlet}.
@@ -91,6 +99,49 @@ class RewriteCommandletTest extends AbstractIdeContextTest {
     commandlet.command.setValue("DOES_NOT_EXIST");
     assertThat(commandlet.command.validate().isValid()).isFalse();
     assertThat(commandlet.command.validate().getErrorMessage()).contains("Unknown recipe");
+  }
+
+  /**
+   * Tests the completion round trip: the auto-completion candidate keeps the original (case-sensitive)
+   * recipe name and that same value passes validation. This is the path that breaks if the completion
+   * lower-cases the name, because {@code RecipeManager} looks recipes up in a case-sensitive map.
+   */
+  @Test
+  void testCompletionCandidateKeepsCasingAndValidates() {
+    IdeTestContext context = newContext("release");
+    RewriteCommandlet commandlet = context.getCommandletManager().getCommandlet(RewriteCommandlet.class);
+    writeRecipeConfig(context);
+
+    // complete the recipe name with a lower-case prefix
+    String[] argsArray = { "rewrite", "format" };
+    Set<String> alreadyProvided = new HashSet<>(List.of("rewrite"));
+    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context, alreadyProvided);
+    CliArguments args = CliArguments.ofCompletion(argsArray);
+    List<CompletionCandidate> candidates = context.complete(args, collector, false);
+
+    // the candidate keeps the original casing of the recipe name
+    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("FORMAT_JAVA_CODE");
+
+    // and that completed value passes validation (round trip: complete -> validate)
+    String completedName = candidates.get(0).text();
+    commandlet.command.setValue(completedName);
+    assertThat(commandlet.command.validate().isValid()).isTrue();
+  }
+
+  /**
+   * Tests that when the recipe configuration is absent the validation passes (no "Unknown recipe"
+   * error) so that {@link RewriteCommandlet#doRun()} can report the helpful "No OpenRewrite recipes
+   * configured" hint instead.
+   */
+  @Test
+  void testValidationPassesWithoutRecipeConfig() {
+    IdeTestContext context = newContext("basic");
+    RewriteCommandlet commandlet = context.getCommandletManager().getCommandlet(RewriteCommandlet.class);
+    commandlet.command.setValue("FORMAT_JAVA_CODE");
+
+    ValidationResult result = commandlet.command.validate();
+    assertThat(result.isValid()).isTrue();
+    assertThat(result.getErrorMessage()).isNull();
   }
 
   /**

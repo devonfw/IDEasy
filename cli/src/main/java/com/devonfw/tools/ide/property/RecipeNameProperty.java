@@ -58,7 +58,8 @@ public class RecipeNameProperty extends Property<String> {
     }
     for (String name : names) {
       if (name.toLowerCase(Locale.ROOT).startsWith(arg.toLowerCase(Locale.ROOT))) {
-        collector.add(name.toLowerCase(Locale.ROOT), null, this, commandlet);
+        // the recipe names are case-sensitive keys in the RecipeManager, so the candidate must keep its original casing
+        collector.add(name, null, this, commandlet);
       }
     }
   }

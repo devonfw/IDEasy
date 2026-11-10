@@ -47,7 +47,10 @@ public class RewriteCommandlet extends AbstractCommandlet {
       return settingsPath == null ? null : settingsPath.resolve(RECIPE_CONFIG_PATH);
     });
     PropertyValidator<String> validator = (value, state) -> {
-      if (!this.recipeManager.hasRecipe(value)) {
+      // If the recipe configuration is missing, validation must pass so that doRun() can report the
+      // helpful "No OpenRewrite recipes configured" hint. Reporting "Unknown recipe" here would shadow
+      // that hint because doRun() is only reached when the properties validate successfully.
+      if (this.recipeManager.isLoaded() && !this.recipeManager.hasRecipe(value)) {
         state.addErrorMessage("Unknown recipe: " + value);
       }
     };
@@ -139,6 +142,8 @@ public class RewriteCommandlet extends AbstractCommandlet {
 
     LOG.info("{} called", getClass().getSimpleName());
 
+    // The property validator only skips the recipe check when nothing is loaded, so this is the single
+    // place that reports a missing recipe configuration (see the validator in the constructor).
     if (!this.recipeManager.isLoaded()) {
       throw new CliException("No OpenRewrite recipes configured. Expected the recipe configuration at "
           + this.recipeManager.getConfigPath()
