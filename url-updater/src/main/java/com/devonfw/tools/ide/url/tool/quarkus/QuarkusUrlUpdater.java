@@ -9,7 +9,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class QuarkusUrlUpdater extends GithubUrlTagUpdater {
 
-  private static final VersionIdentifier MIN_QUARKUS_VID = VersionIdentifier.of("2.5.0");
+  private static final VersionIdentifier MIN_QUARKUS_VID = VersionIdentifier.ofRequired("2.5.0");
 
   /**
    * The Constructor.

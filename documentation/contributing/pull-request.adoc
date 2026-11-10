@@ -51,17 +51,4 @@ For your **first contribution** to IDEasy, you must sign the link:cla.adoc[Contr
 == Review
 
 After creating the Pull Request and completing the link:DoD.adoc[DoD], the review process begins.
-Please follow these rules to ensure a smooth and transparent collaboration:
-
-* **Requested changes and conversations** should only be marked as *Resolved* by the person who started them, not by the PR creator.
-**Exception:** If permissions do not allow this, the PR creator may add a final comment like *“This can be resolved now”*.
-
-* **Conversations must always be answered by the PR owner** to show whether the suggestion was implemented or acknowledged.
-
-* The **PR should always have the correct assignees**:
-**the owner of the PR and the reviewer**.
-This shows who is currently responsible.
-
-* A PR **should not be in draft mode during review**.
-Before requesting a review, ensure the PR is out of draft mode.
-
+Study the link:review.adoc[code-review guidelines] to learn how to proceed.
