@@ -88,46 +88,8 @@ public final class ToolConfigurationService {
     return enabledTools != null && enabledTools.stream().anyMatch(name -> name.equalsIgnoreCase(toolName));
   }
 
-
-  /**
-   * Build the ide.properties content that would result from applying the given configurations. This is a plain textual preview and does not attempt to preserve
-   * comments or formatting.
-   *
-   * @param configs the tool configurations
-   * @return the generated properties content
-   */
-  public String buildPreviewSettingsContent(List<ToolConfiguration> configs) {
-    StringBuilder sb = new StringBuilder();
-    List<String> enabledToolNames = getEnabledToolNames(configs);
-    sb.append(IdeVariables.IDE_TOOLS.getName()).append("=").append(String.join(", ", enabledToolNames)).append(System.lineSeparator());
-    sb.append(System.lineSeparator());
-    for (ToolConfiguration toolConfiguration : configs) {
-      if (!toolConfiguration.isEnabled()) {
-        continue;
-      }
-      appendToolVariables(sb, toolConfiguration);
-    }
-    return sb.toString();
-  }
-
   private List<String> getEnabledToolNames(List<ToolConfiguration> configs) {
     return configs.stream().filter(ToolConfiguration::isEnabled).map(tc -> tc.getToolName().toLowerCase(Locale.ROOT)).collect(Collectors.toList());
-  }
-
-  private void appendToolVariables(StringBuilder sb, ToolConfiguration toolConfiguration) {
-    String tool = toolConfiguration.getToolName();
-    String versionVar = EnvironmentVariables.getToolVersionVariable(tool);
-    String editionVar = EnvironmentVariables.getToolEditionVariable(tool);
-    String version = toolConfiguration.getConfiguredVersion();
-    String edition = toolConfiguration.getConfiguredEdition();
-    if (version != null && !version.isBlank()) {
-      sb.append(versionVar).append("=").append(version).append(System.lineSeparator());
-    }
-    if (toolConfiguration.isSupportsEdition()) {
-      if (edition != null && !edition.isBlank()) {
-        sb.append(editionVar).append("=").append(edition).append(System.lineSeparator());
-      }
-    }
   }
 
   /**

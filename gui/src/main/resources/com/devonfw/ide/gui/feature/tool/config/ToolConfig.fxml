@@ -29,7 +29,6 @@
         <padding>
           <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
         </padding>
-        <Button fx:id="previewButton" text="%tool_config.preview"/>
         <Button fx:id="saveButton" text="%tool_config.save"/>
       </HBox>
     </bottom>

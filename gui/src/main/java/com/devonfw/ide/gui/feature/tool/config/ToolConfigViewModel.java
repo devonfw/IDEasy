@@ -162,14 +162,6 @@ public class ToolConfigViewModel extends TabViewModel {
   }
 
   /**
-   * @return the {@code ide.properties} content that would result from saving the current configuration.
-   */
-  public String getPreview() {
-
-    return this.service.buildPreviewSettingsContent(this.tools);
-  }
-
-  /**
    * Saves the current configuration to the {@code ide.properties} of the project settings.
    */
   public void save() {

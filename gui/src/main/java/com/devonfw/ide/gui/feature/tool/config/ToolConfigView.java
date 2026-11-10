@@ -4,18 +4,10 @@ import java.util.List;
 
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 
 import com.devonfw.ide.gui.core.model.ToolConfiguration;
 import com.devonfw.ide.gui.core.service.NlsService;
@@ -31,9 +23,6 @@ public class ToolConfigView extends TabView {
 
   @FXML
   private Button saveButton;
-
-  @FXML
-  private Button previewButton;
 
   private final ToolConfigViewModel viewModel;
 
@@ -67,8 +56,6 @@ public class ToolConfigView extends TabView {
 
     this.saveButton.disableProperty().bind(this.viewModel.saveDisabledProperty());
     this.saveButton.setOnAction(_ -> this.viewModel.save());
-    this.previewButton.disableProperty().bind(this.viewModel.saveDisabledProperty());
-    this.previewButton.setOnAction(_ -> showPreview());
   }
 
   private TreeItem<ToolConfiguration> buildToolTree(List<ToolConfiguration> tools) {
@@ -95,35 +82,6 @@ public class ToolConfigView extends TabView {
       groupItem.getChildren().add(new TreeItem<>(tool));
     }
     return groupItem;
-  }
-
-  private void showPreview() {
-
-    TextArea area = new TextArea(this.viewModel.getPreview());
-    area.setEditable(false);
-    area.setPrefWidth(800);
-    area.setPrefHeight(400);
-
-    Stage dialog = new Stage();
-    dialog.initModality(Modality.APPLICATION_MODAL);
-    dialog.initOwner(getScene().getWindow());
-    dialog.setTitle(this.nlsService.get("tool_config.preview_title"));
-
-    Button save = new Button(this.nlsService.get("tool_config.save"));
-    save.setOnAction(_ -> {
-      this.viewModel.save();
-      dialog.close();
-    });
-    Button close = new Button(this.nlsService.get("tool_config.cancel"));
-    close.setOnAction(_ -> dialog.close());
-
-    HBox actions = new HBox(8, close, save);
-    actions.setAlignment(Pos.CENTER_RIGHT);
-    VBox box = new VBox(8, area, actions);
-    box.setPadding(new Insets(10));
-
-    dialog.setScene(new Scene(box));
-    dialog.showAndWait();
   }
 
 }

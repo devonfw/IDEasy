@@ -6,16 +6,13 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 
 import org.junit.jupiter.api.Test;
@@ -125,11 +122,10 @@ class ToolConfigTabTest extends UIBasedApplicationTest {
     }));
     assertThat(intellij.getConfiguredVersion()).isEqualTo("*");
     assertThat(viewModel.saveDisabledProperty().get()).isFalse();
-    assertThat(viewModel.getPreview()).contains("IDE_TOOLS=intellij").contains("INTELLIJ_VERSION=*").doesNotContain("MVN_VERSION");
   }
 
   /**
-   * The controls of a rendered row must write back to the {@link ToolConfiguration} and the preview dialog must open and close.
+   * The controls of a rendered row must write back to the {@link ToolConfiguration}.
    */
   @Test
   void testRowControlsUpdateTheToolConfiguration() {
@@ -173,15 +169,6 @@ class ToolConfigTabTest extends UIBasedApplicationTest {
     CheckBox enabled = lookup(".check-box").queryAs(CheckBox.class);
     interact(enabled::fire);
     assertThat(intellij.isEnabled()).isFalse();
-
-    // preview dialog
-    Button preview = lookup("#previewButton").queryButton();
-    // the preview dialog blocks via showAndWait, so it must not be opened inside interact
-    Platform.runLater(preview::fire);
-    WaitForAsyncUtils.waitForFxEvents();
-    TextArea previewText = lookup(".text-area").queryAs(TextArea.class);
-    assertThat(previewText.getText()).startsWith("IDE_TOOLS=");
-    interact(() -> previewText.getScene().getWindow().hide());
   }
 
   @SuppressWarnings("unchecked")
