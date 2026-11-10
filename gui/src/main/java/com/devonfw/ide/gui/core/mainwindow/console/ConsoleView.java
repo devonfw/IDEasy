@@ -1,14 +1,25 @@
 package com.devonfw.ide.gui.core.mainwindow.console;
 
 import java.text.MessageFormat;
+import java.util.stream.Collectors;
 
 import javafx.collections.ListChangeListener.Change;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MultipleSelectionModel;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
@@ -18,8 +29,13 @@ import com.devonfw.tools.ide.log.IdeLogEntry;
  */
 public class ConsoleView {
 
+  private static final KeyCombination COPY_SHORTCUT = new KeyCodeCombination(KeyCode.C, KeyCombination.SHORTCUT_DOWN);
+
   private final NlsService nlsService;
   private final ConsoleViewModel viewModel;
+
+  /** Index of the log entry where the current mouse drag started or {@code -1} if no selection by dragging is in progress. */
+  private int dragAnchorIndex = -1;
 
   @FXML
   private Button clearButton;
@@ -60,7 +76,71 @@ public class ConsoleView {
 
     consoleListView.setCellFactory(_ -> new LogEntryCell());
     consoleListView.setItems(viewModel.logEntries());
+    consoleListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    consoleListView.addEventHandler(KeyEvent.KEY_PRESSED, this::handleCopy);
+    consoleListView.addEventHandler(MouseEvent.MOUSE_PRESSED, this::handleMousePressed);
+    consoleListView.addEventHandler(MouseEvent.MOUSE_DRAGGED, this::handleMouseDragged);
     viewModel.logEntries().addListener(this::handleScroll);
+  }
+
+  /**
+   * Remembers the entry where a plain mouse press started so that dragging can extend the selection from there.
+   */
+  private void handleMousePressed(MouseEvent event) {
+
+    if (event.isPrimaryButtonDown() && !event.isShiftDown() && !event.isShortcutDown()) {
+      this.dragAnchorIndex = getIndexAt(event);
+    } else {
+      this.dragAnchorIndex = -1;
+    }
+  }
+
+  /**
+   * Selects all entries between the one where the drag started and the one currently below the mouse.
+   */
+  private void handleMouseDragged(MouseEvent event) {
+
+    if (this.dragAnchorIndex < 0) {
+      return;
+    }
+    int index = getIndexAt(event);
+    if (index >= 0) {
+      MultipleSelectionModel<IdeLogEntry> selectionModel = consoleListView.getSelectionModel();
+      selectionModel.clearSelection();
+      selectionModel.selectRange(Math.min(this.dragAnchorIndex, index), Math.max(this.dragAnchorIndex, index) + 1);
+    }
+  }
+
+  /**
+   * @return the index of the log entry below the mouse or {@code -1} if there is none.
+   */
+  private int getIndexAt(MouseEvent event) {
+
+    Node node = event.getPickResult().getIntersectedNode();
+    while ((node != null) && (node != consoleListView)) {
+      if (node instanceof ListCell<?> cell) {
+        return cell.isEmpty() ? -1 : cell.getIndex();
+      }
+      node = node.getParent();
+    }
+    return -1;
+  }
+
+  /**
+   * Copies the selected log entries (one per line) to the clipboard when the copy shortcut is pressed.
+   */
+  private void handleCopy(KeyEvent event) {
+
+    if (COPY_SHORTCUT.match(event)) {
+      String selectedText = consoleListView.getSelectionModel().getSelectedItems().stream().map(IdeLogEntry::displayValue)
+          .collect(Collectors.joining(System.lineSeparator()));
+      if (!selectedText.isEmpty()) {
+        ClipboardContent content = new ClipboardContent();
+        content.putString(selectedText);
+        Clipboard.getSystemClipboard().setContent(content);
+      }
+      event.consume();
+    }
   }
 
   /**
