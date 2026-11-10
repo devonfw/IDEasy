@@ -62,7 +62,7 @@ Try to keep the number of open issues and changes assigned to you at a bare mini
 This helps for mindfulness and makes it easy to focus on the work you need to do.
 What is your status if you have hundreds of open issues assigned and what are you working on now and next?
 
-=== Best practices for managing code-changes and core-reviews
+=== Best practices for managing code-changes and code-reviews
 
 . *Fast feedback*:
 The earlier a developer gets feedback if he does something wrong or odd, the better.
