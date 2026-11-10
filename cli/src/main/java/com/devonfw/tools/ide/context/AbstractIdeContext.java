@@ -589,7 +589,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       Path versionFile = this.ideHome.resolve(IdeContext.FILE_SOFTWARE_VERSION);
       if (Files.exists(versionFile)) {
         String version = this.fileAccess.readFileContent(versionFile).trim();
-        return VersionIdentifier.of(version);
+        return VersionIdentifier.ofRequired(version);
       }
     }
     return IdeMigrator.START_VERSION;
