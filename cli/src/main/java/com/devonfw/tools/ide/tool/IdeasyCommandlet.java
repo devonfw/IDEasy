@@ -164,7 +164,24 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       LOG.warn("You are using IDEasy version {} which indicates local development - skipping upgrade.", version);
       return toolAlreadyInstalled(request);
     }
+    if (shouldSkipUpgradeOfInstalledSnapshot(request)) {
+      IdeLogLevel.SUCCESS.log(LOG, "You are using the latest snapshot version of IDEasy and no update is available.");
+      return toolAlreadyInstalled(request);
+    }
     return super.doInstall(request);
+  }
+
+  /**
+   * Checks whether the installed IDEasy version matches the latest snapshot build.
+   *
+   * @param request the installation request.
+   * @return {@code true} if the installed and requested versions are the same snapshot build.
+   */
+  private boolean shouldSkipUpgradeOfInstalledSnapshot(ToolInstallRequest request) {
+
+    VersionIdentifier installed = request.getInstalled().getResolvedVersion();
+    VersionIdentifier latest = request.getRequested().getResolvedVersion();
+    return (installed != null) && (latest != null) && isSameSnapshotVersion(installed.toString(), latest.toString());
   }
 
 

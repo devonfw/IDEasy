@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import com.devonfw.tools.ide.commandlet.UpgradeMode;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -316,6 +317,37 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtInteraction()
         .hasMessageContaining("version 2026.05.001-20260519.032313-17 is available. Please run the following command to upgrade to the latest version:\n"
             + "ide upgrade");
+  }
+
+  /**
+   * Tests that upgrading is skipped when the installed and latest snapshot versions represent the same build.
+   */
+  @Test
+  void testUpgradeDoesNothingWhenInstalledIsLatestSnapshotBuild() {
+
+    // arrange
+    String installedVersion = "2026.11.001-11_04_08-SNAPSHOT";
+    String latestVersion = "2026.11.001-20261104.085951-7";
+    IdeTestContext context = newContext("install");
+    context.getStartContext().setForceMode(true);
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context, UpgradeMode.SNAPSHOT) {
+      @Override
+      protected EditionAndVersion computeInstalledEditionAndVersion() {
+        return new EditionAndVersion("ideasy", VersionIdentifier.of(installedVersion));
+      }
+    };
+    VersionIdentifier latestVersionId = VersionIdentifier.of(latestVersion);
+
+    // act
+    ToolInstallRequest request = new ToolInstallRequest(false);
+    request.setRequested(new ToolEditionAndVersion(new ToolEdition("ideasy", "ideasy"), latestVersionId));
+    ToolInstallation installation = ideasy.install(request);
+
+    // assert
+    assertThat(installation.newInstallation()).isFalse();
+    assertThat(context).logAtSuccess().hasMessage("You are using the latest snapshot version of IDEasy and no update is available.");
+    // in particular the misleading "new version installed" message must not appear
+    assertThat(context).logAtSuccess().hasNoMessageContaining("Successfully installed " + IdeasyCommandlet.TOOL_NAME + " in version");
   }
 
   private void verifyInstallation(Path installationPath) {
