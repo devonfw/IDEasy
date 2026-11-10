@@ -15,11 +15,9 @@ import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.context.IdeGuiContext;
 import com.devonfw.ide.gui.core.context.IdeGuiLogListener;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
-import com.devonfw.ide.gui.core.event.console.LogEvent;
 import com.devonfw.ide.gui.core.modal.IdeDialog;
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
-import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
@@ -104,11 +102,9 @@ public class CommandletService {
 
             LOG.info("Commandlet {} completed successfully.", commandlet);
           } catch (Exception e) {
+            guiLogListener.flushAndEndBuffering();
             LOG.error("Failed to run commandlet {}: {}", commandlet, e.getMessage(), e);
 
-            eventBus.sendEvent(new LogEvent(
-                new IdeLogEntry(IdeLogLevel.ERROR, "[ERROR] Failed to launch " + commandlet + ": " + e.getMessage())
-            ));
           }
           return null;
         }

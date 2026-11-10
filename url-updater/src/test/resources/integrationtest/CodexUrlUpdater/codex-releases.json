@@ -1,0 +1,26 @@
+[
+  {
+    "html_url": "https://github.com/openai/codex/releases/tag/rust-v0.154.0",
+    "tag_name": "rust-v0.154.0",
+    "name": "0.154.0",
+    "prerelease": false
+  },
+  {
+    "html_url": "https://github.com/openai/codex/releases/tag/rust-v0.153.0",
+    "tag_name": "rust-v0.153.0",
+    "name": "0.153.0",
+    "prerelease": false
+  },
+  {
+    "html_url": "https://github.com/openai/codex/releases/tag/rust-v0.155.0-alpha.9",
+    "tag_name": "rust-v0.155.0-alpha.9",
+    "name": "0.155.0-alpha.9",
+    "prerelease": true
+  },
+  {
+    "html_url": "https://github.com/openai/codex/releases/tag/python-v0.154.0",
+    "tag_name": "python-v0.154.0",
+    "name": "Python SDK 0.154.0",
+    "prerelease": false
+  }
+]
