@@ -60,10 +60,11 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   public static final String IDE_BIN = "\\_ide\\bin";
   public static final String IDE_INSTALLATION_BIN = "\\_ide\\installation\\bin";
 
-  /** Name of the variable (set by the MSI installer) that disables the GUI desktop shortcut on Windows if set to {@code 0}. */
+/** Name of the variable (set by the MSI installer) that controls if the GUI desktop shortcut is created on Windows. Only {@code 0} disables it. */
   public static final String VAR_CREATE_DESKTOP_SHORTCUT = "IDEASY_CREATE_DESKTOP_SHORTCUT";
 
-  /** Name of the variable (set by the MSI installer) that disables the GUI Start Menu shortcut on Windows if set to {@code 0}. */
+/** Name of the variable (set by the MSI installer) that controls if the GUI Start Menu shortcut is created on Windows. Only {@code 0} disables it. */
+
   public static final String VAR_CREATE_STARTMENU_SHORTCUT = "IDEASY_CREATE_STARTMENU_SHORTCUT";
 
   private static final String REGISTRY_KEY_SHELL_FOLDERS = "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders";
