@@ -65,9 +65,9 @@ What is your status if you have hundreds of open issues assigned and what are yo
 === Best practices for managing code-changes and code-reviews
 
 . *Fast feedback*:
-The earlier a developer gets feedback if he does something wrong or odd, the better.
+The earlier developers gets feedback if they do something wrong or odd, the better.
 Ideally you get feedback inside your IDE while you are typing.
-Projects where the author gets feedback from the reviewer months after he created the change will sooner or later get big trouble.
+Projects where the author gets feedback from the reviewer months after creating the change will sooner or later get into big trouble.
 Meanwhile, the same author may have repeated the same mistakes or antipatterns in multiple other places.
 . *Positive feedback*:
 A code-review may have the tendency to focus on the problems and surely the main task is to find out what may be wrong or should be improved.
@@ -77,7 +77,7 @@ Nowadays, review tools allow reviewers to make suggestions for code changes.
 Make use of that feature to propose small improvements.
 This is sometimes even easier and faster than explaining the desired improvement in plain text and especially avoids misunderstandings and supports resolving the review-comment fast.
 Even when a technical suggestion is not suitable, help to provide a way to resolve the found problem or flaw with design proposals and code snippets.
-Consider to explain and motivate your suggestion so the author can understand the problem of his original code or why your suggested idea improves the code.
+Consider to explain and motivate your suggestion so the author can understand the problem of their original code or why your suggested idea improves the code.
 . *Precise feedback*:
 Be precise and include contextual information to avoid misunderstandings.
 Try to be concrete and specific to make it easy to address your review concern and take action to resolve it.
@@ -105,9 +105,9 @@ Take responsibility to maintain your change and keep it clean and green.
 Empower the entire team to do reviews in order to avoid bottlenecks.
 Surely good reviews need experience but how can you collect experience and become a good reviewer unless you start doing reviews?
 Establish coaching of less experienced team members for reviews in pair-review sessions.
-Also, consider letting them do a first review, a more experienced member doing a second one so he can see what they might have missed, and they can learn from it.
+Also, consider letting them do a first review, a more experienced member doing a second one so they can see what might have been missed out, and they can learn from it.
 A technical lead with a large developer team who dictates all reviews is on the wrong track.
-He will be the bottleneck of all reviews slowing down the progress, or he will end up under such pressure that he cannot keep the quality high and take the needed time to review everything carefully.
+Such person will be the bottleneck of all reviews slowing down the progress, or will end up under such pressure that they cannot keep the quality high and take the needed time to review everything carefully.
 . *Be team-player*:
 First focus on your tasks and issues.
 But second, also observe if something got stuck and see if you can help out.
