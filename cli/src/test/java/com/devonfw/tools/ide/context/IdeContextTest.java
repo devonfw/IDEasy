@@ -315,6 +315,46 @@ public class IdeContextTest extends AbstractIdeContextTest {
   }
 
   /**
+   * A question with multiple options must not accept an empty answer: it is rejected with a clear warning and the question is asked again until a valid
+   * option is given. This is a regression test for
+   * <a href="https://github.com/devonfw/IDEasy/issues/2782">#2782</a>, where an empty answer produced the confusing warning
+   * {@code Invalid answer: ''} yet the process appeared to continue.
+   */
+  @Test
+  void testQuestionWithMultipleOptionsRejectsEmptyAnswerAndReasks() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    String[] options = { "option1", "option2" };
+    context.setAnswers("", "option2"); // first press Enter (empty), then choose the second option
+
+    // act
+    String result = context.question(options, "Which option?");
+
+    // assert
+    assertThat(result).isEqualTo("option2");
+    assertThat(context).logAtWarning().hasMessage("An empty answer is not valid, please choose one of the listed options.");
+  }
+
+  /**
+   * When the end of the input stream is reached before a valid answer is given (e.g. the question is asked but there is no further interactive input),
+   * the process must be aborted with a {@link CliAbortException} instead of looping forever or silently continuing as if the first option had been
+   * chosen. This is a regression test for <a href="https://github.com/devonfw/IDEasy/issues/2782">#2782</a>.
+   */
+  @Test
+  void testQuestionWithMultipleOptionsAbortsOnEndOfInputStream() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    String[] options = { "yes", "no" };
+    context.setReadLineEof();
+
+    // act & assert
+    assertThatThrownBy(() -> context.question(options, "Do you want to continue anyways?")).isInstanceOf(CliAbortException.class)
+        .hasMessageContaining("end of the input stream");
+  }
+
+  /**
    * A question with multiple options cannot be answered interactively, so in batch mode without force mode the process must be aborted with a
    * {@link CliAbortException} instead of silently returning {@code null}. This is a regression test for
    * <a href="https://github.com/devonfw/IDEasy/issues/2635">#2635</a>, where the {@code null} answer caused a {@code NullPointerException} in the CVE check
