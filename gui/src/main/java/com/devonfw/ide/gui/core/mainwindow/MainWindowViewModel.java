@@ -2,7 +2,6 @@ package com.devonfw.ide.gui.core.mainwindow;
 
 import java.util.List;
 import java.util.Objects;
-
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -19,8 +18,7 @@ import com.devonfw.ide.gui.core.service.NlsService;
 
 /**
  * View model of the main window. It holds the observable state behind the status bar (status text, progress and clickability), the console visibility and the
- * visibility of the welcome pane shown while no tab is open, and
- * reflects the task list held by the {@link GuiStateManager} onto the status bar.
+ * visibility of the welcome pane shown while no tab is open, and reflects the task list held by the {@link GuiStateManager} onto the status bar.
  */
 public class MainWindowViewModel {
 
@@ -40,7 +38,7 @@ public class MainWindowViewModel {
 
   private final BooleanProperty consoleVisible = new SimpleBooleanProperty(false);
 
-  private final BooleanProperty welcomeVisible = new SimpleBooleanProperty(true);
+  private final BooleanProperty welcomePaneVisible = new SimpleBooleanProperty(true);
 
   /**
    * Initializes the view model and wires the task-list listener that drives the status bar.
@@ -166,9 +164,9 @@ public class MainWindowViewModel {
   /**
    * @return the property flagging whether the welcome pane is visible, which is the case while no tab is open.
    */
-  public BooleanProperty welcomeVisibleProperty() {
+  public BooleanProperty welcomePaneVisibleProperty() {
 
-    return this.welcomeVisible;
+    return this.welcomePaneVisible;
   }
 
   /**
@@ -178,7 +176,7 @@ public class MainWindowViewModel {
    */
   public void setOpenTabCount(int openTabCount) {
 
-    this.welcomeVisible.set(openTabCount == 0);
+    this.welcomePaneVisible.set(openTabCount == 0);
   }
 
   /**

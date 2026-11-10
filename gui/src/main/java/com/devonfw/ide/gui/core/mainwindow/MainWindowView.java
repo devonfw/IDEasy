@@ -2,7 +2,6 @@ package com.devonfw.ide.gui.core.mainwindow;
 
 import java.io.IOException;
 import java.util.Objects;
-
 import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
@@ -147,11 +146,11 @@ public class MainWindowView extends BorderPane {
 
   private void bindWelcomePane() {
 
-    this.welcomePane.visibleProperty().bind(this.viewModel.welcomeVisibleProperty());
-    this.welcomePane.managedProperty().bind(this.viewModel.welcomeVisibleProperty());
+    this.welcomePane.visibleProperty().bind(this.viewModel.welcomePaneVisibleProperty());
+    this.welcomePane.managedProperty().bind(this.viewModel.welcomePaneVisibleProperty());
     // An empty TabPane still paints its header, so it is hidden to keep it from covering the welcome pane.
-    this.tabPane.visibleProperty().bind(this.viewModel.welcomeVisibleProperty().not());
-    this.tabPane.managedProperty().bind(this.viewModel.welcomeVisibleProperty().not());
+    this.tabPane.visibleProperty().bind(this.viewModel.welcomePaneVisibleProperty().not());
+    this.tabPane.managedProperty().bind(this.viewModel.welcomePaneVisibleProperty().not());
 
     this.tabPane.getTabs().addListener((ListChangeListener<Tab>) _ -> this.viewModel.setOpenTabCount(this.tabPane.getTabs().size()));
     this.viewModel.setOpenTabCount(this.tabPane.getTabs().size());
