@@ -88,7 +88,7 @@ If there is more complex review-feedback, always (additionally) consider to plan
 This can sometimes speed up the process to get a complex change merged significantly compared to async review comments.
 . *Focus on the topic*:
 A change needs to be associated with an issue (bug, feature, story, etc.) and focus on it.
-Therefore, if the reviewer browsing the diff and spotting an unrelated code problem will *_not_* add a review comment asking the author of the change to fix it nor ignore it, but instead create a new issue for the new problem.
+Therefore, if the reviewer spots an unrelated code problem while browsing the diff, they should neither ask the author to fix it in this change nor ignore it, but instead create a new issue for it.
 The reviewer is more than welcome to put a link to the new issue in a review comment but then set it to resolve preventing to block the change from being merged due to the new issue.
 . *Small changes*:
 Design your issues and changes as small as possible.
