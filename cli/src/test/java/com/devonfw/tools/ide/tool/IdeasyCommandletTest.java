@@ -21,6 +21,7 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 
@@ -148,7 +149,8 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that the GUI shortcuts on Windows are only created if enabled via the variables passed from the checkboxes of the MSI installer.
+   * Tests that the GUI shortcuts on Windows are only created if enabled via {@link IdeVariables#IDEASY_CREATE_DESKTOP_SHORTCUT} and
+   * {@link IdeVariables#IDEASY_CREATE_STARTMENU_SHORTCUT} that are passed from the checkboxes of the MSI installer.
    *
    * @param createDesktopShortcut whether the desktop shortcut checkbox is checked.
    * @param createStartMenuShortcut whether the Start Menu shortcut checkbox is checked.
@@ -164,8 +166,8 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     context.setSystemInfo(systemInfo);
     context.getStartContext().setForceMode(true);
     EnvironmentVariables variables = context.getVariables().getByType(EnvironmentVariablesType.CONF);
-    variables.set(IdeasyCommandlet.VAR_CREATE_DESKTOP_SHORTCUT, createDesktopShortcut ? "1" : "0");
-    variables.set(IdeasyCommandlet.VAR_CREATE_STARTMENU_SHORTCUT, createStartMenuShortcut ? "1" : "0");
+    variables.set(IdeVariables.IDEASY_CREATE_DESKTOP_SHORTCUT.getName(), Boolean.toString(createDesktopShortcut));
+    variables.set(IdeVariables.IDEASY_CREATE_STARTMENU_SHORTCUT.getName(), Boolean.toString(createStartMenuShortcut));
     Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
     FileAccess fileAccess = new FileAccessImpl(context);
     fileAccess.writeFileContent("", gitconfigPath);

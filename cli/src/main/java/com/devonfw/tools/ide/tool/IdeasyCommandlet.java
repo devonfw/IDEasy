@@ -60,13 +60,6 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   public static final String IDE_BIN = "\\_ide\\bin";
   public static final String IDE_INSTALLATION_BIN = "\\_ide\\installation\\bin";
 
-/** Name of the variable (set by the MSI installer) that controls if the GUI desktop shortcut is created on Windows. Only {@code 0} disables it. */
-  public static final String VAR_CREATE_DESKTOP_SHORTCUT = "IDEASY_CREATE_DESKTOP_SHORTCUT";
-
-/** Name of the variable (set by the MSI installer) that controls if the GUI Start Menu shortcut is created on Windows. Only {@code 0} disables it. */
-
-  public static final String VAR_CREATE_STARTMENU_SHORTCUT = "IDEASY_CREATE_STARTMENU_SHORTCUT";
-
   private static final String REGISTRY_KEY_SHELL_FOLDERS = "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders";
 
   private static final String WINDOWS_GUI_SHORTCUT = "IDEasy.lnk";
@@ -452,13 +445,13 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
   private void installGuiWindowsDesktopShortcut(Path installationPath) {
 
-    if (isShortcutCreationRequested(VAR_CREATE_DESKTOP_SHORTCUT)) {
+    if (IdeVariables.IDEASY_CREATE_DESKTOP_SHORTCUT.get(this.context)) {
       Path desktopShortcut = getWindowsDesktopShortcut();
       this.context.getFileAccess().mkdirs(desktopShortcut.getParent());
       createWindowsGuiShortcut(desktopShortcut, installationPath);
     }
 
-    if (isShortcutCreationRequested(VAR_CREATE_STARTMENU_SHORTCUT)) {
+    if (IdeVariables.IDEASY_CREATE_STARTMENU_SHORTCUT.get(this.context)) {
       Path startMenuShortcut = getWindowsStartMenuShortcut();
       if (Files.isDirectory(startMenuShortcut.getParent())) {
         createWindowsGuiShortcut(startMenuShortcut, installationPath);
@@ -933,17 +926,5 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   private void logIdeasyModification(String target, boolean configure) {
     String action = configure ? "Configuring" : "Removing";
     LOG.info("{} IDEasy in {}", action, target);
-  }
-
-  /**
-   * Shortcuts are created by default (e.g. when installing via setup script) and only skipped if explicitly disabled.
-   *
-   * @param variable the environment variable controlling shortcut creation.
-   * @return {@code true} if the shortcut should be created, {@code false} otherwise.
-   */
-  private boolean isShortcutCreationRequested(String variable) {
-
-    String value = this.context.getVariables().get(variable);
-    return !"0".equals(value);
   }
 }
