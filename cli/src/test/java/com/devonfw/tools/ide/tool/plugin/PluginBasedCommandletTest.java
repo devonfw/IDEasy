@@ -367,6 +367,30 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     assertThat(commandlet.isPluginPurgeRequired(majorChange)).isTrue();
   }
 
+  @Test
+  void testResetPluginsDeletesMarkerFilesEvenIfDeletingPluginsFails() {
+
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    ExamplePluginBasedCommandlet commandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags) {
+      @Override
+      public void deleteAllPlugins() {
+
+        throw new IllegalStateException("Failed to delete plugins");
+      }
+    };
+    ToolPluginDescriptor plugin = new ToolPluginDescriptor("anyedit", "anyedit", null, null, true, Set.of(), Set.of());
+    commandlet.createPluginMarkerFile(plugin);
+    Path markerFile = commandlet.retrievePluginMarkerFilePath(plugin);
+    assertThat(markerFile).exists();
+    ToolEditionAndVersion editionAndVersion = newEditionAndVersion(new ToolEdition(TOOL, TOOL), VersionIdentifier.of("1.90.0"));
+    ToolInstallRequest request = newPurgeRequest(editionAndVersion, editionAndVersion);
+
+    assertThatThrownBy(() -> commandlet.getPluginManager().resetPlugins(request)).isInstanceOf(IllegalStateException.class)
+        .hasMessage("Failed to delete plugins");
+
+    assertThat(markerFile).doesNotExist();
+  }
+
   private ExamplePluginBasedCommandlet newThresholdCommandlet(IdeTestContext context, int incompatibleSegmentIndex) {
 
     return new ExamplePluginBasedCommandlet(context, TOOL, tags) {
