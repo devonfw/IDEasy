@@ -25,8 +25,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import com.devonfw.ide.gui.core.model.ToolConfiguration;
 import com.devonfw.ide.gui.core.service.NlsService;
-import com.devonfw.ide.gui.core.service.ToolConfiguration;
 import com.devonfw.ide.gui.core.tab.TabView;
 
 /**

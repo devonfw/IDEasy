@@ -13,7 +13,7 @@ import javafx.collections.ObservableSet;
 import com.devonfw.ide.gui.core.context.GuiContextChangeListener;
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.context.IdeGuiContext;
-import com.devonfw.ide.gui.core.service.ToolConfiguration;
+import com.devonfw.ide.gui.core.model.ToolConfiguration;
 import com.devonfw.ide.gui.core.service.ToolConfigurationService;
 import com.devonfw.ide.gui.core.tab.TabViewModel;
 

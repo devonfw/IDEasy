@@ -26,7 +26,7 @@ import com.devonfw.ide.gui.UIBasedApplicationTest;
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.event.TabChangeEvent;
 import com.devonfw.ide.gui.core.mainwindow.navigation.NavigationPanelViewModel;
-import com.devonfw.ide.gui.core.service.ToolConfiguration;
+import com.devonfw.ide.gui.core.model.ToolConfiguration;
 
 /**
  * Tests for {@link ToolConfigTab} together with its {@link ToolConfigViewModel} and {@link ToolConfigView}.

@@ -1,4 +1,4 @@
-package com.devonfw.ide.gui.core.service;
+package com.devonfw.ide.gui.core.model;
 
 import java.util.List;
 import java.util.Objects;

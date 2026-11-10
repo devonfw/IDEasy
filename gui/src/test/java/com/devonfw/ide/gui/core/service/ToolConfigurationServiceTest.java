@@ -11,6 +11,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.ide.gui.core.context.IdeGuiContext;
 import com.devonfw.ide.gui.core.context.TaskManager;
+import com.devonfw.ide.gui.core.model.ToolConfiguration;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.context.IdeTestContext;
