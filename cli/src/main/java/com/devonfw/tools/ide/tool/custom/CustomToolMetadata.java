@@ -44,7 +44,7 @@ public final class CustomToolMetadata implements UrlDownloadFileMetadata {
 
     super();
     this.tool = tool;
-    this.version = VersionIdentifier.of(versionString);
+    this.version = VersionIdentifier.ofRequired(versionString);
     this.os = os;
     this.arch = arch;
     this.url = url;
