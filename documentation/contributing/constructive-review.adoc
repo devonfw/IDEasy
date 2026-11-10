@@ -39,7 +39,7 @@ Those typically include compiling, linting, automated testing, CVE checking, sec
 * *Automation is key*:
 The more checks and process-steps are automated, the less hustle for humans participating in the process.
 Therefore, be lazy and implement automated workflows checking basic requirements and rules for your code quality.
-Instead of writing documentation that e.g. code should be formatted in a special way or that method names need to follow some regex, simple automate a check.
+Instead of writing documentation that e.g. code should be formatted in a special way or that method names need to follow some regex, simply automate a check.
 * *Balance your checks*:
 Find a good balance for automated checks between being too lax and overengineered formalism.
 Especially only include build-breakers for rules that do not cause false-positives.
