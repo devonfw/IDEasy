@@ -7,6 +7,12 @@ on:
     types: [ completed ]
   pull_request_target:
     types: [ ready_for_review ]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: PR number to preview without posting to Teams
+        type: number
+        required: true
 
 permissions: {}
 
@@ -14,9 +20,10 @@ jobs:
   notify:
     if: >
       github.repository == 'devonfw/IDEasy' &&
-      vars.ENABLE_AUTOMATIC_WORKFLOWS == 'true' &&
-      (github.event_name == 'pull_request_target' ||
-       (github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'failure'))
+      (github.event_name == 'workflow_dispatch' ||
+       (vars.ENABLE_AUTOMATIC_WORKFLOWS == 'true' &&
+        (github.event_name == 'pull_request_target' ||
+         (github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'failure'))))
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -27,21 +34,34 @@ jobs:
       - name: Notify Teams once per PR commit
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          WEBHOOK: ${{ github.event_name != 'workflow_dispatch' && secrets.TEAMS_WEBHOOK_URL || '' }}
           REPO: ${{ github.repository }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' }}
+          PREVIEW_PR: ${{ inputs.pr_number }}
         run: |
           set -euo pipefail
 
-          READY_PR_NUMBER=''
-          if [ "$GITHUB_EVENT_NAME" = 'pull_request_target' ]; then
+          DRY_RUN=${DRY_RUN:-false}
+          TARGET_PR=''
+          TARGET_PR_NUMBER=''
+          if [ "$DRY_RUN" = 'true' ]; then
+            if [[ ! ${PREVIEW_PR:-} =~ ^[1-9][0-9]*$ ]]; then
+              echo "Set PREVIEW_PR to a pull request number." >&2
+              exit 1
+            fi
+            TARGET_PR=$(gh api "repos/$REPO/pulls/$PREVIEW_PR")
+          elif [ "$GITHUB_EVENT_NAME" = 'pull_request_target' ]; then
             # Check the existing CI result when a PR leaves draft.
-            READY_PR=$(jq -c '.pull_request' "$GITHUB_EVENT_PATH")
-            READY_PR_NUMBER=$(jq -r '.number' <<< "$READY_PR")
-            HEAD_BRANCH=$(jq -r '.head.ref' <<< "$READY_PR")
-            HEAD_SHA=$(jq -r '.head.sha' <<< "$READY_PR")
+            TARGET_PR=$(jq -c '.pull_request' "$GITHUB_EVENT_PATH")
+          fi
+
+          if [ -n "$TARGET_PR" ]; then
+            TARGET_PR_NUMBER=$(jq -r '.number' <<< "$TARGET_PR")
+            HEAD_BRANCH=$(jq -r '.head.ref' <<< "$TARGET_PR")
+            HEAD_SHA=$(jq -r '.head.sha' <<< "$TARGET_PR")
             RUN=$(gh api --method GET --paginate --slurp "repos/$REPO/actions/workflows/build-pr.yml/runs" \
               -f event=pull_request -f "branch=$HEAD_BRANCH" -f "head_sha=$HEAD_SHA" -f per_page=100 \
-              | jq -c --argjson pr "$READY_PR" '
+              | jq -c --argjson pr "$TARGET_PR" '
                 [.[] | .workflow_runs[]
                   | select(.head_sha == $pr.head.sha and .head_branch == $pr.head.ref
                     and .head_repository.id == $pr.head.repo.id)
@@ -49,7 +69,7 @@ jobs:
                     or any(.pull_requests[]?; .number == $pr.number))]
                 | max_by(.run_number)')
             if ! jq -e '.status == "completed" and .conclusion == "failure"' <<< "$RUN" > /dev/null; then
-              echo "No latest failed CI run for PR #$READY_PR_NUMBER at $HEAD_SHA."
+              echo "No latest failed CI run for PR #$TARGET_PR_NUMBER at $HEAD_SHA."
               exit 0
             fi
           else
@@ -83,24 +103,26 @@ jobs:
             exit 1
           fi
 
-          PULLS=$(jq -c --arg ready "$READY_PR_NUMBER" '
-            .[] | select((.draft | not) and ($ready == "" or (.number | tostring) == $ready))
+          PULLS=$(jq -c --arg target "$TARGET_PR_NUMBER" '
+            .[] | select((.draft | not) and ($target == "" or (.number | tostring) == $target))
           ' <<< "$OPEN_PULLS")
           if [ -z "$PULLS" ]; then
             echo "No open PR ready for review has the failed head of run $RUN_ID."
             exit 0
           fi
 
-          if [ -z "${WEBHOOK:-}" ]; then
-            echo "No Teams webhook set; notification cannot be delivered." >&2
-            exit 1
-          fi
+          if [ "$DRY_RUN" != 'true' ]; then
+            if [ -z "${WEBHOOK:-}" ]; then
+              echo "No Teams webhook set; notification cannot be delivered." >&2
+              exit 1
+            fi
 
-          # The event SHA can be stale on a rerun. Tag the current default branch tip.
-          DEFAULT_BRANCH=$(jq -r '.repository.default_branch' "$GITHUB_EVENT_PATH")
-          TAG_TARGET=$(gh api "repos/$REPO/git/ref/heads/$DEFAULT_BRANCH" --jq '.object.sha')
+            # The event SHA can be stale on a rerun. Tag the current default branch tip.
+            DEFAULT_BRANCH=$(jq -r '.repository.default_branch' "$GITHUB_EVENT_PATH")
+            TAG_TARGET=$(gh api "repos/$REPO/git/ref/heads/$DEFAULT_BRANCH" --jq '.object.sha')
+          fi
           RUN_ATTEMPT=$(jq -r '.run_attempt' <<< "$RUN")
-          RUN_URL="$GITHUB_SERVER_URL/$REPO/actions/runs/$RUN_ID/attempts/$RUN_ATTEMPT"
+          RUN_URL="${GITHUB_SERVER_URL:-https://github.com}/$REPO/actions/runs/$RUN_ID/attempts/$RUN_ATTEMPT"
           SEND_FAILED=0
           while IFS= read -r PR; do
             PR_NUMBER=$(jq -r '.number' <<< "$PR")
@@ -118,6 +140,11 @@ jobs:
                 actions: [{ type: "Action.OpenUrl", title: "Run-Log öffnen", url: $url }]
               }
             ' <<< "$PR")
+
+            if [ "$DRY_RUN" = 'true' ]; then
+              jq . <<< "$CARD"
+              continue
+            fi
 
             # Claim the PR and commit before sending so concurrent runs cannot both post.
             REF="tags/ci-alerts/pr-$PR_NUMBER/$HEAD_SHA"
