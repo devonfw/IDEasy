@@ -31,7 +31,7 @@ It will become rather unlikely that changes committed and pushed will break your
 +
 Before you can create a PR/MR you obviously need to commit and push.
 Already when you commit you will then get immediately feedback if your change broke something.
-Otherwise, you need to push your changes, create an PR/MR and then wait for the pipeline to complete to get the feedback.
+Otherwise, you need to push your changes, create a PR/MR and then wait for the pipeline to complete to get the feedback.
 Meanwhile, you might have already been interrupted, distracted or started the next task and might miss the feedback.
 * Faster CI
 +
