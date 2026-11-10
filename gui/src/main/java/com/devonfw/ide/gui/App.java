@@ -3,7 +3,6 @@ package com.devonfw.ide.gui;
 import java.awt.Taskbar;
 import java.awt.Toolkit;
 import java.net.URL;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
@@ -45,36 +44,43 @@ public class App extends Application {
       LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
       Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
     });
+    // JavaFX swallows exceptions from start(), so it handles and reports startup failures here.
+    try {
+      this.primaryStage = primaryStage;
 
-    this.primaryStage = primaryStage;
+      final MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager);
+      final MainWindowView mainWindow = new MainWindowView(mainWindowViewModel, guiStateManager);
 
-    final MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager);
-    final MainWindowView mainWindow = new MainWindowView(mainWindowViewModel, guiStateManager);
+      //this.nlsService.addLocaleChangeListener(this::reloadMainView);
 
-    //this.nlsService.addLocaleChangeListener(this::reloadMainView);
+      Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+      Scene scene = new Scene(mainWindow, bounds.getWidth() / 2, bounds.getHeight() / 2);
 
-    Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-    Scene scene = new Scene(mainWindow, bounds.getWidth() / 2, bounds.getHeight() / 2);
+      configureMainWindow(scene);
 
-    configureMainWindow(scene);
+      primaryStage.setOnCloseRequest(event -> {
 
-    primaryStage.setOnCloseRequest(event -> {
-
-      LOG.info("Closing application");
-      if (!guiStateManager.getTaskManager().getTasks().isEmpty()) {
-        IdeDialog closeConfirm = new IdeDialog(IdeDialog.AlertType.CONFIRMATION, "There are still running tasks. Are you sure you want to exit?",
-            ButtonType.CLOSE, ButtonType.CANCEL);
-        closeConfirm.showAndWait().ifPresent(response -> {
-          if (response == ButtonType.CLOSE) {
-            exitApplication();
-          } else {
-            event.consume();
-          }
-        });
-      } else {
-        exitApplication();
-      }
-    });
+        LOG.info("Closing application");
+        if (!guiStateManager.getTaskManager().getTasks().isEmpty()) {
+          IdeDialog closeConfirm = new IdeDialog(IdeDialog.AlertType.CONFIRMATION, "There are still running tasks. Are you sure you want to exit?",
+              ButtonType.CLOSE, ButtonType.CANCEL);
+          closeConfirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.CLOSE) {
+              exitApplication();
+            } else {
+              event.consume();
+            }
+          });
+        } else {
+          exitApplication();
+        }
+      });
+    } catch (Throwable error) {
+      // Log and show the error before the JavaFX toolkit shuts down.
+      LOG.error("Exception in Application start method: {}", error.toString(), error);
+      new IdeDialog(IdeDialog.AlertType.ERROR, error.getMessage()).showAndWait();
+      System.exit(1);
+    }
   }
 
   private void configureMainWindow(Scene mainWindowScene) {
