@@ -94,7 +94,7 @@ The reviewer is more than welcome to put a link to the new issue in a review com
 Design your issues and changes as small as possible.
 A small change is easy to understand, review, rebase, and merge.
 The bigger your change gets, the longer it takes to get reviewed and finally merged.
-Also, this causes higher likely-hood of merge conflicts as well as risks of missing out problems in the review.
+Also, this causes a higher likelihood of merge conflicts as well as risks of missing out problems in the review.
 So rather create multiple smaller issues and changes rather than few big ones.
 . *Maintain your change*:
 Whenever a CI check fails, the change is not ready and the author is in charge to fix it.
