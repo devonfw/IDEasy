@@ -100,6 +100,10 @@ And finally we put it all togehter as github action workflow:
 We created another https://github.com/devonfw/IDEasy/blob/main/.github/workflows/check-for-updates.yml[check-for-updates.yml] workflow that runs every night and checks for such updates.
 Only if recent changes where pushed to git on `main`, the `nightly-build` job is triggered and otherwise the build ends without any further action.
 
+To ensure integration tests validate the latest nightly SNAPSHOT, `integration-tests.yml` is now triggered via `workflow_run` after a successful `nightly-build.yml` execution instead of being started directly from `check-for-updates.yml`.
+This guarantees that tests run only after the nightly build has completed and published its artifacts, preventing them from testing the previous SNAPSHOT.
+Manual execution via `workflow_dispatch` remains supported.
+
 Both `release` and `nightly-build` workflow use the `workflow_dispatch` trigger allowing them to be run manually as described above.
 However, the `nightly-build` is typically only triggered from `check-for-updates` workflow automatically.
 But for testing some change with GraalVM specific behaviour during the day, we sometimes also trigger the `nightly-build` workflow manually.
