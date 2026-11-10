@@ -234,11 +234,7 @@ public final class ToolSettingsService {
   }
 
   private static String emptyToNull(String s) {
-    if (s == null) {
-      return null;
-    }
-    String t = s.trim();
-    return t.isEmpty() ? null : t;
+    return s == null || s.isBlank() ? null : s.strip();
   }
 
 }
