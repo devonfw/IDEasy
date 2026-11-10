@@ -23,6 +23,7 @@ import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
+import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -34,7 +35,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Intellij.class);
 
-  private static final VersionIdentifier INTELLIJ_LAST_SEPARATE_VERSION = VersionIdentifier.of("2025.2.6.1");
+  private static final VersionIdentifier INTELLIJ_LAST_SEPARATE_VERSION = VersionIdentifier.ofRequired("2025.2.6.1");
 
   private static final String IDEA = "idea";
 
@@ -98,7 +99,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
       VersionIdentifier version;
       if (requested.getVersion() != null) {
-        version = VersionIdentifier.of(requested.getVersion().toString());
+        version = VersionIdentifier.ofRequired(requested.getVersion().toString());
       } else {
         version = getConfiguredVersion();
       }
