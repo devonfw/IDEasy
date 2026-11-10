@@ -5,7 +5,8 @@ toc::[]
 
 This guide gives best practices for code-reviews and is intended to be considered and used even beyond this IDEasy project.
 
-Decades ago when remote work just started we may have observed a code-reviewer was some technical lead acting as dictator and god of the project sitting on his throne and dropping lots of WTFs at poor developers receiving the negative feedback.
+Decades ago when remote work just started we may have observed a code-reviewer was some technical lead acting as dictator and god of the project.
+He was sitting on his throne and dropping lots of WTFs at poor developers receiving the negative feedback.
 Translated to today's tooling this could look like this:
 
 image::images/review-bad.png[example of a very bad review]
