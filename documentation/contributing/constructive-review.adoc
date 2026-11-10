@@ -97,7 +97,7 @@ The bigger your change gets, the longer it takes to get reviewed and finally mer
 Also, this causes higher likely-hood of merge conflicts as well as risks of missing out problems in the review.
 So rather create multiple smaller issues and changes rather than few big ones.
 . *Maintain your change*:
-Whenever such check fails, the change is not ready and the author is in charge to fix it.
+Whenever a CI check fails, the change is not ready and the author is in charge to fix it.
 Only when all checks succeed the review can start.
 Even then changes coming into the target branch may break it.
 Take responsibility to maintain your change and keep it clean and green.
