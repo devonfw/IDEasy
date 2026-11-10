@@ -159,7 +159,7 @@ public class Obsidian extends GlobalToolCommandlet {
     if ((version == null) || version.isBlank()) {
       return null;
     }
-    return VersionIdentifier.of(version.trim());
+    return VersionIdentifier.ofRequired(version.trim());
   }
 
   @Override
