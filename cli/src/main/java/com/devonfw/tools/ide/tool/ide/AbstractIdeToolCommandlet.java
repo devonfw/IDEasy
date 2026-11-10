@@ -50,16 +50,18 @@ public abstract class AbstractIdeToolCommandlet extends AbstractPluginBasedComma
 
     super(context, tool, tags);
     assert (hasIde(tags));
+    this.project = new FolderProperty("--project", false, null, false);
+    if (isSupportProjectProperty()) {
+      add(this.project);
+    }
     this.workspaceConfigurer = new IdeWorkspaceConfigurer(context, tool);
   }
 
-  @Override
-  protected void initProperties() {
-
-    // mustExist=false on purpose: the value is set in extractProjectOption() after the framework validation, so the property's own
-    // path checks never inspect it; validateOpenPath() is the real guard for the opened folder
-    this.project = add(new FolderProperty("--project", false, null, false));
-    super.initProperties();
+  /**
+   * @return {@code true} if the --project option is supported, {@code false} otherwise.
+   */
+  protected boolean isSupportProjectProperty() {
+    return true;
   }
 
   private boolean hasIde(Set<Tag> tags) {
@@ -156,7 +158,10 @@ public abstract class AbstractIdeToolCommandlet extends AbstractPluginBasedComma
    */
   public Path getOpenPath() {
 
-    Path resolved = this.project.getValue();
+    Path resolved = null;
+    if (isSupportProjectProperty()) {
+      resolved = this.project.getValue();
+    }
     if (resolved == null) {
       return this.context.getWorkspacePath();
     }
@@ -173,7 +178,7 @@ public abstract class AbstractIdeToolCommandlet extends AbstractPluginBasedComma
    */
   protected void validateOpenPath() {
 
-    if (this.project.getValue() == null) {
+    if (!isSupportProjectProperty() || this.project.getValue() == null) {
       return; // no explicit folder - use the default workspace as before
     }
     Path openPath = getOpenPath();
