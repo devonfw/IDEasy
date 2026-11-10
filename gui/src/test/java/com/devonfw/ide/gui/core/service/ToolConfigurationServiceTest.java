@@ -25,11 +25,11 @@ import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Test of {@link ToolSettingsService}.
+ * Test of {@link ToolConfigurationService}.
  */
-class ToolSettingsServiceTest extends AbstractIdeContextTest {
+class ToolConfigurationServiceTest extends AbstractIdeContextTest {
 
-  private final ToolSettingsService service = new ToolSettingsService();
+  private final ToolConfigurationService service = new ToolConfigurationService();
 
   // ---------------------------------------------------------------------------
   // toToolConfiguration
@@ -386,7 +386,7 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
   void testIsValidVersion_worksWithVersionsLoadedWithoutEverOpeningDropdown() {
 
     // Simulates typing a version and tabbing away without ever opening the version dropdown: the caller
-    // (ToolSettingsController) loads the list itself via loadVersionsForSelectedEdition, then validates against it.
+    // (ToolConfigViewModel) loads the list itself via loadVersionsForSelectedEdition, then validates against it.
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     List<VersionIdentifier> stubVersions = List.of(VersionIdentifier.of("2026.1.0"), VersionIdentifier.of("2026.1.5"));
     context.setDefaultToolRepository(stubRepo(List.of(), stubVersions));
@@ -572,7 +572,7 @@ class ToolSettingsServiceTest extends AbstractIdeContextTest {
 
   /**
    * Minimal {@link ToolRepository} stub. Passing {@code null} for {@code editions} or {@code versions} causes the corresponding method to throw, which
-   * exercises the exception-handling paths in {@link ToolSettingsService#toToolConfiguration}.
+   * exercises the exception-handling paths in {@link ToolConfigurationService#toToolConfiguration}.
    */
   private record StubToolRepository(List<String> editions, List<VersionIdentifier> versions) implements ToolRepository {
 

@@ -29,9 +29,9 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * <p>
  * - Reads IDE_TOOLS to detect enabled tools - Reads per-tool _VERSION and _EDITION variables - Writes changes into the settings variables and saves them
  */
-public final class ToolSettingsService {
+public final class ToolConfigurationService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ToolSettingsService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ToolConfigurationService.class);
 
   /**
    * Retrieve a list of ToolConfiguration objects for all locally supported tools discovered via the {@link CommandletManager} of the provided

@@ -14,7 +14,7 @@ import com.devonfw.ide.gui.core.context.GuiContextChangeListener;
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.context.IdeGuiContext;
 import com.devonfw.ide.gui.core.service.ToolConfiguration;
-import com.devonfw.ide.gui.core.service.ToolSettingsService;
+import com.devonfw.ide.gui.core.service.ToolConfigurationService;
 import com.devonfw.ide.gui.core.tab.TabViewModel;
 
 /**
@@ -23,7 +23,7 @@ import com.devonfw.ide.gui.core.tab.TabViewModel;
  */
 public class ToolConfigViewModel extends TabViewModel {
 
-  private final ToolSettingsService service;
+  private final ToolConfigurationService service;
 
   private final ObservableList<ToolConfiguration> tools = FXCollections.observableArrayList();
 
@@ -45,7 +45,7 @@ public class ToolConfigViewModel extends TabViewModel {
    */
   public ToolConfigViewModel(GuiStateManager guiStateManager) {
     super(guiStateManager);
-    this.service = guiStateManager.getToolSettingsService();
+    this.service = guiStateManager.getToolConfigurationService();
     this.saveDisabled.bind(Bindings.isNotEmpty(this.invalidTools));
     this.guiStateManager.addGuiContextChangeListener(this.contextChangeListener);
     load();
