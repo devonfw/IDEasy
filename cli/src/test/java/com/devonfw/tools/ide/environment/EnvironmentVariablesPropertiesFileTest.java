@@ -136,25 +136,31 @@ class EnvironmentVariablesPropertiesFileTest extends AbstractIdeContextTest {
     assertThat(lines).containsExactlyElementsOf(linesAfterSave);
   }
 
-  @Test
-  void testSaveMigratedVariableIsNotDuplicated(@TempDir Path tempDir) throws Exception {
+  @ParameterizedTest
+@CsvSource({
+    "MAVEN_VERSION, MVN_VERSION",
+    "DEVON_IDE_TOOLS, IDE_TOOLS",
+    "DEVON_CREATE_START_SCRIPTS, CREATE_START_SCRIPTS"
+})
+void testSaveMigratedVariableIsNotDuplicated(String legacyName, String migratedName, @TempDir Path tempDir)
+    throws Exception {
 
-    // arrange
-    Path propertiesFilePath = tempDir.resolve("test.properties");
-    Files.write(propertiesFilePath, List.of("MAVEN_VERSION=3.8.8"), StandardOpenOption.CREATE_NEW);
+  // arrange
+  Path propertiesFilePath = tempDir.resolve("test.properties");
+  Files.write(propertiesFilePath, List.of(legacyName + "=oldValue"), StandardOpenOption.CREATE_NEW);
 
-    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE,
-        propertiesFilePath, new IdeTestContext());
+  EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE,
+      propertiesFilePath, new IdeTestContext());
 
-    // act
-    variables.set("MVN_VERSION", "3.9.6", false);
-    variables.save();
+  // act
+  variables.set(migratedName, "newValue", false);
+  variables.save();
 
-    // assert
-    List<String> lines = Files.readAllLines(propertiesFilePath);
-    assertThat(lines).containsExactly("MVN_VERSION=3.9.6");
-  }
-
+  // assert
+  List<String> lines = Files.readAllLines(propertiesFilePath);
+  assertThat(lines).containsExactly(migratedName + "=newValue");
+}
+  
   @Test
   void testSaveWithMissingParentFilePath(@TempDir Path tempDir) throws Exception {
     // arrange
