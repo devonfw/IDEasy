@@ -44,7 +44,7 @@ When you join a project using commit-hooks you cannot miss the basic quality req
 You will notice when your commits fail and you cannot miss out.
 * Continuous improvement
 +
-Over the decades of project-project, I observed that a better level of such automation enforces continuous improvement.
+Over decades of project experience, we observed that a better level of such automation enforces continuous improvement.
 If automated QA checks are already in place and checked e.g. via commit-hook and CI, it is much more likely that team members will suggest improving the checks and the surrounding processes.
 If on the other extreme a project has not even CI setup, then getting started to improve can be a big hurdle.
 
