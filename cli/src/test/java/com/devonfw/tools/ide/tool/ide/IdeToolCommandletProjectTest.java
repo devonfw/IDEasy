@@ -12,11 +12,11 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 
 /**
- * Tests the {@link AbstractIdeToolCommandlet#getOpenPath() open path} resolution of the {@code --project} flag of
- * {@link AbstractIdeToolCommandlet}: an explicit absolute folder, a relative folder resolved against the current working directory, the default fallback to the
- * managed workspace, and the invalid-path guard that aborts the launch. Because the flag is remembered on the {@code AbstractIdeToolCommandlet}
- * (the {@code project} field is package-private to the {@code tool.ide} package), these foundation tests live in this package. The Intellij-specific launch
- * behavior is covered by {@link com.devonfw.tools.ide.tool.intellij.IntellijTest}.
+ * Tests the {@link AbstractIdeToolCommandlet#getOpenPath() open path} resolution of the {@code --project} flag of {@link AbstractIdeToolCommandlet}: an
+ * explicit absolute folder, a relative folder resolved against the current working directory, the default fallback to the managed workspace, and the
+ * invalid-path guard that aborts the launch. Because the flag is remembered on the {@code AbstractIdeToolCommandlet} (the {@code project} field is
+ * package-private to the {@code tool.ide} package), these foundation tests live in this package. The Intellij-specific launch behavior is covered by
+ * {@link com.devonfw.tools.ide.tool.intellij.IntellijTest}.
  */
 class IdeToolCommandletProjectTest extends AbstractIdeContextTest {
 
@@ -29,7 +29,7 @@ class IdeToolCommandletProjectTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext("intellij");
     Intellij intellij = context.getCommandletManager().getCommandlet(Intellij.class);
-    Path external = Path.of("/external/some-project");
+    Path external = Path.of(".").resolve("/external/some-project").toAbsolutePath();
     intellij.project.setValue(external);
     // act
     Path openPath = intellij.getOpenPath();
