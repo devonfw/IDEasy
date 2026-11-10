@@ -89,7 +89,7 @@ jobs:
           organization-id: '428e13ed-ca0c-47ca-8a73-63b76cabb59b'
           project-slug: 'IDEasy'
           signing-policy-slug: 'release-signing'
-          artifact-configuration-slug: 'IDEasy'
+          artifact-configuration-slug: 'IDEasy.exe'
           github-artifact-id: '${{ steps.upload-exe.outputs.artifact-id }}'
           wait-for-completion: true
           output-artifact-directory: 'cli/target/signed-exe'
