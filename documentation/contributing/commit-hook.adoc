@@ -60,6 +60,6 @@ Also, your team needs to understand that changes to the commit hook script and t
 This obviously includes that all operating systems used by your team are fully supported by the scripts.
 * Developer frustration
 +
-Developers with less experience or not used to such discipline may be frustrated if they end up in a iteration loop of rejected commits.
+Developers with less experience or not used to such discipline may be frustrated if they end up in an iteration loop of rejected commits.
 Typically, this can be fully addressed with a good onboarding.
 If the developer gets coached at the beginning and then knows how things are working and errors can be fixed, he will easily get used to it and after some time appreciate the extra safety net.
