@@ -1,6 +1,7 @@
 package com.devonfw.ide.gui.feature.tool.config;
 
 import java.util.List;
+import java.util.Objects;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -34,6 +35,8 @@ public class ToolConfigViewModel extends TabViewModel {
 
   private final BooleanProperty editionsLoaded = new SimpleBooleanProperty();
 
+  private final BooleanProperty saved = new SimpleBooleanProperty();
+
   private final GuiContextChangeListener contextChangeListener = _ -> load();
 
   private IdeGuiContext context;
@@ -46,7 +49,7 @@ public class ToolConfigViewModel extends TabViewModel {
   public ToolConfigViewModel(GuiStateManager guiStateManager) {
     super(guiStateManager);
     this.service = guiStateManager.getToolConfigurationService();
-    this.saveDisabled.bind(Bindings.isNotEmpty(this.invalidTools));
+    this.saveDisabled.bind(Bindings.isNotEmpty(this.invalidTools).or(this.saved));
     this.guiStateManager.addGuiContextChangeListener(this.contextChangeListener);
     load();
   }
@@ -64,6 +67,7 @@ public class ToolConfigViewModel extends TabViewModel {
     this.context = this.guiStateManager.getCurrentContext();
     this.invalidTools.clear();
     this.editionsLoaded.set(false);
+    this.saved.set(false);
     if (this.context == null) {
       this.tools.clear();
       return;
@@ -111,7 +115,11 @@ public class ToolConfigViewModel extends TabViewModel {
    */
   public void changeVersion(ToolConfiguration tool, String version, Runnable onValidated) {
 
-    tool.setConfiguredVersion(isBlank(version) ? "*" : version);
+    String normalizedVersion = isBlank(version) ? "*" : version;
+    if (!Objects.equals(normalizedVersion, tool.getConfiguredVersion())) {
+      tool.setConfiguredVersion(normalizedVersion);
+      this.saved.set(false);
+    }
     if (tool.getAvailableVersions() != null) {
       validate(tool);
       onValidated.run();
@@ -136,11 +144,28 @@ public class ToolConfigViewModel extends TabViewModel {
     if (isBlank(edition)) {
       return;
     }
-    tool.setConfiguredEdition(edition);
+    if (!Objects.equals(edition, tool.getConfiguredEdition())) {
+      tool.setConfiguredEdition(edition);
+      this.saved.set(false);
+    }
     loadVersions(tool, () -> {
       validate(tool);
       onUpdated.run();
     });
+  }
+
+  /**
+   * Enables or disables the given tool.
+   *
+   * @param tool the {@link ToolConfiguration}.
+   * @param enabled {@code true} to enable the tool, {@code false} to disable it.
+   */
+  public void changeEnabled(ToolConfiguration tool, boolean enabled) {
+
+    if (tool.isEnabled() != enabled) {
+      tool.setEnabled(enabled);
+      this.saved.set(false);
+    }
   }
 
   private void validate(ToolConfiguration tool) {
@@ -167,6 +192,7 @@ public class ToolConfigViewModel extends TabViewModel {
   public void save() {
 
     this.service.applyAndSave(this.tools, this.context);
+    this.saved.set(true);
   }
 
   /**
@@ -187,6 +213,13 @@ public class ToolConfigViewModel extends TabViewModel {
 
   public BooleanProperty editionsLoadedProperty() {
     return this.editionsLoaded;
+  }
+
+  /**
+   * @return the property that is {@code true} after the configuration has been saved, until the user changes something again.
+   */
+  public BooleanProperty savedProperty() {
+    return this.saved;
   }
 
   private static boolean isBlank(String value) {

@@ -92,7 +92,7 @@ final class ToolListCell extends ListCell<ToolConfiguration> {
     enabledToggle.setPrefWidth(40);
     enabledToggle.setSelected(tool.isEnabled());
     enabledToggle.setOnAction(_ -> {
-      tool.setEnabled(enabledToggle.isSelected());
+      this.viewModel.changeEnabled(tool, enabledToggle.isSelected());
       applyEnabledState(tool);
     });
     return enabledToggle;

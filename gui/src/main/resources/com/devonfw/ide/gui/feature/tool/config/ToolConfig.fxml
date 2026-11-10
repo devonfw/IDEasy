@@ -29,6 +29,7 @@
         <padding>
           <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
         </padding>
+        <Label fx:id="savedLabel" text="%tool_config.saved" style="-fx-text-fill: grey;" visible="false"/>
         <Button fx:id="saveButton" text="%tool_config.save"/>
       </HBox>
     </bottom>

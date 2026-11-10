@@ -2,6 +2,7 @@ package com.devonfw.ide.gui.feature.tool.config;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 
 import com.devonfw.ide.gui.core.model.ToolConfiguration;
@@ -18,6 +19,9 @@ public class ToolConfigView extends TabView {
 
   @FXML
   private Button saveButton;
+
+  @FXML
+  private Label savedLabel;
 
   private final ToolConfigViewModel viewModel;
 
@@ -49,6 +53,7 @@ public class ToolConfigView extends TabView {
 
     this.saveButton.disableProperty().bind(this.viewModel.saveDisabledProperty());
     this.saveButton.setOnAction(_ -> this.viewModel.save());
+    this.savedLabel.visibleProperty().bind(this.viewModel.savedProperty());
   }
 
 }
