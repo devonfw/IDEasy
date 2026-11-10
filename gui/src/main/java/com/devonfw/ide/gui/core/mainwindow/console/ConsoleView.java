@@ -107,7 +107,7 @@ public class ConsoleView {
       textArea.setEditable(false);
       textArea.setFocusTraversable(false);
     }
-    
+
     private static double computeTextHeight(String text, double width) {
 
       Text helper = new Text(text);
