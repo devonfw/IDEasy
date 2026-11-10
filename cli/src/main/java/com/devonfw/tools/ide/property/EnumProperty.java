@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.property;
 
+import java.util.Arrays;
 import java.util.Locale;
 
 import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
@@ -20,10 +21,22 @@ public class EnumProperty<V extends Enum<V>> extends Property<V> {
    *
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
-   * @param alias the {@link #getAlias() property alias}.
    * @param valueType the {@link #getValueType() value type}.
    */
-  public EnumProperty(String name, boolean required, String alias, Class<V> valueType) {
+  public EnumProperty(String name, boolean required, Class<V> valueType) {
+
+    this(name, required, valueType, null);
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param name the {@link #getName() property name}.
+   * @param required the {@link #isRequired() required flag}.
+   * @param valueType the {@link #getValueType() value type}.
+   * @param alias the {@link #getAlias() property alias}.
+   */
+  public EnumProperty(String name, boolean required, Class<V> valueType, String alias) {
 
     super(name, required, alias);
     this.valueType = valueType;
@@ -44,8 +57,9 @@ public class EnumProperty<V extends Enum<V>> extends Property<V> {
         return enumConstant;
       }
     }
-
-    throw new IllegalArgumentException(String.format("Invalid Enum option: %s", valueAsString));
+    throw new IllegalArgumentException(
+        "Invalid Enum option " + valueAsString + "\nValid values are: " + Arrays.toString(this.valueType.getEnumConstants()).toLowerCase(
+            Locale.ROOT));
   }
 
   @Override

@@ -50,7 +50,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
     assertThat(IdeVariables.DOCKER_EDITION.get(context)).isEqualTo("docker");
     EnvironmentVariables variables = context.getVariables();
     assertThat(variables.get("FOO")).isEqualTo("foo-bar-some-${UNDEFINED}");
-    assertThat(context).logAtWarning().hasMessage("Undefined variable ${UNDEFINED} in 'FOO' at 'SOME=some-${UNDEFINED}'");
+    assertThat(context).logAtWarning().hasMessage("Undefined variable UNDEFINED in 'FOO' at 'SOME=some-${UNDEFINED}'");
     assertThat(context.getIdeHome().resolve("readme")).hasContent("this is the IDE_HOME directory");
     assertThat(context.getIdeRoot().resolve("readme")).hasContent("this is the IDE_ROOT directory");
     assertThat(context.getUserHome().resolve("readme")).hasContent("this is the users HOME directory");
@@ -304,7 +304,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
   void testQuestionWithSingleToolVersionChoiceAndEmptyAnswer() {
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     ToolEdition edition = new ToolEdition("java", "oracle");
-    VersionIdentifier version = VersionIdentifier.of("17");
+    VersionIdentifier version = VersionIdentifier.ofRequired("17");
     Cve cve = new Cve("CVE-2023-XXXX", 9.8, List.of(VersionRange.of("[17,18)")));
     ToolVersionChoice choice = new ToolVersionChoice(new ToolEditionAndVersion(edition, version), "current", ToolVulnerabilities.of(List.of(cve)));
     ToolVersionChoice[] options = { choice };
