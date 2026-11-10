@@ -45,7 +45,7 @@ public class Eclipse extends AbstractIdeToolCommandlet {
   }
 
   @Override
-  protected void isSupportProjectProperty() {
+  protected boolean isSupportProjectProperty() {
 
     // Eclipse does not support the --project option - it always opens the managed workspace and its own workspace concept already
     // allows mounting any directory into it.
