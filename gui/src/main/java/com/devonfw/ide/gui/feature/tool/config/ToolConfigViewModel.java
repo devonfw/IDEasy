@@ -2,7 +2,6 @@ package com.devonfw.ide.gui.feature.tool.config;
 
 import java.util.List;
 
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -13,6 +12,7 @@ import javafx.collections.ObservableSet;
 import com.devonfw.ide.gui.core.context.GuiContextChangeListener;
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.context.IdeGuiContext;
+import com.devonfw.ide.gui.core.helper.FxHelper;
 import com.devonfw.ide.gui.core.model.ToolConfiguration;
 import com.devonfw.ide.gui.core.service.ToolConfigurationService;
 import com.devonfw.ide.gui.core.tab.TabViewModel;
@@ -72,7 +72,7 @@ public class ToolConfigViewModel extends TabViewModel {
     this.tools.setAll(configurations);
 
     IdeGuiContext loadContext = this.context;
-    runInBackground(() -> {
+    FxHelper.runInBackground(() -> {
       for (ToolConfiguration tool : configurations) {
         List<String> editions = this.service.loadEditionsForTool(tool.getToolName(), loadContext);
         tool.setAvailableEditions(editions);
@@ -99,7 +99,7 @@ public class ToolConfigViewModel extends TabViewModel {
     }
     IdeGuiContext loadContext = this.context;
     String edition = tool.getConfiguredEdition();
-    runInBackground(() -> tool.setAvailableVersions(this.service.loadVersionsForSelectedEdition(tool.getToolName(), edition, loadContext)), onLoaded);
+    FxHelper.runInBackground(() -> tool.setAvailableVersions(this.service.loadVersionsForSelectedEdition(tool.getToolName(), edition, loadContext)), onLoaded);
   }
 
   /**
@@ -199,16 +199,6 @@ public class ToolConfigViewModel extends TabViewModel {
 
   private static boolean isBlank(String value) {
     return value == null || value.isBlank();
-  }
-
-  private static void runInBackground(Runnable task, Runnable onFinished) {
-
-    Thread thread = new Thread(() -> {
-      task.run();
-      Platform.runLater(onFinished);
-    });
-    thread.setDaemon(true);
-    thread.start();
   }
 
 }
