@@ -2,6 +2,8 @@ package com.devonfw.tools.ide.version;
 
 import java.util.Objects;
 
+import com.devonfw.tools.ide.common.CharReader;
+
 /**
  * Represents a single segment of a {@link VersionIdentifier}.
  */
@@ -209,7 +211,7 @@ public class VersionSegment implements VersionObject<VersionSegment> {
     if (separatorLen > 1) {
       return false;
     } else if (separatorLen == 1) {
-      if (!CharCategory.isValidSeparator(this.separator.charAt(0))) {
+      if (!CharReader.isValidSeparator(this.separator.charAt(0))) {
         return false;
       }
     }
