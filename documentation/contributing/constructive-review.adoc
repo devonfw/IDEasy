@@ -21,7 +21,7 @@ We will use the following terms in this context:
 
 * _change_
 +
-A diff/path changing the code provided as link:pull-request.adoc[pull-request] (PR) aka merge-request (MR)
+A diff/patch changing the code provided as link:pull-request.adoc[pull-request] (PR) aka merge-request (MR)
 * _author_
 +
 The person who created the change.
