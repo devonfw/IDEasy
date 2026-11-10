@@ -32,7 +32,7 @@ public class MvnArtifactMetadata implements UrlDownloadFileMetadata {
       SystemArchitecture arch) {
 
     this.mvnArtifact = mvnArtifact;
-    this.version = VersionIdentifier.of(mvnArtifact.getVersion());
+    this.version = VersionIdentifier.ofRequired(mvnArtifact.getVersion());
     this.tool = tool;
     this.edition = edition;
     this.checksums = checksums;
