@@ -59,10 +59,9 @@ class ToolConfigTabTest extends UIBasedApplicationTest {
     return viewModels.getFirst();
   }
 
-  private static ToolConfiguration tool(String name, ToolConfiguration.ToolGroup group, boolean enabled) {
+  private static ToolConfiguration tool(String name, boolean enabled) {
 
     ToolConfiguration tool = new ToolConfiguration(name);
-    tool.setGroup(group);
     tool.setEnabled(enabled);
     tool.setConfiguredVersion("1.0.0");
     tool.setAvailableVersions(List.of("1.0.0", "2.0.0"));
@@ -103,11 +102,11 @@ class ToolConfigTabTest extends UIBasedApplicationTest {
   void testInvalidVersionDisablesSaveUntilFixed() {
 
     ToolConfigViewModel viewModel = showToolConfigTab();
-    ToolConfiguration intellij = tool("intellij", ToolConfiguration.ToolGroup.IDE, true);
+    ToolConfiguration intellij = tool("intellij", true);
     intellij.setSupportsEdition(true);
     intellij.setAvailableEditions(List.of("intellij", "ultimate"));
     intellij.setConfiguredEdition("intellij");
-    ToolConfiguration mvn = tool("mvn", ToolConfiguration.ToolGroup.LOCAL, false);
+    ToolConfiguration mvn = tool("mvn", false);
 
     interact(() -> viewModel.getTools().setAll(intellij, mvn));
     WaitForAsyncUtils.waitForFxEvents();
@@ -131,7 +130,7 @@ class ToolConfigTabTest extends UIBasedApplicationTest {
   void testRowControlsUpdateTheToolConfiguration() {
 
     ToolConfigViewModel viewModel = showToolConfigTab();
-    ToolConfiguration intellij = tool("intellij", ToolConfiguration.ToolGroup.IDE, true);
+    ToolConfiguration intellij = tool("intellij", true);
     intellij.setSupportsEdition(true);
     intellij.setAvailableEditions(List.of("intellij", "ultimate"));
     intellij.setConfiguredEdition("intellij");

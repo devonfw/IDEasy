@@ -17,11 +17,6 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
-import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
-import com.devonfw.tools.ide.tool.npm.NpmBasedCommandlet;
-import com.devonfw.tools.ide.tool.pip.PipBasedCommandlet;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -44,30 +39,12 @@ public final class ToolConfigurationService {
     List<ToolConfiguration> toolConfigurations = new ArrayList<>();
     for (Commandlet commandlet : guiContext.getCommandletManager().getCommandlets()) {
       if (commandlet instanceof AbstractToolCommandlet toolCmd) {
-        ToolConfiguration toolConfiguration = toToolConfiguration(toolCmd, enabledTools);
-        toolConfiguration.setGroup(determineGroup(toolCmd));
-        toolConfigurations.add(toolConfiguration);
+        toolConfigurations.add(toToolConfiguration(toolCmd, enabledTools));
       }
     }
 
-    toolConfigurations.sort(Comparator.comparing((ToolConfiguration tc) -> tc.getGroup() == null ? ToolConfiguration.ToolGroup.OTHER : tc.getGroup())
-        .thenComparing(ToolConfiguration::getToolName, String.CASE_INSENSITIVE_ORDER));
+    toolConfigurations.sort(Comparator.comparing(ToolConfiguration::getToolName, String.CASE_INSENSITIVE_ORDER));
     return toolConfigurations;
-  }
-
-  private ToolConfiguration.ToolGroup determineGroup(AbstractToolCommandlet toolCmd) {
-    if (toolCmd instanceof IdeToolCommandlet) {
-      return ToolConfiguration.ToolGroup.IDE;
-    } else if (toolCmd instanceof PipBasedCommandlet) {
-      return ToolConfiguration.ToolGroup.PIP;
-    } else if (toolCmd instanceof NpmBasedCommandlet) {
-      return ToolConfiguration.ToolGroup.NPM;
-    } else if (toolCmd instanceof GlobalToolCommandlet) {
-      return ToolConfiguration.ToolGroup.GLOBAL;
-    } else if (toolCmd instanceof LocalToolCommandlet) {
-      return ToolConfiguration.ToolGroup.LOCAL;
-    }
-    return ToolConfiguration.ToolGroup.OTHER;
   }
 
   ToolConfiguration toToolConfiguration(AbstractToolCommandlet commandlet, List<String> enabledTools) {

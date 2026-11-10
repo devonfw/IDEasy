@@ -8,9 +8,8 @@ import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.TreeCell;
-import javafx.scene.control.TreeItem;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -19,10 +18,9 @@ import com.devonfw.ide.gui.core.model.ToolConfiguration;
 import com.devonfw.ide.gui.core.service.NlsService;
 
 /**
- * Cell rendering a tool row of the {@link ToolConfigView}. Group header rows carry a {@code null} value and are rendered via the graphic set on their
- * {@link TreeItem} instead.
+ * Cell rendering a tool row of the {@link ToolConfigView} as: [checkbox | tool name | edition combo | version combo | error icon].
  */
-final class ToolTreeCell extends TreeCell<ToolConfiguration> {
+final class ToolListCell extends ListCell<ToolConfiguration> {
 
   private static final String VERSION_STYLE = "-fx-font-size: 12;";
 
@@ -50,7 +48,7 @@ final class ToolTreeCell extends TreeCell<ToolConfiguration> {
    * @param viewModel the view model of the tool configuration tab.
    * @param nlsService the localization service.
    */
-  ToolTreeCell(ToolConfigViewModel viewModel, NlsService nlsService) {
+  ToolListCell(ToolConfigViewModel viewModel, NlsService nlsService) {
     this.viewModel = viewModel;
     this.nlsService = nlsService;
     this.root = new HBox(10);
@@ -63,12 +61,8 @@ final class ToolTreeCell extends TreeCell<ToolConfiguration> {
 
     super.updateItem(tool, empty);
     setText(null);
-    if (empty) {
+    if (empty || (tool == null)) {
       setGraphic(null);
-      return;
-    }
-    if (tool == null) {
-      setGraphic(getTreeItem() == null ? null : getTreeItem().getGraphic());
       return;
     }
 
