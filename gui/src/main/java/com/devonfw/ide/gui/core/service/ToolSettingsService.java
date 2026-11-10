@@ -72,14 +72,14 @@ public final class ToolSettingsService {
   ToolConfiguration toToolConfiguration(AbstractToolCommandlet commandlet, List<String> enabledTools) {
     String toolName = commandlet.getName();
     ToolConfiguration toolConfiguration = new ToolConfiguration(toolName);
-    toolConfiguration.setConfiguredVersion(toConfiguredVersion(commandlet.getConfiguredVersion()));
+    toolConfiguration.setConfiguredVersion(toConfiguredVersionString(commandlet.getConfiguredVersion()));
     toolConfiguration.setConfiguredEdition(commandlet.getConfiguredEdition());
     toolConfiguration.setEnabled(isEnabledTool(toolName, enabledTools));
 
     return toolConfiguration;
   }
 
-  private String toConfiguredVersion(VersionIdentifier version) {
+  private String toConfiguredVersionString(VersionIdentifier version) {
     return version == null ? null : version.toString();
   }
 
