@@ -1,0 +1,243 @@
+{
+  "windows": [
+    "windows",
+    "win32",
+    "win64",
+    "microsoft windows"
+  ],
+  "macOS": [
+    "macos",
+    "mac os",
+    "osx"
+  ],
+  "linux": [
+    "linux",
+    "ubuntu",
+    "debian",
+    "suse"
+  ],
+
+  "android-studio": [
+    "android studio",
+    "android-studio"
+  ],
+  "aws": [
+    "aws",
+    "amazon web services"
+  ],
+  "az": [
+    "azure cli",
+    "az cli"
+  ],
+  "bash": [
+    "bash",
+    "git bash",
+    "git-bash",
+    "zsh"
+  ],
+  "claude": [
+    "claude",
+    "claude code"
+  ],
+  "cobigen": [
+    "cobigen"
+  ],
+  "copilot": [
+    "copilot",
+    "github copilot"
+  ],
+  "corepack": [
+    "corepack"
+  ],
+  "docker": [
+    "docker",
+    "docker desktop",
+    "dockerdesktop"
+  ],
+  "dotnet": [
+    "dotnet",
+    ".net sdk"
+  ],
+  "eclipse": [
+    "eclipse",
+    "eclipse ide"
+  ],
+  "gcloud": [
+    "gcloud",
+    "google cloud cli"
+  ],
+  "gcviewer": [
+    "gcviewer"
+  ],
+  "gh": [
+    "github cli"
+  ],
+  "graalvm": [
+    "graalvm",
+    "graal vm"
+  ],
+  "gradle": [
+    "gradle"
+  ],
+  "gradlew": [
+    "gradlew",
+    "gradle wrapper"
+  ],
+  "helm": [
+    "helm"
+  ],
+  "homebrew": [
+    "homebrew",
+    "brew"
+  ],
+  "insomnia": [
+    "insomnia"
+  ],
+  "intellij": [
+    "intellij",
+    "intellij idea"
+  ],
+  "jasypt": [
+    "jasypt"
+  ],
+  "java": [
+    "java",
+    "jdk",
+    "openjdk",
+    "jvm",
+    "azul"
+  ],
+  "jmc": [
+    "java mission control",
+    "jmc"
+  ],
+  "just": [
+    "just task runner"
+  ],
+  "kotlinc": [
+    "kotlinc",
+    "kotlin compiler"
+  ],
+  "kubectl": [
+    "kubectl"
+  ],
+  "lazydocker": [
+    "lazydocker"
+  ],
+  "mvn": [
+    "maven",
+    "mvn",
+    "mvnw"
+  ],
+  "native-image": [
+    "native-image",
+    "native image"
+  ],
+  "nest": [
+    "nestjs",
+    "nest.js"
+  ],
+  "ng": [
+    "angular cli"
+  ],
+  "node": [
+    "node.js",
+    "nodejs"
+  ],
+  "npm": [
+    "npm",
+    "node package manager"
+  ],
+  "obsidian": [
+    "obsidian"
+  ],
+  "oc": [
+    "openshift cli"
+  ],
+  "pgadmin": [
+    "pgadmin",
+    "pgadmin4"
+  ],
+  "pip": [
+    "pip",
+    "pip3"
+  ],
+  "podman": [
+    "podman"
+  ],
+  "PowerShell": [
+    "powershell",
+    "pwsh"
+  ],
+  "pycharm": [
+    "pycharm"
+  ],
+  "python": [
+    "python",
+    "python3"
+  ],
+  "quarkus": [
+    "quarkus",
+    "quarkus cli"
+  ],
+  "rancher": [
+    "rancher",
+    "rancher desktop"
+  ],
+  "rewrite": [
+    "openrewrite",
+    "open rewrite"
+  ],
+  "ruby": [
+    "ruby"
+  ],
+  "ruff": [
+    "ruff"
+  ],
+  "rust": [
+    "rust",
+    "rustc"
+  ],
+  "soapui": [
+    "soapui",
+    "soap ui"
+  ],
+  "sonar": [
+    "sonarqube",
+    "sonar"
+  ],
+  "spring-boot": [
+    "spring boot",
+    "spring-boot"
+  ],
+  "spyder": [
+    "spyder",
+    "spyder ide"
+  ],
+  "squirrel-sql": [
+    "squirrel sql",
+    "squirrel-sql"
+  ],
+  "task": [
+    "taskfile",
+    "taskfile.dev"
+  ],
+  "terraform": [
+    "terraform"
+  ],
+  "tomcat": [
+    "apache tomcat",
+    "tomcat"
+  ],
+  "uv": [
+    "uv package manager"
+  ],
+  "vscode": [
+    "vscode",
+    "vs code",
+    "visual studio code"
+  ],
+  "yarn": [
+    "yarn"
+  ]
+}
