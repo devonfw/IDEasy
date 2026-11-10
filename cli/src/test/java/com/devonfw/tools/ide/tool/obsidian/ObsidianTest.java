@@ -120,7 +120,7 @@ class ObsidianTest extends AbstractIdeContextTest {
     Path installationDir = getLinuxInstallationDir(context);
     assertThat(installationDir.resolve("obsidian")).exists();
     assertThat(installationDir.resolve(IdeContext.FILE_SOFTWARE_VERSION)).hasContent(OBSIDIAN_VERSION);
-    assertThat(obsidian.getInstalledVersion()).isEqualTo(VersionIdentifier.of(OBSIDIAN_VERSION));
+    assertThat(obsidian.getInstalledVersion()).isEqualTo(VersionIdentifier.ofRequired(OBSIDIAN_VERSION));
   }
 
   /**
@@ -140,7 +140,7 @@ class ObsidianTest extends AbstractIdeContextTest {
     // assert
     Path appBundle = getMacAppBundle(context);
     assertThat(appBundle.resolve("Contents").resolve("MacOS").resolve("Obsidian")).exists();
-    assertThat(obsidian.getInstalledVersion()).isEqualTo(VersionIdentifier.of(OBSIDIAN_VERSION));
+    assertThat(obsidian.getInstalledVersion()).isEqualTo(VersionIdentifier.ofRequired(OBSIDIAN_VERSION));
   }
 
   /**
