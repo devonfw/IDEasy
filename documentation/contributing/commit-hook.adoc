@@ -16,6 +16,7 @@ Typically, you will put the same checks that you run in your CI pipeline also in
 === Example
 
 As an example simply have a look at the https://github.com/devonfw/IDEasy/tree/main/git-hooks[Git hooks] from this IDEasy project.
+To activate them in your clone, run `./install-hooks.sh` once.
 As we are committed to collaborative Open-Source software development and making the world a better place, you are more than invited to copy & paste this commit hook script to your own project (even without explicit attribution).
 
 === Pros and cons
