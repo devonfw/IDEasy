@@ -44,20 +44,12 @@ public class Eclipse extends AbstractIdeToolCommandlet {
     super(context, "eclipse", Set.of(Tag.ECLIPSE));
   }
 
-  /**
-   * Eclipse does not support the {@code --project} flag - it always opens the managed workspace (via {@code -data}) and its own workspace concept already
-   * allows mounting any directory into it. This override keeps plain {@code ide eclipse} working but aborts with a clear error if
-   * {@code --project} was passed.
-   *
-   * @see AbstractIdeToolCommandlet#validateOpenPath()
-   */
   @Override
-  protected void validateOpenPath() {
+  protected void isSupportProjectProperty() {
 
-    if (this.project.getValue() != null) {
-      throw new CliException("Eclipse does not support the --project option. It always opens the managed workspace. Remove --project to launch Eclipse.");
-    }
-    super.validateOpenPath();
+    // Eclipse does not support the --project option - it always opens the managed workspace and its own workspace concept already
+    // allows mounting any directory into it.
+    return false;
   }
 
   @Override
