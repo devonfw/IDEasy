@@ -2,6 +2,7 @@ package com.devonfw.ide.gui.core.mainwindow;
 
 import java.io.IOException;
 import java.util.Objects;
+
 import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
