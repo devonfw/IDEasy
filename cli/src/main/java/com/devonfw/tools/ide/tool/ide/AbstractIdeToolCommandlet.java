@@ -37,7 +37,7 @@ public abstract class AbstractIdeToolCommandlet extends AbstractPluginBasedComma
   private final IdeWorkspaceConfigurer workspaceConfigurer;
 
   /** The {@link FolderProperty} for the optional {@code --project} flag. */
-  protected FolderProperty project;
+  public final FolderProperty project;
 
   /**
    * The constructor.
