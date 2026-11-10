@@ -74,12 +74,12 @@ public class ConsoleView {
    */
   private void setupListView() {
 
-    consoleListView.setCellFactory(_ -> new LogEntryCell());
-    consoleListView.setItems(viewModel.logEntries());
-    consoleListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-    consoleListView.addEventHandler(KeyEvent.KEY_PRESSED, this::handleCopy);
-    consoleListView.addEventHandler(MouseEvent.MOUSE_PRESSED, this::handleMousePressed);
-    consoleListView.addEventHandler(MouseEvent.MOUSE_DRAGGED, this::handleMouseDragged);
+    this.consoleListView.setCellFactory(_ -> new LogEntryCell());
+    this.consoleListView.setItems(viewModel.logEntries());
+    this.consoleListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    this.consoleListView.addEventHandler(KeyEvent.KEY_PRESSED, this::handleCopy);
+    this.consoleListView.addEventHandler(MouseEvent.MOUSE_PRESSED, this::handleMousePressed);
+    this.consoleListView.addEventHandler(MouseEvent.MOUSE_DRAGGED, this::handleMouseDragged);
     viewModel.logEntries().addListener(this::handleScroll);
   }
 
@@ -105,7 +105,7 @@ public class ConsoleView {
     }
     int index = getIndexAt(event);
     if (index >= 0) {
-      MultipleSelectionModel<IdeLogEntry> selectionModel = consoleListView.getSelectionModel();
+      MultipleSelectionModel<IdeLogEntry> selectionModel = this.consoleListView.getSelectionModel();
       selectionModel.clearSelection();
       selectionModel.selectRange(Math.min(this.dragAnchorIndex, index), Math.max(this.dragAnchorIndex, index) + 1);
     }
@@ -117,7 +117,7 @@ public class ConsoleView {
   private int getIndexAt(MouseEvent event) {
 
     Node node = event.getPickResult().getIntersectedNode();
-    while ((node != null) && (node != consoleListView)) {
+    while ((node != null) && (node != this.consoleListView)) {
       if (node instanceof ListCell<?> cell) {
         return cell.isEmpty() ? -1 : cell.getIndex();
       }
@@ -132,7 +132,7 @@ public class ConsoleView {
   private void handleCopy(KeyEvent event) {
 
     if (COPY_SHORTCUT.match(event)) {
-      String selectedText = consoleListView.getSelectionModel().getSelectedItems().stream().map(IdeLogEntry::displayValue)
+      String selectedText = this.consoleListView.getSelectionModel().getSelectedItems().stream().map(IdeLogEntry::displayValue)
           .collect(Collectors.joining(System.lineSeparator()));
       if (!selectedText.isEmpty()) {
         ClipboardContent content = new ClipboardContent();
@@ -158,7 +158,7 @@ public class ConsoleView {
 
     if (viewModel.autoScrollEnabledProperty().get()) {
       if (change.next() && change.wasAdded()) {
-        consoleListView.scrollTo(change.getTo() - 1);
+        this.consoleListView.scrollTo(change.getTo() - 1);
       }
     }
   }
