@@ -40,18 +40,16 @@ class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Tests upgrading settings without a templates or legacy devon folder.
-   *
-   * @throws IOException if deleting the test directories fails.
    */
   @Test
-  void testUpdateSettingsWithoutTemplates() throws IOException {
+  void testUpdateSettingsWithoutTemplates() {
     // arrange
     Path settingsPath = UPGRADE_SETTINGS_PATH.resolve(IdeContext.FOLDER_SETTINGS);
 
-    deleteDirectory(settingsPath.resolve("templates"));
-    deleteDirectory(settingsPath.resolve("devon"));
+    this.context.getFileAccess().delete(settingsPath.resolve(IdeContext.FOLDER_TEMPLATES));
+    this.context.getFileAccess().delete(settingsPath.resolve(IdeContext.FOLDER_LEGACY_TEMPLATES));
 
-    UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(context);
+    UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(this.context);
     Path workspaceTemplate = settingsPath.resolve("workspace/testVariableSyntax.txt");
 
     // act
@@ -68,18 +66,6 @@ class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
         .contains("IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED=false");
 
     assertThat(settingsPath.resolve(CustomToolsMapper.get().getStandardFilename())).exists();
-  }
-
-  private void deleteDirectory(Path directory) throws IOException {
-    if (Files.notExists(directory)) {
-      return;
-    }
-
-    try (var paths = Files.walk(directory)) {
-      for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
-        Files.delete(path);
-      }
-    }
   }
 
   private void verifyUpdateProperties() {
