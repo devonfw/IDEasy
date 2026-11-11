@@ -13,7 +13,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class CopilotUrlUpdater extends GithubUrlTagUpdater {
 
-  private static final VersionIdentifier MIN_COPILOT_VID = VersionIdentifier.of("1.0.2");
+  private static final VersionIdentifier MIN_COPILOT_VID = VersionIdentifier.ofRequired("1.0.2");
 
   /**
    * The Constructor.
