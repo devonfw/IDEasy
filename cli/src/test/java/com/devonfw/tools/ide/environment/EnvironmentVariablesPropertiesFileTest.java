@@ -160,7 +160,7 @@ void testSaveMigratedVariableIsNotDuplicated(String legacyName, String migratedN
   List<String> lines = Files.readAllLines(propertiesFilePath);
   assertThat(lines).containsExactly(migratedName + "=newValue");
 }
-  
+
   @Test
   void testSaveWithMissingParentFilePath(@TempDir Path tempDir) throws Exception {
     // arrange
