@@ -7,6 +7,8 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/2045[#2045]: Add tool selection and version or edition configuration to GUI
+* https://github.com/devonfw/IDEasy/issues/2457[#2457]: Integrate antigravity-cli
+* https://github.com/devonfw/IDEasy/issues/2530[#2530]: GitContext.fetch should fetch all remotes if none is specified
 * https://github.com/devonfw/IDEasy/issues/2808[#2808]: Sign the Windows native image (exe) before building the MSI and the archive, so the launcher is signed even when installed without the MSI
 * https://github.com/devonfw/IDEasy/issues/2372[#2372]: Add `--retention-delay` option to `ide cleanup` so that stale files and unused tool versions are only deleted once they are older than the given retention delay
 * https://github.com/devonfw/IDEasy/issues/945[#945]: Improve ide update with smart dependency handling
