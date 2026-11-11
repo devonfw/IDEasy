@@ -8,6 +8,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -137,29 +139,29 @@ class EnvironmentVariablesPropertiesFileTest extends AbstractIdeContextTest {
   }
 
   @ParameterizedTest
-@CsvSource({
-    "MAVEN_VERSION, MVN_VERSION",
-    "DEVON_IDE_TOOLS, IDE_TOOLS",
-    "DEVON_CREATE_START_SCRIPTS, CREATE_START_SCRIPTS"
-})
-void testSaveMigratedVariableIsNotDuplicated(String legacyName, String migratedName, @TempDir Path tempDir)
-    throws Exception {
+  @CsvSource({
+      "MAVEN_VERSION, MVN_VERSION",
+      "DEVON_IDE_TOOLS, IDE_TOOLS",
+      "DEVON_CREATE_START_SCRIPTS, CREATE_START_SCRIPTS"
+  })
+  void testSaveMigratedVariableIsNotDuplicated(String legacyName, String migratedName, @TempDir Path tempDir)
+      throws Exception {
 
-  // arrange
-  Path propertiesFilePath = tempDir.resolve("test.properties");
-  Files.write(propertiesFilePath, List.of(legacyName + "=oldValue"), StandardOpenOption.CREATE_NEW);
+    // arrange
+    Path propertiesFilePath = tempDir.resolve("test.properties");
+    Files.write(propertiesFilePath, List.of(legacyName + "=oldValue"), StandardOpenOption.CREATE_NEW);
 
-  EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE,
-      propertiesFilePath, new IdeTestContext());
+    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE,
+        propertiesFilePath, new IdeTestContext());
 
-  // act
-  variables.set(migratedName, "newValue", false);
-  variables.save();
+    // act
+    variables.set(migratedName, "newValue", false);
+    variables.save();
 
-  // assert
-  List<String> lines = Files.readAllLines(propertiesFilePath);
-  assertThat(lines).containsExactly(migratedName + "=newValue");
-}
+    // assert
+    List<String> lines = Files.readAllLines(propertiesFilePath);
+    assertThat(lines).containsExactly(migratedName + "=newValue");
+  }
 
   @Test
   void testSaveWithMissingParentFilePath(@TempDir Path tempDir) throws Exception {
