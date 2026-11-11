@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.tool.git;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -12,8 +11,6 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsAppInstallation;
 import com.devonfw.tools.ide.os.WindowsHelperMock;
@@ -83,26 +80,6 @@ class GitTest extends AbstractIdeContextTest {
     ProcessResult result = new ProcessResultImpl("bash", command, ProcessResult.SUCCESS, true, outputMessages);
     Mockito.when(processContext.run(ProcessMode.DEFAULT_CAPTURE)).thenReturn(result);
     context.setProcessContext(processContext);
-  }
-
-  /**
-   * Returns an {@link IdeTestContext} (Windows x64) where neither git nor bash can be found, independent of the PATH of the machine running the test.
-   *
-   * @return the {@link IdeTestContext}.
-   */
-  private static IdeTestContext windowsContextWithoutGitInPath() {
-
-    IdeTestContext supportContext = newContext("find-bash-git", "project/workspaces", true);
-    Path home = supportContext.getUserHome();
-    FileAccess fileAccess = supportContext.getFileAccess();
-    Path environmentFile = home.resolve("environment.properties");
-    Properties properties = fileAccess.readProperties(environmentFile);
-    properties.put("PATH", home.resolve("notexisting").toAbsolutePath().toString());
-    properties.remove("BASH_PATH");
-    fileAccess.writeProperties(properties, environmentFile);
-    IdeTestContext context = new IdeTestContext(home, IdeLogLevel.DEBUG, null);
-    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
-    return context;
   }
 
   /**
@@ -271,7 +248,7 @@ class GitTest extends AbstractIdeContextTest {
   void testInstallOnWindowsViaWinget() {
 
     // arrange
-    IdeTestContext context = windowsContextWithoutGitInPath();
+    IdeTestContext context = newWindowsContextWithoutGitAndBash();
     ToolRepository defaultRepository = Mockito.mock(ToolRepository.class);
     context.setDefaultToolRepository(defaultRepository);
     ProcessContext processContext = wingetProcess(context, ProcessResult.SUCCESS, LATEST_WINGET_VERSION);
@@ -297,7 +274,7 @@ class GitTest extends AbstractIdeContextTest {
   void testInstallOnWindowsEnablesLongpaths() {
 
     // arrange
-    IdeTestContext context = windowsContextWithoutGitInPath();
+    IdeTestContext context = newWindowsContextWithoutGitAndBash();
     wingetProcess(context, ProcessResult.SUCCESS, LATEST_WINGET_VERSION);
     Git git = git(context, NativePackageManager.WINGET);
     Path gitconfig = context.getUserHome().resolve(".gitconfig");
@@ -317,7 +294,7 @@ class GitTest extends AbstractIdeContextTest {
   void testInstallOnWindowsInBatchModeIsSilent() {
 
     // arrange
-    IdeTestContext context = windowsContextWithoutGitInPath();
+    IdeTestContext context = newWindowsContextWithoutGitAndBash();
     context.getStartContext().setBatchMode(true);
     ProcessContext processContext = wingetProcess(context, ProcessResult.SUCCESS, LATEST_WINGET_VERSION);
     Git git = git(context, NativePackageManager.WINGET);
@@ -336,7 +313,7 @@ class GitTest extends AbstractIdeContextTest {
   void testInstallOnWindowsPinsRequestedVersion() {
 
     // arrange
-    IdeTestContext context = windowsContextWithoutGitInPath();
+    IdeTestContext context = newWindowsContextWithoutGitAndBash();
     setGitInRegistry(context, LATEST_WINGET_VERSION);
     setGitOnPath(context);
     ProcessContext processContext = wingetProcess(context, ProcessResult.SUCCESS, TOOL_VERSION);
@@ -357,7 +334,7 @@ class GitTest extends AbstractIdeContextTest {
   void testInstallOnWindowsFailsWithHintIfWingetIsNotAvailable() {
 
     // arrange
-    IdeTestContext context = windowsContextWithoutGitInPath();
+    IdeTestContext context = newWindowsContextWithoutGitAndBash();
     ProcessContext processContext = wingetProcess(context, ProcessResult.SUCCESS, null);
     Git git = git(context);
     ToolInstallRequest request = installRequest(VersionIdentifier.LATEST);
@@ -375,7 +352,7 @@ class GitTest extends AbstractIdeContextTest {
   void testInstallOnWindowsUpgradesViaWingetIfAlreadyInstalled() {
 
     // arrange
-    IdeTestContext context = windowsContextWithoutGitInPath();
+    IdeTestContext context = newWindowsContextWithoutGitAndBash();
     setGitInRegistry(context, TOOL_VERSION);
     setGitOnPath(context);
     ProcessContext processContext = wingetProcess(context, ProcessResult.SUCCESS, LATEST_WINGET_VERSION);
@@ -398,7 +375,7 @@ class GitTest extends AbstractIdeContextTest {
   void testInstallOnWindowsSkipsWingetIfOnlyFoundOnPath() {
 
     // arrange
-    IdeTestContext context = windowsContextWithoutGitInPath();
+    IdeTestContext context = newWindowsContextWithoutGitAndBash();
     setGitOnPath(context);
     ProcessContext processContext = wingetProcess(context, ProcessResult.SUCCESS, null);
     Git git = git(context, NativePackageManager.WINGET);
@@ -420,7 +397,7 @@ class GitTest extends AbstractIdeContextTest {
   void testInstallOnWindowsFailsIfInstalledGitIsNotOnPath() {
 
     // arrange
-    IdeTestContext context = windowsContextWithoutGitInPath();
+    IdeTestContext context = newWindowsContextWithoutGitAndBash();
     setGitInRegistry(context, TOOL_VERSION);
     wingetProcess(context, WINGET_NO_APPLICABLE_UPDATE, null);
     Git git = git(context, NativePackageManager.WINGET);
@@ -437,7 +414,7 @@ class GitTest extends AbstractIdeContextTest {
   void testInstallOnWindowsKeepsInstalledVersionIfWingetFails() {
 
     // arrange
-    IdeTestContext context = windowsContextWithoutGitInPath();
+    IdeTestContext context = newWindowsContextWithoutGitAndBash();
     setGitInRegistry(context, TOOL_VERSION);
     setGitOnPath(context);
     wingetProcess(context, 1, null);
@@ -459,7 +436,7 @@ class GitTest extends AbstractIdeContextTest {
   void testInstallOnWindowsRejectsUnsafeVersion() {
 
     // arrange
-    IdeTestContext context = windowsContextWithoutGitInPath();
+    IdeTestContext context = newWindowsContextWithoutGitAndBash();
     ProcessContext processContext = wingetProcess(context, ProcessResult.SUCCESS, null);
     Git git = git(context, NativePackageManager.WINGET);
     ToolInstallRequest request = installRequest(VersionIdentifier.of("2.45.0&calc"));
@@ -476,7 +453,7 @@ class GitTest extends AbstractIdeContextTest {
   void testInstallOnWindowsAcceptsThatNoUpdateIsApplicable() {
 
     // arrange
-    IdeTestContext context = windowsContextWithoutGitInPath();
+    IdeTestContext context = newWindowsContextWithoutGitAndBash();
     setGitInRegistry(context, LATEST_WINGET_VERSION);
     setGitOnPath(context);
     ProcessContext processContext = wingetProcess(context, WINGET_NO_APPLICABLE_UPDATE, null);

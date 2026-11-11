@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.os.SystemInfo;
 
 /**
  * Represents an OS native package manager used for managing software packages.
@@ -100,8 +101,8 @@ public enum NativePackageManager {
   }
 
   /**
-   * @return {@code true} if commands of this {@link NativePackageManager} need to be run with {@code sudo} (root permissions),
-   * {@code false} otherwise (e.g. for {@link #YAY} and {@link #BREW}/{@link #BREW_CASK} that must never be run as root).
+   * @return {@code true} if commands of this {@link NativePackageManager} need to be run with {@code sudo} (root permissions), {@code false} otherwise (e.g.
+   *     for {@link #YAY} and {@link #BREW}/{@link #BREW_CASK} that must never be run as root).
    */
   public boolean isNeedSudo() {
 
@@ -113,6 +114,28 @@ public enum NativePackageManager {
    *     {@link #WINGET} that is used to install Git and hence bash on Windows).
    */
   public boolean isRunWithBash() {
+
+    return this != WINGET;
+  }
+
+  /**
+   * @param systemInfo the {@link SystemInfo} of the current system.
+   * @return {@code true} if this {@link NativePackageManager} may be used on the given system, {@code false} otherwise. {@link #WINGET} is only used on Windows
+   *     and the other package managers never on Windows (e.g. apt from WSL found on the PATH).
+   */
+  public boolean isSupportedOn(SystemInfo systemInfo) {
+
+    if (this == WINGET) {
+      return systemInfo.isWindows();
+    }
+    return !systemInfo.isWindows();
+  }
+
+  /**
+   * @return {@code true} if links to the binary of this {@link NativePackageManager} shall be followed to check that it exists, {@code false} otherwise (e.g.
+   *     for {@link #WINGET} that is an app execution alias that exists but cannot be followed).
+   */
+  public boolean isFollowLinks() {
 
     return this != WINGET;
   }

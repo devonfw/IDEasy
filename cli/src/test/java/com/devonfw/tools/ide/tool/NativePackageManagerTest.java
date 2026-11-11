@@ -6,6 +6,8 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.os.SystemInfoMock;
+
 /**
  * Test of {@link NativePackageManager}.
  */
@@ -349,5 +351,23 @@ class NativePackageManagerTest extends Assertions {
     assertThat(NativePackageManager.BREW.isNeedSudo()).isFalse();
     assertThat(NativePackageManager.BREW_CASK.isNeedSudo()).isFalse();
     assertThat(NativePackageManager.WINGET.isNeedSudo()).isFalse();
+  }
+
+  @Test
+  void testIsSupportedOn() {
+    assertThat(NativePackageManager.WINGET.isSupportedOn(SystemInfoMock.WINDOWS_X64)).isTrue();
+    assertThat(NativePackageManager.WINGET.isSupportedOn(SystemInfoMock.LINUX_X64)).isFalse();
+    assertThat(NativePackageManager.WINGET.isSupportedOn(SystemInfoMock.MAC_ARM64)).isFalse();
+    assertThat(NativePackageManager.APT.isSupportedOn(SystemInfoMock.LINUX_X64)).isTrue();
+    assertThat(NativePackageManager.APT.isSupportedOn(SystemInfoMock.WINDOWS_X64)).as("e.g. apt from WSL on the PATH").isFalse();
+    assertThat(NativePackageManager.BREW.isSupportedOn(SystemInfoMock.MAC_ARM64)).isTrue();
+    assertThat(NativePackageManager.BREW.isSupportedOn(SystemInfoMock.WINDOWS_X64)).isFalse();
+  }
+
+  @Test
+  void testIsFollowLinks() {
+    assertThat(NativePackageManager.APT.isFollowLinks()).isTrue();
+    assertThat(NativePackageManager.BREW.isFollowLinks()).isTrue();
+    assertThat(NativePackageManager.WINGET.isFollowLinks()).as("winget is an app execution alias").isFalse();
   }
 }

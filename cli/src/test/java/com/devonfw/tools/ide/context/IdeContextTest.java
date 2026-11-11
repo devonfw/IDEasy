@@ -323,24 +323,6 @@ public class IdeContextTest extends AbstractIdeContextTest {
     assertThat(gitPath).isNull();
   }
 
-  /**
-   * @return an {@link IdeTestContext} (Windows) where neither git nor bash can be found, independent of the PATH of the machine running the test.
-   */
-  private static IdeTestContext newWindowsContextWithoutGitAndBash() {
-
-    IdeTestContext supportContext = newContext("find-bash-git", "project/workspaces", true);
-    Path home = supportContext.getUserHome();
-    FileAccess fileAccess = supportContext.getFileAccess();
-    Path environmentFile = home.resolve("environment.properties");
-    Properties properties = fileAccess.readProperties(environmentFile);
-    properties.put("PATH", home.resolve("notexisting").toAbsolutePath().toString());
-    properties.remove("BASH_PATH");
-    fileAccess.writeProperties(properties, environmentFile);
-    IdeTestContext context = new IdeTestContext(home, IdeLogLevel.DEBUG, null);
-    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
-    return context;
-  }
-
   @Test
   void testQuestionWithMultipleOptions() {
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);

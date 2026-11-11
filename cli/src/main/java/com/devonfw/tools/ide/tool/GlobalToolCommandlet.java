@@ -323,8 +323,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
    * @return {@code true} if the given {@link NativePackageManager} is available on the current system, {@code false} otherwise.
    */
   protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
-    if ((packageManager == NativePackageManager.WINGET) != this.context.getSystemInfo().isWindows()) {
-      // winget is only used on Windows and the other package managers never on Windows (e.g. apt from WSL on the PATH)
+    if (!packageManager.isSupportedOn(this.context.getSystemInfo())) {
       return false;
     }
     Path binary = Path.of(packageManager.getBinaryName());
@@ -332,11 +331,10 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
     if (binaryPath == binary) {
       return false;
     }
-    if (packageManager == NativePackageManager.WINGET) {
-      // winget is an app execution alias that exists but cannot be followed
-      return Files.exists(binaryPath, LinkOption.NOFOLLOW_LINKS);
+    if (packageManager.isFollowLinks()) {
+      return Files.exists(binaryPath);
     }
-    return Files.exists(binaryPath);
+    return Files.exists(binaryPath, LinkOption.NOFOLLOW_LINKS);
   }
 
   /**
