@@ -23,7 +23,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class JqUrlUpdater extends GithubUrlReleaseUpdater {
 
   /** The minimum version for which all six platform/architecture release assets (including {@code windows-arm64}) are available. */
-  private static final VersionIdentifier MIN_JQ_VERSION_IDENTIFIER = VersionIdentifier.of("1.8.2");
+  private static final VersionIdentifier MIN_JQ_VERSION_IDENTIFIER = VersionIdentifier.ofRequired("1.8.2");
 
   /**
    * The constructor.
