@@ -7,7 +7,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 
 /**
- * {@link AbstractToolCommandlet} for <a href="https://micronaut.io/">Micronaut CLI</a> ({@code mn}).
+ * {@link AbstractLocalToolCommandlet} for <a href="https://micronaut.io/">Micronaut CLI</a> ({@code mn}).
  */
 public class Micronaut extends AbstractLocalToolCommandlet {
 
