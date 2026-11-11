@@ -75,8 +75,7 @@ public class StatusCommandlet extends AbstractCommandlet {
 
   private void logSystemInfo() {
     SystemInfo systemInfo = this.context.getSystemInfo();
-    LOG.info("Your operating system is {}({})@{} [{}@{}]", systemInfo.getOs(), systemInfo.getOsVersion(), systemInfo.getArchitecture(),
-        systemInfo.getOsName(), systemInfo.getArchitectureName());
+    LOG.info("Your operating system is {}", systemInfo.describe());
   }
 
   private void logSettingsLegacyStatus() {

@@ -9,9 +9,9 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class LazyDockerUrlUpdater extends GithubUrlTagUpdater {
 
-  private static final VersionIdentifier MIN_WIN_VID = VersionIdentifier.of("0.7.4");
+  private static final VersionIdentifier MIN_WIN_VID = VersionIdentifier.ofRequired("0.7.4");
 
-  private static final VersionIdentifier MIN_ARM_VID = VersionIdentifier.of("0.15.0");
+  private static final VersionIdentifier MIN_ARM_VID = VersionIdentifier.ofRequired("0.15.0");
 
   @Override
   public String getTool() {
