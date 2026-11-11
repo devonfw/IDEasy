@@ -35,6 +35,8 @@ public class WindowsHelperImpl implements WindowsHelper {
       "HKLM\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
   };
 
+  private static final String DISPLAY_NAME = "DisplayName";
+
   private final IdeContext context;
 
   /**
@@ -145,44 +147,34 @@ public class WindowsHelperImpl implements WindowsHelper {
       if (out == null) {
         continue;
       }
-
+      // reg also matches on any other value (e.g. comments or paths of unrelated apps), so we only accept a key whose DisplayName matches.
+      // An exact match wins over a key whose DisplayName only contains the app name (e.g. "Obsidian Web" next to "Obsidian").
+      String key = null;
+      String firstContaining = null;
       for (String line : out) {
-        String key = getMatchingUninstallKey(line, appName);
-        if (key != null) {
-          return key;
+        String trimmed = line.trim();
+        if (trimmed.startsWith("HKEY_")) {
+          key = trimmed;
+        } else if ((key != null) && line.startsWith("    " + DISPLAY_NAME + " ")) {
+          String displayName = retrieveRegString(DISPLAY_NAME, List.of(line));
+          if (displayName != null) {
+            if (displayName.trim().equalsIgnoreCase(appName)) {
+              return key; // exact registry path (key) for tool
+            }
+            if ((firstContaining == null) && displayName.toLowerCase(Locale.ROOT).contains(appName.toLowerCase(Locale.ROOT))) {
+              firstContaining = key;
+            }
+          }
         }
       }
+      if (firstContaining != null) {
+        return firstContaining;
+      }
     }
-
     return null;
   }
 
-  /**
-   * Checks whether the given registry search result represents an uninstallation key whose display name matches the requested application.
-   *
-   * @param line the registry search result line to check.
-   * @param appName the application name to match.
-   * @return the matching uninstall registry key, or {@code null} if the line does not represent a matching application.
-   */
-  private String getMatchingUninstallKey(String line, String appName) {
 
-    String key = line.trim();
-    if (!key.startsWith("HKEY_")) {
-      return null;
-    }
-
-    List<String> values = runReg("query", key);
-    if (values == null) {
-      return null;
-    }
-
-    String displayName = retrieveRegString("DisplayName", values);
-    if (matchesAppName(displayName, appName)) {
-      return key;
-    }
-
-    return null;
-  }
 
   /**
    * Checks whether a Windows application display name matches the requested application name.

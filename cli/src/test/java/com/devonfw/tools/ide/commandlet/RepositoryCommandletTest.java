@@ -142,7 +142,7 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
     rc.run();
     // assert
     assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve(TEST_REPO)).isDirectory();
-    assertThat(context).logAtError().hasMessageContaining("Invalid template expression");
+    assertThat(context).logAtError().hasMessageContaining("Missing required argument #0 for parameter variableName");
   }
 
   @Test
