@@ -2,22 +2,17 @@ package com.devonfw.ide.gui.core.mainwindow.console;
 
 
 import java.text.MessageFormat;
-import java.util.concurrent.Callable;
 
-import javafx.beans.binding.Bindings;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener.Change;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
-
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
@@ -111,23 +106,17 @@ public class ConsoleView {
       textArea.setWrapText(true);
       textArea.setEditable(false);
       textArea.setFocusTraversable(false);
-      textArea.sceneProperty().addListener(new ChangeListener<Scene>() {
-        @Override
-        public void changed(ObservableValue<? extends Scene> obs, Scene oldScene, Scene newScene) {
-          if (newScene != null) {
-            textArea.applyCss();
-            Node text = textArea.lookup(".text");
-            textArea.prefHeightProperty().bind(Bindings.createDoubleBinding(new Callable<Double>() {
-              @Override
-              public Double call() {
-                return 2+text.getBoundsInLocal().getHeight();
-              }
-            },text.boundsInLocalProperty()));
-          }
-        }
-      });
     }
 
+    private static double computeTextHeight(String text, double width) {
+
+      Text helper = new Text(text);
+
+      helper.setFont(Font.font("Consolas", 11));
+      helper.setWrappingWidth(width);
+
+      return helper.getLayoutBounds().getHeight();
+    }
     @Override
     protected void updateItem(IdeLogEntry entry, boolean empty) {
 
@@ -141,6 +130,12 @@ public class ConsoleView {
         textArea.setText(text);
         textArea.setStyle(getStyleForEntry(entry));
         textArea.setText(text);
+
+        textArea.applyCss();
+
+        double textHeight = computeTextHeight(text, textArea.getWidth());
+
+        textArea.setPrefHeight(textHeight + 11);
 
 
         setGraphic(textArea);
