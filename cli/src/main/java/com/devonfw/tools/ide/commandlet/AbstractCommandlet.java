@@ -12,8 +12,6 @@ import com.devonfw.tools.ide.function.AbstractParameterizedFunction;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
-import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
-import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * A {@link AbstractCommandlet} is a sub-command of the IDE CLI.
