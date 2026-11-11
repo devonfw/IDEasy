@@ -11,7 +11,7 @@ public class TerraformUrlUpdater extends GithubUrlTagUpdater {
 
   private static final String DOWNLOAD_BASE_URL = "https://releases.hashicorp.com";
 
-  private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("1.1.0");
+  private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.ofRequired("1.1.0");
 
   /**
    * The Constructor.

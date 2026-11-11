@@ -5,37 +5,29 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.function.AbstractParameterizedFunction;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
-import com.devonfw.tools.ide.validation.ValidationResult;
-import com.devonfw.tools.ide.validation.ValidationState;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * A {@link AbstractCommandlet} is a sub-command of the IDE CLI.
  */
-public abstract class AbstractCommandlet implements Commandlet {
+public abstract class AbstractCommandlet extends AbstractParameterizedFunction implements Commandlet {
 
   /** The {@link IdeContext} instance. */
   protected final IdeContext context;
-
-  private final List<Property<?>> propertiesList;
-
-  private final List<Property<?>> properties;
 
   private final List<Property<?>> valuesList;
 
   private final List<Property<?>> values;
 
   private final Map<String, Property<?>> optionMap;
-
-  private Property<?> multiValued;
 
   private KeywordProperty firstKeyword;
 
@@ -48,19 +40,9 @@ public abstract class AbstractCommandlet implements Commandlet {
 
     super();
     this.context = context;
-    this.propertiesList = new ArrayList<>();
-    this.properties = Collections.unmodifiableList(this.propertiesList);
     this.valuesList = new ArrayList<>();
     this.values = Collections.unmodifiableList(this.valuesList);
     this.optionMap = new HashMap<>();
-  }
-
-  /**
-   * @return the {@link List} with all {@link Property properties} of this {@link AbstractCommandlet}.
-   */
-  public List<Property<?>> getProperties() {
-
-    return this.properties;
   }
 
   /**
@@ -72,22 +54,28 @@ public abstract class AbstractCommandlet implements Commandlet {
   }
 
   /**
-   * Clear the set values on all properties of the {@link AbstractCommandlet#propertiesList}
-   */
-  public void reset() {
-
-    for (Property<?> property : this.propertiesList) {
-      property.clearValue();
-    }
-  }
-
-  /**
    * @param nameOrAlias the potential {@link Property#getName() name} or {@link Property#getAlias() alias} of the requested {@link Property}.
    * @return the requested {@link Property property} or {@code null} if not found.
    */
   public Property<?> getOption(String nameOrAlias) {
 
     return this.optionMap.get(nameOrAlias);
+  }
+
+  @Override
+  protected <P extends Property<?>> P add(P property) {
+
+    super.add(property);
+    if (property.isValue()) {
+      this.valuesList.add(property);
+    }
+    return property;
+  }
+
+  @Override
+  protected Property<?> registerOption(String name, Property<?> property) {
+
+    return this.optionMap.put(name, property);
   }
 
   /**
@@ -106,7 +94,7 @@ public abstract class AbstractCommandlet implements Commandlet {
 
     KeywordProperty property = new KeywordProperty(keyword, true, alias);
     if (this.firstKeyword == null) {
-      if (!this.properties.isEmpty()) {
+      if (!getProperties().isEmpty()) {
         throw new IllegalStateException(property + " must be first property in " + getClass().getSimpleName());
       }
       this.firstKeyword = property;
@@ -114,54 +102,11 @@ public abstract class AbstractCommandlet implements Commandlet {
     add(property);
   }
 
-  /**
-   * @param <P> type of the {@link Property}.
-   * @param property the {@link Property} to register.
-   * @return the given {@link Property}.
-   */
-  protected <P extends Property<?>> P add(P property) {
-
-    if (this.multiValued != null) {
-      throw new IllegalStateException("The multi-valued property " + this.multiValued + " can not be followed by " + property);
-    }
-    this.propertiesList.add(property);
-    if (property.isOption()) {
-      add(property.getName(), property, false);
-      add(property.getAlias(), property, true);
-    }
-    if (property.isValue()) {
-      this.valuesList.add(property);
-    }
-    if (property.isMultiValued()) {
-      this.multiValued = property;
-    }
-    return property;
-  }
-
-  private void add(String name, Property<?> property, boolean alias) {
-
-    if (alias && (name == null)) {
-      return;
-    }
-    Objects.requireNonNull(name);
-    assert (name.equals(name.trim()));
-    if (name.isEmpty() && !alias) {
-      return;
-    }
-    Property<?> duplicate = this.optionMap.put(name, property);
-    if (duplicate != null) {
-      throw new IllegalStateException("Duplicate name or alias " + name + " for " + property + " and " + duplicate);
-    }
-  }
-
   @Override
   public IdeContext getContext() {
 
     return this.context;
   }
-
-  @Override
-  public abstract String getName();
 
   /**
    * @return the first keyword of this {@link AbstractCommandlet}. Typically, the same as {@link #getName() name} but may also differ (e.g. "set" vs.
@@ -238,19 +183,6 @@ public abstract class AbstractCommandlet implements Commandlet {
   }
 
   protected abstract void doRun();
-
-  /**
-   * @return {@code true} if this {@link AbstractCommandlet} is the valid candidate to be {@link #run()}, {@code false} otherwise.
-   * @see Property#validate()
-   */
-  public ValidationResult validate() {
-    ValidationState state = new ValidationState(null);
-    // avoid validation exception if not a candidate to be run.
-    for (Property<?> property : this.propertiesList) {
-      state.add(property.validate());
-    }
-    return state;
-  }
 
   /**
    * Provide additional usage help of this {@link AbstractCommandlet} to the user.
