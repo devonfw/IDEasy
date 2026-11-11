@@ -113,7 +113,9 @@ public class PathProperty extends Property<Path> {
     if (parent == null) {
       parent = Path.of(".");
     }
-    String filename = path.getFileName().toString();
+    Path fileName = path.getFileName();
+    // an empty value (a bare option like "--project=" being completed) has no file name - complete all entries of the parent folder
+    String filename = (fileName != null) ? fileName.toString() : "";
     completeValuesFromFolder(parent, filename, context, commandlet, collector);
   }
 
