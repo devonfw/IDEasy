@@ -419,7 +419,7 @@ class IntellijTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext("intellij");
     Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
     ToolEditionAndVersion requested = new ToolEditionAndVersion(new ToolEdition("intellij", "ultimate"));
-    requested.setVersion(VersionIdentifier.of("2025.3"));
+    requested.setVersion(VersionIdentifier.ofRequired("2025.3"));
 
     // act
     ToolEditionAndVersion adjusted = commandlet.adjustRequestedEdition(requested);
@@ -438,7 +438,7 @@ class IntellijTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext("intellij");
     Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
     ToolEditionAndVersion requested = new ToolEditionAndVersion(new ToolEdition("intellij", "ultimate"));
-    requested.setVersion(VersionIdentifier.of("2025.2.6.1"));
+    requested.setVersion(VersionIdentifier.ofRequired("2025.2.6.1"));
 
     // act
     ToolEditionAndVersion adjusted = commandlet.adjustRequestedEdition(requested);
@@ -612,7 +612,7 @@ class IntellijTest extends AbstractIdeContextTest {
     // arrange
     Intellij commandlet = new Intellij(this.context);
     Path dummy = context.getSoftwarePath().resolve("intellij");
-    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.of("2023.3.3"), false);
+    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.ofRequired("2023.3.3"), false);
     RecordingEnvironmentContext environmentContext = new RecordingEnvironmentContext();
 
     // act
