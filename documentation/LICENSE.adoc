@@ -125,6 +125,7 @@ The column `inclusion` indicates the way the component is included:
 |https://docs.astral.sh/ruff[ruff] |Optional|https://github.com/astral-sh/ruff/blob/main/LICENSE[MIT License]
 |https://flutter.dev/[Flutter]|Optional|https://github.com/flutter/flutter/blob/master/LICENSE[BSD 3-Clause License]
 |https://github.com/google-antigravity/antigravity-cli[Antigravity CLI] |Optional|https://antigravity.google/terms[Proprietary]
+|https://jqlang.github.io/jq/[jq] |Optional|https://github.com/jqlang/jq/blob/master/COPYING[MIT]
 |===
 
 == Apache Software License - Version 2.0
