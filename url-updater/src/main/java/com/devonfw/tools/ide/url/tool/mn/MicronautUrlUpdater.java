@@ -67,7 +67,7 @@ public class MicronautUrlUpdater extends GithubUrlTagUpdater {
   @Override
   public String getCpeVendor() {
 
-    return "micronaut";
+    return "objectcomputing";
   }
 
   @Override
