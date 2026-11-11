@@ -135,7 +135,7 @@ public class Slf4jLoggerAdapter extends AbstractLogger implements LoggingEventAw
     String composedMessage = compose(argFormatter, message, args);
     boolean accept = true;
     if ((composedMessage != null) || (message != null) || (error != null)) {
-      accept = listener.onLog(ideLevel, composedMessage, message, args, error);
+      accept = listener.onLog(new IdeLogEntry(ideLevel, composedMessage, message, args, error));
     }
     if (accept) {
       java.util.logging.Level julLevel = ideLevel.getJulLevel();
