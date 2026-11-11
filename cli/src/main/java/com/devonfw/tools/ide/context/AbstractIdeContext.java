@@ -1693,7 +1693,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     CliArgument currentArgument = arguments.current();
     while (!currentArgument.isEnd()) {
       LOG.trace("Trying to match argument '{}'", currentArgument);
-      if (currentArgument.isOption() && !arguments.isEndOptions()) {
+      boolean matchValue = !isMatchingDeclaredOptions(currentArgument, arguments);
+      if (!matchValue) {
         if (currentArgument.isCompletion()) {
           Iterator<Property<?>> optionIterator = optionProperties.iterator();
           while (optionIterator.hasNext()) {
@@ -1704,6 +1705,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
               arguments.next();
             }
           }
+          // a completion option that matched no declared option was not consumed - complete it as a value instead,
+          // so a tool commandlet still offers its own tool-argument candidates (no infinite re-processing).
+          matchValue = (arguments.current() == currentArgument);
         } else {
           Property<?> option = cmd.getOption(currentArgument.get());
           if (option != null) {
@@ -1718,7 +1722,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
             return;
           }
         }
-      } else {
+      }
+      if (matchValue) {
         if (currentValueProperty != null) {
           boolean success = currentValueProperty.apply(arguments, this, cmd, collector);
           if (!success) {
