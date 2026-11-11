@@ -7,6 +7,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/2654[#2654]: fixed Maven references settings-security.xml via -Dsettings.security before the file exists-
+* https://github.com/devonfw/IDEasy/issues/2393[#2393]: Open a project folder of my choice (`--project`) instead of always the main workspace (IntelliJ, Android Studio, PyCharm, VS Code)
 * https://github.com/devonfw/IDEasy/issues/2457[#2457]: Integrate antigravity-cli
 * https://github.com/devonfw/IDEasy/issues/2530[#2530]: GitContext.fetch should fetch all remotes if none is specified
 * https://github.com/devonfw/IDEasy/issues/2808[#2808]: Sign the Windows native image (exe) before building the MSI and the archive, so the launcher is signed even when installed without the MSI
