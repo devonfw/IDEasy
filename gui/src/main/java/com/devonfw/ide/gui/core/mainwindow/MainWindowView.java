@@ -68,6 +68,9 @@ public class MainWindowView extends BorderPane {
   private Button openLauncherButton;
 
   @FXML
+  private Button openToolConfigButton;
+
+  @FXML
   private SplitPane centerSplitPane;
 
   @FXML
@@ -157,6 +160,9 @@ public class MainWindowView extends BorderPane {
     this.viewModel.setOpenTabCount(this.tabPane.getTabs().size());
 
     this.openLauncherButton.setOnAction(_ -> this.viewModel.openLauncherTab());
+    // the tool configuration belongs to a project, so it can only be opened once a workspace is selected
+    this.openToolConfigButton.disableProperty().bind(this.viewModel.workspaceSelectedProperty().not());
+    this.openToolConfigButton.setOnAction(_ -> this.viewModel.openToolConfigTab());
   }
 
   private void bindConsole() {

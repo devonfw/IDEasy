@@ -22,7 +22,7 @@ import org.testfx.util.WaitForAsyncUtils;
 import com.devonfw.ide.gui.UIBasedApplicationTest;
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.event.TabChangeEvent;
-import com.devonfw.ide.gui.core.mainwindow.navigation.NavigationPanelViewModel;
+import com.devonfw.ide.gui.core.mainwindow.MainWindowViewModel;
 import com.devonfw.ide.gui.core.model.ToolConfiguration;
 
 /**
@@ -84,9 +84,9 @@ class ToolConfigTabTest extends UIBasedApplicationTest {
           tabPane.getTabs().add(event.tab());
         }
       });
-      NavigationPanelViewModel navigationViewModel = new NavigationPanelViewModel(guiStateManager);
-      navigationViewModel.openToolConfigTab();
-      navigationViewModel.openToolConfigTab();
+      MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager);
+      mainWindowViewModel.openToolConfigTab();
+      mainWindowViewModel.openToolConfigTab();
     });
 
     assertThat(this.emittedTabs).hasSize(2);

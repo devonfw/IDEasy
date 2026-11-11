@@ -2,7 +2,6 @@ package com.devonfw.ide.gui.core.mainwindow.navigation;
 
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.VBox;
 
@@ -19,9 +18,6 @@ public class NavigationPanelView extends VBox {
 
   @FXML
   private ComboBox<String> languages;
-
-  @FXML
-  private Button toolConfig;
 
   private final NlsService nlsService;
 
@@ -60,8 +56,5 @@ public class NavigationPanelView extends VBox {
 
     this.languages.setItems(viewModel.getLanguagesViewModel().getItems());
     this.languages.valueProperty().bindBidirectional(viewModel.getLanguagesViewModel().selectedItemProperty());
-
-    this.toolConfig.disableProperty().bind(viewModel.workspaceSelectedProperty().not());
-    this.toolConfig.setOnAction(_ -> viewModel.openToolConfigTab());
   }
 }
