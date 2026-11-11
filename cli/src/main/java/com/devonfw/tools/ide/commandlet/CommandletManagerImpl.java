@@ -213,6 +213,7 @@ public class CommandletManagerImpl implements CommandletManager {
    */
   protected void add(AbstractCommandlet commandlet) {
 
+    commandlet.initialize();
     boolean hasRequiredProperty = false;
     List<Property<?>> properties = commandlet.getProperties();
     int propertyCount = properties.size();
