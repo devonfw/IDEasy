@@ -11,7 +11,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class CodexUrlUpdater extends GithubUrlReleaseUpdater {
 
   // first release with all six OS/arch assets (Windows arm64 added in rust-v0.28.0)
-  private static final VersionIdentifier MIN_CODEX_VID = VersionIdentifier.of("0.28.0");
+  private static final VersionIdentifier MIN_CODEX_VID = VersionIdentifier.ofRequired("0.28.0");
 
   /**
    * The Constructor.
