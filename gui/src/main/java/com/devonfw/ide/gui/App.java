@@ -3,7 +3,6 @@ package com.devonfw.ide.gui;
 import java.awt.Taskbar;
 import java.awt.Toolkit;
 import java.net.URL;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
@@ -55,9 +54,9 @@ public class App extends Application {
   public void start(Stage primaryStage) {
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
       LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
-      Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
+      Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.toString()).showAndWait());
     });
-    // JavaFX swallows exceptions from start(), so it handles and reports startup failures here.
+    // JavaFX rethrows exceptions from start() only after the toolkit has shut down, so startup failures are reported here while a dialog can still be shown.
     try {
       this.primaryStage = primaryStage;
 
@@ -88,7 +87,7 @@ public class App extends Application {
     } catch (Throwable error) {
       // Log and show the error before the JavaFX toolkit shuts down.
       LOG.error("Exception in Application start method: {}", error.toString(), error);
-      new IdeDialog(IdeDialog.AlertType.ERROR, error.getMessage()).showAndWait();
+      new IdeDialog(IdeDialog.AlertType.ERROR, error.toString()).showAndWait();
       System.exit(1);
     }
   }
