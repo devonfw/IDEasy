@@ -6,9 +6,7 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.FlagProperty;
-import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 
@@ -53,11 +51,7 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   protected void postInstall(ToolInstallRequest request) {
 
     super.postInstall(request);
-    if (isPluginPurgeRequired(request)) {
-      this.pluginManager.resetPlugins(request);
-    }
-    this.context.getFileAccess().mkdirs(getPluginsInstallationPath());
-    installPlugins(getPlugins().getPlugins(), request.getProcessContext());
+    this.pluginManager.postInstallPlugins(request);
   }
 
   /**
@@ -74,13 +68,14 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
     return this.pluginManager.getExtraPlugins(plugins);
   }
 
+  /**
+   * Ensures that the {@link #getPluginsInstallationPath() plugins installation folder} owned by this tool exists before installing the plugins, as it may have
+   * been deleted by a {@link PluginManager#resetPlugins(ToolInstallRequest) reset} or not have been created yet.
+   */
   @Override
-  public void installPlugin(ToolPluginDescriptor plugin, final Step step) {
+  public void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
 
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
-    ToolInstallRequest request = new ToolInstallRequest(true);
-    request.setProcessContext(pc);
-    install(request);
-    installPlugin(plugin, step, pc);
+    this.context.getFileAccess().mkdirs(getPluginsInstallationPath());
+    PluginBasedCommandlet.super.installPlugins(plugins, pc);
   }
 }

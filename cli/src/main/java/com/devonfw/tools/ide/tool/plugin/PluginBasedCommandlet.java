@@ -8,6 +8,7 @@ import java.util.Collection;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
@@ -140,12 +141,19 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
   boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc);
 
   /**
-   * Ensures that the tool itself is installed and then installs the plugin.
+   * Ensures that the tool itself is installed and then installs the plugin. The default implementation is shared by all plugin-capable tools.
    *
    * @param plugin the {@link ToolPluginDescriptor} to install.
    * @param step the {@link Step} for the plugin installation.
    */
-  void installPlugin(ToolPluginDescriptor plugin, final Step step);
+  default void installPlugin(ToolPluginDescriptor plugin, final Step step) {
+
+    ProcessContext pc = getContext().newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
+    ToolInstallRequest request = new ToolInstallRequest(true);
+    request.setProcessContext(pc);
+    install(request);
+    installPlugin(plugin, step, pc);
+  }
 
   /**
    * @param plugin the {@link ToolPluginDescriptor plugin} to uninstall. The default implementation is shared by all plugin-capable tools.

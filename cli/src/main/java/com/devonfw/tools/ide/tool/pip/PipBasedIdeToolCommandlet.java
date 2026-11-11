@@ -12,7 +12,6 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.FlagProperty;
@@ -99,10 +98,7 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     super.postInstall(request);
 
     configureWorkspace();
-    if (isPluginPurgeRequired(request)) {
-      this.pluginManager.resetPlugins(request);
-    }
-    installPlugins(getPlugins().getPlugins(), request.getProcessContext());
+    this.pluginManager.postInstallPlugins(request);
   }
 
   @Override
@@ -115,16 +111,6 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     result.log(IdeLogLevel.DEBUG, IdeLogLevel.ERROR);
     step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
     return false;
-  }
-
-  @Override
-  public void installPlugin(ToolPluginDescriptor plugin, final Step step) {
-
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
-    ToolInstallRequest request = new ToolInstallRequest(true);
-    request.setProcessContext(pc);
-    install(request);
-    installPlugin(plugin, step, pc);
   }
 
   @Override

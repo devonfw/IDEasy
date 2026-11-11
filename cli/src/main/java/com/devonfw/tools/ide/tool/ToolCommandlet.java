@@ -104,6 +104,14 @@ public interface ToolCommandlet extends Commandlet, Tags {
   void setExecutionDirectory(Path executionDirectory);
 
   /**
+   * Performs the installation (install, update, downgrade) of the {@link #getName() tool} managed by this {@link ToolCommandlet}.
+   *
+   * @param request the {@link ToolInstallRequest}.
+   * @return the {@link ToolInstallation}.
+   */
+  ToolInstallation install(ToolInstallRequest request);
+
+  /**
    * Uninstalls the managed {@link #getName() tool}.
    */
   void uninstall();
