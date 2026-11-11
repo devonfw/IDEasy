@@ -182,7 +182,8 @@ public interface GitContext {
    *
    * @param repository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
    *     will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
-   * @param remote the name of the remote repository, e.g., "origin". If {@code null} or empty, the default remote name "origin" will be used.
+   * @param remote the name of the remote repository, e.g., "origin". If {@code null}, the remote is determined from the upstream of the current branch and
+   *     if none is configured, all remotes are fetched via {@code git fetch --all}.
    * @param branch the name of the branch to check for updates.
    */
   void fetch(Path repository, String remote, String branch);
