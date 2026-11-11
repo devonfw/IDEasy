@@ -81,6 +81,16 @@ Because only the repository is bind-mounted and the IDEasy runtime is
 container-local, running an `ide install` or other tooling inside the sandbox
 **does not affect the host** IDEasy installation.
 
+.What "isolation" covers
+[NOTE]
+====
+Isolation here scopes to the *IDEasy runtime* - `conf/`, `software/` and `_ide/`
+are container-local and discarded on exit - **not** to the working tree. The
+working tree *is* your real repository (mounted read-write on purpose), so the
+agent's `git commit` and pull requests operate on it directly. Do not treat the
+working tree as isolated.
+====
+
 == Prerequisites
 
 * A running container engine. IDEasy recommends https://rancherdesktop.io/[Rancher
@@ -448,6 +458,11 @@ security.
 * **Cleanup:** the container is started with `--rm`, so the container-local
   IDEasy runtime is discarded on exit. Only your bind-mounted repository (and any
   commits/pushes you performed) remain on the host.
+* **Host and container editing the repository at once:** the agent works
+  directly on your real (mounted) repository, so do not edit or build that
+  repository on the host while the agent is running against it - concurrent
+  changes from both sides will collide. The intended workflow is sequential:
+  hand the agent the task and step back from that repository until it finishes.
 
 .Common issues
 
