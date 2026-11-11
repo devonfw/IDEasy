@@ -20,6 +20,7 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
@@ -34,7 +35,7 @@ public class Python extends AbstractLocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Python.class);
 
-  private static final VersionIdentifier PYTHON_MIN_VERSION = VersionIdentifier.of("3.8.2");
+  private static final VersionIdentifier PYTHON_MIN_VERSION = VersionIdentifier.ofRequired("3.8.2");
 
   /** The per-project folder (inside {@code IDE_HOME}) that holds the {@code uv} tool store (e.g. {@code ruff}). */
   static final String UV_TOOLS_FOLDER = ".uv-tools";
@@ -226,7 +227,7 @@ public class Python extends AbstractLocalToolCommandlet {
         String value = keyAndValue[1].trim();
         // uv only writes the minor version (e.g. "3.13") for its own interpreters what is too imprecise for us
         if (value.chars().filter(c -> c == '.').count() >= 2) {
-          return VersionIdentifier.of(value);
+          return VersionIdentifier.ofRequired(value);
         }
         LOG.debug("Ignoring imprecise version {} from {}.", value, pyvenvCfg);
       }
@@ -258,7 +259,7 @@ public class Python extends AbstractLocalToolCommandlet {
       version = version.substring(lastSpace + 1);
     }
     if (!version.isEmpty() && Character.isDigit(version.charAt(0))) {
-      return VersionIdentifier.of(version);
+      return VersionIdentifier.ofRequired(version);
     }
     LOG.debug("Could not parse version from output '{}' of {}.", output, binPath);
     return null;

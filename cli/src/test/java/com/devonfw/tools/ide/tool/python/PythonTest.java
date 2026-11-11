@@ -98,7 +98,7 @@ public class PythonTest extends AbstractIdeContextTest {
     // assert - the per-project package is preserved and the interpreter is still detected at the pristine version
     assertThat(userPackage).exists();
     assertThat(venvPath.resolve("bin").resolve("python")).exists();
-    assertThat(python.getInstalledVersion()).isEqualTo(VersionIdentifier.of("3.14.6"));
+    assertThat(python.getInstalledVersion()).isEqualTo(VersionIdentifier.ofRequired("3.14.6"));
   }
 
 
@@ -136,7 +136,7 @@ public class PythonTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC);
     Python python = new Python(context);
     Path rootDir = context.getSoftwarePath().resolve("python");
-    ToolInstallation toolInstallation = new ToolInstallation(rootDir, rootDir, rootDir.resolve("bin"), VersionIdentifier.of("3.12.0"), true);
+    ToolInstallation toolInstallation = new ToolInstallation(rootDir, rootDir, rootDir.resolve("bin"), VersionIdentifier.ofRequired("3.12.0"), true);
     Map<String, VariableLine> variables = new HashMap<>();
     EnvironmentVariableCollectorContext environmentContext = new EnvironmentVariableCollectorContext(variables,
         new VariableSource(EnvironmentVariablesType.WORKSPACE, null), WindowsPathSyntax.MSYS);
