@@ -108,7 +108,7 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
 
     IdeTestContext context = newContext("yarn", wireMockRuntimeInfo);
     Path yarnProject = context.getWorkspacePath().resolve("release");
-    context.setGitContext(new GitContextImplMock(context, yarnProject));
+    context.setGitContext(new GitContextMock(context));
     context.setCwd(yarnProject, context.getWorkspacePath().toString(), context.getIdeHome());
     context.setAnswers("yes", "yes");
     ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
