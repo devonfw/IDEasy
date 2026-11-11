@@ -3,12 +3,14 @@ package com.devonfw.tools.ide.tool.agy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -123,5 +125,19 @@ class AgyTest extends AbstractIdeContextTest {
     // assert
     assertThat(configDir.resolve("settings.json")).exists();
     assertThat(configDir.resolve("README.md")).exists();
+  }
+
+  /**
+   * Test that {@link EnvironmentCommandlet} ({@code ide env}) does not link the Agy home location, only launching Agy does.
+   */
+  @Test
+  void testEnvDoesNotLinkHomeConfigDir() {
+    // arrange
+    this.getFileAccess().mkdirs(this.context.getSoftwarePath().resolve("agy"));
+    Path antigravityHome = this.home.resolve(Agy.HOME_ANTIGRAVITY_CLI_LOCATION);
+    // act
+    this.context.getCommandletManager().getCommandlet(EnvironmentCommandlet.class).run();
+    // assert
+    assertThat(Files.exists(antigravityHome, LinkOption.NOFOLLOW_LINKS)).isFalse();
   }
 }
