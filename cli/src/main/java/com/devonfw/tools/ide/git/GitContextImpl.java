@@ -256,11 +256,11 @@ public class GitContextImpl implements GitContext {
   @Override
   public void fetch(Path repository, String remote, String branch) {
 
-    if (remote == null) {
+    if ((remote == null) || remote.isEmpty()) {
       // the remote to fetch from is the one the current branch is tracking (see also "git rev-parse @{u}")
       remote = determineTrackedRemote(repository);
     }
-    if (remote == null) {
+    if ((remote == null) || remote.isEmpty()) {
       // we are on a local branch without a configured upstream, so we fetch all remotes
       ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "fetch", "--all");
       if (!result.isSuccessful()) {

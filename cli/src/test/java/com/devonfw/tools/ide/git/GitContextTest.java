@@ -352,6 +352,25 @@ class GitContextTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Test for fetch when an empty remote is specified and the current branch has no upstream, which should be treated like {@code null} and fetch all remotes.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  void testFetchAllRemotesWhenEmptyRemoteAndNoUpstream(@TempDir Path tempDir) {
+    // arrange
+    IdeTestContext context = newGitContext(tempDir);
+    this.gitContextMock.setTrackedRemote(null);
+    GitContext gitContext = context.getGitContext();
+
+    // act
+    gitContext.fetch(tempDir, "", null);
+
+    // assert
+    assertThat(this.processContext.getResults()).extracting(ProcessResult::getCommand).containsExactly("git fetch --all");
+  }
+
+  /**
    * Sets up the mock so that the current branch is configured with an upstream, which lets {@link GitContextImpl#isRepositoryUpdateAvailable(Path)} pass the
    * {@code hasUpstream} guard and reach the commit id comparison. A {@code null} commit id simulates a failing {@code rev-parse} (non-zero exit code), so the
    * failure handling of the command is exercised rather than the single-output success path.
