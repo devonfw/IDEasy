@@ -39,9 +39,6 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
 
   private final PluginManager pluginManager;
 
-  /** {@link FlagProperty} to force the reset and reinstallation of plugins as configured in the project settings. */
-  public FlagProperty forcePluginReinstall;
-
   /**
    * The constructor.
    *
@@ -57,17 +54,8 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
 
   @Override
   protected void initProperties() {
-    this.forcePluginReinstall = add(new FlagProperty("--force-plugin-reinstall"));
+    add(new FlagProperty("--force-plugin-reinstall"));
     super.initProperties();
-  }
-
-  /**
-   * @return {@code true} if the reset and reinstallation of the plugins is forced for the current run via the {@code --force-plugin-reinstall} flag.
-   */
-  @Override
-  public boolean isForcePluginReinstall() {
-
-    return this.forcePluginReinstall.isTrue();
   }
 
   @Override

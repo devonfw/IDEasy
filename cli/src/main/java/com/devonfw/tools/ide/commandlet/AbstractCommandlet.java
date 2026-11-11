@@ -12,8 +12,6 @@ import com.devonfw.tools.ide.function.AbstractParameterizedFunction;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
-import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
-import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * A {@link AbstractCommandlet} is a sub-command of the IDE CLI.
@@ -48,6 +46,7 @@ public abstract class AbstractCommandlet extends AbstractParameterizedFunction i
   /**
    * @return the {@link List} of {@link Property properties} that are {@link Property#isValue() values}.
    */
+  @Override
   public List<Property<?>> getValues() {
 
     return this.values;
@@ -57,6 +56,7 @@ public abstract class AbstractCommandlet extends AbstractParameterizedFunction i
    * @param nameOrAlias the potential {@link Property#getName() name} or {@link Property#getAlias() alias} of the requested {@link Property}.
    * @return the requested {@link Property property} or {@code null} if not found.
    */
+  @Override
   public Property<?> getOption(String nameOrAlias) {
 
     return this.optionMap.get(nameOrAlias);
@@ -112,6 +112,7 @@ public abstract class AbstractCommandlet extends AbstractParameterizedFunction i
    * @return the first keyword of this {@link AbstractCommandlet}. Typically, the same as {@link #getName() name} but may also differ (e.g. "set" vs.
    *     "set-version").
    */
+  @Override
   public KeywordProperty getFirstKeyword() {
 
     return this.firstKeyword;
@@ -129,51 +130,9 @@ public abstract class AbstractCommandlet extends AbstractParameterizedFunction i
   }
 
   /**
-   * @return {@code true} if {@link IdeContext#getIdeHome() IDE_HOME} is required for this commandlet, {@code false} otherwise.
-   */
-  public boolean isIdeHomeRequired() {
-
-    return isIdeRootRequired();
-  }
-
-  /**
-   * @return {@code true} if {@link IdeContext#getIdeRoot() IDE_ROOT} is required for this commandlet, {@code false} otherwise.
-   */
-  public boolean isIdeRootRequired() {
-
-    return true;
-  }
-
-  /**
-   * @return {@code true} to suppress the {@link com.devonfw.tools.ide.step.StepImpl#logSummary(boolean) step summary success message}.
-   */
-  public boolean isSuppressStepSuccess() {
-
-    return false;
-  }
-
-  /**
-   * @return {@code true} if the output of this commandlet is (potentially) processed automatically from outside, {@code false} otherwise. For example
-   *     {@link CompleteCommandlet} logs the suggestions for auto-completion to a bash script. Also, the {@link EnvironmentCommandlet} logs the environment
-   *     variables for the {@code ide} wrapper script. In such scenarios these logs shall not be spammed with warnings like "IDE_ROOT is not set" that would
-   *     break the processing of the output.
-   */
-  public boolean isProcessableOutput() {
-
-    return false;
-  }
-
-  /**
-   * @return {@code true} to write a logfile (unless disabled via {@link com.devonfw.tools.ide.variable.IdeVariables#IDE_WRITE_LOGFILE}), {@code false}
-   *     otherwise.
-   */
-  public boolean isWriteLogFile() {
-    return !isProcessableOutput();
-  }
-
-  /**
    * Runs this {@link AbstractCommandlet}.
    */
+  @Override
   public final void run() {
 
     if (this.context != null) { // for ContextCommandlet we do not have a context yet
@@ -197,13 +156,5 @@ public abstract class AbstractCommandlet extends AbstractParameterizedFunction i
   public String toString() {
 
     return getClass().getSimpleName() + "[" + getName() + "]";
-  }
-
-  /**
-   * @return the {@link AbstractToolCommandlet} set in a {@link Property} of this commandlet used for auto-completion of a {@link VersionIdentifier} or
-   *     {@link com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor}, otherwise {@code null} if not exists or not configured.
-   */
-  public AbstractToolCommandlet getToolForCompletion() {
-    return null;
   }
 }
