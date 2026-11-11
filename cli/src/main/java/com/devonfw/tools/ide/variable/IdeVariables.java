@@ -120,6 +120,20 @@ public interface IdeVariables {
   VariableDefinitionBoolean IDE_WRITE_LOGFILE = new VariableDefinitionBoolean("IDE_WRITE_LOGFILE", null,
       c -> Boolean.TRUE);
 
+  /**
+   * {@link VariableDefinition} that controls if the GUI desktop shortcut is created when IDEasy gets installed on Windows. Set by the checkbox of the MSI
+   * installer.
+   */
+  VariableDefinitionBoolean IDEASY_CREATE_DESKTOP_SHORTCUT = new VariableDefinitionBoolean("IDEASY_CREATE_DESKTOP_SHORTCUT", null,
+      c -> Boolean.TRUE);
+
+  /**
+   * {@link VariableDefinition} that controls if the GUI Start Menu shortcut is created when IDEasy gets installed on Windows. Set by the checkbox of the MSI
+   * installer.
+   */
+  VariableDefinitionBoolean IDEASY_CREATE_STARTMENU_SHORTCUT = new VariableDefinitionBoolean("IDEASY_CREATE_STARTMENU_SHORTCUT", null,
+      c -> Boolean.TRUE);
+
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getProjectName() DEVON_IDE_CUSTOM_TOOLS}. */
   VariableDefinitionString DEVON_IDE_CUSTOM_TOOLS = new VariableDefinitionString("DEVON_IDE_CUSTOM_TOOLS");
 
