@@ -58,8 +58,7 @@ public class MicronautUrlUpdater extends GithubUrlTagUpdater {
   protected void addVersion(UrlVersion urlVersion) {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
-    VersionComparisonResult versionComparisonResult = vid.compareVersion(MIN_MICRONAUT_VID);
-    if (versionComparisonResult.isEqual() || versionComparisonResult.isGreater()) {
+    if (vid.isGreaterOrEqual(MIN_MICRONAUT_VID)) {
       String downloadUrl = createGithubReleaseDownloadUrl("v${version}", "micronaut-cli-${version}.zip");
       doAddVersion(urlVersion, downloadUrl);
     }
