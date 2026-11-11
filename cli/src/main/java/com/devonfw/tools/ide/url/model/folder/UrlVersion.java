@@ -139,7 +139,7 @@ public class UrlVersion extends AbstractUrlFolderWithParent<UrlEdition, UrlFile<
   public VersionIdentifier getVersionIdentifier() {
 
     if (this.versionIdentifier == null) {
-      this.versionIdentifier = VersionIdentifier.of(getName());
+      this.versionIdentifier = VersionIdentifier.ofOptional(getName());
     }
     return this.versionIdentifier;
   }
