@@ -366,7 +366,7 @@ public class Mvn extends MavenCommandlet implements BuildTool {
     String content = this.context.getFileAccess().readFileContent(mavenConfig);
     for (String token : content.split("\\s+")) {
       if (token.startsWith(REVISION_FLAG)) {
-        return VersionIdentifier.of(token.substring(REVISION_FLAG.length()));
+        return VersionIdentifier.ofRequired(token.substring(REVISION_FLAG.length()));
       }
     }
     throw new CliException("Could not find '" + REVISION_FLAG + "' in " + mavenConfig);
