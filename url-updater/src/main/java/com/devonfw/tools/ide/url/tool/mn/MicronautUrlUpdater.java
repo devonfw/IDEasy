@@ -9,7 +9,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class MicronautUrlUpdater extends GithubUrlTagUpdater {
 
-  private static final VersionIdentifier MIN_MICRONAUT_VID = VersionIdentifier.of("3.0.0");
+  private static final VersionIdentifier MIN_MICRONAUT_VID = VersionIdentifier.ofRequired("3.0.0");
 
   /**
    * The Constructor.

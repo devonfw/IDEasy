@@ -13,6 +13,8 @@ This file contains the declaration of all the localizable strings.
   <String Id="SelectInstallLocationText" Value="Select your preferred installation location:"/>
   <String Id="InstallUserHomeOption" Value="Install in Home Directory - [USERFOLDER]projects"/>
   <String Id="InstallCustomOption" Value="Install in Custom Directory - e.g., [ROOTDRIVE]projects"/>
+  <String Id="CreateDesktopShortcut" Value="Create desktop shortcut"/>
+  <String Id="CreateStartMenuShortcut" Value="Create Start Menu shortcut"/>
   <String Id="ExitDialogTitle" Value="{\WixUI_Font_Title}IDEasy Installed Successfully"/>
   <String Id="FirstStepsDlg_Title" Value="[ProductName] Setup"/>
   <String Id="FirstStepsDlgTitle" Value="{\WixUI_Font_Title}First Steps"/>
