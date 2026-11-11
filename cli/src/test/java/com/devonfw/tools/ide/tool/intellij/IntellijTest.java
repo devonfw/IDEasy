@@ -121,6 +121,8 @@ class IntellijTest extends AbstractIdeContextTest {
     commandlet.run();
 
     assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: ActivePlugin");
+    assertThat(context).logAtSuccess().hasNoMessageContaining("Successfully ended step 'Install plugin ActivePlugin");
+    assertThat(context).log().hasMessage("Start: Install plugin ActivePlugin (1/1)");
 
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
@@ -132,7 +134,7 @@ class IntellijTest extends AbstractIdeContextTest {
     // act
     commandlet.run();
     // assert
-    assertThat(context).logAtDebug().hasNoMessage("Successfully installed plugin: ActivePlugin");
+    assertThat(context).log().hasNoMessageContaining("Install plugin ActivePlugin");
   }
 
   /**
@@ -231,7 +233,7 @@ class IntellijTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext("intellij");
     Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
     ToolEditionAndVersion requested = new ToolEditionAndVersion(new ToolEdition("intellij", "ultimate"));
-    requested.setVersion(VersionIdentifier.of("2025.3"));
+    requested.setVersion(VersionIdentifier.ofRequired("2025.3"));
 
     // act
     ToolEditionAndVersion adjusted = commandlet.adjustRequestedEdition(requested);
@@ -250,7 +252,7 @@ class IntellijTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext("intellij");
     Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
     ToolEditionAndVersion requested = new ToolEditionAndVersion(new ToolEdition("intellij", "ultimate"));
-    requested.setVersion(VersionIdentifier.of("2025.2.6.1"));
+    requested.setVersion(VersionIdentifier.ofRequired("2025.2.6.1"));
 
     // act
     ToolEditionAndVersion adjusted = commandlet.adjustRequestedEdition(requested);
@@ -424,7 +426,7 @@ class IntellijTest extends AbstractIdeContextTest {
     // arrange
     Intellij commandlet = new Intellij(this.context);
     Path dummy = context.getSoftwarePath().resolve("intellij");
-    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.of("2023.3.3"), false);
+    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.ofRequired("2023.3.3"), false);
     RecordingEnvironmentContext environmentContext = new RecordingEnvironmentContext();
 
     // act
