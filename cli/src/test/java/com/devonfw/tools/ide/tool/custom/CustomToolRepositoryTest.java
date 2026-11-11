@@ -91,7 +91,7 @@ class CustomToolRepositoryTest extends Assertions {
     // assert
     assertThat(jbossEap).isNotNull();
     assertThat(jbossEap.getTool()).isEqualTo(TOOL_JBOSS_EAP);
-    assertThat(jbossEap.getVersion()).isEqualTo(VersionIdentifier.of(VERSION_JBOSS));
+    assertThat(jbossEap.getVersion()).isEqualTo(VersionIdentifier.ofRequired(VERSION_JBOSS));
     assertThat(jbossEap.getOs()).isNull();
     assertThat(jbossEap.getArch()).isNull();
     assertThat(jbossEap.getUrl()).contains(BASE_PATH);
@@ -109,13 +109,13 @@ class CustomToolRepositoryTest extends Assertions {
   void testResolveVersionForTool(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
     // arrange
     setUpRepository(tempDir, wmRuntimeInfo);
-    GenericVersionRange versionRange = VersionIdentifier.of(VERSION_JBOSS);
+    GenericVersionRange versionRange = VersionIdentifier.ofRequired(VERSION_JBOSS);
 
     // act
     VersionIdentifier resolved = this.repository.resolveVersion(TOOL_JBOSS_EAP, TOOL_JBOSS_EAP, versionRange, null);
 
     // assert
-    assertThat(resolved).isEqualTo(VersionIdentifier.of(VERSION_JBOSS));
+    assertThat(resolved).isEqualTo(VersionIdentifier.ofRequired(VERSION_JBOSS));
   }
 
   /**
@@ -152,7 +152,7 @@ class CustomToolRepositoryTest extends Assertions {
     stubFor(get(urlEqualTo(expectedPath)).willReturn(aResponse().withStatus(404)));
 
     // act & assert
-    assertThatThrownBy(() -> this.repository.download(TOOL_JBOSS_EAP, TOOL_JBOSS_EAP, VersionIdentifier.of(VERSION_JBOSS), null))
+    assertThatThrownBy(() -> this.repository.download(TOOL_JBOSS_EAP, TOOL_JBOSS_EAP, VersionIdentifier.ofRequired(VERSION_JBOSS), null))
         .isInstanceOf(IllegalStateException.class);
   }
 
@@ -171,7 +171,7 @@ class CustomToolRepositoryTest extends Assertions {
     stubFor(get(urlEqualTo(expectedPath)).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
     // act & assert
-    assertThatThrownBy(() -> this.repository.download(TOOL_JBOSS_EAP, TOOL_JBOSS_EAP, VersionIdentifier.of(VERSION_JBOSS), null))
+    assertThatThrownBy(() -> this.repository.download(TOOL_JBOSS_EAP, TOOL_JBOSS_EAP, VersionIdentifier.ofRequired(VERSION_JBOSS), null))
         .isInstanceOf(IllegalStateException.class);
   }
 
@@ -187,7 +187,7 @@ class CustomToolRepositoryTest extends Assertions {
     setUpRepository(tempDir, wmRuntimeInfo);
 
     // act & assert
-    assertThatThrownBy(() -> this.repository.download(TOOL_JBOSS_EAP, TOOL_JBOSS_EAP, VersionIdentifier.of("7.1.5.GA"), null))
+    assertThatThrownBy(() -> this.repository.download(TOOL_JBOSS_EAP, TOOL_JBOSS_EAP, VersionIdentifier.ofRequired("7.1.5.GA"), null))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Undefined version")
         .hasMessageContaining(VERSION_JBOSS);
@@ -211,7 +211,7 @@ class CustomToolRepositoryTest extends Assertions {
     List<VersionIdentifier> versions = this.repository.getSortedVersions(TOOL_FIREFOX, TOOL_FIREFOX, null);
 
     // assert
-    assertThat(versions).containsExactly(VersionIdentifier.of(VERSION_FIREFOX));
+    assertThat(versions).containsExactly(VersionIdentifier.ofRequired(VERSION_FIREFOX));
   }
 
   /**
@@ -241,7 +241,7 @@ class CustomToolRepositoryTest extends Assertions {
     setUpRepository(tempDir, wmRuntimeInfo);
 
     // act & assert
-    assertThat(this.repository.findDependencies(TOOL_FIREFOX, TOOL_FIREFOX, VersionIdentifier.of(VERSION_FIREFOX))).isEmpty();
+    assertThat(this.repository.findDependencies(TOOL_FIREFOX, TOOL_FIREFOX, VersionIdentifier.ofRequired(VERSION_FIREFOX))).isEmpty();
   }
 
   /**
@@ -280,7 +280,7 @@ class CustomToolRepositoryTest extends Assertions {
 
     // assert
     assertThat(commandlet.getName()).isEqualTo("custom-cli");
-    assertThat(commandlet.getConfiguredVersion()).isEqualTo(VersionIdentifier.of("1.2.3"));
+    assertThat(commandlet.getConfiguredVersion()).isEqualTo(VersionIdentifier.ofRequired("1.2.3"));
     assertThat(commandlet.getConfiguredEdition()).isEqualTo("custom-cli");
     assertThat(commandlet.getTags()).isNull();
   }
