@@ -90,7 +90,7 @@ class InstallCommandletTest extends AbstractIdeContextTest {
     IdeTestContext context = new IdeTestContext(directory, IdeLogLevel.DEBUG, null);
     context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
     assertThat(context.getIdeHome()).isNull();
-    VersionIdentifier version = VersionIdentifier.of("2.56.0.4");
+    VersionIdentifier version = VersionIdentifier.ofRequired("2.56.0.4");
     WindowsHelperMock helper = (WindowsHelperMock) context.getWindowsHelper();
     helper.setAppInstallationFromRegistry("Git", new WindowsAppInstallation(version.toString(), null, null, null));
     Path gitBinPath = directory.resolve("git/bin");

@@ -147,7 +147,7 @@ class GitTest extends AbstractIdeContextTest {
     // assert
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("git");
-    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of(TOOL_VERSION));
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired(TOOL_VERSION));
   }
 
   /**
@@ -185,7 +185,7 @@ class GitTest extends AbstractIdeContextTest {
     // assert
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("git");
-    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of(TOOL_VERSION));
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired(TOOL_VERSION));
   }
 
   /**
@@ -223,7 +223,7 @@ class GitTest extends AbstractIdeContextTest {
     // assert
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("git");
-    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of(TOOL_VERSION));
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired(TOOL_VERSION));
   }
 
   /**
@@ -258,7 +258,7 @@ class GitTest extends AbstractIdeContextTest {
     ToolInstallation installation = git.install(installRequest(VersionIdentifier.LATEST));
 
     // assert
-    assertThat(installation.resolvedVersion()).isEqualTo(VersionIdentifier.of(LATEST_WINGET_VERSION));
+    assertThat(installation.resolvedVersion()).isEqualTo(VersionIdentifier.ofRequired(LATEST_WINGET_VERSION));
     assertThat(installation.newInstallation()).isTrue();
     assertThat(installation.installedAsynchronously()).isTrue();
     Mockito.verify(processContext).executable("cmd");
@@ -320,10 +320,10 @@ class GitTest extends AbstractIdeContextTest {
     Git git = git(context, NativePackageManager.WINGET);
 
     // act
-    ToolInstallation installation = git.install(installRequest(VersionIdentifier.of(TOOL_VERSION)));
+    ToolInstallation installation = git.install(installRequest(VersionIdentifier.ofRequired(TOOL_VERSION)));
 
     // assert
-    assertThat(installation.resolvedVersion()).isEqualTo(VersionIdentifier.of(TOOL_VERSION));
+    assertThat(installation.resolvedVersion()).isEqualTo(VersionIdentifier.ofRequired(TOOL_VERSION));
     Mockito.verify(processContext).addArgs("/c", wingetCommand("--version", TOOL_VERSION, "--silent"));
   }
 
@@ -362,7 +362,7 @@ class GitTest extends AbstractIdeContextTest {
     ToolInstallation installation = git.install(installRequest(VersionIdentifier.LATEST));
 
     // assert
-    assertThat(installation.resolvedVersion()).isEqualTo(VersionIdentifier.of(LATEST_WINGET_VERSION));
+    assertThat(installation.resolvedVersion()).isEqualTo(VersionIdentifier.ofRequired(LATEST_WINGET_VERSION));
     assertThat(installation.installedAsynchronously()).isFalse();
     Mockito.verify(processContext).addArgs("/c", wingetCommand("--silent"));
   }
@@ -424,7 +424,7 @@ class GitTest extends AbstractIdeContextTest {
     ToolInstallation installation = git.install(installRequest(VersionIdentifier.LATEST));
 
     // assert
-    assertThat(installation.resolvedVersion()).isEqualTo(VersionIdentifier.of(TOOL_VERSION));
+    assertThat(installation.resolvedVersion()).isEqualTo(VersionIdentifier.ofRequired(TOOL_VERSION));
     assertThat(installation.newInstallation()).isFalse();
     assertThat(context).logAtWarning().hasMessageContaining("Failed to install Git");
   }
@@ -439,7 +439,7 @@ class GitTest extends AbstractIdeContextTest {
     IdeTestContext context = newWindowsContextWithoutGitAndBash();
     ProcessContext processContext = wingetProcess(context, ProcessResult.SUCCESS, null);
     Git git = git(context, NativePackageManager.WINGET);
-    ToolInstallRequest request = installRequest(VersionIdentifier.of("2.45.0&calc"));
+    ToolInstallRequest request = installRequest(VersionIdentifier.ofRequired("2.45.0&calc"));
 
     // act + assert
     assertThatThrownBy(() -> git.install(request)).isInstanceOf(CliException.class).hasMessageContaining("2.45.0&calc");
@@ -463,7 +463,7 @@ class GitTest extends AbstractIdeContextTest {
     ToolInstallation installation = git.install(installRequest(VersionIdentifier.LATEST));
 
     // assert
-    assertThat(installation.resolvedVersion()).isEqualTo(VersionIdentifier.of(LATEST_WINGET_VERSION));
+    assertThat(installation.resolvedVersion()).isEqualTo(VersionIdentifier.ofRequired(LATEST_WINGET_VERSION));
     Mockito.verify(processContext).addArgs("/c", wingetCommand("--silent"));
   }
 }
