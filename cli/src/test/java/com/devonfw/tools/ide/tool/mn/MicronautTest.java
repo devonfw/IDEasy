@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.io.WindowsSymlinkTestHelper;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -20,6 +21,8 @@ public class MicronautTest extends AbstractIdeContextTest {
   @Test
   void testMicronautInstallSucceedsOnAllPlatformsViaHttpDownload(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+
     // arrange
     IdeTestContext context = newContext(MN_PROJECT, wireMockRuntimeInfo);
     Micronaut micronaut = new Micronaut(context);
@@ -33,6 +36,8 @@ public class MicronautTest extends AbstractIdeContextTest {
 
   @Test
   void testMicronautRunInstallsAndPassesArguments(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
 
     // arrange
     IdeTestContext context = newContext(MN_PROJECT, wireMockRuntimeInfo);
@@ -50,6 +55,9 @@ public class MicronautTest extends AbstractIdeContextTest {
 
   private void assertInstalled(IdeTestContext context) {
 
+    assertThat(context.getSoftwarePath().resolve("java/bin/java")).exists();
+    assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).hasContent("25.0.1");
+    assertThat(context.getSoftwarePath().resolve("mn/bin/mn")).exists();
     assertThat(context.getSoftwarePath().resolve("mn/.ide.software.version")).exists().hasContent(MN_VERSION);
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed mn in version " + MN_VERSION);
   }

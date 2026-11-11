@@ -49,5 +49,7 @@ class MicronautUrlUpdaterTest extends AbstractUrlUpdaterTest {
     assertUrlVersionAgnostic(mnDir.resolve("5.2.1"));
     assertUrlVersionAgnostic(mnDir.resolve("3.0.0"));
     assertThat(mnDir.resolve("2.5.0")).doesNotExist();
+    assertThat(mnDir.resolve("4.0.0-M2")).doesNotExist();
+    assertThat(mnDir.resolve("5.0.0-M3")).doesNotExist();
   }
 }

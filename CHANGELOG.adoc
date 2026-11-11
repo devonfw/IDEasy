@@ -2,6 +2,14 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2026.12.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/2510[#2510]: Add commandlet for Micronaut CLI
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/53?closed=1[milestone 2026.12.001].
+
 == 2026.11.001
 
 Release with new features and bugfixes:
@@ -27,7 +35,6 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2365[#2365]: Reduce plugin reinstallations
 * https://github.com/devonfw/IDEasy/issues/2701[#2701]: Stop exporting UV_PROJECT_ENVIRONMENT which broke uv projects
 * https://github.com/devonfw/IDEasy/issues/1965[#1965]: Improve dependent installation, fixed npm and pip-based installation duplication
-* https://github.com/devonfw/IDEasy/issues/2510[#2510]: Add commandlet for Micronaut CLI
 * https://github.com/devonfw/IDEasy/issues/2546[#2546]: Include repository into git warning/errors
 * https://github.com/devonfw/IDEasy/issues/2293[#2293]: Rework spyder to have same features as IdeToolCommandlets
 * https://github.com/devonfw/IDEasy/issues/871[#871]: Add progressbar to *.dmg extract process

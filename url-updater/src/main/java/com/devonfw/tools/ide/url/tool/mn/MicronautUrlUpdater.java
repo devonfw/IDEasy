@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.url.tool.mn;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.GithubUrlTagUpdater;
-import com.devonfw.tools.ide.version.VersionComparisonResult;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -58,7 +57,7 @@ public class MicronautUrlUpdater extends GithubUrlTagUpdater {
   protected void addVersion(UrlVersion urlVersion) {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
-    if (vid.isGreaterOrEqual(MIN_MICRONAUT_VID)) {
+    if (vid.isStable() && vid.isGreaterOrEqual(MIN_MICRONAUT_VID)) {
       String downloadUrl = createGithubReleaseDownloadUrl("v${version}", "micronaut-cli-${version}.zip");
       doAddVersion(urlVersion, downloadUrl);
     }

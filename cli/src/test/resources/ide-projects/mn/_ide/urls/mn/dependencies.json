@@ -1,0 +1,20 @@
+{
+  "[3.0.0,4.0.0-M2)": [
+    {
+      "tool": "java",
+      "versionRange": "[8,)"
+    }
+  ],
+  "[4.0.0-M2,5.0.0-M3)": [
+    {
+      "tool": "java",
+      "versionRange": "[17,)"
+    }
+  ],
+  "[5.0.0-M3,)": [
+    {
+      "tool": "java",
+      "versionRange": "[25,)"
+    }
+  ]
+}
