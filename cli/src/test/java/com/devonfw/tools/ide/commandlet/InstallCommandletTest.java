@@ -2,9 +2,12 @@ package com.devonfw.tools.ide.commandlet;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mockito;
 
 import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -12,7 +15,12 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.os.WindowsAppInstallation;
+import com.devonfw.tools.ide.os.WindowsHelperMock;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -23,6 +31,87 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 class InstallCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_INSTALL = "install";
+
+  /**
+   * Verifies that installing Git does not require {@code IDE_HOME} (i.e. a project), so that it can be installed on a fresh machine that has IDEasy but no
+   * project yet (see #2273), whereas every other tool (local tools like java and other global tools like docker) still requires a project.
+   */
+  @Test
+  void testIdeHomeOnlyRequiredForNonGitTools() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_INSTALL);
+    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
+
+    // act & assert
+    assertThat(install.isIdeHomeRequired()).as("no tool selected").isFalse();
+
+    install.tool.setValueAsString("git", context);
+    assertThat(install.isIdeHomeRequired()).as("git (bootstrap, #2273)").isFalse();
+
+    install.tool.setValueAsString("java", context);
+    assertThat(install.isIdeHomeRequired()).as("local tool 'java'").isTrue();
+
+    // other global tools (e.g. docker) still require a project: only git is exempted (it can be installed to bootstrap itself)
+    install.tool.setValueAsString("docker", context);
+    assertThat(install.isIdeHomeRequired()).as("global tool 'docker'").isTrue();
+  }
+
+  /**
+   * Verifies that installing Git requires {@code IDE_ROOT} like any other tool (the URL metadata is stored below it, see #2273) - the only requirement Git
+   * does not have is {@code IDE_HOME} (see {@link #testIdeHomeOnlyRequiredForNonGitTools()}).
+   */
+  @Test
+  void testIdeRootRequiredForGitLikeAnyOtherTool() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_INSTALL);
+    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
+
+    // act & assert
+    assertThat(install.isIdeRootRequired()).as("no tool selected").isFalse();
+
+    install.tool.setValueAsString("git", context);
+    assertThat(install.isIdeRootRequired()).as("git requires IDE_ROOT to store the URL metadata").isTrue();
+
+    install.tool.setValueAsString("java", context);
+    assertThat(install.isIdeRootRequired()).as("local tool 'java'").isTrue();
+  }
+
+  /**
+   * Verifies that {@code ide install git «version»} works outside of a project, where no settings exist to persist the version to (see #2273).
+   *
+   * @param directory the temporary directory that is not part of an IDEasy project.
+   */
+  @Test
+  void testInstallGitWithVersionOutsideOfProject(@TempDir Path directory) {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext(directory, IdeLogLevel.DEBUG, null);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    assertThat(context.getIdeHome()).isNull();
+    VersionIdentifier version = VersionIdentifier.ofRequired("2.56.0.4");
+    WindowsHelperMock helper = (WindowsHelperMock) context.getWindowsHelper();
+    helper.setAppInstallationFromRegistry("Git", new WindowsAppInstallation(version.toString(), null, null, null));
+    Path gitBinPath = directory.resolve("git/bin");
+    context.getFileAccess().mkdirs(gitBinPath);
+    context.getFileAccess().writeFileContent("", gitBinPath.resolve("git.exe"));
+    context.getPath().setPath("git", gitBinPath);
+    // never run a real package manager or write to the real user home on the machine executing the test
+    ProcessContext processContext = Mockito.mock(ProcessContext.class, Mockito.RETURNS_SELF);
+    context.setProcessContext(processContext);
+    Path userHome = directory.resolve("home");
+    context.getFileAccess().mkdirs(userHome);
+    context.setUserHome(userHome);
+    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
+    install.tool.setValueAsString("git", context);
+    install.version.setValueAsString(version.toString(), context);
+
+    // act + assert
+    assertThatCode(install::run).doesNotThrowAnyException();
+    // on Windows only winget may be used, even if e.g. apt is on the PATH of the (Linux) machine running the test
+    Mockito.verify(processContext, Mockito.never()).addArgs(Mockito.eq("-c"), Mockito.anyString());
+  }
 
   /**
    * Test of {@link InstallCommandlet} run, when Installed Version is null.

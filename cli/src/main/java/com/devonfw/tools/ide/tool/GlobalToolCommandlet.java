@@ -114,13 +114,16 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
    */
   private boolean executePackageManagerCommand(PackageManagerCommand pmCommand, boolean silent, NativePackageAction action) {
 
-    String bashPath = this.context.findBashRequired().toString();
+    NativePackageManager packageManager = pmCommand.packageManager();
+    // winget installs Git and hence bash on Windows, so it is run via cmd as bash may not exist yet
+    String shell = packageManager.isRunWithBash() ? this.context.findBashRequired().toString() : "cmd";
+    String shellOption = packageManager.isRunWithBash() ? "-c" : "/c";
     logCommands(pmCommand.commands(), pmCommand.packageManager().isNeedSudo());
     for (String command : pmCommand.commands()) {
-      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(bashPath)
-          .addArgs("-c", command);
+      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(shell)
+          .addArgs(shellOption, command).withExitCodeAcceptor(packageManager::isSuccessExitCode);
       int exitCode = pc.run();
-      if (exitCode != 0) {
+      if (!packageManager.isSuccessExitCode(exitCode)) {
         LOG.warn("{} command did not execute successfully", command);
         return false;
       }
@@ -144,13 +147,14 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
   protected ToolInstallation doInstall(ToolInstallRequest request) {
 
     VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
-    if (this.context.getSystemInfo().isLinux()) {
-      // on Linux global tools are typically installed via the package manager of the OS
+    if (isPackageManagerBasedInstallation()) {
+      // global tools are typically installed via the package manager of the OS (e.g. apt on Linux, Homebrew on macOS)
       // if a global tool implements getNativePackages() to return at least one NativePackage, then we will install this way.
       List<PackageManagerCommand> commands = getInstallPackageManagerCommands(resolvedVersion);
       if (!commands.isEmpty()) {
         boolean newInstallation = runWithPackageManager(request.isSilent(), commands, NativePackageAction.INSTALL);
 
+        invalidateInstalledEditionAndVersion();
         VersionIdentifier installedVersion = getInstalledVersion();
         Path rootDir = getInstallationPath(getConfiguredEdition(), installedVersion);
 
@@ -266,7 +270,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
   @Override
   protected VersionIdentifier resolveVersionForInstall(String edition, GenericVersionRange version) {
 
-    if (this.context.getSystemInfo().isLinux() && !getNativePackages().isEmpty()) {
+    if (isPackageManagerBasedInstallation() && !getNativePackages().isEmpty()) {
       if (version instanceof VersionIdentifier versionIdentifier && !versionIdentifier.isPattern()) {
         return versionIdentifier;
       }
@@ -284,6 +288,17 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
    */
   protected List<NativePackage> getNativePackages() {
     return List.of();
+  }
+
+  /**
+   * @return {@code true} if this tool is installed via the OS native package manager (see {@link #getNativePackages()}), so that the install and version
+   *     resolution flows of this class go through the package manager instead of the standard installer/artifact flow.
+   *     <p>
+   *     By default this is the case on Linux only, as that is where global tools are typically installed via the package manager of the OS. Subclasses may
+   *     override this to support the package manager on further operating systems.
+   */
+  protected boolean isPackageManagerBasedInstallation() {
+    return this.context.getSystemInfo().isLinux();
   }
 
   /**
@@ -308,9 +323,18 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
    * @return {@code true} if the given {@link NativePackageManager} is available on the current system, {@code false} otherwise.
    */
   protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
+    if (!packageManager.isSupportedOn(this.context.getSystemInfo())) {
+      return false;
+    }
     Path binary = Path.of(packageManager.getBinaryName());
     Path binaryPath = this.context.getPath().findBinary(binary);
-    return (binaryPath != binary) && Files.exists(binaryPath);
+    if (binaryPath == binary) {
+      return false;
+    }
+    if (packageManager.isFollowLinks()) {
+      return Files.exists(binaryPath);
+    }
+    return Files.exists(binaryPath, LinkOption.NOFOLLOW_LINKS);
   }
 
   /**

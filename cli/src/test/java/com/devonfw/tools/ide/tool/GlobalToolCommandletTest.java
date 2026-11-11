@@ -20,6 +20,7 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.CapturingProcessContextMock;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.io.WindowsSymlinkTestHelper;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsAppInstallation;
@@ -38,6 +39,80 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   private static final String TOOL_NAME = "docker";
 
   private static final String TOOL_VERSION = "1.21.0";
+
+  /**
+   * Tests that a package manager is available if its binary is a link that cannot be followed, as on Windows {@code winget.exe} is an app execution alias for
+   * which {@link Files#exists(Path, java.nio.file.LinkOption...)} returns {@code false} unless links are not followed.
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  void testIsPackageManagerAvailableIfBinaryIsLinkThatCannotBeFollowed(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+    IdeTestContext context = new IdeTestContext();
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    Files.createSymbolicLink(tempDir.resolve("winget"), tempDir.resolve("not-existing"));
+    context.getPath().setPath("winget", tempDir);
+    GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, tempDir);
+
+    // act + assert
+    assertThat(globalTool.isPackageManagerAvailable(NativePackageManager.WINGET)).isTrue();
+  }
+
+  /**
+   * Tests that a broken link to any other package manager (e.g. a left over {@code brew} after a migration from Intel to Apple Silicon) is not considered
+   * available, as it cannot be executed.
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  void testIsPackageManagerNotAvailableIfBinaryIsBrokenLink(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+    IdeTestContext context = new IdeTestContext();
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    Files.createSymbolicLink(tempDir.resolve("brew"), tempDir.resolve("not-existing"));
+    context.getPath().setPath("brew", tempDir);
+    GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, tempDir);
+
+    // act + assert
+    assertThat(globalTool.isPackageManagerAvailable(NativePackageManager.BREW)).isFalse();
+  }
+
+  /**
+   * Tests that a package manager is only available on its operating system (winget only on Windows, all others never on Windows), independent of the binaries
+   * found on the PATH (e.g. apt on the Linux machine running a test that simulates Windows).
+   *
+   * @param tempDir the temporary directory.
+   * @throws IOException on test setup failure.
+   */
+  @Test
+  void testIsPackageManagerAvailableOnlyOnItsOperatingSystem(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    for (String binary : List.of("apt", "apt.exe", "winget", "winget.exe")) {
+      Files.createFile(tempDir.resolve(binary));
+    }
+    IdeTestContext windows = new IdeTestContext();
+    windows.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    windows.getPath().setPath("apt", tempDir);
+    windows.getPath().setPath("winget", tempDir);
+    IdeTestContext linux = new IdeTestContext();
+    linux.setSystemInfo(SystemInfoMock.LINUX_X64);
+    linux.getPath().setPath("apt", tempDir);
+    linux.getPath().setPath("winget", tempDir);
+
+    // act + assert
+    assertThat(new GlobalToolDummyCommandlet(windows, tempDir).isPackageManagerAvailable(NativePackageManager.WINGET)).isTrue();
+    assertThat(new GlobalToolDummyCommandlet(windows, tempDir).isPackageManagerAvailable(NativePackageManager.APT)).isFalse();
+    assertThat(new GlobalToolDummyCommandlet(linux, tempDir).isPackageManagerAvailable(NativePackageManager.APT)).isTrue();
+    assertThat(new GlobalToolDummyCommandlet(linux, tempDir).isPackageManagerAvailable(NativePackageManager.WINGET)).isFalse();
+  }
 
   /**
    * Tests that on macOS the installation path is resolved from the app bundle in the applications folder and its executable folder is registered.

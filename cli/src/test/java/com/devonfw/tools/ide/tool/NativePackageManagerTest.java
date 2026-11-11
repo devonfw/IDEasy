@@ -1,16 +1,17 @@
 package com.devonfw.tools.ide.tool;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.nio.file.Path;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import com.devonfw.tools.ide.os.SystemInfoMock;
 
 /**
  * Test of {@link NativePackageManager}.
  */
-class NativePackageManagerTest {
+class NativePackageManagerTest extends Assertions {
 
   @Test
   void testAptInstallCommand() {
@@ -34,6 +35,18 @@ class NativePackageManagerTest {
         "echo 'deb https://example.com/repository stable main'",
         "sudo apt update",
         "sudo apt --allow-downgrades install -y 'pkg1=1.0.0*'");
+  }
+
+  /**
+   * Tests that real versions (including a Debian epoch) are accepted, while a version containing shell syntax is rejected, as it is part of a command line.
+   */
+  @Test
+  void testGetPackageSpecRejectsUnsafeVersion() {
+
+    assertThat(NativePackageManager.APT.getPackageSpec("git", "1:2.43.0-1ubuntu7.3")).isEqualTo("'git=1:2.43.0-1ubuntu7.3*'");
+    assertThat(NativePackageManager.WINGET.getPackageSpec("Git.Git", "2.56.0.4")).isEqualTo("Git.Git --version 2.56.0.4");
+    assertThatThrownBy(() -> NativePackageManager.WINGET.getPackageSpec("Git.Git", "2.45.0&calc")).hasMessageContaining("2.45.0&calc");
+    assertThatThrownBy(() -> NativePackageManager.APT.getPackageSpec("git", "2.45.0';id;'")).hasMessageContaining("2.45.0';id;'");
   }
 
   @Test
@@ -297,6 +310,39 @@ class NativePackageManagerTest {
   }
 
   @Test
+  void testInstallAndUninstallForWinget() {
+    NativePackage np = NativePackage.of(NativePackageManager.WINGET, "Git.Git");
+
+    assertThat(NativePackageManager.WINGET.install(np, null).commands()).containsExactly(
+        "winget install --exact --source winget Git.Git");
+    assertThat(NativePackageManager.WINGET.install(np, "2.56.0.4").commands()).containsExactly(
+        "winget install --exact --source winget Git.Git --version 2.56.0.4");
+    assertThat(NativePackageManager.WINGET.uninstall(np).commands()).containsExactly("winget uninstall --exact --source winget Git.Git");
+  }
+
+  @Test
+  void testVersionQueryCommandForWingetIsNotSupported() {
+    assertThatThrownBy(() -> NativePackageManager.WINGET.getVersionQueryCommand("Git.Git")).isInstanceOf(UnsupportedOperationException.class);
+  }
+
+  @Test
+  void testIsRunWithBash() {
+    assertThat(NativePackageManager.APT.isRunWithBash()).isTrue();
+    assertThat(NativePackageManager.BREW.isRunWithBash()).isTrue();
+    assertThat(NativePackageManager.WINGET.isRunWithBash()).isFalse();
+  }
+
+  @Test
+  void testIsSuccessExitCode() {
+    assertThat(NativePackageManager.APT.isSuccessExitCode(0)).isTrue();
+    assertThat(NativePackageManager.APT.isSuccessExitCode(1)).isFalse();
+    assertThat(NativePackageManager.APT.isSuccessExitCode(0x8A15002B)).isFalse();
+    assertThat(NativePackageManager.WINGET.isSuccessExitCode(0)).isTrue();
+    assertThat(NativePackageManager.WINGET.isSuccessExitCode(0x8A15002B)).as("no applicable update found").isTrue();
+    assertThat(NativePackageManager.WINGET.isSuccessExitCode(0x8A15003A)).as("blocked by group policy").isFalse();
+  }
+
+  @Test
   void testIsNeedSudo() {
     assertThat(NativePackageManager.APT.isNeedSudo()).isTrue();
     assertThat(NativePackageManager.ZYPPER.isNeedSudo()).isTrue();
@@ -304,5 +350,24 @@ class NativePackageManagerTest {
     assertThat(NativePackageManager.DNF.isNeedSudo()).isTrue();
     assertThat(NativePackageManager.BREW.isNeedSudo()).isFalse();
     assertThat(NativePackageManager.BREW_CASK.isNeedSudo()).isFalse();
+    assertThat(NativePackageManager.WINGET.isNeedSudo()).isFalse();
+  }
+
+  @Test
+  void testIsSupportedOn() {
+    assertThat(NativePackageManager.WINGET.isSupportedOn(SystemInfoMock.WINDOWS_X64)).isTrue();
+    assertThat(NativePackageManager.WINGET.isSupportedOn(SystemInfoMock.LINUX_X64)).isFalse();
+    assertThat(NativePackageManager.WINGET.isSupportedOn(SystemInfoMock.MAC_ARM64)).isFalse();
+    assertThat(NativePackageManager.APT.isSupportedOn(SystemInfoMock.LINUX_X64)).isTrue();
+    assertThat(NativePackageManager.APT.isSupportedOn(SystemInfoMock.WINDOWS_X64)).as("e.g. apt from WSL on the PATH").isFalse();
+    assertThat(NativePackageManager.BREW.isSupportedOn(SystemInfoMock.MAC_ARM64)).isTrue();
+    assertThat(NativePackageManager.BREW.isSupportedOn(SystemInfoMock.WINDOWS_X64)).isFalse();
+  }
+
+  @Test
+  void testIsFollowLinks() {
+    assertThat(NativePackageManager.APT.isFollowLinks()).isTrue();
+    assertThat(NativePackageManager.BREW.isFollowLinks()).isTrue();
+    assertThat(NativePackageManager.WINGET.isFollowLinks()).as("winget is an app execution alias").isFalse();
   }
 }
