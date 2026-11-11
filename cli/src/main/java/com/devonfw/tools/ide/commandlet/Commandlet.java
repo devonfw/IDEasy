@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.commandlet;
 import java.util.List;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.function.ParameterizedFunction;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
@@ -14,12 +15,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 /**
  * A {@link Commandlet} is a sub-command interface of the IDE CLI.
  */
-public interface Commandlet {
-
-  /**
-   * @return the name of this {@link AbstractCommandlet} (e.g. "help").
-   */
-  String getName();
+public interface Commandlet extends ParameterizedFunction {
 
   /**
    * Runs this {@link Commandlet}. The {@link AbstractCommandlet} implements this as a final template method that configures logging and delegates to the

@@ -157,7 +157,19 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
     ToolEdition toolEdition = requested.getEdition();
     assert (toolEdition.tool().equals(this.tool)) : "Mismatch " + this.tool + " != " + toolEdition.tool();
     String edition = toolEdition.edition();
-    VersionIdentifier resolvedVersion = cveCheck(request);
+    // The CVE check runs once per tool+version per process (also covering the out-of-range path, which bypasses install() and calls this method directly).
+    // Extra installations are excluded because they install their own fixed version and must be checked independently.
+    ToolInstallTracker tracker = request.getTracker();
+    VersionIdentifier resolvedVersion;
+    if ((tracker != null) && !request.isExtraInstallation() && tracker.isCveChecked(toolEdition, requested.getResolvedVersion())) {
+      LOG.debug("Skipping CVE check of {} (already done during this process).", requested);
+      resolvedVersion = requested.getResolvedVersion();
+    } else {
+      resolvedVersion = cveCheck(request);
+      if ((tracker != null) && !request.isExtraInstallation()) {
+        tracker.recordCveChecked(toolEdition, resolvedVersion);
+      }
+    }
     installToolDependencies(request);
     // cveCheck might have changed resolvedVersion so let us re-check...
     if (request.isAlreadyInstalled()) {
@@ -316,6 +328,8 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
             parentRequest.getRequested().getEdition(), this.tool, versionRange, configuredVersion);
       }
       requested.setVersion(versionRange);
+      // Intentionally call installTool instead of install: an additional installation is installed into the software repository
+      // at a version resolved from the range and must never be skipped by the ToolInstallTracker, which tracks the project version.
       return installTool(request);
     }
   }
@@ -382,7 +396,7 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
     Path repoPath = getInstalledSoftwareRepoPath(toolPath, true);
 
     if (repoPath != null) {
-      VersionIdentifier version = VersionIdentifier.of(repoPath.getFileName().toString());
+      VersionIdentifier version = VersionIdentifier.ofRequired(repoPath.getFileName().toString());
       return new EditionAndVersion(getEditionFromSoftwareRepoPath(repoPath), version);
     }
     return computeInstalledEditionAndVersionFromLocalSoftwareFolder();
@@ -453,7 +467,7 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
       }
     }
     String version = this.context.getFileAccess().readFileContent(toolVersionFile).trim();
-    return VersionIdentifier.of(version);
+    return VersionIdentifier.ofRequired(version);
   }
 
   /**

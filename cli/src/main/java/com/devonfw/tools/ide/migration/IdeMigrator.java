@@ -24,7 +24,7 @@ public class IdeMigrator implements IdeMigration {
   private static final Logger LOG = LoggerFactory.getLogger(IdeMigrator.class);
 
   /** {@link VersionIdentifier} to use as fallback if {@link IdeContext#FILE_SOFTWARE_VERSION} does not exist. */
-  public static final VersionIdentifier START_VERSION = VersionIdentifier.of("2025.01.001-beta");
+  public static final VersionIdentifier START_VERSION = VersionIdentifier.ofRequired("2025.01.001-beta");
 
   private final List<IdeVersionMigration> migrations;
 
