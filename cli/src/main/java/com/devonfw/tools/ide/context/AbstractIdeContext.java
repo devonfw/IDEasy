@@ -1654,11 +1654,25 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
 
     Property<?> valueProperty = valueIterator.next();
-    if (valueProperty.isEndOptions()) {
+    if (valueProperty.takesOverTrailingArgs()) {
       // Tool argument properties should accept values starting with "-" so stop option parsing here
       arguments.endOptions();
     }
     return valueProperty;
+  }
+
+  /**
+   * Determines whether a declared {@link Property#isOption() option} is still to be matched against an option-look-alike argument (issue #2821): even after a
+   * multi-valued value property (e.g. the trailing tool {@code arguments}) took over the region, declared options are still recognized; only a literal
+   * {@link CliArgument#isEndOptions() "--"} token stops option matching entirely.
+   *
+   * @param argument the current {@link CliArgument} to match.
+   * @param arguments the {@link CliArguments} carrying the option-parsing state.
+   * @return {@code true} to try matching {@code argument} against the commandlet's declared options, {@code false} otherwise.
+   */
+  private boolean isMatchingDeclaredOptions(CliArgument argument, CliArguments arguments) {
+
+    return argument.isOption() && arguments.matchesDeclaredOptions();
   }
 
   private void completeCommandlet(CliArguments arguments, AbstractCommandlet cmd, CompletionCandidateCollector collector) {
@@ -1741,7 +1755,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     while (!currentArgument.isEnd()) {
       LOG.trace("Trying to match argument '{}'", currentArgument);
       Property<?> currentProperty = property;
-      if (!arguments.isEndOptions()) {
+      if (isMatchingDeclaredOptions(currentArgument, arguments)) {
         Property<?> option = cmd.getOption(currentArgument.getKey());
         if (option != null) {
           currentProperty = option;
