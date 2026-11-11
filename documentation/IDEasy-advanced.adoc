@@ -9,3 +9,5 @@ include::advanced-tooling-mac.adoc[leveloffset=2]
 include::advanced-tooling-linux.adoc[leveloffset=2]
 
 include::lombok.adoc[leveloffset=2]
+
+include::migration-from-devonfw.adoc[leveloffset=2]

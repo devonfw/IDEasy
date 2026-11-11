@@ -110,6 +110,21 @@ public class Npm extends AbstractLocalToolCommandlet implements BuildTool {
     return softwarePath == null ? null : softwarePath.resolve(NPM_GLOBAL_FOLDER);
   }
 
+  /**
+   * @param context the {@link IdeContext}.
+   * @return the {@link Path} to the folder where npm places the launchers of global packages in the per-project global npm prefix (see
+   *     {@link #NPM_GLOBAL_FOLDER}), or {@code null} if not running inside a project. npm places them in the prefix root on Windows but in
+   *     {@code <prefix>/bin} on POSIX.
+   */
+  static Path getGlobalNpmBin(IdeContext context) {
+
+    Path npmGlobalPath = getGlobalNpmPrefix(context);
+    if (npmGlobalPath == null) {
+      return null;
+    }
+    return context.getSystemInfo().isWindows() ? npmGlobalPath : npmGlobalPath.resolve(IdeContext.FOLDER_BIN);
+  }
+
   @Override
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
@@ -127,8 +142,7 @@ public class Npm extends AbstractLocalToolCommandlet implements BuildTool {
 
     // npm places the global shims in the prefix root on Windows but in <prefix>/bin on POSIX, so the PATH entry must
     // differ per platform - otherwise the globally installed packages (e.g. task, cdk) are not resolvable.
-    Path npmGlobalBin = this.context.getSystemInfo().isWindows() ? npmGlobalPath : npmGlobalPath.resolve(IdeContext.FOLDER_BIN);
-    environmentContext.withPathEntry(npmGlobalBin);
+    environmentContext.withPathEntry(getGlobalNpmBin(this.context));
   }
 
   /**

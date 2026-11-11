@@ -12,11 +12,14 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.git.GitContextImplMock;
 import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test of {@link ReleaseCommandlet}. The test fixture's {@code .mvn/maven.config} declares {@code -Drevision=1.0.0-SNAPSHOT}, so the release version is
  * {@code 1.0.0} and the next version is {@code 1.0.1-SNAPSHOT}.
  */
+@WireMockTest
 class ReleaseCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_RELEASE = "release";
@@ -93,6 +96,30 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
 
     CliException exception = assertThrows(CliException.class, releaseCommandlet::run);
     assertThat(exception).hasMessageContaining("Could not find a build descriptor");
+  }
+
+  /**
+   * Tests the release of a yarn project. The {@code package.json} declares {@code "version": "1.0.0-SNAPSHOT"}.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  void testReleaseYarn(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    IdeTestContext context = newContext("yarn", wireMockRuntimeInfo);
+    Path yarnProject = context.getWorkspacePath().resolve("release");
+    context.setGitContext(new GitContextImplMock(context, yarnProject));
+    context.setCwd(yarnProject, context.getWorkspacePath().toString(), context.getIdeHome());
+    context.setAnswers("yes", "yes");
+    ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
+
+    releaseCommandlet.run();
+
+    assertThat(context).log().hasEntries(
+        IdeLogEntry.ofInfo("yarn --cwd " + yarnProject + " version --new-version 1.0.0 --no-git-tag-version"),
+        IdeLogEntry.ofInfo("yarn publish --non-interactive"),
+        IdeLogEntry.ofInfo("yarn --cwd " + yarnProject + " version --new-version 1.0.1-SNAPSHOT --no-git-tag-version"),
+        IdeLogEntry.ofInfo("Successfully released version 1.0.0."));
   }
 
   /**
