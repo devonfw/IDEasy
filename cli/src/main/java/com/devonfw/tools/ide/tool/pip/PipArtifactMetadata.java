@@ -33,7 +33,7 @@ public class PipArtifactMetadata implements UrlDownloadFileMetadata {
   public PipArtifactMetadata(PipArtifact pipArtifact, String tool, String edition) {
 
     this.pipArtifact = pipArtifact;
-    this.version = VersionIdentifier.of(pipArtifact.getVersion());
+    this.version = VersionIdentifier.ofRequired(pipArtifact.getVersion());
     this.tool = tool;
     this.edition = edition;
   }
