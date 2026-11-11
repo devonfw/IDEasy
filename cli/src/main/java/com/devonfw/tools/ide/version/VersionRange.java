@@ -225,19 +225,19 @@ public final class VersionRange implements Comparable<VersionRange>, GenericVers
     VersionIdentifier max = null;
     int index = value.indexOf(VERSION_SEPARATOR);
     if (index < 0) {
-      min = VersionIdentifier.of(value);
+      min = VersionIdentifier.ofRequired(value);
       max = min;
     } else {
       String minString = value.substring(0, index).trim();
       if (!minString.isBlank()) {
-        min = VersionIdentifier.of(minString);
+        min = VersionIdentifier.ofRequired(minString);
         if (min == VersionIdentifier.LATEST) {
           min = null;
         }
       }
       String maxString = value.substring(index + 1).trim();
       if (!maxString.isBlank()) {
-        max = VersionIdentifier.of(maxString);
+        max = VersionIdentifier.ofRequired(maxString);
         if (max == VersionIdentifier.LATEST) {
           max = null;
         }
