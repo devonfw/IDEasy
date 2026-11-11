@@ -54,6 +54,17 @@ public abstract class AbstractCommandlet extends AbstractParameterizedFunction i
   }
 
   /**
+   * Initializes this commandlet. Unfortunately Java has some lifecycle flaw that constructors are called linear across the inheritance hierarchy while fields
+   * can only be initialized after super-constructor is fully executed. So unlike with overriding methods where you can put code before AND after the
+   * super-call, for constructors this is not possible. Hence, an initializer triggered by some super-class cannot access fields only declared in a subclass
+   * even if that class overrides some init method called from the constructor. As a result we have to declare this method and call it from the outside
+   * ({@link CommandletManager}) after the constructor completed.
+   */
+  protected void initialize() {
+
+  }
+
+  /**
    * @param nameOrAlias the potential {@link Property#getName() name} or {@link Property#getAlias() alias} of the requested {@link Property}.
    * @return the requested {@link Property property} or {@code null} if not found.
    */
