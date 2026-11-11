@@ -6,7 +6,6 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
-
 * https://github.com/devonfw/IDEasy/issues/2685[#2685]: Require integration tests in the PR template and add read-only smoke tests
 * https://github.com/devonfw/IDEasy/issues/2393[#2393]: Open a project folder of my choice (`--project`) instead of always the main workspace (IntelliJ, Android Studio, PyCharm, VS Code)
 * https://github.com/devonfw/IDEasy/issues/2457[#2457]: Integrate antigravity-cli
