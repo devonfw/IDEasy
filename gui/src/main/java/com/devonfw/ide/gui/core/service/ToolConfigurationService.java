@@ -134,12 +134,12 @@ public final class ToolConfigurationService {
     if (availableVersions == null) {
       return true;
     }
-    VersionIdentifier entered = VersionIdentifier.of(enteredVersion);
+    VersionIdentifier entered = VersionIdentifier.ofOptional(enteredVersion);
     if (entered == null) {
       return false;
     }
     if (entered.isPattern()) {
-      return availableVersions.stream().map(VersionIdentifier::of).anyMatch(entered::matches);
+      return availableVersions.stream().map(VersionIdentifier::ofRequired).anyMatch(entered::matches);
     }
     return availableVersions.contains(enteredVersion);
   }

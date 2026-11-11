@@ -129,7 +129,7 @@ class ToolConfigurationServiceTest extends AbstractIdeContextTest {
   void testLoadVersionsForSelectedEdition_returnsVersionsFromRepository() {
 
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
-    List<VersionIdentifier> stubVersions = List.of(VersionIdentifier.of("3.9.0"), VersionIdentifier.of("3.8.0"));
+    List<VersionIdentifier> stubVersions = List.of(VersionIdentifier.ofRequired("3.9.0"), VersionIdentifier.ofRequired("3.8.0"));
     context.setDefaultToolRepository(stubRepo(List.of(), stubVersions));
 
     List<String> versions = service.loadVersionsForSelectedEdition("mvn", "default", context);
@@ -257,7 +257,7 @@ class ToolConfigurationServiceTest extends AbstractIdeContextTest {
     // Simulates typing a version and tabbing away without ever opening the version dropdown: the caller
     // (ToolConfigViewModel) loads the list itself via loadVersionsForSelectedEdition, then validates against it.
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
-    List<VersionIdentifier> stubVersions = List.of(VersionIdentifier.of("2026.1.0"), VersionIdentifier.of("2026.1.5"));
+    List<VersionIdentifier> stubVersions = List.of(VersionIdentifier.ofRequired("2026.1.0"), VersionIdentifier.ofRequired("2026.1.5"));
     context.setDefaultToolRepository(stubRepo(List.of(), stubVersions));
 
     List<String> loadedVersions = service.loadVersionsForSelectedEdition("mvn", "default", context);
