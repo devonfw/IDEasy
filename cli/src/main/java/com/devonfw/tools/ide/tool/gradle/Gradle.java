@@ -106,7 +106,7 @@ public class Gradle extends AbstractLocalToolCommandlet implements BuildTool {
     if (!matcher.find()) {
       throw new CliException("Could not find 'version' in " + gradleProperties);
     }
-    return VersionIdentifier.of(matcher.group(2));
+    return VersionIdentifier.ofRequired(matcher.group(2));
   }
 
   @Override
