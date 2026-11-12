@@ -55,35 +55,42 @@ public class App extends Application {
   public void start(Stage primaryStage) {
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
       LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
-      Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
+      Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.toString()).showAndWait());
     });
+    // JavaFX rethrows exceptions from start() only after the toolkit has shut down, so startup failures are reported here while a dialog can still be shown.
+    try {
+      this.primaryStage = primaryStage;
 
-    this.primaryStage = primaryStage;
+      final MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager);
+      final MainWindowView mainWindow = new MainWindowView(mainWindowViewModel, guiStateManager);
 
-    final MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager);
-    final MainWindowView mainWindow = new MainWindowView(mainWindowViewModel, guiStateManager);
+      //this.nlsService.addLocaleChangeListener(this::reloadMainView);
 
-    //this.nlsService.addLocaleChangeListener(this::reloadMainView);
+      configureMainWindow(new Scene(mainWindow, MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT));
 
-    configureMainWindow(new Scene(mainWindow, MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT));
+      primaryStage.setOnCloseRequest(event -> {
 
-    primaryStage.setOnCloseRequest(event -> {
-
-      LOG.info("Closing application");
-      if (!guiStateManager.getTaskManager().getTasks().isEmpty()) {
-        IdeDialog closeConfirm = new IdeDialog(IdeDialog.AlertType.CONFIRMATION, "There are still running tasks. Are you sure you want to exit?",
-            ButtonType.CLOSE, ButtonType.CANCEL);
-        closeConfirm.showAndWait().ifPresent(response -> {
-          if (response == ButtonType.CLOSE) {
-            exitApplication();
-          } else {
-            event.consume();
-          }
-        });
-      } else {
-        exitApplication();
-      }
-    });
+        LOG.info("Closing application");
+        if (!guiStateManager.getTaskManager().getTasks().isEmpty()) {
+          IdeDialog closeConfirm = new IdeDialog(IdeDialog.AlertType.CONFIRMATION, "There are still running tasks. Are you sure you want to exit?",
+              ButtonType.CLOSE, ButtonType.CANCEL);
+          closeConfirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.CLOSE) {
+              exitApplication();
+            } else {
+              event.consume();
+            }
+          });
+        } else {
+          exitApplication();
+        }
+      });
+    } catch (Throwable error) {
+      // Log and show the error before the JavaFX toolkit shuts down.
+      LOG.error("Exception in Application start method: {}", error.toString(), error);
+      new IdeDialog(IdeDialog.AlertType.ERROR, error.toString()).showAndWait();
+      System.exit(1);
+    }
   }
 
   private void configureMainWindow(Scene mainWindowScene) {

@@ -9,12 +9,17 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
 
 /**
  * Tests for {@link GuiStateManager}.
@@ -95,6 +100,24 @@ public class GuiStateManagerTest extends AbstractIdeContextTest {
             .withMessageContaining("Workspace " + fakeWorkspacePath + " does not exist!");
       });
     }
+  }
+
+  /**
+   * Verifies that GUI startup logging is activated to prevent startup errors from being swallowed.
+   */
+  @Test
+  void testStartContextLoggingIsActivatedSoStartupErrorsAreNotSwallowed(@TempDir Path emptyRoot) {
+
+    new GuiStateManager(emptyRoot.toString());
+
+    // the state manager activates logging, so the start-context listener must no longer buffer
+    IdeLogListenerBuffer buffer = (IdeLogListenerBuffer) IdeStartContextImpl.get().getLogListener();
+    assertThat(buffer.isBuffering()).as("the GUI start context must not keep buffering after the state manager is created").isFalse();
+
+    // an error logged now (as the default uncaught-exception handler does on a fatal startup crash) must be accepted, not swallowed
+    Throwable startupError = new IllegalStateException("fatal startup error");
+    boolean accept = buffer.onLog(new IdeLogEntry(IdeLogLevel.ERROR, "Uncaught exception in thread main", null, null, startupError));
+    assertThat(accept).as("an error logged on the default uncaught-exception handler must reach the console").isTrue();
   }
 
 }
