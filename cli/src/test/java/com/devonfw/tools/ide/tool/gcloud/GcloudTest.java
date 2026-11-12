@@ -134,7 +134,7 @@ class GcloudTest extends AbstractIdeContextTest {
 
     Gcloud gcloud = new Gcloud(this.context);
     ToolInstallation installation = new ToolInstallation(gcloudRoot, gcloudRoot, gcloudRoot.resolve("bin"),
-        VersionIdentifier.of(GCLOUD_VERSION), false);
+        VersionIdentifier.ofRequired(GCLOUD_VERSION), false);
     RecordingEnvironmentContext environmentContext = new RecordingEnvironmentContext();
 
     // act
@@ -163,7 +163,7 @@ class GcloudTest extends AbstractIdeContextTest {
 
     Gcloud gcloud = new Gcloud(this.context);
     ToolInstallation installation = new ToolInstallation(gcloudRoot, gcloudRoot, gcloudRoot.resolve("bin"),
-        VersionIdentifier.of(GCLOUD_VERSION), false);
+        VersionIdentifier.ofRequired(GCLOUD_VERSION), false);
     RecordingEnvironmentContext environmentContext = new RecordingEnvironmentContext();
 
     // act
