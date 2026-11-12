@@ -1,0 +1,8 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://ai.company.com",
+    "ANTHROPIC_AUTH_TOKEN": "@ask-secret('AI_API_KEY', 'Please enter the AI API key:')",
+    "ANTHROPIC_MODEL": "code",
+    "NODE_EXTRA_CA_CERTS": "$[IDE_HOME]/settings/certificates/certificate.cer"
+  }
+}
