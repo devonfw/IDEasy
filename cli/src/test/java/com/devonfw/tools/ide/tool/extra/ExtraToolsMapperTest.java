@@ -22,9 +22,9 @@ class ExtraToolsMapperTest extends Assertions {
     ExtraTools extraTools = mapper.loadJsonFromFolder(testPath);
     // assert
     assertThat(extraTools.getSortedToolNames()).containsExactly("dotnet", "java");
-    assertThat(extraTools.getExtraInstallations("dotnet")).containsExactly(new ExtraToolInstallation("legacy", VersionIdentifier.of("6.0.428"), null));
-    assertThat(extraTools.getExtraInstallations("java")).containsExactly(new ExtraToolInstallation("client", VersionIdentifier.of("11.0.27_6"), "azul"),
-        new ExtraToolInstallation("process-engine", VersionIdentifier.of("21.*"), null));
+    assertThat(extraTools.getExtraInstallations("dotnet")).containsExactly(new ExtraToolInstallation("legacy", VersionIdentifier.ofRequired("6.0.428"), null));
+    assertThat(extraTools.getExtraInstallations("java")).containsExactly(new ExtraToolInstallation("client", VersionIdentifier.ofRequired("11.0.27_6"), "azul"),
+        new ExtraToolInstallation("process-engine", VersionIdentifier.ofRequired("21.*"), null));
     // act
     mapper.saveJsonToFolder(extraTools, tmpDir);
     // assert

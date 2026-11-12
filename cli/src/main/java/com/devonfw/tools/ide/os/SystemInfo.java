@@ -33,6 +33,15 @@ public interface SystemInfo {
   SystemArchitecture getArchitecture();
 
   /**
+   * @return a concise, human-readable description of the machine (operating system, version and architecture) as printed by {@code ide status} and
+   *     included in bug reports.
+   */
+  default String describe() {
+
+    return getOs() + "(" + getOsVersion() + ")@" + getArchitecture() + " [" + getOsName() + "@" + getArchitectureName() + "]";
+  }
+
+  /**
    * @return {@code true} if we are on {@link OperatingSystem#WINDOWS windows}.
    */
   default boolean isWindows() {

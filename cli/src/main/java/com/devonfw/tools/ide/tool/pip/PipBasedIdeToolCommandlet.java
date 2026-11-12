@@ -40,7 +40,7 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
   private final PluginManager pluginManager;
 
   /** {@link FlagProperty} to force the reset and reinstallation of plugins as configured in the project settings. */
-  public FlagProperty forcePluginReinstall;
+  public final FlagProperty forcePluginReinstall;
 
   /**
    * The constructor.
@@ -53,12 +53,7 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     super(context, tool, tags);
     this.workspaceConfigurer = new IdeWorkspaceConfigurer(context, tool);
     this.pluginManager = new PluginManager(context, this);
-  }
-
-  @Override
-  protected void initProperties() {
     this.forcePluginReinstall = add(new FlagProperty("--force-plugin-reinstall"));
-    super.initProperties();
   }
 
   /**
@@ -176,7 +171,7 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     if (PackageManagerRequest.TYPE_INSTALL.equals(type)) {
       String version = plugin.version();
       if ((version != null) && !version.isBlank()) {
-        request.setVersion(VersionIdentifier.of(version));
+        request.setVersion(VersionIdentifier.ofRequired(version));
       }
     }
     return runPackageManager(request);
