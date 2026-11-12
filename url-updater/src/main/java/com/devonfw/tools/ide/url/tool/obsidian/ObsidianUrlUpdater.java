@@ -51,7 +51,7 @@ public class ObsidianUrlUpdater extends GithubUrlReleaseUpdater {
 
     doAddVersion(urlVersion, baseUrl + "Obsidian-${version}.exe", WINDOWS, X64);
     doAddVersion(urlVersion, baseUrl + "Obsidian-${version}.dmg", MAC, X64);
-    doAddVersion(urlVersion, baseUrl + "obsidian_${version}_amd64.deb", LINUX, X64);
+    // only register the tar.gz archives for Linux (available for both architectures) - the *.deb would require a package manager
     doAddVersion(urlVersion, baseUrl + "obsidian-${version}.tar.gz", LINUX, X64);
     doAddVersion(urlVersion, baseUrl + "obsidian-${version}-arm64.tar.gz", LINUX, ARM64);
   }

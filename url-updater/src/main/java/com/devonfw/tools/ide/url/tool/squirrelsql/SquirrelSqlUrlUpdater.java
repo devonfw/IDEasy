@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class SquirrelSqlUrlUpdater extends GithubUrlReleaseUpdater {
 
-  private static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("4.4.0");
+  private static final VersionIdentifier MIN_VERSION = VersionIdentifier.ofRequired("4.4.0");
 
   /**
    * The Constructor.
