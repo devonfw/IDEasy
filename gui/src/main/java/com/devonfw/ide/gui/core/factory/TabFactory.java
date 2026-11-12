@@ -21,7 +21,6 @@ public class TabFactory {
   private final GuiStateManager guiStateManager;
   private final CommandletService commandletService;
   private final EventBus eventBus;
-  private ToolConfigTab toolConfigTab;
 
   /**
    * Creates the factory.
@@ -54,13 +53,10 @@ public class TabFactory {
   }
 
   /**
-   * Opens the tool configuration tab, or focuses it if it is already open.
+   * Opens the tool configuration tab.
    */
   public void openToolConfigTab() {
-    if (this.toolConfigTab == null || !this.toolConfigTab.isOpen()) {
-      this.toolConfigTab = new ToolConfigTab(this.guiStateManager);
-    }
-    open(this.toolConfigTab);
+    open(new ToolConfigTab(this.guiStateManager));
   }
 
   private void open(TabComponent tabComponent) {

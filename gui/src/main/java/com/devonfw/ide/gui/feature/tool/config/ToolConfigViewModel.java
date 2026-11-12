@@ -103,7 +103,8 @@ public class ToolConfigViewModel extends TabViewModel {
     }
     IdeGuiContext loadContext = this.context;
     String edition = tool.getConfiguredEdition();
-    FxHelper.runInBackground(() -> tool.setAvailableVersions(this.toolConfigurationService.loadVersionsForSelectedEdition(tool.getToolName(), edition, loadContext)), onLoaded);
+    FxHelper.runInBackground(
+        () -> tool.setAvailableVersions(this.toolConfigurationService.loadVersionsForSelectedEdition(tool.getToolName(), edition, loadContext)), onLoaded);
   }
 
   /**
