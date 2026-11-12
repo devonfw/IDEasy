@@ -11,8 +11,8 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.PackageManagerRequest;
-import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.pip.PipBasedCommandlet;
 
 /**
