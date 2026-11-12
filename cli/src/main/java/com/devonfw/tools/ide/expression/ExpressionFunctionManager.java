@@ -3,13 +3,16 @@ package com.devonfw.tools.ide.expression;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.devonfw.tools.ide.expression.function.AskFunction;
-import com.devonfw.tools.ide.expression.function.IfOsFunction;
-import com.devonfw.tools.ide.expression.function.PathFunction;
+import com.devonfw.tools.ide.expression.ask.AskSecretFunction;
+import com.devonfw.tools.ide.expression.ask.AskVariableFunction;
+import com.devonfw.tools.ide.expression.os.IfLinuxFunction;
+import com.devonfw.tools.ide.expression.os.IfMacFunction;
+import com.devonfw.tools.ide.expression.os.IfUnixFunction;
+import com.devonfw.tools.ide.expression.os.IfWindowsFunction;
+import com.devonfw.tools.ide.expression.path.PathFunction;
 
 /**
- * Manager where all {@link ExpressionFunction}s are registered so they can be looked up by
- * {@link #getFunction(String) name} while an expression is resolved.
+ * Manager where all {@link ExpressionFunction}s are registered so they can be looked up by {@link #getFunction(String) name} while an expression is resolved.
  * <p>
  * With new IDEasy releases additional functions can simply be registered here.
  */
@@ -41,8 +44,8 @@ public class ExpressionFunctionManager {
 
   /**
    * @param name the {@link ExpressionFunction#getName() name} of the requested function.
-   * @return the {@link ExpressionFunction} or {@code null} if no function is registered for the given name. A
-   *     {@code null} result is not an error: the expression is then left untouched.
+   * @return the {@link ExpressionFunction} or {@code null} if no function is registered for the given name. A {@code null} result is not an error: the
+   *     expression is then left untouched.
    */
   public ExpressionFunction getFunction(String name) {
 
@@ -61,11 +64,12 @@ public class ExpressionFunctionManager {
 
     ExpressionFunctionManager manager = new ExpressionFunctionManager();
     manager.register(new PathFunction());
-    manager.register(AskFunction.ofVariable());
-    manager.register(AskFunction.ofSecret());
-    for (IfOsFunction function : IfOsFunction.all()) {
-      manager.register(function);
-    }
+    manager.register(new AskVariableFunction());
+    manager.register(new AskSecretFunction());
+    manager.register(new IfLinuxFunction());
+    manager.register(new IfMacFunction());
+    manager.register(new IfUnixFunction());
+    manager.register(new IfWindowsFunction());
     return manager;
   }
 
