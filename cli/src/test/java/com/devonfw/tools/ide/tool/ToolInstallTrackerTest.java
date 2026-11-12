@@ -12,7 +12,7 @@ class ToolInstallTrackerTest extends Assertions {
 
   private static ToolEditionAndVersion editionAndVersion(String tool, String edition, String version) {
 
-    return new ToolEditionAndVersion(new ToolEdition(tool, edition), VersionIdentifier.of(version));
+    return new ToolEditionAndVersion(new ToolEdition(tool, edition), VersionIdentifier.ofRequired(version));
   }
 
   /**
