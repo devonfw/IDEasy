@@ -25,6 +25,9 @@ import com.devonfw.tools.ide.version.IdeVersion;
 class CreateCommandletTest extends AbstractIdeContextTest {
 
   private static final String NEW_PROJECT_NAME = "newProject";
+
+  private static final String DUMMY_API_KEY = "test-123";
+
   private IdeTestContext context;
 
   /**
@@ -33,6 +36,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   @BeforeEach
   void setup() {
     IdeTestContext context = newContext(PROJECT_BASIC);
+    context.getVariables().getParent().set("AI_API_KEY", DUMMY_API_KEY);
     Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
     if (Files.exists(newProjectPath)) {
       context.getFileAccess().delete(newProjectPath);
@@ -52,6 +56,8 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   void testCreateCommandletRun() {
 
     // arrange
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("settings"));
+    context.setGitContext(gitContextImplMock);
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
     cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
@@ -68,6 +74,8 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     // the settings have to be cloned into the new project and not into the project the create command was started from
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_SETTINGS).resolve("ide.properties")).exists();
     assertThat(context.getIdeRoot().resolve("_ide/tmp/projects").resolve(NEW_PROJECT_NAME)).doesNotExist();
+    verifyWelcomeMessageDisplayed();
+    verifyTemplatesInstantiated();
   }
 
   @Test
@@ -152,25 +160,24 @@ class CreateCommandletTest extends AbstractIdeContextTest {
         .hasMessageContaining("Successfully created new project '" + NEW_PROJECT_NAME + "'.");
   }
 
-  @Test
-  void testWelcomeMessageDisplayed() {
+  private void verifyWelcomeMessageDisplayed() {
 
-    // arrange - create a new project
-    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("settings"));
-
-    context.setGitContext(gitContextImplMock);
-    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
-    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
-    cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
-    cc.skipTools.setValue(true);
-
-    // act - run the create command
-    cc.run();
-
-    // assert
-    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
-    assertThat(newProjectPath).exists();
     assertThat(context).logAtInfo().hasMessageContaining("Welcome to your new IDEasy project!");
+  }
+
+  private void verifyTemplatesInstantiated() {
+
+    // verify claude/settings.json got resolved
+    Path claudePath = context.getConfPath().resolve("claude");
+    Path claudeSettingsPath = claudePath.resolve("settings.json");
+    Path certPath = context.getIdeHome().resolve("settings/certificates/certificate.cer");
+    assertThat(claudeSettingsPath).exists().content().contains("\"" + DUMMY_API_KEY + "\"")
+        .contains("\"" + certPath.toString().replace('\\', '/') + "\"");
+
+    // verify blob is copied as is
+    assertThat(claudePath.resolve("binary.blob")).hasContent("binary files are copied as is $[IDE_HOME]");
+    // verify mvn/settings.xml is not populated until mvn got installed
+    assertThat(context.getConfPath().resolve("mvn/settings.xml")).doesNotExist();
   }
 
   @Test
