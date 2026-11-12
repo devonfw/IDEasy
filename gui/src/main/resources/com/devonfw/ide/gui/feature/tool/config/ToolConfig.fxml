@@ -3,11 +3,11 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<fx:root fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" type="ScrollPane" xmlns="http://javafx.com/javafx/25.0.0"
-  xmlns:fx="http://javafx.com/fxml/1">
+<fx:root fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" stylesheets="@../../../style/tool-config.css" type="ScrollPane"
+  xmlns="http://javafx.com/javafx/25.0.0" xmlns:fx="http://javafx.com/fxml/1">
   <BorderPane>
     <top>
-      <HBox spacing="10.0" style="-fx-font-weight: bold; -fx-font-size: 12; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;">
+      <HBox spacing="10.0" styleClass="toolConfigHeader">
         <padding>
           <Insets top="10.0" right="10.0" bottom="10.0" left="14.0"/>
         </padding>
@@ -18,7 +18,7 @@
       </HBox>
     </top>
     <center>
-      <ListView fx:id="toolsList" style="-fx-font-size: 10;">
+      <ListView fx:id="toolsList" styleClass="toolConfigList">
         <BorderPane.margin>
           <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
         </BorderPane.margin>
@@ -29,7 +29,7 @@
         <padding>
           <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
         </padding>
-        <Label fx:id="savedLabel" text="%tool_config.saved" style="-fx-text-fill: grey;" visible="false"/>
+        <Label fx:id="savedLabel" text="%tool_config.saved" styleClass="toolConfigSavedLabel" visible="false"/>
         <Button fx:id="saveButton" text="%tool_config.save"/>
       </HBox>
     </bottom>

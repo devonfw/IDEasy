@@ -3,6 +3,7 @@ package com.devonfw.ide.gui.feature.tool.config;
 import java.util.List;
 
 import javafx.collections.FXCollections;
+import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
@@ -22,9 +23,7 @@ import com.devonfw.ide.gui.core.service.NlsService;
  */
 final class ToolListCell extends ListCell<ToolConfiguration> {
 
-  private static final String VERSION_STYLE = "-fx-font-size: 12;";
-
-  private static final String INVALID_VERSION_STYLE = VERSION_STYLE + " -fx-border-color: red; -fx-border-width: 2;";
+  private static final PseudoClass INVALID = PseudoClass.getPseudoClass("invalid");
 
   private final ToolConfigViewModel viewModel;
 
@@ -53,7 +52,7 @@ final class ToolListCell extends ListCell<ToolConfiguration> {
     this.nlsService = nlsService;
     this.root = new HBox(10);
     this.root.setAlignment(Pos.CENTER_LEFT);
-    this.root.setStyle("-fx-padding: 5 0 5 0;");
+    this.root.getStyleClass().add("toolConfigRow");
   }
 
   @Override
@@ -104,7 +103,7 @@ final class ToolListCell extends ListCell<ToolConfiguration> {
     toolNameLabel.setPrefWidth(120);
     toolNameLabel.setMaxWidth(Double.MAX_VALUE);
     HBox.setHgrow(toolNameLabel, Priority.ALWAYS);
-    toolNameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13;");
+    toolNameLabel.getStyleClass().add("toolConfigName");
     return toolNameLabel;
   }
 
@@ -181,14 +180,14 @@ final class ToolListCell extends ListCell<ToolConfiguration> {
     comboBox.setPrefHeight(32);
     HBox.setHgrow(comboBox, Priority.ALWAYS);
     comboBox.setEditable(true);
-    comboBox.setStyle(VERSION_STYLE);
+    comboBox.getStyleClass().add("toolConfigCombo");
     return comboBox;
   }
 
   private Label createErrorIcon() {
 
     Label icon = new Label("✗");
-    icon.setStyle("-fx-text-fill: red; -fx-font-size: 14; -fx-font-weight: bold; -fx-cursor: hand;");
+    icon.getStyleClass().add("toolConfigErrorIcon");
     icon.setPrefWidth(20);
     icon.setTooltip(new Tooltip(this.nlsService.get("tool_config.invalid_version")));
     return icon;
@@ -197,7 +196,7 @@ final class ToolListCell extends ListCell<ToolConfiguration> {
   private void showValidation(ToolConfiguration tool, ComboBox<String> versionSelector, Label versionErrorIcon) {
 
     boolean invalid = this.viewModel.isInvalid(tool);
-    versionSelector.setStyle(invalid ? INVALID_VERSION_STYLE : VERSION_STYLE);
+    versionSelector.pseudoClassStateChanged(INVALID, invalid);
     versionErrorIcon.setVisible(invalid);
     versionErrorIcon.setManaged(invalid);
   }
