@@ -7,6 +7,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/2552[#2552]: Add release support for npm
+* https://github.com/devonfw/IDEasy/issues/2846[#2846]: Resolution of variables and functions not working in templates
 * https://github.com/devonfw/IDEasy/issues/2654[#2654]: fixed Maven references settings-security.xml via -Dsettings.security before the file exists-
 * https://github.com/devonfw/IDEasy/issues/2393[#2393]: Open a project folder of my choice (`--project`) instead of always the main workspace (IntelliJ, Android Studio, PyCharm, VS Code)
 * https://github.com/devonfw/IDEasy/issues/2457[#2457]: Integrate antigravity-cli
