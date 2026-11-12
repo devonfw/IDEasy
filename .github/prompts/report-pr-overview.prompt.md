@@ -60,7 +60,7 @@ Reading comments for all PRs is wasteful. Let GitHub filter server-side, then de
    ```
 
    Keep only `__typename == "PullRequest"`, `state == "OPEN"`, `repository == "devonfw/IDEasy"`. Extract `Status`, `Priority`, `Size` from `fieldValues`, plus `assignees`. Join to the PR list on `number`; note any open non-draft PR **missing from the board**
-3. **reviewer counts in ONE call** (for the Review column) — GraphQL `pullRequests(states:OPEN, first:100){ nodes { number isDraft reviewDecision reviews(first:1){totalCount} } }`
+3. **reviewer counts in ONE paginated query** (for the Review column), more than 100 PRs can be open: GraphQL `pullRequests(states:OPEN, first:100, after:$cur){ pageInfo { hasNextPage endCursor } nodes { number isDraft reviewDecision reviews(first:1){totalCount} } }`
 4. **build my-actionable candidate sets with server-side search** — one call each, PR numbers only:
    * review requested of me (A2) → `gh search prs --repo devonfw/IDEasy --state open --review-requested '@me' --json number`
    * already reviewed by me (A1 candidates) → `gh search prs --repo devonfw/IDEasy --state open --reviewed-by '@me' --json number`
