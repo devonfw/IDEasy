@@ -182,6 +182,7 @@ gui
     │   │           └── IdeLauncher.fxml
     │   └── style
     │       ├── center.css
+    │       ├── main-window.css
     │       └── navigation.css
     └── nls
         ├── messages.properties
