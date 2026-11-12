@@ -26,7 +26,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
 
   private static final String NEW_PROJECT_NAME = "newProject";
 
-  private static final String DUMMY_API_KEY = "test-123";
+  private static final String DUMMY_VALUE = "test-123";
 
   private IdeTestContext context;
 
@@ -36,7 +36,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   @BeforeEach
   void setup() {
     IdeTestContext context = newContext(PROJECT_BASIC);
-    context.getVariables().getParent().set("AI_API_KEY", DUMMY_API_KEY);
+    context.getVariables().getParent().set("AI_API_KEY", DUMMY_VALUE);
     Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
     if (Files.exists(newProjectPath)) {
       context.getFileAccess().delete(newProjectPath);
@@ -171,7 +171,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     Path claudePath = context.getConfPath().resolve("claude");
     Path claudeSettingsPath = claudePath.resolve("settings.json");
     Path certPath = context.getIdeHome().resolve("settings/certificates/certificate.cer");
-    assertThat(claudeSettingsPath).exists().content().contains("\"" + DUMMY_API_KEY + "\"")
+    assertThat(claudeSettingsPath).exists().content().contains("\"" + DUMMY_VALUE + "\"")
         .contains("\"" + certPath.toString().replace('\\', '/') + "\"");
 
     // verify blob is copied as is
