@@ -21,6 +21,10 @@
     <WixVariable Id="WixUIBannerBmp" Value=".\assets\banner.bmp"/>
 
     <Property Id="INSTALLTYPE" Value="USERHOME"/>
+    <!-- Properties of the checkboxes, named like the IDEasy variables they are passed to (see IdeVariables.java).
+         Secure so that unchecking the checkboxes in the UI is also passed to the elevated execute sequence. -->
+    <Property Id="IDEASY_CREATE_DESKTOP_SHORTCUT" Value="true" Secure="yes"/>
+    <Property Id="IDEASY_CREATE_STARTMENU_SHORTCUT" Value="true" Secure="yes"/>
     <Property Id="USERFOLDER">
       <DirectorySearch Id="userProfileSearch" Depth="0" Path="[%USERPROFILE]"/>
     </Property>
@@ -40,10 +44,15 @@
         Before="ExecuteAction"
         Sequence="ui"/>
 
+    <!-- An unchecked checkbox clears its property, but IDEasy creates the shortcut if the variable is not set, so pass false explicitly -->
+    <SetProperty Id="IDEASY_CREATE_DESKTOP_SHORTCUT" Value="false" Condition="NOT IDEASY_CREATE_DESKTOP_SHORTCUT" After="CostFinalize" Sequence="execute"/>
+    <SetProperty Id="IDEASY_CREATE_STARTMENU_SHORTCUT" Value="false" Condition="NOT IDEASY_CREATE_STARTMENU_SHORTCUT" After="CostFinalize" Sequence="execute"/>
+
     <!-- Execution of install command-->
+    <!-- MSI properties are not visible as environment variables to the started process, so the IDEasy variables are set explicitly -->
     <SetProperty
         Id="RunInstallAction"
-        Value='"[%SystemFolder]cmd.exe" /v:on /c "cd /d [INSTALLFOLDER] &amp;&amp; (if not exist "[%USERPROFILE]\.ide\logs" mkdir "[%USERPROFILE]\.ide\logs") &amp;&amp; set ts=%date:/=-%_%time::=-% &amp;&amp; set ts=!ts:,=-! &amp;&amp; bin\ideasy.exe -ftb --no-colors install &gt; "[%USERPROFILE]\.ide\logs\install-!ts!.log" 2&gt;&amp;1"'
+        Value='"[%SystemFolder]cmd.exe" /v:on /c "cd /d [INSTALLFOLDER] &amp;&amp; (if not exist "[%USERPROFILE]\.ide\logs" mkdir "[%USERPROFILE]\.ide\logs") &amp;&amp; set "IDEASY_CREATE_DESKTOP_SHORTCUT=[IDEASY_CREATE_DESKTOP_SHORTCUT]" &amp;&amp; set "IDEASY_CREATE_STARTMENU_SHORTCUT=[IDEASY_CREATE_STARTMENU_SHORTCUT]" &amp;&amp; set ts=%date:/=-%_%time::=-% &amp;&amp; set ts=!ts:,=-! &amp;&amp; bin\ideasy.exe -ftb --no-colors install &gt; "[%USERPROFILE]\.ide\logs\install-!ts!.log" 2&gt;&amp;1"'
         Before="RunInstallAction"
         Sequence="execute"
     />
