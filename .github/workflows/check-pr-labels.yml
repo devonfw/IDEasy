@@ -9,12 +9,20 @@ name: Check PR Labels & Changelog
 # - Re-runs when:
 #   - PR labels change.
 #   - New commits are pushed (synchronize).
+#   - Called explicitly after labels are copied from linked issues.
 # - Based on documentation/contributing/DoD.adoc: the changelog should contain only
 #   public, end-user-relevant changes.
 
 on:
   pull_request:
     types: [ opened, reopened, synchronize, labeled, unlabeled ]
+
+  workflow_call:
+    inputs:
+      pull-request-number:
+        description: The number of the pull request to check
+        required: true
+        type: number
 
 permissions:
   pull-requests: read
@@ -25,13 +33,17 @@ jobs:
     steps:
       - name: Verify the PR has at least one label
         uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ inputs.pull-request-number || github.event.pull_request.number }}
         with:
           script: |
+            const prNumber = Number(process.env.PR_NUMBER);
+
             // Fetch the PR fresh so the label state is authoritative for this run.
             const pr = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number
+              pull_number: prNumber
             });
 
             const labels = pr.data.labels.map(label => label.name);
@@ -49,11 +61,13 @@ jobs:
         # step above and has to add a label first.
         if: success()
         uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ inputs.pull-request-number || github.event.pull_request.number }}
         with:
           script: |
             const INTERNAL_LABEL = 'internal';
             const CHANGELOG = 'CHANGELOG.adoc';
-            const prNumber = context.payload.pull_request.number;
+            const prNumber = Number(process.env.PR_NUMBER);
 
             // Fetch the PR fresh so the label state is authoritative for this run.
             const pr = await github.rest.pulls.get({
