@@ -1,7 +1,9 @@
 package com.devonfw.tools.ide.url.model.report;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Service to collect {@link UrlUpdaterReport} and finalize these after url updates have been completed.
@@ -17,6 +19,33 @@ public class UrlFinalReport {
   public void addUrlUpdaterReport(UrlUpdaterReport urlUpdaterReport) {
 
     this.urlUpdaterReports.add(urlUpdaterReport);
+  }
+
+  /**
+   * Renders the report as a Markdown table, with the highest error rates first.
+   *
+   * @return the report as a Markdown table.
+   */
+  public String toMarkdown() {
+    StringBuilder markdown = new StringBuilder("## URL UPDATE RESULTS\n\n");
+    markdown.append("| Tool/Edition | Versions added (success/fail) | Add error rate | Versions verified (success/fail) | Verification error rate |\n")
+        .append("|---|---:|---:|---:|---:|\n");
+
+    List<UrlUpdaterReport> sortedReports = new ArrayList<>(this.urlUpdaterReports);
+    sortedReports.sort(Comparator.comparingDouble(UrlUpdaterReport::getErrorRateVerificiations)
+        .reversed()
+        .thenComparing(UrlUpdaterReport::getTool)
+        .thenComparing(UrlUpdaterReport::getEdition));
+
+    for (UrlUpdaterReport report : sortedReports) {
+      markdown.append("| ").append(report.getTool()).append("/").append(report.getEdition()).append(" | ")
+          .append(report.getAddVersionSuccess()).append("/").append(report.getAddVersionFailure()).append(" | ")
+          .append(String.format(Locale.ROOT, "%.2f%%", report.getErrorRateAdditions())).append(" | ")
+          .append(report.getVerificationSuccess()).append("/").append(report.getVerificationFailure()).append(" | ")
+          .append(String.format(Locale.ROOT, "%.2f%%", report.getErrorRateVerificiations())).append(" |\n");
+    }
+
+    return markdown.toString();
   }
 
   /**
