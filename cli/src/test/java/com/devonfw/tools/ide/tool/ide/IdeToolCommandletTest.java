@@ -111,7 +111,7 @@ class IdeToolCommandletTest extends AbstractIdeContextTest {
     context.getFileAccess().mkdirs(extraJavaHome);
     ExtraToolsMapper mapper = ExtraToolsMapper.get();
     ExtraTools extraTools = new ExtraTools();
-    extraTools.addExtraInstallations("java", new ExtraToolInstallation(sdkName, VersionIdentifier.of("21"), null));
+    extraTools.addExtraInstallations("java", new ExtraToolInstallation(sdkName, VersionIdentifier.ofRequired("21"), null));
     mapper.saveJsonToFolder(extraTools, context.getSettingsPath());
 
     // act
