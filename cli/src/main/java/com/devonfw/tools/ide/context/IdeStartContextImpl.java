@@ -16,6 +16,13 @@ public class IdeStartContextImpl implements IdeStartContext {
 
   protected final IdeLogListener logListener;
 
+  /**
+   * The {@link IdeLogListener} that is currently active for logging, i.e. the one that {@link #getLogListener()} returns.
+   *
+   * @see #setActiveLogListener(IdeLogListener)
+   */
+  private IdeLogListener activeLogListener;
+
   protected final IdeLogListenerBuffer logListenerBuffer;
 
   private IdeLogLevel logLevelConsole;
@@ -57,6 +64,7 @@ public class IdeStartContextImpl implements IdeStartContext {
     super();
     this.logLevelConsole = logLevelConsole;
     this.logListener = logListener;
+    this.activeLogListener = logListener;
     this.argFormatter = IdeLogArgFormatter.DEFAULT;
     IdeStartContextImpl.instance = this;
     if (logListener instanceof IdeLogListenerBuffer buffer) {
@@ -69,7 +77,24 @@ public class IdeStartContextImpl implements IdeStartContext {
   @Override
   public IdeLogListener getLogListener() {
 
-    return this.logListener;
+    return this.activeLogListener;
+  }
+
+  /**
+   * Temporarily replaces the {@link #getLogListener() active log listener}.
+   * <p>
+   * While a listener is active, log events are emitted to that listener only. This enables capturing the output of a code section (e.g. a
+   * {@link com.devonfw.tools.ide.commandlet.StatusCommandlet status commandlet}) without it being printed to the console or written to the log file. The
+   * caller is responsible for restoring the previous listener afterwards, ideally in a {@code finally} block.
+   *
+   * @param activeLogListener the {@link IdeLogListener} to make active; must not be {@code null}.
+   */
+  public void setActiveLogListener(IdeLogListener activeLogListener) {
+
+    if (activeLogListener == null) {
+      throw new IllegalArgumentException("The active log listener must not be null");
+    }
+    this.activeLogListener = activeLogListener;
   }
 
   @Override

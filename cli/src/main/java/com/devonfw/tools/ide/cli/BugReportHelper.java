@@ -9,13 +9,12 @@ import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.commandlet.StatusCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.util.PrivacyUtil;
-import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
  * Helper to prepare GitHub bug reports for IDEasy (issue URL, title, and body).
@@ -113,31 +112,13 @@ public final class BugReportHelper {
 
   /**
    * @param context the {@link IdeContext}.
-   * @return a short status snippet for the bug report (version, OS, IDE paths, online and settings status). Paths are masked with
-   *     {@link PrivacyUtil} so that the generated report is safe to share publicly, mirroring the output of {@code ide status}.
+   * @return a short status snippet for the bug report (version, OS, IDE paths, online and settings status). The snippet is the output of
+   *     {@link StatusCommandlet} (the single source of truth for the {@code ide status} report), captured without leaking it into the console or the log
+   *     file, and masked with {@link PrivacyUtil} so that the generated report is safe to share publicly.
    */
   public static String createStatusSnippet(IdeContext context) {
 
-    StringBuilder status = new StringBuilder();
-    if (context.getIdeRoot() != null) {
-      status.append("IDE_ROOT is set to ").append(mask(context.getIdeRoot().toString())).append('\n');
-    }
-    if (context.getIdeHome() != null) {
-      status.append("IDE_HOME is set to ").append(mask(context.getIdeHome().toString())).append('\n');
-    }
-    if (context.getNetworkStatus().isOnline()) {
-      status.append("You are online.\n");
-    } else {
-      status.append("You are offline.\n");
-    }
-    String settingsStatus = context.getSettingsStatusLine();
-    if (!settingsStatus.isEmpty()) {
-      status.append(settingsStatus).append('\n');
-    }
-    status.append("Your version of IDEasy is ").append(IdeVersion.getVersionString()).append('\n');
-    SystemInfo systemInfo = context.getSystemInfo();
-    status.append("Your operating system is ").append(systemInfo.describe()).append('\n');
-    return status.toString();
+    return sanitize(context.runWithLoggerRedirected(() -> context.getCommandletManager().getCommandlet(StatusCommandlet.class).run()));
   }
 
   /**

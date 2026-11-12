@@ -18,11 +18,12 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.environment.IdeSystem;
 import com.devonfw.tools.ide.git.GitContext;
-import com.devonfw.tools.ide.git.repository.RepositoryType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarNone;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeLogListener;
+import com.devonfw.tools.ide.log.IdeLogListenerStringBuilder;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.NetworkStatus;
 import com.devonfw.tools.ide.os.SystemInfo;
@@ -626,55 +627,6 @@ public interface IdeContext extends IdeStartContext {
   Path getSettingsCommitIdPath();
 
   /**
-   * Evaluates the state of the settings repository with a single update check.
-   *
-   * @return {@code OUTDATED} if an update should be fetched with {@code ide update}, {@code UP_TO_DATE} if it is current, and {@code UNKNOWN} if there is
-   *     no settings repository (e.g. outside an IDE project) or the repository is combined and an update is available.
-   */
-  default SettingsUpdateState evaluateSettingsUpdateStatus() {
-
-    Path settingsPath = getSettingsGitRepository();
-    if (settingsPath == null) {
-      return SettingsUpdateState.UNKNOWN;
-    }
-    if (getGitContext().isRepositoryUpdateAvailable(settingsPath, getSettingsCommitIdPath())) {
-      return isCombinedCodeSettingsRepository() ? SettingsUpdateState.UNKNOWN : SettingsUpdateState.OUTDATED;
-    }
-    return SettingsUpdateState.UP_TO_DATE;
-  }
-
-  /**
-   * @return {@code true} if the settings repository is a combined code and settings repository (a single repository that contains both the code and the
-   *     settings folder), in which case an available update does not produce an outdated warning.
-   */
-  default boolean isCombinedCodeSettingsRepository() {
-
-    return (RepositoryType.ofSettingsPath(getSettingsPath(), this) == RepositoryType.CODE_SETTINGS_COMBINED);
-  }
-
-  /**
-   * @param status the evaluated settings update status from {@link #evaluateSettingsUpdateStatus()}.
-   * @return the matching settings status line, or an empty string when no status is reported.
-   */
-  default String settingsStatusLine(SettingsUpdateState status) {
-
-    return switch (status) {
-      case OUTDATED -> "Your settings are not up-to-date, please run 'ide update'.";
-      case UP_TO_DATE -> "Your settings are up-to-date.";
-      default -> "";
-    };
-  }
-
-  /**
-   * @return the settings status line as shown by {@code ide status} ("Your settings are up-to-date." or "Your settings are not up-to-date, please run
-   *     'ide update'."), or an empty string when no status is reported.
-   */
-  default String getSettingsStatusLine() {
-
-    return settingsStatusLine(evaluateSettingsUpdateStatus());
-  }
-
-  /**
    * @return the {@link Path} to the templates folder inside the {@link #getSettingsPath() settings}. The relative directory structure in this templates folder
    *     is to be applied to {@link #getIdeHome() IDE_HOME} when the project is set up.
    */
@@ -911,6 +863,34 @@ public interface IdeContext extends IdeStartContext {
   void runWithoutLogging(Runnable lambda, IdeLogLevel threshold);
 
   /**
+   * Runs the given {@link Runnable} with the logging temporarily redirected to the given {@link IdeLogListener}.
+   * <p>
+   * While the {@link Runnable#run() lambda} executes, log events are emitted to {@code logListener} only: nothing is printed to the console, written to the
+   * log file, or collected by the regular log listener. The previous log listener is restored as soon as the {@link Runnable#run() lambda} returns (or
+   * throws), so the {@code logListener} may reject events to keep the output from leaking into the regular logging pipeline.
+   *
+   * @param lambda the {@link Runnable} to {@link Runnable#run() run} while logging is redirected to {@code logListener}.
+   * @param logListener the {@link IdeLogListener} that receives the log events of the {@link Runnable#run() lambda}; must not be {@code null}.
+   */
+  void runWithLoggerRedirected(Runnable lambda, IdeLogListener logListener);
+
+  /**
+   * Runs the given {@link Runnable} with the logging temporarily redirected to a {@link IdeLogListenerStringBuilder} and returns the captured log messages.
+   * <p>
+   * This is a convenience overload of {@link #runWithLoggerRedirected(Runnable, IdeLogListener)}: the {@link Runnable#run() lambda} is executed while
+   * logging is redirected to a listener that appends every message to a {@link StringBuilder}, and the resulting string is returned.
+   *
+   * @param lambda the {@link Runnable} to {@link Runnable#run() run} while its log output is captured.
+   * @return the log messages of the {@link Runnable#run() lambda} captured during execution.
+   */
+  default String runWithLoggerRedirected(Runnable lambda) {
+
+    IdeLogListenerStringBuilder listener = new IdeLogListenerStringBuilder();
+    runWithLoggerRedirected(lambda, listener);
+    return listener.toString();
+  }
+
+  /**
    * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters. This method is central to changing
    * the IDE's notion of where it operates, affecting where configurations, workspaces, settings, and other resources are located or loaded from.
    *
@@ -1000,20 +980,5 @@ public interface IdeContext extends IdeStartContext {
     }
     Npm npm = getCommandletManager().getCommandlet(Npm.class);
     return npm.getOrCreateNpmConfigUserConfig();
-  }
-
-  /**
-   * The evaluated state of the settings repository, as determined by {@link #evaluateSettingsUpdateStatus()}.
-   */
-  enum SettingsUpdateState {
-
-    /** A newer version of the settings is available and should be fetched with {@code ide update}. */
-    OUTDATED,
-
-    /** The settings repository is current. */
-    UP_TO_DATE,
-
-    /** No status is reported (no settings repository, or a combined code and settings repository). */
-    UNKNOWN
   }
 }

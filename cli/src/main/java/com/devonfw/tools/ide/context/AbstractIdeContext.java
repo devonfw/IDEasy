@@ -1441,6 +1441,18 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     this.startContext.activateLogging();
   }
 
+  @Override
+  public void runWithLoggerRedirected(Runnable lambda, IdeLogListener logListener) {
+
+    IdeLogListener previousLogListener = this.startContext.getLogListener();
+    try {
+      this.startContext.setActiveLogListener(logListener);
+      lambda.run();
+    } finally {
+      this.startContext.setActiveLogListener(previousLogListener);
+    }
+  }
+
   /**
    * @param cmd the potential {@link AbstractCommandlet} to {@link #apply(CliArguments, AbstractCommandlet) apply} and
    *     {@link AbstractCommandlet#run() run}.

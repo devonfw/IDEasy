@@ -16,6 +16,8 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeLogListener;
+import com.devonfw.tools.ide.log.IdeLogListenerStringBuilder;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.security.ToolVersionChoice;
@@ -193,6 +195,71 @@ public class IdeContextTest extends AbstractIdeContextTest {
         .hasEntries(IdeLogEntry.ofWarning(testWarningMessage), IdeLogEntry.ofWarning(testWarningMessage2), IdeLogEntry.ofInfo(testInfoMessage),
             IdeLogEntry.ofWarning(testWarningMessage3));
     assertThat(context).log().hasNoMessage(testDebugMessage);
+  }
+
+  /**
+   * Tests that {@link IdeContext#runWithLoggerRedirected(Runnable, IdeLogListener)} routes the log events to the given listener only while the lambda runs and
+   * restores the original log listener afterwards.
+   */
+  @Test
+  void testRunWithLoggerRedirected() {
+
+    // arrange
+    String outsideMessage = "message outside the redirect";
+    String redirectedMessage = "message inside the redirect";
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    IdeLogListenerStringBuilder listener = new IdeLogListenerStringBuilder();
+    // act
+    LOG.warn(outsideMessage);
+    context.runWithLoggerRedirected(() -> {
+      LOG.warn(redirectedMessage);
+      assertThat(context).log().hasNoMessage(redirectedMessage);
+      assertThat(listener.toString()).contains(redirectedMessage);
+    }, listener);
+    LOG.info("message after the redirect");
+    // assert
+    assertThat(listener.toString()).contains(redirectedMessage).doesNotContain(outsideMessage);
+    assertThat(context).log()
+        .hasEntries(IdeLogEntry.ofWarning(outsideMessage), IdeLogEntry.ofInfo("message after the redirect"));
+    assertThat(context).log().hasNoMessage(redirectedMessage);
+  }
+
+  /**
+   * Tests that {@link IdeContext#runWithLoggerRedirected(Runnable)} captures the log messages of the lambda and returns them as string while keeping the
+   * regular log listener untouched.
+   */
+  @Test
+  void testRunWithLoggerRedirectedReturnsCapturedMessages() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    // act
+    String captured = context.runWithLoggerRedirected(() -> LOG.info("captured message"));
+    // assert
+    assertThat(captured).contains("captured message");
+    assertThat(context).log().hasNoMessage("captured message");
+  }
+
+  /**
+   * Tests that the original log listener is restored when the {@link Runnable} passed to
+   * {@link IdeContext#runWithLoggerRedirected(Runnable, IdeLogListener)} throws.
+   */
+  @Test
+  void testRunWithLoggerRedirectedRestoresListenerOnException() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    IdeLogListenerStringBuilder listener = new IdeLogListenerStringBuilder();
+    // act
+    assertThatThrownBy(() -> context.runWithLoggerRedirected(() -> {
+      LOG.warn("message in failing lambda");
+      throw new IllegalStateException("boom");
+    }, listener)).isInstanceOf(IllegalStateException.class);
+    LOG.warn("message after the exception");
+    // assert
+    assertThat(context).log().hasEntries(IdeLogEntry.ofWarning("message after the exception"));
+    assertThat(context).log().hasNoMessage("message in failing lambda");
+    assertThat(listener.toString()).contains("message in failing lambda");
   }
 
   /**

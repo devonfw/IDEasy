@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.commandlet.TestCommandletManager;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.git.GitContextMock;
 import com.devonfw.tools.ide.tool.gh.Gh;
@@ -202,81 +201,6 @@ class BugReportHelperTest extends AbstractIdeContextTest {
     // assert
     assertThat(snippet).contains("You are online.\n");
     assertThat(snippet).contains("Your settings are not up-to-date, please run 'ide update'.\n");
-  }
-
-  /** Test that a combined code and settings repository reports up-to-date when no settings update is available, mirroring {@code ide status}. */
-  @Test
-  void testUpToDateSettingsStatusForCombinedCodeSettingsRepository() {
-
-    // arrange, a settings repository that is a combined code and settings repository
-    IdeTestContext context = new IdeTestContext(Path.of("/"), null) {
-      @Override
-      public Path getSettingsGitRepository() {
-
-        return Path.of("settings");
-      }
-
-      @Override
-      public boolean isCombinedCodeSettingsRepository() {
-
-        return true;
-      }
-    };
-    context.setGitContext(new GitContextMock(context) {
-      @Override
-      public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
-
-        return false;
-      }
-    });
-    context.getNetworkStatus().simulateOnline();
-
-    // act
-    IdeContext.SettingsUpdateState status = context.evaluateSettingsUpdateStatus();
-    String snippet = BugReportHelper.createStatusSnippet(context);
-
-    // assert
-    assertThat(status).isEqualTo(IdeContext.SettingsUpdateState.UP_TO_DATE);
-    assertThat(context.getSettingsStatusLine()).isEqualTo("Your settings are up-to-date.");
-    assertThat(snippet).contains("Your settings are up-to-date.\n");
-    assertThat(snippet).doesNotContain("ide update");
-  }
-
-  /** Test that a combined code and settings repository suppresses the outdated warning, mirroring {@code ide status}. */
-  @Test
-  void testNoOutdatedSettingsWarningForCombinedCodeSettingsRepository() {
-
-    // arrange
-    IdeTestContext context = new IdeTestContext(Path.of("/"), null) {
-      @Override
-      public Path getSettingsGitRepository() {
-
-        return Path.of("settings");
-      }
-
-      @Override
-      public boolean isCombinedCodeSettingsRepository() {
-
-        return true;
-      }
-    };
-    context.setGitContext(new GitContextMock(context) {
-      @Override
-      public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
-
-        return true;
-      }
-    });
-    context.getNetworkStatus().simulateOnline();
-
-    // act
-    IdeContext.SettingsUpdateState status = context.evaluateSettingsUpdateStatus();
-    String snippet = BugReportHelper.createStatusSnippet(context);
-
-    // assert
-    assertThat(status).isEqualTo(IdeContext.SettingsUpdateState.UNKNOWN);
-    assertThat(context.getSettingsStatusLine()).isEmpty();
-    assertThat(snippet).doesNotContain("Your settings are not up-to-date");
   }
 
   /**

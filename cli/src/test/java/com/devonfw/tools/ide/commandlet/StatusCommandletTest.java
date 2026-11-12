@@ -1,17 +1,26 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
 import javax.net.ssl.SSLHandshakeException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.GitContextMock;
+import com.devonfw.tools.ide.git.repository.RepositoryType;
+import com.devonfw.tools.ide.io.WindowsSymlinkTestHelper;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.migration.IdeMigrator;
@@ -163,6 +172,87 @@ class StatusCommandletTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(context).log().hasNoMessageContaining("needs an update");
+  }
+
+  /**
+   * Tests that {@link StatusCommandlet} reports the settings as up-to-date for a combined code and settings repository if no settings update is available.
+   */
+  @Test
+  void testStatusWhenSettingsAreUpToDateForCombinedCodeSettingsRepository(@TempDir Path tempDir) throws IOException {
+
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+
+    // arrange, a context whose settings folder is a symlink into a combined code and settings repository
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    makeCombinedCodeSettingsRepository(context, tempDir);
+
+    // act
+    StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
+    status.run();
+
+    // assert
+    assertThat(context).logAtSuccess().hasMessage("Your settings are up-to-date.");
+    assertThat(context).logAtWarning().hasNoMessageContaining("not up-to-date");
+  }
+
+  /**
+   * Tests that {@link StatusCommandlet} suppresses the outdated settings warning for a combined code and settings repository even if an update is available
+   * (the combined repository is not updated by {@code ide update}).
+   */
+  @Test
+  void testStatusDoesNotWarnAboutOutdatedSettingsForCombinedCodeSettingsRepository(@TempDir Path tempDir) throws IOException {
+
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    makeCombinedCodeSettingsRepository(context, tempDir);
+    // the update check must see a pending update to prove that the warning is really suppressed for the combined repository
+    context.setGitContext(new GitContextMock(context) {
+      @Override
+      public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
+
+        return true;
+      }
+    });
+
+    // act
+    StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
+    status.run();
+
+    // assert
+    assertThat(context).logAtWarning().hasNoMessageContaining("not up-to-date");
+    assertThat(context).logAtSuccess().hasNoMessageContaining("Your settings are up-to-date.");
+  }
+
+  /**
+   * Turns the given context into one whose IDE_HOME settings folder is a real symbolic link to the {@code settings} folder of a combined code and settings
+   * repository (a git repository that itself contains the settings folder), as created by {@code ide create --code-settings-repository}. The network is
+   * made online and the project up-to-date so the settings git status is the only relevant part of the status output.
+   *
+   * @param context the context to adapt.
+   * @param tempDir a temporary directory the combined repository is created in.
+   * @throws IOException if the fixture cannot be created.
+   */
+  private void makeCombinedCodeSettingsRepository(IdeTestContext context, Path tempDir) throws IOException {
+
+    // a git repository that contains a settings folder (a combined code and settings repository)
+    Path repository = tempDir.resolve("combined-repo");
+    Files.createDirectories(repository.resolve(IdeContext.FOLDER_SETTINGS));
+    Files.createFile(repository.resolve(IdeContext.FOLDER_SETTINGS).resolve(EnvironmentVariables.DEFAULT_PROPERTIES));
+    Files.createDirectory(repository.resolve(GitContext.GIT_FOLDER));
+    Files.writeString(repository.resolve(GitContext.GIT_FOLDER).resolve(GitContext.FILE_HEAD), "ref: refs/heads/main");
+
+    // replace the settings folder of the IDE_HOME with a symlink into the combined repository
+    Path settingsLink = context.getIdeHome().resolve(IdeContext.FOLDER_SETTINGS);
+    context.getFileAccess().delete(settingsLink);
+    context.getFileAccess().symlink(repository.resolve(IdeContext.FOLDER_SETTINGS), settingsLink, false);
+    context.setSettingsPath(settingsLink);
+
+    context.getNetworkStatus().simulateOnline();
+    context.setProjectVersion(new IdeMigrator().getTargetVersion());
+    // sanity check: the fixture must actually be detected as a combined code and settings repository
+    assertThat(RepositoryType.ofSettingsPath(context.getSettingsPath(), context)).isEqualTo(RepositoryType.CODE_SETTINGS_COMBINED);
   }
 
   /**
