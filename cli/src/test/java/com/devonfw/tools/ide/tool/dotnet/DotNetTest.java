@@ -105,7 +105,7 @@ class DotNetTest extends AbstractIdeContextTest {
         dotnetPath,
         dotnetPath,
         dotnetPath,
-        VersionIdentifier.of("6.0.419"),
+        VersionIdentifier.ofRequired("6.0.419"),
         true);
 
     Map<String, VariableLine> variables = new HashMap<>();
