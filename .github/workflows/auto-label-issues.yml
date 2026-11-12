@@ -1,0 +1,110 @@
+name: Automatically Label New Issues
+
+on:
+  issues:
+    types: [ opened ]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Add matching labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let mapping;
+
+            try {
+              mapping = JSON.parse(
+                fs.readFileSync('.github/issue-label-mapping.json', 'utf8')
+              );
+            } catch (error) {
+              core.setFailed(
+                `Failed to load issue label mapping: ${error.message}`
+              );
+              return;
+            }
+
+            if (
+              typeof mapping !== 'object' ||
+              mapping === null ||
+              Array.isArray(mapping)
+            ) {
+              core.setFailed('Issue label mapping must be a JSON object.');
+              return;
+            }
+
+            for (const [label, keywords] of Object.entries(mapping)) {
+              if (!Array.isArray(keywords)) {
+                core.setFailed(
+                  `Invalid mapping for label "${label}": expected an array of keywords.`
+                );
+                return;
+              }
+            }
+
+            const issue = context.payload.issue;
+            const text = `${issue.title}\n${issue.body || ''}`;
+
+            const existingLabels = new Set(
+              issue.labels.map(label => label.name)
+            );
+
+            const labelsToAdd = [];
+
+            const matchesKeyword = (text, keyword) => {
+              const escapedKeyword = keyword
+                .toLowerCase()
+                .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+              const pattern = new RegExp(
+                `(^|[^a-zA-Z0-9])${escapedKeyword}([^a-zA-Z0-9]|$)`,
+                'i'
+              );
+
+              return pattern.test(text);
+            };
+
+            for (const [label, keywords] of Object.entries(mapping)) {
+              if (existingLabels.has(label)) {
+                continue;
+              }
+
+              const matches = keywords.some(keyword =>
+                matchesKeyword(text, keyword)
+              );
+
+              if (matches) {
+                labelsToAdd.push(label);
+              }
+            }
+
+            if (labelsToAdd.length === 0) {
+              core.info('No matching labels found.');
+              return;
+            }
+
+            core.info(`Adding labels: ${labelsToAdd.join(', ')}`);
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              labels: labelsToAdd
+            });
+
+  ping-author:
+    needs: label
+    uses: ./.github/workflows/ping-author-missing-issue-labels.yml
+    with:
+      issue-number: ${{ github.event.issue.number }}
