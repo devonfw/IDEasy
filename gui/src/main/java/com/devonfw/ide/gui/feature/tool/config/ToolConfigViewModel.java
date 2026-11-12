@@ -24,7 +24,7 @@ import com.devonfw.ide.gui.core.tab.TabViewModel;
  */
 public class ToolConfigViewModel extends TabViewModel {
 
-  private final ToolConfigurationService service;
+  private final ToolConfigurationService toolConfigurationService;
 
   private final ObservableList<ToolConfiguration> tools = FXCollections.observableArrayList();
 
@@ -48,7 +48,7 @@ public class ToolConfigViewModel extends TabViewModel {
    */
   public ToolConfigViewModel(GuiStateManager guiStateManager) {
     super(guiStateManager);
-    this.service = guiStateManager.getToolConfigurationService();
+    this.toolConfigurationService = guiStateManager.getToolConfigurationService();
     this.saveDisabled.bind(Bindings.isNotEmpty(this.invalidTools).or(this.saved));
     this.guiStateManager.addGuiContextChangeListener(this.contextChangeListener);
     load();
@@ -72,13 +72,13 @@ public class ToolConfigViewModel extends TabViewModel {
       this.tools.clear();
       return;
     }
-    List<ToolConfiguration> configurations = this.service.listToolConfigurations(this.context);
+    List<ToolConfiguration> configurations = this.toolConfigurationService.listToolConfigurations(this.context);
     this.tools.setAll(configurations);
 
     IdeGuiContext loadContext = this.context;
     FxHelper.runInBackground(() -> {
       for (ToolConfiguration tool : configurations) {
-        List<String> editions = this.service.loadEditionsForTool(tool.getToolName(), loadContext);
+        List<String> editions = this.toolConfigurationService.loadEditionsForTool(tool.getToolName(), loadContext);
         tool.setAvailableEditions(editions);
         // only show the edition selector when there is a real choice
         tool.setSupportsEdition(editions.size() > 1);
@@ -103,7 +103,7 @@ public class ToolConfigViewModel extends TabViewModel {
     }
     IdeGuiContext loadContext = this.context;
     String edition = tool.getConfiguredEdition();
-    FxHelper.runInBackground(() -> tool.setAvailableVersions(this.service.loadVersionsForSelectedEdition(tool.getToolName(), edition, loadContext)), onLoaded);
+    FxHelper.runInBackground(() -> tool.setAvailableVersions(this.toolConfigurationService.loadVersionsForSelectedEdition(tool.getToolName(), edition, loadContext)), onLoaded);
   }
 
   /**
@@ -170,7 +170,7 @@ public class ToolConfigViewModel extends TabViewModel {
 
   private void validate(ToolConfiguration tool) {
 
-    if (this.service.isValidVersion(tool.getConfiguredVersion(), tool.getAvailableVersions())) {
+    if (this.toolConfigurationService.isValidVersion(tool.getConfiguredVersion(), tool.getAvailableVersions())) {
       this.invalidTools.remove(tool.getToolName());
     } else {
       this.invalidTools.add(tool.getToolName());
@@ -191,7 +191,7 @@ public class ToolConfigViewModel extends TabViewModel {
    */
   public void save() {
 
-    this.service.applyAndSave(this.tools, this.context);
+    this.toolConfigurationService.applyAndSave(this.tools, this.context);
     this.saved.set(true);
   }
 
