@@ -36,7 +36,7 @@ one. Get this wrong and you move entries into a shipped release.
 - Also collect the set of **released versions** (`gh release list --repo devonfw/IDEasy`, plus every
   closed `release:` milestone). Any `== <version>` section naming one of these is **frozen** — never
   add to it or move an entry into it.
-- If the three sources disagree, **stop and report**; do not guess a target. A genuine mismatch means
+- If the three sources disagree for any reason other than the missing heading in the next bullet, **stop and report**; do not guess a target. A genuine mismatch means
   release housekeeping is incomplete (e.g. a release shipped but `main` never got its section or its
   version bump) and a human must fix that first.
 - If `TARGET_SECTION` has no `== ` heading in the base changelog yet, **do not create one.** That
