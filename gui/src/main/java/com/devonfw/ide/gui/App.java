@@ -31,19 +31,7 @@ public class App extends Application {
   /**
    * Path to icon file used for GUI of IDEasy starting from {@code gui/src/main/resources}
    */
-  public static final String ICON_PATH = "com/devonfw/ide/gui/assets/icon.png";
-
-  /** Preferred initial width of the main window content in pixels, as given by the UI design (excluding window decorations). */
-  private static final double MAIN_WINDOW_WIDTH = 1295.0;
-
-  /** Preferred initial height of the main window content in pixels, as given by the UI design (excluding window decorations). */
-  private static final double MAIN_WINDOW_HEIGHT = 691.0;
-
-  /** Minimum width of the main window content in pixels (excluding window decorations). */
-  private static final double MAIN_WINDOW_MIN_WIDTH = 900.0;
-
-  /** Minimum height of the main window content in pixels (excluding window decorations). */
-  private static final double MAIN_WINDOW_MIN_HEIGHT = 600.0;
+  public static final String ICON_PATH = "com/devonfw/ide/gui/assets/ideasy.png";
 
   private Stage primaryStage;
 
@@ -65,7 +53,10 @@ public class App extends Application {
 
     //this.nlsService.addLocaleChangeListener(this::reloadMainView);
 
-    configureMainWindow(new Scene(mainWindow, MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT));
+    Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+    Scene scene = new Scene(mainWindow, bounds.getWidth() / 2, bounds.getHeight() / 2);
+
+    configureMainWindow(scene);
 
     primaryStage.setOnCloseRequest(event -> {
 
@@ -95,17 +86,11 @@ public class App extends Application {
     primaryStage.getIcons().add(icon);
     primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
     primaryStage.setScene(mainWindowScene);
+    primaryStage.setWidth(mainWindowScene.getWidth());
+    primaryStage.setHeight(mainWindowScene.getHeight());
+    primaryStage.setMinWidth(mainWindowScene.getWidth());
+    primaryStage.setMinHeight(mainWindowScene.getHeight());
     primaryStage.show();
-    // the size of the window decorations (title bar, borders) is only known once the stage is shown
-    double decorationWidth = primaryStage.getWidth() - mainWindowScene.getWidth();
-    double decorationHeight = primaryStage.getHeight() - mainWindowScene.getHeight();
-    // the stage including its decorations must still fit on the screen (excluding e.g. the taskbar)
-    Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-    primaryStage.setMinWidth(Math.min(MAIN_WINDOW_MIN_WIDTH + decorationWidth, bounds.getWidth()));
-    primaryStage.setMinHeight(Math.min(MAIN_WINDOW_MIN_HEIGHT + decorationHeight, bounds.getHeight()));
-    primaryStage.setWidth(Math.min(MAIN_WINDOW_WIDTH + decorationWidth, bounds.getWidth()));
-    primaryStage.setHeight(Math.min(MAIN_WINDOW_HEIGHT + decorationHeight, bounds.getHeight()));
-    primaryStage.centerOnScreen();
   }
 
   private void exitApplication() {
