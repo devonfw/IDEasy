@@ -5,7 +5,6 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 == 2026.11.001
 
 Release with new features and bugfixes:
-sghgdh
 * https://github.com/devonfw/IDEasy/issues/2846[#2846]: Resolution of variables and functions not working in templates
 * https://github.com/devonfw/IDEasy/issues/2654[#2654]: fixed Maven references settings-security.xml via -Dsettings.security before the file exists-
 * https://github.com/devonfw/IDEasy/issues/2393[#2393]: Open a project folder of my choice (`--project`) instead of always the main workspace (IntelliJ, Android Studio, PyCharm, VS Code)
