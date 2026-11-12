@@ -2,6 +2,12 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2026.12.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/2849[#2849]: Usability issues with new github bugreport feature
+
 == 2026.11.001
 
 Release with new features and bugfixes:
