@@ -178,7 +178,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   private String nextAnswer() {
 
     if (this.answerIndex >= this.answers.length) {
-      throw new IllegalStateException("End of answers reached!");
+      throw new IllegalStateException("End of answers reached!"+ this.answerIndex);
     }
     return this.answers[this.answerIndex++];
   }
