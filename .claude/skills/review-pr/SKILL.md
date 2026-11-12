@@ -11,6 +11,8 @@ The user asked to review a pull request. (Provided after the command: $0)
 
 - Determine the PR number. If unclear: STOP, ASK THE USER for the PR number, AND RESUME. If
   `gh pr view <n>` fails, the number is an issue: review the PR linked to it instead.
+- Check readiness (`documentation/contributing/review.adoc`): a draft PR or a red build is not
+  reviewed. STOP and tell the user instead.
 - Identify the referenced issue(s) from the PR body (e.g. `fixes #1992`). If the PR claims to fix an
   issue, YOU MUST review it against that issue's explicit requirements, not just the diff in
   isolation. If no issue is referenced, review against the change's own stated intent.
@@ -113,6 +115,8 @@ Post as a single review via `POST repos/devonfw/IDEasy/pulls/<n>/reviews` with a
 `comments` array, anchoring each inline comment with `path` + `line` + `side:"RIGHT"` at the PR head
 commit.
 
+- **Review constructively** as described in `documentation/contributing/constructive-review.adoc`:
+  name what is solved well, keep each finding precise and explain why the proposal improves the code.
 - **Propose fixes when easily possible.** For a clean, small change embed a GitHub ```suggestion
   block so the author can apply it with one click (multi-line: anchor with `start_line` + `line`).
   Findings on files outside the diff (e.g. a missing test case or `CHANGELOG.adoc` entry) are
@@ -120,8 +124,11 @@ commit.
   guidance only. Never push commits to the contributor's branch.
 - **Make comments educational.** Link the doc and section for every convention finding so the author
   learns the rule. Cover every occurrence, not just the first.
-- **Choose the event by severity:** `REQUEST_CHANGES` when any Must-fix exists, otherwise `COMMENT`.
-  NEVER `APPROVE` on the author's behalf.
+- **Choose the event as described in `documentation/contributing/review.adoc`:** usually `APPROVE`
+  with the findings as inline comments (the open comments still block the merge until resolved),
+  `REQUEST_CHANGES` only when the PR went in a wrong direction and needs more rework than review
+  comments can express, `COMMENT` only for an intermediate state you will complete later. Propose
+  the event together with the draft; the user's OK covers both.
 - No AI attribution of any kind in the review body or comments (`AGENTS.md`).
 
 After posting, verify that the inline comments actually attached, the API silently drops comments

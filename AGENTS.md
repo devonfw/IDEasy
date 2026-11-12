@@ -64,11 +64,10 @@ and review — and fix what they report.
 
 1. Conventions (free): follow `documentation/contributing/coding-conventions.adoc` + `.editorconfig`.
 2. Compile: `mvn -q -o compile` in the changed module.
-3. Tests: `mvn -Dtest=ClassName test` or `mvn -q test` in the module folder (never repo root).
+3. Tests: `mvn -Dtest=ClassName test` or `mvn -q test` in the module folder (the full build from
+   the repo root is step 6).
 4. Format: `mvn spotless:apply` (auto-fix; ratcheted to `origin/main`, so only files you changed).
-   If your `origin` is a stale fork, pass `-Dspotless.ratchetFrom=upstream/main`. Spotless cannot
-   read a `git worktree` checkout ("Cannot find git repository"): run it in a regular clone (until
-   #2665 is done).
+   If your `origin` is a stale fork, pass `-Dspotless.ratchetFrom=upstream/main`.
 5. Lint: `mvn checkstyle:check` in the module folder — must pass for every file you change.
 6. Build + tests: `mvn -q verify -pl '!documentation'` from repo root.
 
@@ -128,7 +127,7 @@ These are strict prohibitions. Contributions carrying AI authorship/attribution 
 
 - Comments, reviews, labels, issues, pull requests and status changes on GitHub are public. Show the
   draft to the user and post it only after the user explicitly confirmed it.
-- Never approve or merge a pull request on the user's behalf.
+- Never approve, request changes on or merge a pull request without the user's explicit OK.
 
 ## Pull Request Guidelines
 

@@ -44,7 +44,7 @@ Skills without the note "manual only" may also be loaded by the agent on its own
 |Work on an issue end to end: assign, verify the premise, implement test first in a worktree, test end to end, finalize the PR.
 
 |`create-pr`
-|issue number
+|issue number (optional)
 |Finalize local changes into a feature branch and open a pull request with testing instructions a reviewer can follow.
 
 |`review-pr`
@@ -52,7 +52,7 @@ Skills without the note "manual only" may also be loaded by the agent on its own
 |Review a PR against its issue and the conventions. Shows the draft and posts the review only after you confirmed it.
 
 |`retest-pr`
-|PR number
+|PR number (optional)
 |Retest a merged PR against the nightly SNAPSHOT as described in link:retest.adoc[retest].
 
 |`report-pr-overview`
