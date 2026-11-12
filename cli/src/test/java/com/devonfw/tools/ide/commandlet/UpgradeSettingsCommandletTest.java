@@ -35,14 +35,53 @@ class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
     verifyUpdateWorkspaceTemplates();
   }
 
-  private void verifyUpdateProperties() {
+  /**
+   * Tests upgrading settings without a templates or legacy devon folder.
+   */
+  @Test
+  void testUpdateSettingsWithoutTemplates() {
+    // arrange
+    Path settingsPath = UPGRADE_SETTINGS_PATH.resolve(IdeContext.FOLDER_SETTINGS);
 
+    this.context.getFileAccess().delete(settingsPath.resolve(IdeContext.FOLDER_TEMPLATES));
+    this.context.getFileAccess().delete(settingsPath.resolve(IdeContext.FOLDER_LEGACY_TEMPLATES));
+
+    UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(this.context);
+    Path workspaceTemplate = settingsPath.resolve("workspace/testVariableSyntax.txt");
+
+    // act
+    upgradeSettingsCommandlet.run();
+
+    // assert
+    assertThat(workspaceTemplate).exists().content()
+        .contains("$[IDE_HOME]")
+        .contains("$[MVN_VERSION]")
+        .doesNotContain("${IDE_HOME}")
+        .doesNotContain("${MVN_VERSION}");
+
+    assertThat(settingsPath.resolve("ide.properties")).exists().content()
+        .contains("IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED=false");
+
+    assertThat(settingsPath.resolve(CustomToolsMapper.get().getStandardFilename())).exists();
+  }
+
+  private void verifyUpdateProperties() {
     assertThat(UPGRADE_SETTINGS_PATH.resolve("home/.ide/ide.properties")).exists();
-    assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/ide.properties")).exists().content().contains("INTELLIJ_EDITION=ultimate")
-        .doesNotContain("INTELLIJ_EDITION_TYPE").contains("IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED=false");
+
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/ide.properties"))
+        .exists()
+        .content()
+        .contains("INTELLIJ_EDITION=ultimate")
+        .doesNotContain("INTELLIJ_EDITION_TYPE")
+        .contains("IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED=false");
+
     assertThat(UPGRADE_SETTINGS_PATH.resolve("workspaces/main/ide.properties")).exists();
-    //assert that file content was changed
-    assertThat(UPGRADE_SETTINGS_PATH.resolve("conf/ide.properties")).exists().content().contains("MVN_VERSION=test");
+
+    // assert that file content was changed
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("conf/ide.properties"))
+        .exists()
+        .content()
+        .contains("MVN_VERSION=test");
 
     // devon.properties have been deleted (moved to backup)
     assertThat(UPGRADE_SETTINGS_PATH.resolve("home/devon.properties")).doesNotExist();
