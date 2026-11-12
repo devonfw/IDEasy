@@ -42,13 +42,13 @@ public class Agy extends AbstractLocalToolCommandlet {
    */
   private static final String README_CONTENT = """
       # Isolated Agy (Antigravity CLI) configuration
-
+      
       Agy has no environment variable to relocate its configuration, so IDEasy keeps it project-isolated by pointing
       Agy's standard home location at this project:
         - ~/.gemini/antigravity-cli -> $IDE_HOME/conf/gemini/antigravity-cli   (theme, conversations, history)
       The link is (re)created automatically every time you start Agy through IDEasy. The content is owned by you -
       IDEasy only creates the directory and this file, it never modifies your data.
-
+      
       ## Using Agy
       Each IDEasy project has its own Agy binary and its own configuration. Launch Agy through IDEasy (`ide agy`) in
       the project you want to use; the link is re-pointed first, so the right configuration is always picked.
@@ -56,7 +56,7 @@ public class Agy extends AbstractLocalToolCommandlet {
       that most recently set it up.
       Note: the link is shared across all projects, so two concurrent Agy sessions in different projects use the
       configuration of the project that last started Agy through IDEasy.
-
+      
       ## API key
       Put your credentials in settings.json -> env:
         { "env": { "ANTIGRAVITY_API_KEY": "..." } }
@@ -165,10 +165,10 @@ public class Agy extends AbstractLocalToolCommandlet {
       // already a link - only replace it if it does not already resolve to our project-local configuration
       try {
         if (!this.context.getFileAccess().toRealPath(homeConfigPath).equals(this.context.getFileAccess().toRealPath(targetDir))) {
-          this.context.getFileAccess().symlink(targetDir, homeConfigPath);
+          createHomeLink(targetDir, homeConfigPath);
         }
       } catch (RuntimeException e) { // e.g. broken link that cannot be resolved
-        this.context.getFileAccess().symlink(targetDir, homeConfigPath);
+        createHomeLink(targetDir, homeConfigPath);
       }
     } else if (Files.exists(homeConfigPath)) {
       // a regular directory/file that is not a link - do not clobber user data
@@ -179,8 +179,20 @@ public class Agy extends AbstractLocalToolCommandlet {
     } else {
       // ensure the parent directory exists (link() does not create parents), then create the link
       this.context.getFileAccess().mkdirs(homeConfigPath.getParent());
-      this.context.getFileAccess().symlink(targetDir, homeConfigPath);
+      createHomeLink(targetDir, homeConfigPath);
     }
+  }
+
+  /**
+   * Creates an absolute link at {@code homeConfigPath} pointing to {@code targetDir}. The link must be absolute because the user home and the project do not
+   * necessarily share a common directory tree and may even reside on different drives (e.g. {@code C:} vs. {@code D:} on Windows), where no relative path
+   * exists.
+   *
+   * @param targetDir the project-local configuration directory to link to.
+   * @param homeConfigPath the Agy home location where the link shall be created.
+   */
+  private void createHomeLink(Path targetDir, Path homeConfigPath) {
+    this.context.getFileAccess().symlink(targetDir, homeConfigPath, false);
   }
 
   /**
