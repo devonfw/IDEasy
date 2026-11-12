@@ -113,8 +113,8 @@ public final class BugReportHelper {
 
   /**
    * @param context the {@link IdeContext}.
-   * @return a short status snippet for the bug report (version, OS, IDE paths, online and settings status). Paths are masked with
-   *     {@link PrivacyUtil} so that the generated report is safe to share publicly, mirroring the output of {@code ide status}.
+   * @return a short status snippet for the bug report (version, OS, IDE paths, online and settings status). Paths are masked with {@link PrivacyUtil} so that
+   *     the generated report is safe to share publicly, mirroring the output of {@code ide status}.
    */
   public static String createStatusSnippet(IdeContext context) {
 
@@ -142,8 +142,7 @@ public final class BugReportHelper {
 
   /**
    * @param path the path to mask.
-   * @return the path with sensitive path information (e.g. user names and project names) removed, matching the
-   *     behavior of {@code ide -p status}.
+   * @return the path with sensitive path information (e.g. user names and project names) removed, matching the behavior of {@code ide -p status}.
    */
   private static String mask(String path) {
 
@@ -166,9 +165,37 @@ public final class BugReportHelper {
   }
 
   /**
-   * Offers to automatically create a GitHub bug report after an unexpected error. All details are derived from the error and the invoked
-   * command (sensitive arguments are masked); the user only has to decide whether to report. Failures in this flow are logged and never
-   * rethrown so the original error remains the primary outcome.
+   * Sanitizes a stacktrace while preserving stack frame information such as class and method names.
+   *
+   * @param stackTrace the stacktrace to sanitize; may be {@code null}.
+   * @return the sanitized stacktrace, or {@code null} if {@code stackTrace} is {@code null}.
+   */
+  static String sanitizeStackTrace(String stackTrace) {
+
+    if (stackTrace == null) {
+      return null;
+    }
+    StringBuilder result = new StringBuilder();
+    String[] lines = stackTrace.split("\\R", -1);
+    for (int i = 0; i < lines.length; i++) {
+      String line = lines[i];
+      String trimmedLine = line.trim();
+      if (trimmedLine.startsWith("at ") || trimmedLine.matches("\\.\\.\\. \\d+ more")) {
+        result.append(line);
+      } else {
+        result.append(sanitize(line));
+      }
+      if (i < lines.length - 1) {
+        result.append('\n');
+      }
+    }
+    return result.toString();
+  }
+
+  /**
+   * Offers to automatically create a GitHub bug report after an unexpected error. All details are derived from the error and the invoked command (sensitive
+   * arguments are masked); the user only has to decide whether to report. Failures in this flow are logged and never rethrown so the original error remains the
+   * primary outcome.
    *
    * @param context the {@link AbstractIdeContext}; may be {@code null}.
    * @param error the unexpected error that triggered this offer.
@@ -182,7 +209,7 @@ public final class BugReportHelper {
     try {
       // the title and the full stacktrace are going to be published in the issue, so mask any path they contain before anything else
       String title = sanitize(createTitle(error));
-      String actualBehavior = sanitize(stackTraceToString(error));
+      String actualBehavior = sanitizeStackTrace(stackTraceToString(error));
       String reproduce = maskedCommandDescription(joinCommandArgs(commandArgs));
       String related = null;
       String comments = "";
@@ -305,8 +332,8 @@ public final class BugReportHelper {
 
   /**
    * @param title the issue title.
-   * @return the user-facing unexpected-error message including the improved bug-report URL and a hint that a bug report may be created
-   *     automatically right after the error.
+   * @return the user-facing unexpected-error message including the improved bug-report URL and a hint that a bug report may be created automatically right
+   *     after the error.
    */
   public static String createUnexpectedErrorMessage(String title) {
 
