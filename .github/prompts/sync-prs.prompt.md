@@ -18,7 +18,7 @@ Every later decision depends on knowing which `== <version>` section is the *cur
   * `gh api repos/devonfw/IDEasy/contents/CHANGELOG.adoc?ref=main --jq .content | base64 -d` → the FIRST `== <version>` heading must equal `TARGET_SECTION`
   * `gh api "repos/devonfw/IDEasy/milestones?state=all&per_page=100"` → the earliest-due **open** `release:<version>` milestone must equal `TARGET_SECTION`
 * collect the set of **released versions** (`gh release list --repo devonfw/IDEasy` plus every closed `release:` milestone). Any `== <version>` section naming one of these is **frozen** — never add to it or move an entry into it
-* if the three sources disagree, **stop and report**; do not guess a target. A genuine mismatch means release housekeeping is incomplete (e.g. a release shipped but `main` never got its section or version bump) and a human must fix that first
+* if the three sources disagree for any reason other than the missing heading in the next bullet, **stop and report**; do not guess a target. A genuine mismatch means release housekeeping is incomplete (e.g. a release shipped but `main` never got its section or version bump) and a human must fix that first
 * if `TARGET_SECTION` has no `== ` heading in the base changelog yet, **do not create one** — that heading is added by the release manager in a dedicated commit (`Update CHANGELOG for release <v>`). Report the gap and skip all changelog re-homing this run
 * verify the local clone before any local git work: compare `gh api repos/devonfw/IDEasy/commits/main --jq .sha` against `git rev-parse origin/main`. If they differ, `git fetch origin main` first; if fetching is not possible, do NOT do local merges — limit the run to read-only reporting plus `gh pr update-branch`, and say so
 
