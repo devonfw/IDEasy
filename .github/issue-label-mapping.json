@@ -31,27 +31,23 @@
   ],
   "bash": [
     "bash",
-    "git bash",
     "git-bash",
     "zsh"
   ],
   "claude": [
-    "claude",
-    "claude code"
+    "claude"
   ],
   "cobigen": [
     "cobigen"
   ],
   "copilot": [
-    "copilot",
-    "github copilot"
+    "copilot"
   ],
   "corepack": [
     "corepack"
   ],
   "docker": [
     "docker",
-    "docker desktop",
     "dockerdesktop"
   ],
   "dotnet": [
@@ -59,8 +55,7 @@
     ".net sdk"
   ],
   "eclipse": [
-    "eclipse",
-    "eclipse ide"
+    "eclipse"
   ],
   "gcloud": [
     "gcloud",
@@ -94,8 +89,7 @@
     "insomnia"
   ],
   "intellij": [
-    "intellij",
-    "intellij idea"
+    "intellij"
   ],
   "jasypt": [
     "jasypt"
@@ -177,12 +171,10 @@
     "python3"
   ],
   "quarkus": [
-    "quarkus",
-    "quarkus cli"
+    "quarkus"
   ],
   "rancher": [
-    "rancher",
-    "rancher desktop"
+    "rancher"
   ],
   "rewrite": [
     "openrewrite",
@@ -211,8 +203,7 @@
     "spring-boot"
   ],
   "spyder": [
-    "spyder",
-    "spyder ide"
+    "spyder"
   ],
   "squirrel-sql": [
     "squirrel sql",
@@ -226,7 +217,6 @@
     "terraform"
   ],
   "tomcat": [
-    "apache tomcat",
     "tomcat"
   ],
   "uv": [
