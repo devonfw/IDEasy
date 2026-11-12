@@ -6,6 +6,7 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.npm.NpmBasedCommandlet;
 
@@ -26,10 +27,6 @@ public class Corepack extends NpmBasedCommandlet {
     super(context, "corepack", Set.of(Tag.JAVA_SCRIPT, Tag.BUILD));
   }
 
-  @Override
-  protected boolean canBeUninstalled() {
-    return false;
-  }
 
   @Override
   public String getToolHelpArguments() {
