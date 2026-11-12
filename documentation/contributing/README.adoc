@@ -31,3 +31,6 @@ setup (GPG / SignPath), the required GitHub secrets, and the workflow architectu
 
 If you want to contribute to the GUI, please follow the link:ui-contribution-process.adoc[GUI contribution process] and read about the link:ui-structure.adoc[GUI architecture and structure].
 
+== Code-Reviews
+
+Please also study our link:review.adoc[code-review guidelines] and become a team-reviewer.

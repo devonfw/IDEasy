@@ -238,6 +238,12 @@ release: `resolve-version` → `build-natives` → `release` (deploy + tag + Git
 runs every night and triggers `nightly-build` (and the integration tests) only if `main` received
 commits in the last 24h, to avoid wasted builds.
 
+To ensure the integration tests validate the latest nightly SNAPSHOT, `integration-tests.yml` is
+triggered via `workflow_run` after a successful `nightly-build.yml` execution instead of being started
+directly from `check-for-updates.yml`. This guarantees that the tests run only after the nightly build
+has completed and published its artifacts, preventing them from testing the previous SNAPSHOT. Manual
+execution via `workflow_dispatch` remains supported.
+
 Both `release` and `nightly-build` use the `workflow_dispatch` trigger so they can be run manually as
 described above. `nightly-build` is typically only triggered automatically by `check-for-updates`,
 but we sometimes run it manually to test GraalVM-specific behaviour during the day.

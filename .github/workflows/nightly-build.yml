@@ -31,6 +31,7 @@ jobs:
     with:
       native_version: ${{ needs.resolve-version.outputs.build_version }}
       pkg_version: ${{ needs.resolve-version.outputs.snapshot_version }}
+      signing_policy: 'test-signing'
 
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to OSSRH Nexus
   deploy:
