@@ -3,9 +3,14 @@ package com.devonfw.tools.ide.tool.ansible;
 import java.nio.file.Path;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.tool.PackageManagerRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.pip.PipBasedCommandlet;
@@ -17,6 +22,14 @@ import com.devonfw.tools.ide.tool.pip.PipBasedCommandlet;
  * points ({@code ansible}, {@code ansible-playbook}, {@code ansible-galaxy}, ...) available.
  */
 public class Ansible extends PipBasedCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Ansible.class);
+
+  /**
+   * The name of the PyPI package that provides the actual Ansible binaries; the {@code ansible} package itself is only a meta package.
+   * @see <a href="https://github.com/ansible/ansible/issues/73811">ansible/ansible#73811</a>
+   */
+  private static final String ANSIBLE_CORE_PACKAGE = "ansible-core";
 
   /** The folder within the project's conf folder used as {@code ANSIBLE_HOME} (Ansible's user data: collections, roles, cache, etc.). */
   private static final String ANSIBLE_HOME_FOLDER = "ansible";
@@ -48,6 +61,23 @@ public class Ansible extends PipBasedCommandlet {
     // ANSIBLE_HOME into every project with Python and lose Ansible's user data (collections, roles) on Python upgrades. Point it into the project
     // instead, like Azure does with AZURE_CONFIG_DIR.
     return this.context.getConfPath().resolve(ANSIBLE_HOME_FOLDER);
+  }
+
+  @Override
+  public void uninstall() {
+
+    boolean installed = isInstalled();
+    super.uninstall();
+    if (installed) {
+      // The ansible package is only a meta package; without this the binaries of ansible-core would remain although 'ide uninstall ansible' reports
+      // success.
+      PackageManagerRequest request = new PackageManagerRequest(PackageManagerRequest.TYPE_UNINSTALL, ANSIBLE_CORE_PACKAGE);
+      ProcessResult result = runPackageManager(request);
+      if (!result.isSuccessful()) {
+        // ansible-core might not be installed (e.g. if it was manually removed); do not fail the overall uninstall because of that.
+        LOG.warn("Failed to uninstall the package {}.", ANSIBLE_CORE_PACKAGE);
+      }
+    }
   }
 
 }
