@@ -3,9 +3,11 @@ package com.devonfw.tools.ide.tool.ansible;
 import java.nio.file.Path;
 import java.util.Set;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.pip.PipBasedCommandlet;
 
 /**
@@ -27,6 +29,16 @@ public class Ansible extends PipBasedCommandlet {
   public Ansible(IdeContext context) {
 
     super(context, "ansible", Set.of(Tag.IAC, Tag.PYTHON));
+  }
+
+  @Override
+  protected ToolInstallation doInstall(ToolInstallRequest request) {
+
+    if (this.context.getSystemInfo().isWindows()) {
+      // Ansible does not support Windows as control node (PyPI classifies it as POSIX only), fail fast before installing anything.
+      throw new CliException("Ansible does not support Windows as control node. Please use WSL instead.");
+    }
+    return super.doInstall(request);
   }
 
   @Override
