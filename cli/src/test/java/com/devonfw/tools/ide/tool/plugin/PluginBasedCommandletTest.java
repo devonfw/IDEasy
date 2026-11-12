@@ -382,7 +382,7 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     commandlet.createPluginMarkerFile(plugin);
     Path markerFile = commandlet.retrievePluginMarkerFilePath(plugin);
     assertThat(markerFile).exists();
-    ToolEditionAndVersion editionAndVersion = newEditionAndVersion(new ToolEdition(TOOL, TOOL), VersionIdentifier.of("1.90.0"));
+    ToolEditionAndVersion editionAndVersion = newEditionAndVersion(new ToolEdition(TOOL, TOOL), VersionIdentifier.ofRequired("1.90.0"));
     ToolInstallRequest request = newPurgeRequest(editionAndVersion, editionAndVersion);
 
     assertThatThrownBy(() -> commandlet.getPluginManager().resetPlugins(request)).isInstanceOf(IllegalStateException.class)
