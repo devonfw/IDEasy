@@ -17,7 +17,7 @@ import com.devonfw.tools.ide.context.IdeTestContext;
  */
 class RecipeNamePropertyTest extends Assertions {
 
-  private static final List<String> RECIPE_NAMES = List.of("FORMAT_JAVA_CODE", "REMOVE_BLANK_LINES");
+  private static final List<String> RECIPE_NAMES = List.of("java.format_code", "java.blank_lines");
 
   private RecipeNameProperty newProperty() {
 
@@ -32,7 +32,7 @@ class RecipeNamePropertyTest extends Assertions {
   void testParse() {
     IdeContext context = new IdeTestContext();
 
-    assertThat(newProperty().parse("format_java_code", context)).isEqualTo("format_java_code");
+    assertThat(newProperty().parse("java.format_code", context)).isEqualTo("java.format_code");
   }
 
   /**
@@ -57,9 +57,9 @@ class RecipeNamePropertyTest extends Assertions {
     IdeContext context = new IdeTestContext();
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
 
-    newProperty().completeValue("format", context, new ContextCommandlet(), collector);
+    newProperty().completeValue("JAVA.FORMAT", context, new ContextCommandlet(), collector);
 
-    assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactly("FORMAT_JAVA_CODE");
+    assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactly("java.format_code");
   }
 
   /**

@@ -17,18 +17,20 @@ class RecipeManagerTest extends Assertions {
   private static final String RECIPE_JSON = """
       [
         {
-          "origin_name": "java.format_java_code",
-          "ideasy_command": "FORMAT_JAVA_CODE",
+          "id": "java.format_code",
           "description": "Format Java code.",
           "url": "https://docs.openrewrite.org/recipes/java/format/autoformat",
-          "raw_cmd": "mvn rewrite:run -Drewrite.activeRecipes=org.openrewrite.java.format.AutoFormat"
+          "properties": {
+            "rewrite.activeRecipes": "org.openrewrite.java.format.AutoFormat"
+          }
         },
         {
-          "origin_name": "java.remove_blank_lines",
-          "ideasy_command": "REMOVE_BLANK_LINES",
+          "id": "java.blank_lines",
           "description": "Add and/or remove blank lines.",
           "url": "https://docs.openrewrite.org/recipes/java/format/blanklines",
-          "raw_cmd": "mvn rewrite:run -Drewrite.activeRecipes=org.openrewrite.java.format.BlankLines"
+          "properties": {
+            "rewrite.activeRecipes": "org.openrewrite.java.format.BlankLines"
+          }
         }
       ]
       """;
@@ -51,16 +53,18 @@ class RecipeManagerTest extends Assertions {
     RecipeManager manager = new RecipeManager(() -> path);
     assertThat(manager.isLoaded()).isTrue();
     assertThat(manager.listAvailableRecipes()).hasSize(2);
-    assertThat(manager.getRecipeNames()).containsExactlyInAnyOrder("FORMAT_JAVA_CODE", "REMOVE_BLANK_LINES");
-    assertThat(manager.hasRecipe("FORMAT_JAVA_CODE")).isTrue();
+    assertThat(manager.getRecipeNames()).containsExactlyInAnyOrder("java.format_code", "java.blank_lines");
+    assertThat(manager.hasRecipe("java.format_code")).isTrue();
     assertThat(manager.hasRecipe("DOES_NOT_EXIST")).isFalse();
 
-    RecipeWrapper wrapper = manager.getRecipe("FORMAT_JAVA_CODE");
+    RecipeWrapper wrapper = manager.getRecipe("java.format_code");
     assertThat(wrapper).isNotNull();
-    assertThat(wrapper.rawCmd).contains(":run").startsWith("mvn");
+    assertThat(wrapper.id).isEqualTo("java.format_code");
     assertThat(wrapper.description).isEqualTo("Format Java code.");
+    assertThat(wrapper.properties)
+        .containsEntry("rewrite.activeRecipes", "org.openrewrite.java.format.AutoFormat");
 
-    // unknown name yields no recipe
+    // unknown id yields no recipe
     assertThat(manager.getRecipe("DOES_NOT_EXIST")).isNull();
   }
 
@@ -76,8 +80,8 @@ class RecipeManagerTest extends Assertions {
     assertThat(manager.isLoaded()).isFalse();
     assertThat(manager.listAvailableRecipes()).isEmpty();
     assertThat(manager.getRecipeNames()).isEmpty();
-    assertThat(manager.hasRecipe("FORMAT_JAVA_CODE")).isFalse();
-    assertThat(manager.getRecipe("FORMAT_JAVA_CODE")).isNull();
+    assertThat(manager.hasRecipe("java.format_code")).isFalse();
+    assertThat(manager.getRecipe("java.format_code")).isNull();
   }
 
   /**

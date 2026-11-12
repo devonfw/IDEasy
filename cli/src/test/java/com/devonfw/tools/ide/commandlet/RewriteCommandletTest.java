@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.commandlet;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.tool.openrewrite.RecipeWrapper;
 import com.devonfw.tools.ide.validation.ValidationResult;
 
 /**
@@ -24,18 +26,21 @@ class RewriteCommandletTest extends AbstractIdeContextTest {
   private static final String RECIPE_JSON = """
       [
         {
-          "origin_name": "java.format_java_code",
-          "ideasy_command": "FORMAT_JAVA_CODE",
+          "id": "java.format_code",
           "description": "Format Java code.",
           "url": "https://docs.openrewrite.org/recipes/java/format/autoformat",
-          "raw_cmd": "mvn rewrite:run -Drewrite.activeRecipes=org.openrewrite.java.format.AutoFormat"
+          "properties": {
+            "rewrite.activeRecipes": "org.openrewrite.java.format.AutoFormat",
+            "rewrite.exportDatatables": "true"
+          }
         },
         {
-          "origin_name": "java.remove_blank_lines",
-          "ideasy_command": "REMOVE_BLANK_LINES",
+          "id": "java.blank_lines",
           "description": "Add and/or remove blank lines.",
           "url": "https://docs.openrewrite.org/recipes/java/format/blanklines",
-          "raw_cmd": "mvn rewrite:run -Drewrite.activeRecipes=org.openrewrite.java.format.BlankLines"
+          "properties": {
+            "rewrite.activeRecipes": "org.openrewrite.java.format.BlankLines"
+          }
         }
       ]
       """;
@@ -46,7 +51,7 @@ class RewriteCommandletTest extends AbstractIdeContextTest {
    * @param context the {@link IdeTestContext}.
    */
   private void writeRecipeConfig(IdeTestContext context) {
-    Path configPath = context.getSettingsPath().resolve("rewrite").resolve("openrewrite.json");
+    Path configPath = context.getSettingsPath().resolve("openrewrite").resolve("openrewrite.json");
     context.getFileAccess().writeFileContent(RECIPE_JSON, configPath, true);
   }
 
@@ -79,13 +84,13 @@ class RewriteCommandletTest extends AbstractIdeContextTest {
   void testDoRunThrowsWhenNoRecipeConfig() {
     IdeTestContext context = newContext("basic");
     RewriteCommandlet commandlet = context.getCommandletManager().getCommandlet(RewriteCommandlet.class);
-    commandlet.command.setValue("FORMAT_JAVA_CODE");
+    commandlet.command.setValue("java.format_code");
     assertThatThrownBy(commandlet::doRun).isInstanceOf(CliException.class)
         .hasMessageContaining("No OpenRewrite recipes configured");
   }
 
   /**
-   * Tests that a valid recipe name passes validation and an unknown name is rejected.
+   * Tests that a valid recipe id passes validation and an unknown id is rejected.
    */
   @Test
   void testRecipeNameValidation() {
@@ -93,7 +98,7 @@ class RewriteCommandletTest extends AbstractIdeContextTest {
     RewriteCommandlet commandlet = context.getCommandletManager().getCommandlet(RewriteCommandlet.class);
     writeRecipeConfig(context);
 
-    commandlet.command.setValue("FORMAT_JAVA_CODE");
+    commandlet.command.setValue("java.format_code");
     assertThat(commandlet.command.validate().isValid()).isTrue();
 
     commandlet.command.setValue("DOES_NOT_EXIST");
@@ -102,25 +107,25 @@ class RewriteCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests the completion round trip: the auto-completion candidate keeps the original (case-sensitive)
-   * recipe name and that same value passes validation. This is the path that breaks if the completion
-   * lower-cases the name, because {@code RecipeManager} looks recipes up in a case-sensitive map.
+   * Tests the completion round trip: the auto-completion candidate keeps the recipe id and that same value
+   * passes validation. Completing the technology prefix {@code java.format} narrows the candidates to the
+   * matching id.
    */
   @Test
-  void testCompletionCandidateKeepsCasingAndValidates() {
+  void testCompletionCandidateKeepsIdAndValidates() {
     IdeTestContext context = newContext("release");
     RewriteCommandlet commandlet = context.getCommandletManager().getCommandlet(RewriteCommandlet.class);
     writeRecipeConfig(context);
 
-    // complete the recipe name with a lower-case prefix
-    String[] argsArray = { "rewrite", "format" };
+    // complete the recipe id with the technology prefix
+    String[] argsArray = { "rewrite", "java.format" };
     Set<String> alreadyProvided = new HashSet<>(List.of("rewrite"));
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context, alreadyProvided);
     CliArguments args = CliArguments.ofCompletion(argsArray);
     List<CompletionCandidate> candidates = context.complete(args, collector, false);
 
-    // the candidate keeps the original casing of the recipe name
-    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("FORMAT_JAVA_CODE");
+    // the candidate is the recipe id
+    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("java.format_code");
 
     // and that completed value passes validation (round trip: complete -> validate)
     String completedName = candidates.get(0).text();
@@ -137,7 +142,7 @@ class RewriteCommandletTest extends AbstractIdeContextTest {
   void testValidationPassesWithoutRecipeConfig() {
     IdeTestContext context = newContext("basic");
     RewriteCommandlet commandlet = context.getCommandletManager().getCommandlet(RewriteCommandlet.class);
-    commandlet.command.setValue("FORMAT_JAVA_CODE");
+    commandlet.command.setValue("java.format_code");
 
     ValidationResult result = commandlet.command.validate();
     assertThat(result.isValid()).isTrue();
@@ -145,8 +150,8 @@ class RewriteCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that {@link RewriteCommandlet#doRun()} throws a {@link CliException} for a recipe name that
-   * is not present in the settings configuration.
+   * Tests that {@link RewriteCommandlet#doRun()} throws a {@link CliException} for a recipe id that is not
+   * present in the settings configuration.
    */
   @Test
   void testDoRunThrowsForUnknownRecipe() {
@@ -155,6 +160,62 @@ class RewriteCommandletTest extends AbstractIdeContextTest {
     writeRecipeConfig(context);
     commandlet.command.setValue("DOES_NOT_EXIST");
     assertThatThrownBy(commandlet::doRun).isInstanceOf(CliException.class).hasMessageContaining("Unknown recipe");
+  }
+
+  /**
+   * Tests that {@link RewriteCommandlet#buildRunArgs(boolean, RecipeWrapper, Path)} builds the dry-run
+   * command: the {@code -f} flag with the project root, the {@code rewrite:dryRun} goal, and one
+   * {@code -D} argument per property (sorted by key for a stable command line).
+   */
+  @Test
+  void testBuildRunArgsDryRun() {
+    IdeTestContext context = newContext("release");
+    RewriteCommandlet commandlet = context.getCommandletManager().getCommandlet(RewriteCommandlet.class);
+    Path projectRoot = context.getWorkspacePath();
+    RecipeWrapper wrapper = new RecipeWrapper("java.format_code", "Format Java code.",
+        "https://docs.openrewrite.org/recipes/java/format/autoformat",
+        Map.of("rewrite.exportDatatables", "true", "rewrite.activeRecipes", "org.openrewrite.java.format.AutoFormat"));
+
+    List<String> args = commandlet.buildRunArgs(true, wrapper, projectRoot);
+
+    assertThat(args).containsExactly("-f", projectRoot.toString(), "org.openrewrite.maven:rewrite-maven-plugin:dryRun",
+        "-Drewrite.activeRecipes=org.openrewrite.java.format.AutoFormat", "-Drewrite.exportDatatables=true");
+  }
+
+  /**
+   * Tests that {@link RewriteCommandlet#buildRunArgs(boolean, RecipeWrapper, Path)} builds the run command
+   * with the fully-qualified {@code rewrite:run} goal when the user confirmed applying the change.
+   */
+  @Test
+  void testBuildRunArgsRun() {
+    IdeTestContext context = newContext("release");
+    RewriteCommandlet commandlet = context.getCommandletManager().getCommandlet(RewriteCommandlet.class);
+    Path projectRoot = context.getWorkspacePath();
+    RecipeWrapper wrapper = new RecipeWrapper("java.format_code", "Format Java code.",
+        "https://docs.openrewrite.org/recipes/java/format/autoformat", Map.of("rewrite.activeRecipes",
+            "org.openrewrite.java.format.AutoFormat"));
+
+    List<String> args = commandlet.buildRunArgs(false, wrapper, projectRoot);
+
+    assertThat(args).containsExactly("-f", projectRoot.toString(), "org.openrewrite.maven:rewrite-maven-plugin:run",
+        "-Drewrite.activeRecipes=org.openrewrite.java.format.AutoFormat");
+  }
+
+  /**
+   * Tests that {@link RewriteCommandlet#buildRunArgs(boolean, RecipeWrapper, Path)} builds the run command
+   * without any {@code -D} argument when the recipe has no properties.
+   */
+  @Test
+  void testBuildRunArgsWithoutProperties() {
+    IdeTestContext context = newContext("release");
+    RewriteCommandlet commandlet = context.getCommandletManager().getCommandlet(RewriteCommandlet.class);
+    Path projectRoot = context.getWorkspacePath();
+    RecipeWrapper wrapper = new RecipeWrapper("java.format_code", "Format Java code.",
+        "https://docs.openrewrite.org/recipes/java/format/autoformat", Map.of());
+
+    List<String> args = commandlet.buildRunArgs(false, wrapper, projectRoot);
+
+    assertThat(args).containsExactly("-f", projectRoot.toString(), "org.openrewrite.maven:rewrite-maven-plugin:run");
   }
 
   /**
@@ -173,8 +234,8 @@ class RewriteCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that {@link RewriteCommandlet#findProjectRoot()} walks up the directory tree to find the
-   * nearest pom.xml.
+   * Tests that {@link RewriteCommandlet#findProjectRoot()} walks up the directory tree to find the nearest
+   * pom.xml.
    */
   @Test
   void testFindProjectRootWalksUpDirectoryTree() {

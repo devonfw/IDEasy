@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Manages the loading and lookup of OpenRewrite {@link RecipeWrapper} configurations from the
- * {@code rewrite/openrewrite.json} file in the {@code ide-settings} settings folder.
+ * {@code openrewrite/openrewrite.json} file in the {@code ide-settings} settings folder.
  * <p>
  * The location of the settings file is resolved lazily (on first query) via the given
  * {@link Supplier}, because the commandlet is constructed before the {@code IdeContext} has resolved
@@ -41,7 +41,7 @@ public class RecipeManager {
    * The constructor.
    *
    * @param configPathProvider the {@link Supplier} resolving the {@link Path} to the
-   *     {@code rewrite/openrewrite.json} settings file on first use, or {@code null} if no settings
+   *     {@code openrewrite/openrewrite.json} settings file on first use, or {@code null} if no settings
    *     folder is available.
    */
   public RecipeManager(Supplier<Path> configPathProvider) {
@@ -78,8 +78,8 @@ public class RecipeManager {
           objectMapper.getTypeFactory().constructCollectionType(List.class, RecipeWrapper.class));
       Map<String, RecipeWrapper> map = new LinkedHashMap<>();
       for (RecipeWrapper one : wrapperList) {
-        if ((one.ideasyCommand != null) && !one.ideasyCommand.isBlank()) {
-          map.put(one.ideasyCommand, one);
+        if ((one.id != null) && !one.id.isBlank()) {
+          map.put(one.id, one);
         }
       }
       this.recipes = Collections.unmodifiableMap(map);
@@ -115,7 +115,7 @@ public class RecipeManager {
   }
 
   /**
-   * @return the recipe names (the {@code ideasy_command} keys) of the loaded recipes.
+   * @return the recipe ids of the loaded recipes.
    */
   public List<String> getRecipeNames() {
     load();
@@ -125,7 +125,7 @@ public class RecipeManager {
   /**
    * Checks whether a recipe with the given name has been loaded.
    *
-   * @param recipeName the recipe name ({@code ideasy_command} key).
+   * @param recipeName the recipe id.
    * @return {@code true} if a matching recipe was loaded.
    */
   public boolean hasRecipe(String recipeName) {
@@ -134,7 +134,7 @@ public class RecipeManager {
   }
 
   /**
-   * @param recipeName the recipe name ({@code ideasy_command} key).
+   * @param recipeName the recipe id.
    * @return the {@link RecipeWrapper} for the given name, or {@code null} if not loaded.
    */
   public RecipeWrapper getRecipe(String recipeName) {

@@ -3,7 +3,9 @@ package com.devonfw.tools.ide.commandlet;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +26,18 @@ public class RewriteCommandlet extends AbstractCommandlet {
   private static final Logger LOG = LoggerFactory.getLogger(RewriteCommandlet.class);
 
   /** The relative location of the recipe configuration inside the {@code ide-settings} settings folder. */
-  private static final Path RECIPE_CONFIG_PATH = Path.of("rewrite").resolve("openrewrite.json");
+  private static final Path RECIPE_CONFIG_PATH = Path.of("openrewrite").resolve("openrewrite.json");
 
-  /** The recipe to run, selected by name from the {@code ide-settings} recipe configuration. */
+  /** The {@code groupId:artifactId} of the OpenRewrite Maven plugin (the latest version is resolved by Maven). */
+  private static final String REWRITE_PLUGIN = "org.openrewrite.maven:rewrite-maven-plugin";
+
+  /** The fully-qualified plugin goal to actually apply the recipes. */
+  private static final String GOAL_RUN = REWRITE_PLUGIN + ":run";
+
+  /** The fully-qualified plugin goal to perform a dry run. */
+  private static final String GOAL_DRY_RUN = REWRITE_PLUGIN + ":dryRun";
+
+  /** The recipe to run, selected by its id from the {@code ide-settings} recipe configuration. */
   public final RecipeNameProperty command;
 
   private final RecipeManager recipeManager;
@@ -64,46 +75,30 @@ public class RewriteCommandlet extends AbstractCommandlet {
   }
 
   /**
-   * Parses the raw MVN command from JSON into individual argument tokens, stripping the leading "mvn" if present.
+   * Builds the arguments for the OpenRewrite Maven plugin invocation.
    *
-   * @param recipeRawCommands the raw command string from the recipe configuration.
-   * @return list of individual MVN argument tokens.
+   * @param dryRun {@code true} to run the {@code rewrite:dryRun} goal (no changes applied), {@code false}
+   *     to run {@code rewrite:run}.
+   * @param wrapper the {@link RecipeWrapper} holding the properties to pass to OpenRewrite.
+   * @param projectRoot the path of the Maven project (nearest {@code pom.xml}).
+   * @return the arguments to pass to the Maven tool, in invocation order.
    */
-  private List<String> adaptMVNCommand(String recipeRawCommands) {
-    String trimmed = recipeRawCommands.trim();
-    if (trimmed.startsWith("mvn ")) {
-      trimmed = trimmed.substring(4);
-    } else if (trimmed.equals("mvn")) {
-      trimmed = "";
-    }
+  List<String> buildRunArgs(boolean dryRun, RecipeWrapper wrapper, Path projectRoot) {
+
     List<String> args = new ArrayList<>();
-    for (String token : trimmed.split("\\s+")) {
-      if (!token.isEmpty()) {
-        args.add(token);
-      }
+    args.add("-f");
+    args.add(projectRoot.toString());
+    args.add(dryRun ? GOAL_DRY_RUN : GOAL_RUN);
+    Map<String, String> properties = (wrapper.properties == null) ? Map.of() : wrapper.properties;
+    for (String key : properties.keySet().stream().sorted(Comparator.naturalOrder()).toList()) {
+      args.add("-D" + key + "=" + properties.get(key));
     }
     return args;
   }
 
-  /**
-   * Converts a raw command to dry-run mode by replacing the ":run" goal with ":dryRun".
-   *
-   * @param recipeRawCommands the raw command string.
-   * @return the command with dry-run mode applied.
-   * @throws CliException if the command does not contain a ":run" goal to replace.
-   */
-  private String changeToDryRunCommand(String recipeRawCommands) {
-    String result = recipeRawCommands.replace(":run", ":dryRun");
-    if (result.equals(recipeRawCommands)) {
-      throw new CliException("Cannot convert to dry-run: command does not contain ':run' goal: " + recipeRawCommands);
-    }
-    return result;
-  }
-
   private void showInfo(RecipeWrapper wrapper) {
-    LOG.info("Recipe [{}], {}", wrapper.ideasyCommand, wrapper.description);
+    LOG.info("Recipe [{}], {}", wrapper.id, wrapper.description);
     LOG.info("Reference {}", wrapper.url);
-    LOG.info("Raw command: {}", wrapper.rawCmd);
   }
 
   private boolean confirmApplyChange() {
@@ -161,18 +156,11 @@ public class RewriteCommandlet extends AbstractCommandlet {
 
     showInfo(wrapper);
 
-    String commandLine = wrapper.rawCmd;
+    boolean dryRun = !confirmApplyChange();
 
-    if (!confirmApplyChange()) {
-      commandLine = changeToDryRunCommand(commandLine);
-    }
+    List<String> args = buildRunArgs(dryRun, wrapper, projectRoot);
+    LOG.info("Actual command line: {}", String.join(" ", args));
 
-    LOG.info("Actual command line: {}", commandLine);
-
-    List<String> args = adaptMVNCommand(commandLine);
-    // Inject -f <project-root> so Maven runs in the correct project
-    args.add(0, "-f");
-    args.add(1, projectRoot.toString());
     getCommandlet(Mvn.class).runTool(args);
 
   }
