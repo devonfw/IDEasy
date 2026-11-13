@@ -149,10 +149,11 @@ public abstract class Property<V> {
   }
 
   /**
-   * @return {@code true} if this {@link Property} forces an implicit {@link CliArgument#isEndOptions() end-options} as if "--" was provided before its first
-   *     {@link CliArgument argument}.
+   * @return {@code true} if this {@link Property} takes over the trailing argument region, so that from its first {@link CliArgument argument} on the remaining
+   *     arguments are passed through verbatim (no option splitting; declared options are still matched, see
+   *     {@link com.devonfw.tools.ide.cli.OptionPhase#PASSTHROUGH}).
    */
-  public boolean isEndOptions() {
+  public boolean takesOverTrailingArgs() {
 
     return isMultiValued();
   }
@@ -397,7 +398,7 @@ public abstract class Property<V> {
     if (option && !argument.isOption()) {
       return false;
     }
-    if (!option && argument.isOption() && (argument.get().length() > 1) && args.isSplitShortOpts()) {
+    if (!option && argument.isOption() && (argument.get().length() > 1) && args.splitsShortOptions()) {
       return false;
     }
     String argValue = null;
