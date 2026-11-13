@@ -6,7 +6,6 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
-* https://github.com/devonfw/IDEasy/issues/2864[#2864]: Update the SignPath GitHub Action to v3 to fix the `Invalid URL for GitHub API` signing error and add a SignPath code-signing guide (setup, verification, troubleshooting, unblocking)
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/53?closed=1[milestone 2026.12.001].
 
