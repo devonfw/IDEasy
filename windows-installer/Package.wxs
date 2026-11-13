@@ -52,7 +52,7 @@
     <!-- MSI properties are not visible as environment variables to the started process, so the IDEasy variables are set explicitly -->
     <SetProperty
         Id="RunInstallAction"
-        Value='"[%SystemFolder]cmd.exe" /v:on /c "cd /d [INSTALLFOLDER] &amp;&amp; (if not exist "[%USERPROFILE]\.ide\logs" mkdir "[%USERPROFILE]\.ide\logs") &amp;&amp; set "IDEASY_CREATE_DESKTOP_SHORTCUT=[IDEASY_CREATE_DESKTOP_SHORTCUT]" &amp;&amp; set "IDEASY_CREATE_STARTMENU_SHORTCUT=[IDEASY_CREATE_STARTMENU_SHORTCUT]" &amp;&amp; set ts=%date:/=-%_%time::=-% &amp;&amp; set ts=!ts:,=-! &amp;&amp; bin\ideasy.exe -ftb --no-colors install &gt; "[%USERPROFILE]\.ide\logs\install-!ts!.log" 2&gt;&amp;1"'
+        Value='"[%SystemFolder]cmd.exe" /d /c &quot;[INSTALLFOLDER]scripts\install.cmd&quot; &quot;[INSTALLFOLDER]&quot; &quot;[IDEASY_CREATE_DESKTOP_SHORTCUT]&quot; &quot;[IDEASY_CREATE_STARTMENU_SHORTCUT]&quot;'
         Before="RunInstallAction"
         Sequence="execute"
     />
@@ -69,7 +69,7 @@
     <!-- Execution of uninstall command-->
     <SetProperty
         Id="RunUninstallAction"
-        Value='"[%SystemFolder]cmd.exe" /v:on /c "cd /d &quot;[INSTALLFOLDER]&quot; &amp;&amp; (if not exist &quot;[%USERPROFILE]\.ide\logs&quot; mkdir &quot;[%USERPROFILE]\.ide\logs&quot;) &amp;&amp; set ts=%date:/=-%_%time::=-% &amp;&amp; set ts=!ts:,=-! &amp;&amp; bin\ideasy.exe -ft --no-colors uninstall &gt; &quot;[%USERPROFILE]\.ide\logs\uninstall-!ts!.log&quot; 2&gt;&amp;1"'
+        Value='"[%SystemFolder]cmd.exe" /d /c &quot;[INSTALLFOLDER]scripts\uninstall.cmd&quot; &quot;[INSTALLFOLDER]&quot;'
         Before="RunUninstallAction"
         Sequence="execute"
     />
