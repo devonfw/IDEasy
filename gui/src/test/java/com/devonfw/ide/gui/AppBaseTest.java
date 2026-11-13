@@ -184,6 +184,8 @@ public class AppBaseTest extends UIBasedApplicationTest {
   @Test
   void testOnlyClickedIdeButtonIsDisabledDuringLaunch() {
 
+    openLauncherTab();
+
     interact(() -> {
       this.selectedProject.getSelectionModel().select("project-1");
       this.selectedWorkspace.getSelectionModel().select("main");
