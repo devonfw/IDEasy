@@ -188,4 +188,20 @@ public class MainWindowViewModel {
     this.tabFactory.openLauncherTab();
   }
 
+  /**
+   * Opens (or focuses) the tool configuration tab for the selected project and workspace.
+   */
+  public void openToolConfigTab() {
+
+    this.tabFactory.openToolConfigTab();
+  }
+
+  /**
+   * @return the property that is {@code true} once a project and workspace are selected.
+   */
+  public BooleanProperty workspaceSelectedProperty() {
+
+    return this.guiStateManager.workspaceSelectedProperty();
+  }
+
 }

@@ -92,3 +92,13 @@
   -fx-max-width: 18;
   -fx-max-height: 15;
 }
+
+.welcomeToolConfigIcon {
+
+  -fx-shape: "M2 4 H18 V5.5 H2 Z M2 9.25 H18 V10.75 H2 Z M2 14.5 H18 V16 H2 Z M5 2.5 H8 V7 H5 Z M11 7.75 H14 V12.25 H11 Z M6 13 H9 V17.5 H6 Z";
+  -fx-background-color: #4A4458;
+  -fx-min-width: 18;
+  -fx-min-height: 15;
+  -fx-max-width: 18;
+  -fx-max-height: 15;
+}

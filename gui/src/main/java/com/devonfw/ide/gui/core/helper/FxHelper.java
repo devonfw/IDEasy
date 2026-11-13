@@ -28,6 +28,22 @@ public class FxHelper {
     }
   }
 
+  /**
+   * Runs the given task on a new daemon background thread and afterwards runs the given callback on the Fx Application Thread.
+   *
+   * @param task the work to execute in the background.
+   * @param onFinished code to execute on the Fx Application Thread once {@code task} has completed.
+   */
+  public static void runInBackground(Runnable task, Runnable onFinished) {
+
+    Thread thread = new Thread(() -> {
+      task.run();
+      Platform.runLater(onFinished);
+    });
+    thread.setDaemon(true);
+    thread.start();
+  }
+
   /// @param root root node
   /// @param selector id of node to be selected
   /// @param <T> inferred type of the node

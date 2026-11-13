@@ -17,6 +17,7 @@ import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.factory.TabFactory;
 import com.devonfw.ide.gui.core.service.CommandletService;
 import com.devonfw.ide.gui.core.service.NlsService;
+import com.devonfw.ide.gui.core.service.ToolConfigurationService;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeContextConsole;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
@@ -60,6 +61,8 @@ public class GuiStateManager {
 
   private final CommandletService commandletService;
 
+  private final ToolConfigurationService toolConfigurationService;
+
   private final TabFactory tabFactory;
 
 
@@ -98,6 +101,7 @@ public class GuiStateManager {
     IdeContext resolvedNlsContext = (nlsContext != null) ? nlsContext : new IdeContextConsole(startContext);
     this.nlsService = new NlsService(resolvedNlsContext, null);
     this.commandletService = new CommandletService(this);
+    this.toolConfigurationService = new ToolConfigurationService();
     this.tabFactory = new TabFactory(this);
   }
 
@@ -238,6 +242,10 @@ public class GuiStateManager {
 
   public CommandletService getCommandletService() {
     return commandletService;
+  }
+
+  public ToolConfigurationService getToolConfigurationService() {
+    return toolConfigurationService;
   }
 
   public TabFactory getTabFactory() {

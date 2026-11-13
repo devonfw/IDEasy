@@ -8,6 +8,7 @@ import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.service.CommandletService;
 import com.devonfw.ide.gui.core.tab.TabComponent;
 import com.devonfw.ide.gui.feature.ide.launcher.IdeLauncherTab;
+import com.devonfw.ide.gui.feature.tool.config.ToolConfigTab;
 
 import io.github.mmm.event.EventBus;
 
@@ -49,6 +50,13 @@ public class TabFactory {
    */
   public void openLauncherTab() {
     open(new IdeLauncherTab(guiStateManager));
+  }
+
+  /**
+   * Opens the tool configuration tab.
+   */
+  public void openToolConfigTab() {
+    open(new ToolConfigTab(this.guiStateManager));
   }
 
   private void open(TabComponent tabComponent) {
