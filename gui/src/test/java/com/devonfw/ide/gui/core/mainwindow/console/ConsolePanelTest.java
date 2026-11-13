@@ -8,11 +8,19 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
 import javafx.stage.Stage;
 
 import org.junit.jupiter.api.Test;
@@ -190,5 +198,76 @@ class ConsolePanelTest extends UIBasedApplicationTest {
 
     List<String> snapshot = consoleViewModel.getConsoleOutputSnapshot();
     assertThat(snapshot).anyMatch(s -> s.contains("[INFO] Off FX"));
+  }
+
+  /**
+   * Tests that the console list allows to select more than one log entry.
+   */
+  @Test
+  void testConsoleListAllowsMultiSelection() {
+
+    ListView<IdeLogEntry> listView = lookup("#consoleListView").query();
+
+    assertThat(listView.getSelectionModel().getSelectionMode()).isEqualTo(SelectionMode.MULTIPLE);
+  }
+
+  /**
+   * Tests that dragging the mouse over several log entries selects all of them.
+   */
+  @Test
+  void testDragSelectsMultipleLogEntries() {
+
+    addEntries("Line 1", "Line 2", "Line 3", "Line 4");
+    ListView<IdeLogEntry> listView = lookup("#consoleListView").query();
+
+    moveTo(findCell("Line 1"));
+    press(MouseButton.PRIMARY);
+    moveTo(findCell("Line 3"));
+    release(MouseButton.PRIMARY);
+    waitForFxEvents();
+
+    assertThat(listView.getSelectionModel().getSelectedIndices()).containsExactly(0, 1, 2);
+  }
+
+  /**
+   * Tests that Ctrl+C copies all selected log entries, one per line, to the clipboard.
+   */
+  @Test
+  void testCopyPutsSelectedLogEntriesIntoClipboard() {
+
+    addEntries("Line 1", "Line 2", "Line 3");
+    ListView<IdeLogEntry> listView = lookup("#consoleListView").query();
+    Platform.runLater(() -> {
+      Clipboard.getSystemClipboard().setContent(new ClipboardContent());
+      listView.requestFocus();
+      listView.getSelectionModel().selectRange(0, 2);
+    });
+    waitForFxEvents();
+
+    push(KeyCode.SHORTCUT, KeyCode.C);
+    waitForFxEvents();
+
+    AtomicReference<String> clipboardText = new AtomicReference<>();
+    Platform.runLater(() -> clipboardText.set(Clipboard.getSystemClipboard().getString()));
+    waitForFxEvents();
+    List<String> snapshot = consoleViewModel.getConsoleOutputSnapshot();
+    assertThat(clipboardText.get()).isEqualTo(snapshot.get(0) + System.lineSeparator() + snapshot.get(1));
+  }
+
+  private void addEntries(String... messages) {
+
+    Platform.runLater(() -> {
+      for (String message : messages) {
+        consoleViewModel.appendOutput(message);
+      }
+    });
+    waitForFxEvents();
+  }
+
+  @SuppressWarnings("unchecked")
+  private ListCell<IdeLogEntry> findCell(String message) {
+
+    return (ListCell<IdeLogEntry>) lookup(".list-cell").match(node -> node instanceof ListCell<?> cell && cell.getText() != null && cell.getText().endsWith(
+        message)).query();
   }
 }
