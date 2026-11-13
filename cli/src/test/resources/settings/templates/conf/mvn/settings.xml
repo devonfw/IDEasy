@@ -4,7 +4,6 @@
     <server>
       <id>repository</id>
       <username>@ask-variable('USER','Enter your username:')</username>
-      <password>@ask-mvn-secret(null, 'Enter the personal password for your maven repository:')</password>
     </server>
   </servers>
 </settings>
