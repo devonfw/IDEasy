@@ -17,6 +17,7 @@
       <!-- references the matrix os image name from .github/workflows/release.yml (and nightly-build.yml) -->
       <directory>${project.build.directory}/natives-windows-latest</directory>
       <outputDirectory>./bin</outputDirectory>
+      <fileMode>0755</fileMode>
       <includes>
         <include>${imageName}.exe</include>
       </includes>
