@@ -85,6 +85,9 @@ These are strict prohibitions. Contributions carrying AI authorship/attribution 
 - Commit messages must contain only the issue reference and a description of the change — nothing
   about the tooling used to produce it.
 
+The `commit-msg` hook, installed by `./install-hooks.sh`, and the "Check commit messages" CI step
+reject such trailers and notices via `git-hooks/check-ai-attribution.sh`.
+
 ## Pull Request Guidelines
 
 - ALWAYS add the checklist from `.github/PULL_REQUEST_TEMPLATE.md` as acceptance criteria for all

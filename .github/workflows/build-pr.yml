@@ -11,6 +11,16 @@ jobs:
           # Full history so Spotless can resolve origin/main and compute the merge-base (ratchet).
           # Cheap here: no submodules, ~1.3k commits / ~15 MB.
           fetch-depth: 0
+      - name: Check commit messages
+        run: |
+          for commit in $(git rev-list origin/main..HEAD); do
+            git show -s --format=%B "$commit" > commit-msg.txt
+
+            git-hooks/check-ai-attribution.sh commit-msg.txt || {
+              echo "AI attribution found in commit $commit"
+              exit 1
+            }
+          done
       - name: Run shell function tests
         shell: bash
         run: bash cli/src/test/functions-test.sh
