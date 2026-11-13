@@ -1,0 +1,102 @@
+name: Copy labels from linked issues to PR
+
+on:
+  pull_request_target:
+    types: [ opened, edited ]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: write
+
+jobs:
+  copy-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copy labels from linked issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNumber = context.payload.pull_request.number;
+            const excludedLabels = new Set(['Epic', 'ready-to-implement']);
+
+            const query = `
+              query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $number) {
+                    labels(first: 100) {
+                      nodes {
+                        name
+                      }
+                    }
+                    closingIssuesReferences(first: 100) {
+                      nodes {
+                        number
+                        labels(first: 100) {
+                          nodes {
+                            name
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `;
+
+            const result = await github.graphql(query, {
+              owner,
+              repo,
+              number: prNumber
+            });
+
+            const pr = result.repository.pullRequest;
+            const linkedIssues = pr.closingIssuesReferences.nodes;
+
+            if (linkedIssues.length === 0) {
+              core.info('No linked issues found.');
+              return;
+            }
+
+            const existingLabels = new Set(pr.labels.nodes.map(label => label.name));
+            const labelsToAdd = new Set();
+
+            for (const issue of linkedIssues) {
+              for (const label of issue.labels.nodes) {
+                const labelName = label.name;
+
+                if (excludedLabels.has(labelName)) {
+                  continue;
+                }
+
+                if (existingLabels.has(labelName)) {
+                  continue;
+                }
+
+                labelsToAdd.add(labelName);
+              }
+            }
+
+            if (labelsToAdd.size === 0) {
+              core.info('No missing labels need to be added.');
+              return;
+            }
+
+            const labels = [...labelsToAdd];
+
+            core.info(`Adding labels to PR #${prNumber}: ${labels.join(', ')}`);
+
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: prNumber,
+              labels
+            });
+
+  check-labels-and-changelog:
+    needs: copy-labels
+    uses: ./.github/workflows/check-pr-labels.yml
+    with:
+      pull-request-number: ${{ github.event.pull_request.number }}
