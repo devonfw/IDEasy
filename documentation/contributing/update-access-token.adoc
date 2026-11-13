@@ -30,13 +30,18 @@ image::../images/AccessToken2.png["New fine-grained personal access token"]
 The `Pull requests` permission is required by `.github/workflows/pr-assignee-reconcile.yml`: it changes the assignees of PRs (REST API), otherwise every assignee change fails with a 403 that is only logged.
 +
 image::../images/AccessToken3.png["Repository permissions"]
+. Select the ``Organizations tab`` to configure the required organization permissions.
++
+image::../images/AccessToken3_1.png["Organization tab"]
 . In `Organization permissions` select `Read` for `Members`.
 This is required by `.github/workflows/issue-pr-observer.yml` to read members of the `ide` team.
 . In `Organization permissions` select `Read and write` for `Projects`.
 This is required by `.github/workflows/pr-assignee-reconcile.yml`: it reads the org's project boards and writes the board's `Team Reviewer` field.
 Without it the built-in `GITHUB_TOKEN` (which is scoped to the repository and cannot see org boards) would be needed and the board lookup would fail on every scheduled run.
-. Click on `Generate token` to proceed.
-. On the confirmation page click again on `Generate token` to proceed.
++
+image::../images/AccessToken4.png["Organization permissions"]
+. Click on `Generate token and request access` to proceed.
+. On the confirmation page click again on `Generate token and request access` to proceed.
 +
 image::../images/AccessToken5.png["Confirm and Generate token"]
 . Copy your new token:
