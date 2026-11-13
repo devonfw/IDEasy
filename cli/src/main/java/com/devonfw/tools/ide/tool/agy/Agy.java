@@ -165,10 +165,10 @@ public class Agy extends AbstractLocalToolCommandlet {
       // already a link - only replace it if it does not already resolve to our project-local configuration
       try {
         if (!this.context.getFileAccess().toRealPath(homeConfigPath).equals(this.context.getFileAccess().toRealPath(targetDir))) {
-          this.context.getFileAccess().symlink(targetDir, homeConfigPath);
+          createHomeLink(targetDir, homeConfigPath);
         }
       } catch (RuntimeException e) { // e.g. broken link that cannot be resolved
-        this.context.getFileAccess().symlink(targetDir, homeConfigPath);
+        createHomeLink(targetDir, homeConfigPath);
       }
     } else if (Files.exists(homeConfigPath)) {
       // a regular directory/file that is not a link - do not clobber user data
@@ -179,8 +179,20 @@ public class Agy extends AbstractLocalToolCommandlet {
     } else {
       // ensure the parent directory exists (link() does not create parents), then create the link
       this.context.getFileAccess().mkdirs(homeConfigPath.getParent());
-      this.context.getFileAccess().symlink(targetDir, homeConfigPath);
+      createHomeLink(targetDir, homeConfigPath);
     }
+  }
+
+  /**
+   * Creates an absolute link at {@code homeConfigPath} pointing to {@code targetDir}. The link must be absolute because the user home and the project do not
+   * necessarily share a common directory tree and may even reside on different drives (e.g. {@code C:} vs. {@code D:} on Windows), where no relative path
+   * exists.
+   *
+   * @param targetDir the project-local configuration directory to link to.
+   * @param homeConfigPath the Agy home location where the link shall be created.
+   */
+  private void createHomeLink(Path targetDir, Path homeConfigPath) {
+    this.context.getFileAccess().symlink(targetDir, homeConfigPath, false);
   }
 
   /**
