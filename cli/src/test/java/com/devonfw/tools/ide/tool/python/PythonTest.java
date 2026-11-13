@@ -94,7 +94,7 @@ public class PythonTest extends AbstractIdeContextTest {
     // simulate that uv or python has removed our version file from the virtual environment
     Files.delete(versionFile);
     // the version is still determined from the installation itself (e.g. for "ide get-version python")
-    assertThat(python.getInstalledVersion()).isEqualTo(VersionIdentifier.of("3.14.6"));
+    assertThat(python.getInstalledVersion()).isEqualTo(VersionIdentifier.ofRequired("3.14.6"));
 
     // act
     python.install();
@@ -102,7 +102,7 @@ public class PythonTest extends AbstractIdeContextTest {
     // assert
     assertThat(versionFile).exists().hasContent("3.14.6");
     assertThat(userPackage).exists();
-    assertThat(python.getInstalledVersion()).isEqualTo(VersionIdentifier.of("3.14.6"));
+    assertThat(python.getInstalledVersion()).isEqualTo(VersionIdentifier.ofRequired("3.14.6"));
     assertThat(context).logAtWarning().hasMessageContaining("Version file is missing");
     assertThat(context).logAtWarning().hasNoMessageContaining("Deleting corrupted installation");
   }
@@ -115,7 +115,7 @@ public class PythonTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC);
     Python python = new Python(context);
     Path rootDir = context.getSoftwarePath().resolve("python");
-    ToolInstallation toolInstallation = new ToolInstallation(rootDir, rootDir, rootDir.resolve("bin"), VersionIdentifier.of("3.12.0"), true);
+    ToolInstallation toolInstallation = new ToolInstallation(rootDir, rootDir, rootDir.resolve("bin"), VersionIdentifier.ofRequired("3.12.0"), true);
     Map<String, VariableLine> variables = new HashMap<>();
     EnvironmentVariableCollectorContext environmentContext = new EnvironmentVariableCollectorContext(variables,
         new VariableSource(EnvironmentVariablesType.WORKSPACE, null), WindowsPathSyntax.MSYS);
@@ -125,6 +125,8 @@ public class PythonTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(variables.get("VIRTUAL_ENV").getValue().replace('\\', '/')).endsWith("/software/python");
-    assertThat(variables.get("UV_PROJECT_ENVIRONMENT").getValue().replace('\\', '/')).endsWith("/software/python");
+    // UV_PROJECT_ENVIRONMENT must not be set: pointing uv at the shared installation breaks all uv projects, see
+    // https://github.com/devonfw/IDEasy/issues/2701
+    assertThat(variables).doesNotContainKey("UV_PROJECT_ENVIRONMENT");
   }
 }

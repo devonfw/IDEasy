@@ -56,10 +56,14 @@ jobs:
           distribution: 'graalvm-community'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
+          cache: 'maven'
       - name: Build native image
         shell: bash
         run: |
           cd cli
+          # The JUnits are skipped on purpose: they already run in the CI build on main and in every
+          # PR build. Repeating them for each of the five native image legs would only cost build
+          # time without adding QA value (see #1215).
           mvn -B -ntp -Pnative -DskipTests=true -Drevision=${RELEASE_VERSION} package
         env:
           RELEASE_VERSION: ${{ needs.resolve-version.outputs.build_version }}
@@ -69,6 +73,33 @@ jobs:
         run: |
           codesign --force --sign - cli/target/ideasy
           codesign --verify --verbose cli/target/ideasy
+      # Sign the Windows native image (exe) before it is packaged so that the exe is signed both
+      # inside the MSI and in the tar.gz / "natives" artifact - i.e. even when IDEasy is installed
+      # without the MSI. The signed exe replaces the unsigned one, which the "Upload native image"
+      # and "Build MSI" steps below then consume. (see #2808, parent of #2753)
+      - name: Upload unsigned exe
+        if: runner.os == 'Windows'
+        id: upload-exe
+        uses: actions/upload-artifact@v7
+        with:
+          name: exe-unsigned
+          path: cli/target/ideasy.exe
+      - name: Sign exe
+        if: runner.os == 'Windows'
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
+          organization-id: '428e13ed-ca0c-47ca-8a73-63b76cabb59b'
+          project-slug: 'IDEasy'
+          signing-policy-slug: 'test-signing'
+          artifact-configuration-slug: 'IDEasy.exe'
+          github-artifact-id: '${{ steps.upload-exe.outputs.artifact-id }}'
+          wait-for-completion: true
+          output-artifact-directory: 'cli/target/signed-exe'
+      - name: Replace unsigned exe with signed exe
+        if: runner.os == 'Windows'
+        shell: bash
+        run: cp -f cli/target/signed-exe/ideasy.exe cli/target/ideasy.exe
       - name: Upload native image
         uses: actions/upload-artifact@v7
         with:
@@ -136,13 +167,15 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '25'
-      - name: Download natives and build project
+          cache: 'maven'
+      - name: Download natives
         uses: actions/download-artifact@v8
         with:
           path: ./cli/target/
-      - name: Deploy to OSSRH nexus
+      - name: Build project and deploy to OSSRH nexus
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           RELEASE_VERSION: ${{ needs.resolve-version.outputs.snapshot_version }}
-        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -pl -:ide-macos-installer -pl -:ide-windows-installer -Passembly,msi,pkg,deploy deploy
+        # The JUnits are skipped on purpose, see the "Build native image" step above.
+        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -pl -:ide-macos-installer -Passembly,msi,pkg,deploy deploy

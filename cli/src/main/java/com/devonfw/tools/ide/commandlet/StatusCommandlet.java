@@ -75,8 +75,7 @@ public class StatusCommandlet extends AbstractCommandlet {
 
   private void logSystemInfo() {
     SystemInfo systemInfo = this.context.getSystemInfo();
-    LOG.info("Your operating system is {}({})@{} [{}@{}]", systemInfo.getOs(), systemInfo.getOsVersion(), systemInfo.getArchitecture(),
-        systemInfo.getOsName(), systemInfo.getArchitectureName());
+    LOG.info("Your operating system is {}", systemInfo.describe());
   }
 
   private void logSettingsLegacyStatus() {
@@ -128,11 +127,10 @@ public class StatusCommandlet extends AbstractCommandlet {
 
     IdeMigrator migrator = new IdeMigrator();
     VersionIdentifier projectVersion = this.context.getProjectVersion();
-    VersionIdentifier targetVersion = migrator.getTargetVersion();
-    if (projectVersion.isLess(targetVersion)) {
+    if (projectVersion.isLess(migrator.getTargetVersion())) {
       IdeLogLevel.INTERACTION.log(LOG,
-          "Your project is on IDEasy version {} and needs an update to version {}!\nPlease run 'ide update' to migrate your project",
-          projectVersion, targetVersion);
+          "Your project '{}' was created or last updated with IDEasy version {} and needs an update.\nPlease run 'ide update' to migrate your project.",
+          this.context.getProjectName(), projectVersion);
     }
   }
 

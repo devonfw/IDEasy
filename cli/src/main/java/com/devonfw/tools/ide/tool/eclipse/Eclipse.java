@@ -7,9 +7,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -29,8 +26,6 @@ import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
  */
 public class Eclipse extends AbstractIdeToolCommandlet {
 
-  private static final Logger LOG = LoggerFactory.getLogger(Eclipse.class);
-
   // version must correspond to eclipse-import.xml
   private static final String GROOVY_VERSION = "3.0.23";
 
@@ -47,6 +42,14 @@ public class Eclipse extends AbstractIdeToolCommandlet {
   public Eclipse(IdeContext context) {
 
     super(context, "eclipse", Set.of(Tag.ECLIPSE));
+  }
+
+  @Override
+  protected boolean isSupportProjectProperty() {
+
+    // Eclipse does not support the --project option - it always opens the managed workspace and its own workspace concept already
+    // allows mounting any directory into it.
+    return false;
   }
 
   @Override
@@ -97,8 +100,7 @@ public class Eclipse extends AbstractIdeToolCommandlet {
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("Overall install request is satisfiable")) {
-          IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
-          step.success();
+          step.success("Successfully installed plugin: {}", plugin.name());
           return true;
         }
       }

@@ -1,0 +1,60 @@
+package com.devonfw.tools.ide.context;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessContextImpl;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.process.ProcessResultImpl;
+
+/**
+ * Mock {@link ProcessContext} that captures executed commands for testing without actually running them.
+ */
+public class CapturingProcessContextMock extends ProcessContextImpl {
+
+  private final List<String> executedCommands = new ArrayList<>();
+
+  /**
+   * The constructor.
+   *
+   * @param context the {@link IdeContext}.
+   */
+  public CapturingProcessContextMock(IdeContext context) {
+    super(context);
+  }
+
+  @Override
+  public ProcessContext createChild() {
+
+    return this;
+  }
+
+  @Override
+  public ProcessResult run(ProcessMode processMode) {
+    String executable = this.executable.toString();
+    List<String> args = this.arguments;
+    String command = executable + " " + String.join(" ", args);
+    this.executedCommands.add(command);
+
+    this.arguments.clear();
+    this.executable = null;
+
+    return new ProcessResultImpl("bash", command, ProcessResult.SUCCESS, true, List.of());
+  }
+
+  /**
+   * @return the list of captured commands that would have been executed.
+   */
+  public List<String> getExecutedCommands() {
+    return this.executedCommands;
+  }
+
+  /**
+   * @return the arguments added since the last {@link #run(ProcessMode) run}.
+   */
+  public List<String> getArgs() {
+    return this.arguments;
+  }
+}

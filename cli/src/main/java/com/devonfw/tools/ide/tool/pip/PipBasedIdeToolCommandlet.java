@@ -40,7 +40,7 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
   private final PluginManager pluginManager;
 
   /** {@link FlagProperty} to force the reset and reinstallation of plugins as configured in the project settings. */
-  public FlagProperty forcePluginReinstall;
+  public final FlagProperty forcePluginReinstall;
 
   /**
    * The constructor.
@@ -53,12 +53,16 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     super(context, tool, tags);
     this.workspaceConfigurer = new IdeWorkspaceConfigurer(context, tool);
     this.pluginManager = new PluginManager(context, this);
+    this.forcePluginReinstall = add(new FlagProperty("--force-plugin-reinstall"));
   }
 
+  /**
+   * @return {@code true} if the reset and reinstallation of the plugins is forced for the current run via the {@code --force-plugin-reinstall} flag.
+   */
   @Override
-  protected void initProperties() {
-    this.forcePluginReinstall = add(new FlagProperty("--force-plugin-reinstall"));
-    super.initProperties();
+  public boolean isForcePluginReinstall() {
+
+    return this.forcePluginReinstall.isTrue();
   }
 
   @Override
@@ -102,8 +106,8 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     super.postInstall(request);
 
     configureWorkspace();
-    if (!request.isAlreadyInstalled() || this.forcePluginReinstall.isTrue()) {
-      this.pluginManager.resetPlugins();
+    if (isPluginPurgeRequired(request)) {
+      this.pluginManager.resetPlugins(request);
     }
     installPlugins(getPlugins().getPlugins(), request.getProcessContext());
   }
@@ -112,12 +116,11 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
   public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
     ProcessResult result = runPluginPackageManager(PackageManagerRequest.TYPE_INSTALL, plugin, pc);
     if (result.isSuccessful()) {
-      IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
-      step.success();
+      step.success("Successfully installed plugin: {}", plugin.name());
       return true;
     }
     result.log(IdeLogLevel.DEBUG, IdeLogLevel.ERROR);
-    step.error("Failed to install plugin {} ({}): exit code war {}", plugin.name(), plugin.id(), result.getExitCode());
+    step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
     return false;
   }
 
@@ -168,7 +171,7 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     if (PackageManagerRequest.TYPE_INSTALL.equals(type)) {
       String version = plugin.version();
       if ((version != null) && !version.isBlank()) {
-        request.setVersion(VersionIdentifier.of(version));
+        request.setVersion(VersionIdentifier.ofRequired(version));
       }
     }
     return runPackageManager(request);

@@ -112,6 +112,8 @@ class PycharmTest extends AbstractIdeContextTest {
     commandlet.run();
 
     assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: ActivePlugin");
+    assertThat(context).logAtSuccess().hasNoMessageContaining("Successfully ended step 'Install plugin ActivePlugin");
+    assertThat(context).log().hasMessage("Start: Install plugin ActivePlugin (1/1)");
 
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
@@ -123,7 +125,7 @@ class PycharmTest extends AbstractIdeContextTest {
     // act
     commandlet.run();
     // assert
-    assertThat(context).logAtDebug().hasNoMessage("Successfully installed plugin: ActivePlugin");
+    assertThat(context).log().hasNoMessageContaining("Install plugin ActivePlugin");
   }
 
   /**
@@ -185,7 +187,7 @@ class PycharmTest extends AbstractIdeContextTest {
     assertThat(commandlet.getInstalledVersion().toString()).isEqualTo("2024.3.5");
     assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed pycharm in version 2024.3.5");
     assertThat(context).logAtDebug().hasMessage("Omitting installation of inactive plugin InactivePlugin (inactivePlugin).");
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin ActivePlugin (1/1)'.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: ActivePlugin");
   }
 
 }

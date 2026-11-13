@@ -23,7 +23,9 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.BuildTool;
+import com.devonfw.tools.ide.tool.BuildToolHelper;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableSyntax;
@@ -85,7 +87,7 @@ public class Mvn extends MavenCommandlet implements BuildTool {
   @Override
   protected void configureToolBinary(ProcessContext pc, ProcessMode processMode) {
     Path mvn = Path.of(getBinaryName());
-    Path wrapper = findWrapper(MVN_WRAPPER_FILENAME);
+    Path wrapper = BuildToolHelper.findWrapper(this, this.context.getCwd(), MVN_WRAPPER_FILENAME);
     pc.executable(Objects.requireNonNullElse(wrapper, mvn));
   }
 
@@ -185,9 +187,13 @@ public class Mvn extends MavenCommandlet implements BuildTool {
 
   private String retrievePassword(String option, String input) {
 
-    ProcessResult result = runTool(this.context.newProcess(), ProcessMode.DEFAULT_CAPTURE, List.of(option, input,
-        getSettingsSecurityProperty()));
-
+    ProcessResult result;
+    if (option.equals("--encrypt-master-password")) {
+      result = runTool(this.context.newProcess(), ProcessMode.DEFAULT_CAPTURE, List.of(option, input));
+    } else {
+      result = runTool(this.context.newProcess(), ProcessMode.DEFAULT_CAPTURE, List.of(option, input,
+          getSettingsSecurityProperty()));
+    }
     return result.getSingleOutput(null);
   }
 
@@ -350,7 +356,7 @@ public class Mvn extends MavenCommandlet implements BuildTool {
     if (Files.exists(buildDescriptor)) {
       return buildDescriptor;
     }
-    return super.findBuildDescriptor(directory);
+    return null;
   }
 
   @Override
@@ -360,7 +366,7 @@ public class Mvn extends MavenCommandlet implements BuildTool {
     String content = this.context.getFileAccess().readFileContent(mavenConfig);
     for (String token : content.split("\\s+")) {
       if (token.startsWith(REVISION_FLAG)) {
-        return VersionIdentifier.of(token.substring(REVISION_FLAG.length()));
+        return VersionIdentifier.ofRequired(token.substring(REVISION_FLAG.length()));
       }
     }
     throw new CliException("Could not find '" + REVISION_FLAG + "' in " + mavenConfig);

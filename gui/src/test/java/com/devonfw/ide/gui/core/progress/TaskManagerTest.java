@@ -7,16 +7,16 @@ import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.ide.gui.HeadlessApplicationTest;
+import com.devonfw.ide.gui.UIBasedApplicationTest;
 import com.devonfw.ide.gui.core.context.TaskManager;
 
 /**
- * Tests for the {@link TaskManager} class. We extend HeadlessApplicationTest because all TaskManager mutations run on the JavaFX Application Thread via
+ * Tests for the {@link TaskManager} class. We extend UIBasedApplicationTest because all TaskManager mutations run on the JavaFX Application Thread via
  * {@code FxHelper.runFxSafe()}.
  *
  * @see TaskManager
  */
-class TaskManagerTest extends HeadlessApplicationTest {
+class TaskManagerTest extends UIBasedApplicationTest {
 
   private TaskManager taskManager;
 

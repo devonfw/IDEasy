@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.util.Objects;
 
 import javafx.beans.binding.Bindings;
+import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SplitPane;
@@ -15,20 +17,21 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
+import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.event.TabChangeEvent;
 import com.devonfw.ide.gui.core.helper.FxHelper;
-import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
+import com.devonfw.ide.gui.core.mainwindow.console.ConsoleView;
+import com.devonfw.ide.gui.core.mainwindow.console.ConsoleViewModel;
 import com.devonfw.ide.gui.core.mainwindow.navigation.NavigationPanelView;
 import com.devonfw.ide.gui.core.mainwindow.navigation.NavigationPanelViewModel;
 import com.devonfw.ide.gui.core.progress.taskwindow.TaskOverviewWindow;
 import com.devonfw.ide.gui.core.service.NlsService;
-
-import io.github.mmm.event.EventBus;
 
 /**
  * View of the main window. It renders what the {@link MainWindowViewModel} exposes and translates user gestures back onto it; all selection state, status
@@ -59,6 +62,12 @@ public class MainWindowView extends BorderPane {
   private TabPane tabPane;
 
   @FXML
+  private StackPane welcomePane;
+
+  @FXML
+  private Button openLauncherButton;
+
+  @FXML
   private SplitPane centerSplitPane;
 
   @FXML
@@ -77,9 +86,7 @@ public class MainWindowView extends BorderPane {
 
   private final NlsService nlsService;
 
-  private final ConsoleController consoleController;
-
-  private final EventBus eventBus;
+  private final GuiEventBus eventBus;
 
   private final Divider centerDivider;
 
@@ -100,14 +107,16 @@ public class MainWindowView extends BorderPane {
     this.viewModel = Objects.requireNonNull(viewModel);
     this.guiStateManager = Objects.requireNonNull(guiStateManager);
     this.nlsService = Objects.requireNonNull(guiStateManager.getNlsService());
-    this.consoleController = Objects.requireNonNull(guiStateManager.getConsoleController());
     this.eventBus = Objects.requireNonNull(guiStateManager.getEventBus());
+
+    final ConsoleViewModel consoleViewModel = new ConsoleViewModel(this.eventBus);
+    final ConsoleView consoleView = new ConsoleView(consoleViewModel, nlsService);
 
     final FXMLLoader loader = new FXMLLoader(getClass().getResource("MainWindowView.fxml"));
     loader.setRoot(this);
     loader.setController(this);
     loader.setResources(this.nlsService.getResourceBundle());
-    loader.setControllerFactory(clazz -> clazz == ConsoleController.class ? this.consoleController : null);
+    loader.setControllerFactory(clazz -> clazz == ConsoleView.class ? consoleView : null);
 
     try {
       loader.load();
@@ -122,10 +131,10 @@ public class MainWindowView extends BorderPane {
 
     this.centerDivider = this.centerSplitPane.getDividers().getFirst();
 
+    bindWelcomePane();
     bindConsole();
     bindStatusBar();
 
-    this.viewModel.openLauncherTab();
   }
 
   private void handleTab(Tab tab) {
@@ -134,6 +143,20 @@ public class MainWindowView extends BorderPane {
       this.tabPane.getTabs().add(tab);
     }
     this.tabPane.getSelectionModel().select(tab);
+  }
+
+  private void bindWelcomePane() {
+
+    this.welcomePane.visibleProperty().bind(this.viewModel.welcomePaneVisibleProperty());
+    this.welcomePane.managedProperty().bind(this.viewModel.welcomePaneVisibleProperty());
+    // An empty TabPane still paints its header, so it is hidden to keep it from covering the welcome pane.
+    this.tabPane.visibleProperty().bind(this.viewModel.welcomePaneVisibleProperty().not());
+    this.tabPane.managedProperty().bind(this.viewModel.welcomePaneVisibleProperty().not());
+
+    this.tabPane.getTabs().addListener((ListChangeListener<Tab>) _ -> this.viewModel.setOpenTabCount(this.tabPane.getTabs().size()));
+    this.viewModel.setOpenTabCount(this.tabPane.getTabs().size());
+
+    this.openLauncherButton.setOnAction(_ -> this.viewModel.openLauncherTab());
   }
 
   private void bindConsole() {

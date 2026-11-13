@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns:merge="https://github.com/devonfw/IDEasy/merge" version="4">
+  <component name="RunManager" selected="Application.IDEasy">
+    <configuration default="true" type="JUnit" name="foo" merge:id="@@"/>
+  </component>
+</project>
