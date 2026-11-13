@@ -42,7 +42,7 @@ public class Jasypt extends AbstractLocalToolCommandlet {
 
     super(context, "jasypt", Set.of(Tag.JAVA, Tag.ENCRYPTION));
 
-    this.command = add(new EnumProperty<>("", true, "command", JasyptCommand.class));
+    this.command = add(new EnumProperty<>("", true, JasyptCommand.class, "command"));
     this.masterPassword = add(new PasswordProperty("", true, "masterPassword"));
     this.secret = add(new PasswordProperty("", true, "secret"));
   }
