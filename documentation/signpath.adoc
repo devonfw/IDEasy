@@ -1,0 +1,240 @@
+= Code Signing with SignPath
+:toc:
+toc::[]
+
+Our Windows release artifacts (the `ideasy.exe` native image and the MSI installer) are code-signed
+with https://www.signpath.io[SignPath] as part of our GitHub Actions release process.
+This guide documents how the signing is wired up in our workflows, what has to be configured on the
+SignPath side, and how to troubleshoot signing failures so a release can be unblocked quickly.
+See also link:github-release.adoc[Building IDEasy Releases] for the overall release process.
+
+== How it works
+
+The signing is done by the https://github.com/signpath/github-action-submit-signing-request[SignPath
+GitHub Action] (`signpath/github-action-submit-signing-request@v3`) in the
+`build-natives` job of our release workflows:
+
+* https://github.com/devonfw/IDEasy/blob/main/.github/workflows/release.yml[release.yml] (official release)
+* https://github.com/devonfw/IDEasy/blob/main/.github/workflows/nightly-build.yml[nightly-build.yml] (SNAPSHOT)
+
+The action itself does not read or sign any file from the build machine.
+Instead it submits a *signing request* to the SignPath https://docs.signpath.io/trusted-build-systems/github[Pipeline
+Connector] (a serverless function hosted by SignPath; the action's default `connector-url` is
+`https://pipelineconnector.connectors.signpath.io/GitHubActions/GitHubCom`).
+The connector then downloads the unsigned artifact from the GitHub workflow run, hands it over to the
+configured signing policy (i.e. the actual code-signing certificate), and the action downloads the
+signed artifact back into the build.
+
+NOTE: We use `@v3`. Version `@v2` talks to SignPath's now-deprecated
+`githubactions.connectors.signpath.io` connector, which intermittently failed with
+`Error: Invalid URL for GitHub API.` and was what blocked our releases in #2864. The `@v3` action
+migrates to the maintained Pipeline Connector; its inputs and outputs are identical to `@v2`, so the
+migration is a version bump with no workflow changes.
+The exact sequence in `release.yml` (Windows matrix leg) is:
+
+. Build the native image (`mvn -Pnative package`) producing `cli/target/ideasy.exe`.
+. *Upload unsigned exe*: `actions/upload-artifact@v7` with `id: upload-exe`, artifact name `exe-unsigned`.
+From version 4 of the upload action onwards it exposes the output `artifact-id` (the GitHub artifact
+ID, usable via the GitHub REST API) that the SignPath action needs.
+. *Sign exe*: the SignPath action with `github-artifact-id: '${{ steps.upload-exe.outputs.artifact-id }}'`,
+`wait-for-completion: true` and `output-artifact-directory: 'cli/target/signed-exe'`.
+. *Replace unsigned exe with signed exe*: `cp -f cli/target/signed-exe/ideasy.exe cli/target/ideasy.exe`,
+so that the following steps (natives upload, MSI build) consume the signed exe - the launcher is
+signed even when IDEasy is installed without the MSI (see #2808).
+. *Build MSI with WixToolSet* (`./windows-installer/build-msi.sh`), then the same pattern again for
+the MSI: `Upload unsigned MSI` (`id: upload-msi`, name `msi-unsigned`) → `Sign MSI`
+(`output-artifact-directory: 'windows-installer/signed'`) → `Upload MSI` from the `signed` folder.
+
+A concrete example of the SignPath action usage as found in `release.yml`:
+
+----
+- name: Sign exe
+  if: runner.os == 'Windows'
+  uses: signpath/github-action-submit-signing-request@v3
+  with:
+    api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
+    organization-id: '428e13ed-ca0c-47ca-8a73-63b76cabb59b'
+    project-slug: 'IDEasy'
+    signing-policy-slug: 'release-signing'
+    artifact-configuration-slug: 'IDEasy.exe'
+    github-artifact-id: '${{ steps.upload-exe.outputs.artifact-id }}'
+    wait-for-completion: true
+    output-artifact-directory: 'cli/target/signed-exe'
+----
+
+The `nightly-build.yml` uses the exact same steps and inputs, with two exceptions: it drives the
+policy from a `workflow_dispatch` input `signing_policy` (default `test-signing`, which also doubles
+as a probe for the `release-signing` policy - see <<Testing the release-signing policy without doing a release>>)
+and it signs only the exe and the MSI (no PKG signing is configured).
+
+== SignPath side configuration
+
+The following objects have to exist in our SignPath account and are referenced by the workflows
+(verify the values in the workflow files - if they change, the workflows have to be updated):
+
+[cols="2,3",options="header"]
+|===
+
+|Object |Value
+
+|Organization ID |`428e13ed-ca0c-47ca-8a73-63b76cabb59b`
+|Project slug |`IDEasy`
+|Signing policy (official release) |`release-signing`
+|Signing policy (nightly / test) |`test-signing`
+|Artifact configuration (exe) |`IDEasy.exe`
+|Artifact configuration (MSI) |`IDEasy`
+|API token (GitHub secret) |`SIGNPATH_API_TOKEN`
+
+|===
+
+* The *signing policy* decides which code-signing certificate is actually applied to the artifact.
+`test-signing` signs with a test certificate (fine for nightlies and to keep a release unblocked),
+`release-signing` signs with the certificate that is trusted for official releases.
+* The *API token* authenticates the action against the SignPath connector.
+It is stored as the repository (or organization) secret `SIGNPATH_API_TOKEN`
+(https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions[GitHub secrets]).
+If it is invalid or has lost access to the organization/project, signing requests fail with an
+authorization error - regenerate the token on SignPath and update the secret.
+* The connector needs to *read the GitHub artifact* of the workflow run.
+For that it uses the GitHub token passed to the action (`github-token` input, default
+`secrets.GITHUB_TOKEN`).
+So the `GITHUB_TOKEN` of the run must be able to access the artifacts of its own run (this is the
+default for actions in the same run) and the upload step must be `actions/upload-artifact@v4` or
+newer, as only those versions expose the `artifact-id` output.
+* Note that our workflows declare the `id-token: write` permission, but the SignPath action does
+*not* use OIDC - it authenticates to the connector with the API token and uses the GitHub token only
+to download the artifact.
+* The connector validates the CI system setup and reports such errors back to the action
+(a `validationResult` block that the action prints into the job log before failing).
+If the repository or trusted build system setup on the SignPath side is incomplete, the submission
+fails - the connector logs printed right before the error are the most valuable input for SignPath
+support.
+
+== Verifying that signing works
+
+To verify the whole chain without doing an official release:
+
+. Manually trigger the `nightly-build` workflow (`workflow_dispatch`).
+. On the Windows leg check that the `Sign exe` and `Sign MSI` steps complete successfully and that
+the signed artifacts are downloaded into `cli/target/signed-exe` and `windows-installer/signed`.
+. Verify the signature of the signed artifacts (nightly uses `test-signing`, so expect the test
+certificate):
++
+----
+signtool verify /v ideasy.exe
+----
+
+Before an official release additionally:
+
+. Ensure the `release-signing` policy is configured correctly on the SignPath side (see
+<<Troubleshooting>> if it has been failing).
+. Set `signing-policy-slug` to `release-signing` in both SignPath steps of `release.yml` (it may
+have been switched to `test-signing` to unblock a previous release, see <<Unblocking a broken release>>).
+. Trigger the `release` workflow and verify the signature of the released `ideasy.exe` and the MSI
+with the release certificate.
+
+== Testing the `release-signing` policy without doing a release
+
+The nightly and release signing steps are identical except for the `signing-policy-slug`
+(`test-signing` vs `release-signing`). That means a green `nightly-build` on `test-signing` proves
+the whole chain *except* the specific `release-signing` policy/certificate. `nightly-build` is
+therefore exposed as a one-click probe for that exact question:
+
+. In the Actions tab, run the `Nightly Build (SNAPSHOT release)` workflow (workflow_dispatch).
+It has a `signing_policy` choice input that defaults to `test-signing`; select `release-signing`
+to probe the official policy instead.
+. On the Windows leg check that `Sign exe` and `Sign MSI` complete, and that
+`signtool verify /v ideasy.exe` shows the *release* certificate.
+
+Because the policy slug is the *only* difference between the two workflows, this reduces the
+"will my release sign green?" question to a single cheap, non-destructive run that needs no code
+edit:
+
+* `Sign exe` / `Sign MSI` **green** on `release-signing` in `nightly-build` ⇒ the `release-signing`
+policy and its certificate binding are healthy, so the release will sign green. The only thing left
+to flip is `release.yml` back to `release-signing` (see <<Unblocking a broken release>>, reverse
+order) and trigger `release`.
+* `Sign exe` **fails** on `release-signing` (while `test-signing` is green) ⇒ the `release-signing`
+policy is a SignPath-side configuration problem (certificate, trust store, or its binding),
+independent of the connector and of anything in our repository. Collect the connector logs printed
+right before the error (see <<Troubleshooting>>) and open a SignPath support ticket with them.
+
+The probe uses the release certificate *only* for that single manual run; the input defaults back to
+`test-signing`, so an ordinary nightly never signs with the release certificate and there is nothing
+to revert.
+
+== Troubleshooting
+
+Most failures happen at the `Sign exe` / `Sign MSI` step, right after the log line
+`Submitting the signing request to the SignPath Pipeline Connector...`.
+
+=== "Error: Invalid URL for GitHub API."
+
+This is the error that blocked our official releases in #2864 (see also the long-running #1102).
+Root cause: it was generated by SignPath's *old* GitHub Actions connector
+(`githubactions.connectors.signpath.io`), which the `@v2` action talks to. The connector reads the
+workflow run from the GitHub API and intermittently rejected it; the error text is not part of the
+action at all (it is re-thrown verbatim by the client on a `400` response). SignPath has since
+deprecated that connector and replaced it with the https://docs.signpath.io/trusted-build-systems/github[Pipeline
+Connector] that the `@v3` action uses.
+
+Fix:
+
+. Make sure both SignPath steps in `release.yml` and `nightly-build.yml` use
+`signpath/github-action-submit-signing-request@v3` (this is what the #2864 change does).
+. Verify by triggering the `nightly-build` workflow and checking that `Sign exe` / `Sign MSI`
+complete (see <<Verifying that signing works>>).
+. Re-run the `release` workflow. If the error still occurs on `@v3`, it is now a SignPath-side
+configuration issue: collect the workflow run URL, the job URL, the connector logs printed right
+before the error, and the organization/project/policy/artifact-configuration slugs, and open a
+support ticket with all of this (the "Invalid URL for GitHub API" message alone is not enough for
+them to diagnose - the connector logs are). In the meantime use <<Unblocking a broken release>>.
+
+For reference, these on-our-side causes of *other* signing errors have already been ruled out (and
+are therefore not the fix for this error): the `actions/upload-artifact` version (we pin `@v7`, which
+exposes `artifact-id`), an overriding `GITHUB_API_URL` environment variable (we do not set any), and
+the `id-token: write` permission (the action does not use OIDC).
+
+=== Empty `github-artifact-id` / `artifact-id`
+
+* Ensure the upload step (`actions/upload-artifact@v7`) has an `id:` (`upload-exe` / `upload-msi`) and
+the SignPath step references `steps.<id>.outputs.artifact-id`.
+* The `artifact-id` output only exists since `actions/upload-artifact@v4`; do not downgrade the upload
+action.
+* Check that the upload step actually ran before the SignPath step in the same job (same matrix leg,
+i.e. `runner.os == 'Windows'`).
+
+=== API token errors (401 / "token is not valid")
+
+* Regenerate the SignPath API token and update the `SIGNPATH_API_TOKEN` secret
+(https://docs.github.com/en/actions/security-guides/encrypted-secrets[secrets page]).
+* Verify that the token has access to the organization and to the `IDEasy` project with the
+referenced policies and artifact configurations.
+* Token refreshment in general: see link:contributing/update-access-token.adoc[updating GitHub access tokens]
+for the same "expire and refresh" procedure we follow for our other secrets.
+
+=== Signing succeeds but the artifact is still unsigned
+
+* Check that `wait-for-completion: true` is set - otherwise the action returns before the signing is
+done and `output-artifact-directory` stays empty.
+* Check that the replacement/upload steps consume the signed files:
+`cp -f cli/target/signed-exe/ideasy.exe cli/target/ideasy.exe` for the exe and the `Upload MSI` step
+reading from `windows-installer/signed`.
+* Verify the signature of the final artifact (see <<Verifying that signing works>>) - with
+`test-signing` the certificate will be the test certificate, which looks different from the release
+certificate but is still a valid signature.
+
+== Unblocking a broken release
+
+If a release is blocked by a signing failure and the root cause cannot be fixed immediately (e.g. a
+waiting SignPath support ticket), the release can be unblocked with a workaround that was used for
+#2864:
+
+. In `.github/workflows/release.yml` change `signing-policy-slug` from `release-signing` to
+`test-signing` in *both* SignPath steps (`Sign exe` and `Sign MSI`), and commit with a message like
+`#2864: switch back to test-signing to unblock release`.
+. Adjust the CHANGELOG of the release so it does not promise officially signed artifacts, since the
+test certificate does not carry the same trust as the release certificate.
+. Trigger the `release` workflow again.
+. Keep a ticket open for the root cause on the SignPath side and switch `release-signing` back
+(see <<Verifying that signing works>>) as soon as it is fixed.

@@ -83,7 +83,7 @@ jobs:
           path: cli/target/ideasy.exe
       - name: Sign exe
         if: runner.os == 'Windows'
-        uses: signpath/github-action-submit-signing-request@v2
+        uses: signpath/github-action-submit-signing-request@v3
         with:
           api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
           organization-id: '428e13ed-ca0c-47ca-8a73-63b76cabb59b'
@@ -115,7 +115,7 @@ jobs:
           path: windows-installer/ideasy.msi
       - name: Sign MSI
         if: runner.os == 'Windows'
-        uses: signpath/github-action-submit-signing-request@v2
+        uses: signpath/github-action-submit-signing-request@v3
         with:
           api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
           organization-id: '428e13ed-ca0c-47ca-8a73-63b76cabb59b'
