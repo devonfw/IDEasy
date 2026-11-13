@@ -14,10 +14,11 @@
 !.anyedit.properties
 !.ide.properties
 !.templateengine
-# Share Claude Code slash commands with the team, but keep local Claude settings ignored
+# Share agent skills and project settings with the team, but keep local Claude settings ignored
 !.claude/
 .claude/*
-!.claude/commands/
+!.claude/settings.json
+!.claude/skills/
 target/
 eclipse-target/
 generated/
