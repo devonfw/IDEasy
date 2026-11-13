@@ -50,6 +50,7 @@ import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.jasypt.Jasypt;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.jmc.Jmc;
+import com.devonfw.tools.ide.tool.jq.Jq;
 import com.devonfw.tools.ide.tool.just.Just;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
@@ -170,6 +171,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Azure(context));
     add(new Aws(context));
     add(new Jmc(context));
+    add(new Jq(context));
     add(new DotNet(context));
     add(new Inso(context));
     add(new Intellij(context));
