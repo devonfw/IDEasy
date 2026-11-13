@@ -2,6 +2,21 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2026.12.001
+
+Release with new features and bugfixes:
+
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/54?closed=1[milestone 2026.12.001].
+
+== 2026.11.003
+
+Release where we only solved the Windows release signature:
+
+* https://github.com/devonfw/IDEasy/issues/1102[1102]: IDEasy MSI installer not working (unsigned)
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/53?closed=1[milestone 2026.11.003].
+
 == 2026.11.002
 
 Release with new features and bugfixes:
@@ -34,7 +49,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2705[#2705]: Obsidian not working as proxy commandlet
 * https://github.com/devonfw/IDEasy/issues/2440[#2440]: Show a welcome pane in the GUI when no tab is open
 
-The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/52?closed=1[milestone 2026.11.001].
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/52?closed=1[milestone 2026.11.002].
 
 == 2026.11.001
 
