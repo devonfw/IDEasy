@@ -152,8 +152,12 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
         boolean newInstallation = runWithPackageManager(request.isSilent(), commands, NativePackageAction.INSTALL);
 
         VersionIdentifier installedVersion = getInstalledVersion();
-        Path rootDir = getInstallationPath(getConfiguredEdition(), installedVersion);
+        if ((installedVersion == null) && !newInstallation) {
+          throw new CliException("Could not install " + this.tool + " on this system: no supported package "
+              + "manager could install it and none is currently installed. Please install it manually.");
+        }
 
+        Path rootDir = getInstallationPath(getConfiguredEdition(), installedVersion);
         return createToolInstallation(rootDir, installedVersion, newInstallation, request.getProcessContext(),
             request.isAdditionalInstallation());
       }
@@ -346,10 +350,10 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
   }
 
   /**
-   * @return the names of the editions this {@link #getName() tool} is known to have, in the order in which they are probed to resolve the installed
-   *     edition and version. The default returns a single entry with the tool name. Override for tools with multiple editions (e.g. Docker with
-   *     {@code docker} and {@code rancher}). The returned editions should match the keys of {@link #getWindowsRegistryAppNames()} so that the same
-   *     editions are used on all operating systems.
+   * @return the names of the editions this {@link #getName() tool} is known to have, in the order in which they are probed to resolve the installed edition and
+   *     version. The default returns a single entry with the tool name. Override for tools with multiple editions (e.g. Docker with {@code docker} and
+   *     {@code rancher}). The returned editions should match the keys of {@link #getWindowsRegistryAppNames()} so that the same editions are used on all
+   *     operating systems.
    */
   protected List<String> getEditionNames() {
 
@@ -357,13 +361,13 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
   }
 
   /**
-   * Resolves the installed version of the given {@link #getEditionNames() edition} on the current operating system. On Linux and macOS this is the
-   * hook that {@link #computeInstalledEditionAndVersion()} uses to determine the edition and version (Windows reads the version from the registry via
+   * Resolves the installed version of the given {@link #getEditionNames() edition} on the current operating system. On Linux and macOS this is the hook that
+   * {@link #computeInstalledEditionAndVersion()} uses to determine the edition and version (Windows reads the version from the registry via
    * {@link #getWindowsRegistryAppNames()} instead).
    *
    * @param edition the edition to resolve the installed version of.
-   * @return the {@link VersionIdentifier} of the installed {@code edition} as reported by the OS-specific source (native package manager on Linux, app
-   *     bundle on macOS) or {@code null} if that edition is not installed. The default resolves the version of this tool's single edition via its
+   * @return the {@link VersionIdentifier} of the installed {@code edition} as reported by the OS-specific source (native package manager on Linux, app bundle
+   *     on macOS) or {@code null} if that edition is not installed. The default resolves the version of this tool's single edition via its
    *     {@link #getNativePackages() native packages}. Override for tools with multiple editions that resolve each edition differently.
    */
   protected VersionIdentifier getInstalledVersionForEdition(String edition) {
