@@ -3,18 +3,20 @@ package com.devonfw.tools.ide.commandlet;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.EnumProperty;
+import com.devonfw.tools.ide.property.RecipeNameProperty;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.openrewrite.RecipeManager;
 import com.devonfw.tools.ide.tool.openrewrite.RecipeWrapper;
-import com.devonfw.tools.ide.tool.openrewrite.RewriteRecipeEnum;
+import com.devonfw.tools.ide.validation.PropertyValidator;
 
 /**
  * {@link AbstractCommandlet} for <a href="https://docs.openrewrite.org/">OpenRewrite</a> refactoring.
@@ -23,7 +25,21 @@ public class RewriteCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(RewriteCommandlet.class);
 
-  public final EnumProperty<RewriteRecipeEnum> command;
+  /** The relative location of the recipe configuration inside the {@code ide-settings} settings folder. */
+  private static final Path RECIPE_CONFIG_PATH = Path.of("openrewrite").resolve("openrewrite.json");
+
+  /** The {@code groupId:artifactId} of the OpenRewrite Maven plugin (the latest version is resolved by Maven). */
+  private static final String REWRITE_PLUGIN = "org.openrewrite.maven:rewrite-maven-plugin";
+
+  /** The fully-qualified plugin goal to actually apply the recipes. */
+  private static final String GOAL_RUN = REWRITE_PLUGIN + ":run";
+
+  /** The fully-qualified plugin goal to perform a dry run. */
+  private static final String GOAL_DRY_RUN = REWRITE_PLUGIN + ":dryRun";
+
+  /** The recipe to run, selected by its id from the {@code ide-settings} recipe configuration. */
+  public final RecipeNameProperty command;
+
   private final RecipeManager recipeManager;
 
   /**
@@ -35,8 +51,21 @@ public class RewriteCommandlet extends AbstractCommandlet {
 
     super(context);
     addKeyword(getName());
-    this.command = add(new EnumProperty<>("", true, RewriteRecipeEnum.class, "recipe_name"));
-    this.recipeManager = new RecipeManager();
+    // Resolve the settings path lazily: the commandlet is constructed before the context has resolved
+    // its settings folder, so we must not capture getSettingsPath() here (it is still null).
+    this.recipeManager = new RecipeManager(() -> {
+      Path settingsPath = context.getSettingsPath();
+      return settingsPath == null ? null : settingsPath.resolve(RECIPE_CONFIG_PATH);
+    });
+    PropertyValidator<String> validator = (value, state) -> {
+      // If the recipe configuration is missing, validation must pass so that doRun() can report the
+      // helpful "No OpenRewrite recipes configured" hint. Reporting "Unknown recipe" here would shadow
+      // that hint because doRun() is only reached when the properties validate successfully.
+      if (this.recipeManager.isLoaded() && !this.recipeManager.hasRecipe(value)) {
+        state.addErrorMessage("Unknown recipe: " + value);
+      }
+    };
+    this.command = add(new RecipeNameProperty("", true, "recipe_name", this.recipeManager::getRecipeNames, validator));
   }
 
   @Override
@@ -46,46 +75,30 @@ public class RewriteCommandlet extends AbstractCommandlet {
   }
 
   /**
-   * Parses the raw MVN command from JSON into individual argument tokens, stripping the leading "mvn" if present.
+   * Builds the arguments for the OpenRewrite Maven plugin invocation.
    *
-   * @param recipeRawCommands the raw command string from the recipe configuration.
-   * @return list of individual MVN argument tokens.
+   * @param dryRun {@code true} to run the {@code rewrite:dryRun} goal (no changes applied), {@code false}
+   *     to run {@code rewrite:run}.
+   * @param wrapper the {@link RecipeWrapper} holding the properties to pass to OpenRewrite.
+   * @param projectRoot the path of the Maven project (nearest {@code pom.xml}).
+   * @return the arguments to pass to the Maven tool, in invocation order.
    */
-  private List<String> adaptMVNCommand(String recipeRawCommands) {
-    String trimmed = recipeRawCommands.trim();
-    if (trimmed.startsWith("mvn ")) {
-      trimmed = trimmed.substring(4);
-    } else if (trimmed.equals("mvn")) {
-      trimmed = "";
-    }
+  List<String> buildRunArgs(boolean dryRun, RecipeWrapper wrapper, Path projectRoot) {
+
     List<String> args = new ArrayList<>();
-    for (String token : trimmed.split("\\s+")) {
-      if (!token.isEmpty()) {
-        args.add(token);
-      }
+    args.add("-f");
+    args.add(projectRoot.toString());
+    args.add(dryRun ? GOAL_DRY_RUN : GOAL_RUN);
+    Map<String, String> properties = (wrapper.properties == null) ? Map.of() : wrapper.properties;
+    for (String key : properties.keySet().stream().sorted(Comparator.naturalOrder()).toList()) {
+      args.add("-D" + key + "=" + properties.get(key));
     }
     return args;
   }
 
-  /**
-   * Converts a raw command to dry-run mode by replacing the ":run" goal with ":dryRun".
-   *
-   * @param recipeRawCommands the raw command string.
-   * @return the command with dry-run mode applied.
-   * @throws CliException if the command does not contain a ":run" goal to replace.
-   */
-  private String changeToDryRunCommand(String recipeRawCommands) {
-    String result = recipeRawCommands.replace(":run", ":dryRun");
-    if (result.equals(recipeRawCommands)) {
-      throw new CliException("Cannot convert to dry-run: command does not contain ':run' goal: " + recipeRawCommands);
-    }
-    return result;
-  }
-
   private void showInfo(RecipeWrapper wrapper) {
-    LOG.info("Recipe [{}], {}", wrapper.ideasyCommand.name(), wrapper.description);
+    LOG.info("Recipe [{}], {}", wrapper.id, wrapper.description);
     LOG.info("Reference {}", wrapper.url);
-    LOG.info("Raw command: {}", wrapper.rawCmd);
   }
 
   private boolean confirmApplyChange() {
@@ -124,31 +137,30 @@ public class RewriteCommandlet extends AbstractCommandlet {
 
     LOG.info("{} called", getClass().getSimpleName());
 
-    RewriteRecipeEnum recipeEnum = this.command.getValue();
-
-    if (!recipeManager.isValidRecipeEnum(recipeEnum)) {
-      throw new CliException("Invalid recipe name: " + recipeEnum);
+    // The property validator only skips the recipe check when nothing is loaded, so this is the single
+    // place that reports a missing recipe configuration (see the validator in the constructor).
+    if (!this.recipeManager.isLoaded()) {
+      throw new CliException("No OpenRewrite recipes configured. Expected the recipe configuration at "
+          + this.recipeManager.getConfigPath()
+          + ". Make sure your ide-settings settings folder is up to date (e.g. run 'ide update').");
     }
 
-    RecipeWrapper wrapper = recipeManager.getRecipeWrapper(recipeEnum);
+    String recipeName = this.command.getValue();
+    RecipeWrapper wrapper = this.recipeManager.getRecipe(recipeName);
+    if (wrapper == null) {
+      throw new CliException("Unknown recipe: " + recipeName);
+    }
 
     Path projectRoot = findProjectRoot();
     LOG.info("Target project: {}", projectRoot);
 
     showInfo(wrapper);
 
-    String commandLine = wrapper.rawCmd;
+    boolean dryRun = !confirmApplyChange();
 
-    if (!confirmApplyChange()) {
-      commandLine = changeToDryRunCommand(commandLine);
-    }
+    List<String> args = buildRunArgs(dryRun, wrapper, projectRoot);
+    LOG.info("Actual command line: {}", String.join(" ", args));
 
-    LOG.info("Actual command line: {}", commandLine);
-
-    List<String> args = adaptMVNCommand(commandLine);
-    // Inject -f <project-root> so Maven runs in the correct project
-    args.add(0, "-f");
-    args.add(1, projectRoot.toString());
     getCommandlet(Mvn.class).runTool(args);
 
   }
@@ -156,6 +168,6 @@ public class RewriteCommandlet extends AbstractCommandlet {
   @Override
   public boolean isIdeHomeRequired() {
 
-    return false;
+    return true;
   }
 }
