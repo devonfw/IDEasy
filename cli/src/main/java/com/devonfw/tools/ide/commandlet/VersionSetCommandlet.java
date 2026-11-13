@@ -34,7 +34,7 @@ public class VersionSetCommandlet extends AbstractCommandlet {
     addKeyword(getName());
     this.tool = add(new ToolProperty("", true, "tool"));
     this.version = add(new VersionProperty("", true, "version"));
-    this.cfg = add(new EnumProperty("--cfg", false, null, EnvironmentVariablesFiles.class));
+    this.cfg = add(new EnumProperty("--cfg", false, EnvironmentVariablesFiles.class, null));
   }
 
   @Override

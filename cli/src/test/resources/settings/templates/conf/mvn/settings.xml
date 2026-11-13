@@ -1,0 +1,9 @@
+<settings>
+  <localRepository>${env.M2_REPO}</localRepository>
+  <servers>
+    <server>
+      <id>repository</id>
+      <username>@ask-variable('USER','Enter your username:')</username>
+    </server>
+  </servers>
+</settings>

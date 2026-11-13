@@ -49,11 +49,11 @@ public class PythonRepositoryTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(versions).containsExactly(
-        VersionIdentifier.of("3.14.6"),
-        VersionIdentifier.of("3.13.14"),
-        VersionIdentifier.of("3.11.4"));
+        VersionIdentifier.ofRequired("3.14.6"),
+        VersionIdentifier.ofRequired("3.13.14"),
+        VersionIdentifier.ofRequired("3.11.4"));
     // PyPy must not leak in as a python version
-    assertThat(versions).doesNotContain(VersionIdentifier.of("7.3.17"));
+    assertThat(versions).doesNotContain(VersionIdentifier.ofRequired("7.3.17"));
   }
 
   @Test
@@ -63,10 +63,10 @@ public class PythonRepositoryTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC);
 
     // act
-    VersionIdentifier resolved = repositoryWithVersions(context).resolveVersion("python", "python", VersionIdentifier.of("3.14*"), null);
+    VersionIdentifier resolved = repositoryWithVersions(context).resolveVersion("python", "python", VersionIdentifier.ofRequired("3.14*"), null);
 
     // assert
-    assertThat(resolved).isEqualTo(VersionIdentifier.of("3.14.6"));
+    assertThat(resolved).isEqualTo(VersionIdentifier.ofRequired("3.14.6"));
   }
 
   @Test
