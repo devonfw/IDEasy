@@ -62,10 +62,12 @@ A concrete example of the SignPath action usage as found in `release.yml`:
     output-artifact-directory: 'cli/target/signed-exe'
 ----
 
-The `nightly-build.yml` uses the exact same steps and inputs, with two exceptions: it drives the
-policy from a `workflow_dispatch` input `signing_policy` (default `test-signing`, which also doubles
-as a probe for the `release-signing` policy - see <<Testing the release-signing policy without doing a release>>)
-and it signs only the exe and the MSI (no PKG signing is configured).
+The `nightly-build.yml` uses the same steps and inputs, with two exceptions: it drives the policy
+from a `workflow_dispatch` input `signing_policy` (default `test-signing`, which also doubles as a
+probe for the `release-signing` policy - see <<Testing the release-signing policy without doing a
+release>>) and it signs only the exe and the MSI (no PKG signing is configured). `release.yml`
+exposes the same `signing_policy` input so the policy can be chosen at release time instead of
+editing the file (default `test-signing` as well).
 
 == SignPath side configuration
 
@@ -128,10 +130,10 @@ Before an official release additionally:
 
 . Ensure the `release-signing` policy is configured correctly on the SignPath side (see
 <<Troubleshooting>> if it has been failing).
-. Set `signing-policy-slug` to `release-signing` in both SignPath steps of `release.yml` (it may
-have been switched to `test-signing` to unblock a previous release, see <<Unblocking a broken release>>).
-. Trigger the `release` workflow and verify the signature of the released `ideasy.exe` and the MSI
-with the release certificate.
+. In the Actions tab, trigger the `release` workflow and set the `signing_policy` input to
+`release-signing` (it defaults to `test-signing`, which is how a previous release may have been
+unblocked - see <<Unblocking a broken release>>).
+. Verify the signature of the released `ideasy.exe` and the MSI with the release certificate.
 
 == Testing the `release-signing` policy without doing a release
 
@@ -151,9 +153,9 @@ Because the policy slug is the *only* difference between the two workflows, this
 edit:
 
 * `Sign exe` / `Sign MSI` **green** on `release-signing` in `nightly-build` ⇒ the `release-signing`
-policy and its certificate binding are healthy, so the release will sign green. The only thing left
-to flip is `release.yml` back to `release-signing` (see <<Unblocking a broken release>>, reverse
-order) and trigger `release`.
+policy and its certificate binding are healthy, so the release will sign green. To do the actual
+release, trigger `release.yml` with the `signing_policy` input set to `release-signing` (see
+<<Verifying that signing works>>).
 * `Sign exe` **fails** on `release-signing` (while `test-signing` is green) ⇒ the `release-signing`
 policy is a SignPath-side configuration problem (certificate, trust store, or its binding),
 independent of the connector and of anything in our repository. Collect the connector logs printed
@@ -230,11 +232,9 @@ If a release is blocked by a signing failure and the root cause cannot be fixed 
 waiting SignPath support ticket), the release can be unblocked with a workaround that was used for
 #2864:
 
-. In `.github/workflows/release.yml` change `signing-policy-slug` from `release-signing` to
-`test-signing` in *both* SignPath steps (`Sign exe` and `Sign MSI`), and commit with a message like
-`#2864: switch back to test-signing to unblock release`.
+. Trigger the `release` workflow with the `signing_policy` input set to `test-signing` (no code
+change is needed - the input replaces the old "edit both SignPath steps and commit" workaround).
 . Adjust the CHANGELOG of the release so it does not promise officially signed artifacts, since the
 test certificate does not carry the same trust as the release certificate.
-. Trigger the `release` workflow again.
-. Keep a ticket open for the root cause on the SignPath side and switch `release-signing` back
+. Keep a ticket open for the root cause on the SignPath side and switch back to `release-signing`
 (see <<Verifying that signing works>>) as soon as it is fixed.
