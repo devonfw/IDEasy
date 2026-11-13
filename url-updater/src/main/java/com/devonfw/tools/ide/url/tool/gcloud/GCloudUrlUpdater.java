@@ -45,7 +45,8 @@ public class GCloudUrlUpdater extends GithubUrlTagUpdater {
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
     String baseUrl = getDownloadBaseUrl() + "/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${version}-";
     if (vid.compareVersion(MIN_GCLOUD_VID).isGreater()) {
-      doAddVersion(urlVersion, baseUrl + "windows-x86_64.zip", WINDOWS);
+      // Prefer the archive that ships a bundled Python so Windows installs work without an external interpreter.
+      doAddVersion(urlVersion, baseUrl + "windows-x86_64-bundled-python.zip", WINDOWS);
       doAddVersion(urlVersion, baseUrl + "linux-x86_64.tar.gz", LINUX);
       doAddVersion(urlVersion, baseUrl + "darwin-x86_64.tar.gz", MAC);
       if (vid.compareVersion(MIN_ARM_GCLOUD_VID).isGreater()) {
