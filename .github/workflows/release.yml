@@ -2,7 +2,17 @@ name: Release
 
 # Runs manually
 on:
-  workflow_dispatch
+  workflow_dispatch:
+    inputs:
+      # Choose the SignPath signing policy at release time instead of editing this file back and
+      # forth. release-signing signs with the official release certificate; test-signing keeps the
+      # release green with the test certificate (e.g. while the release-signing policy is being
+      # fixed). See documentation/signpath.adoc.
+      signing_policy:
+        description: 'SignPath signing policy applied to the Windows exe/MSI. release-signing signs with the official release certificate; test-signing keeps the release green with the test certificate.'
+        type: choice
+        default: 'test-signing'
+        options: [ 'test-signing', 'release-signing' ]
 
 permissions:
   contents: write
@@ -83,12 +93,12 @@ jobs:
           path: cli/target/ideasy.exe
       - name: Sign exe
         if: runner.os == 'Windows'
-        uses: signpath/github-action-submit-signing-request@v2
+        uses: signpath/github-action-submit-signing-request@v3
         with:
           api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
           organization-id: '428e13ed-ca0c-47ca-8a73-63b76cabb59b'
           project-slug: 'IDEasy'
-          signing-policy-slug: 'test-signing'
+          signing-policy-slug: '${{ inputs.signing_policy }}'
           artifact-configuration-slug: 'IDEasy.exe'
           github-artifact-id: '${{ steps.upload-exe.outputs.artifact-id }}'
           wait-for-completion: true
@@ -115,12 +125,12 @@ jobs:
           path: windows-installer/ideasy.msi
       - name: Sign MSI
         if: runner.os == 'Windows'
-        uses: signpath/github-action-submit-signing-request@v2
+        uses: signpath/github-action-submit-signing-request@v3
         with:
           api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
           organization-id: '428e13ed-ca0c-47ca-8a73-63b76cabb59b'
           project-slug: 'IDEasy'
-          signing-policy-slug: 'test-signing'
+          signing-policy-slug: '${{ inputs.signing_policy }}'
           artifact-configuration-slug: 'IDEasy'
           github-artifact-id: '${{ steps.upload-msi.outputs.artifact-id }}'
           wait-for-completion: true
