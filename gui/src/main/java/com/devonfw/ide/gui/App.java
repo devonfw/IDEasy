@@ -33,6 +33,9 @@ public class App extends Application {
    */
   public static final String ICON_PATH = "com/devonfw/ide/gui/assets/icon.png";
 
+  /** macOS Dock artwork using Apple's classic 824px mask on a 1024px transparent canvas. */
+  static final String MAC_DOCK_ICON_PATH = "com/devonfw/ide/gui/assets/icon-mac.png";
+
   /** Preferred initial width of the main window content in pixels, as given by the UI design (excluding window decorations). */
   private static final double MAIN_WINDOW_WIDTH = 1295.0;
 
@@ -123,7 +126,7 @@ public class App extends Application {
   private void setIconInMacOsDock() {
     try {
       Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
-      URL imageResource = getClass().getClassLoader().getResource(ICON_PATH);
+      URL imageResource = getClass().getClassLoader().getResource(MAC_DOCK_ICON_PATH);
       java.awt.Image image = defaultToolkit.getImage(imageResource);
 
       Taskbar taskbar = Taskbar.getTaskbar();
