@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -139,6 +140,11 @@ public class Docker extends GlobalToolCommandlet {
 
   @Override
   protected ToolInstallation doInstall(ToolInstallRequest request) {
+    if (isDockerDesktopEditionConfigured() && this.context.getSystemInfo().isLinux() && !isPackageManagerAvailable(NativePackageManager.APT)) {
+      throw new CliException("Docker Desktop cannot be installed on this Linux distribution: "
+          + "apt is required but not available. Please install Docker Desktop manually.");
+    }
+
     if (isDockerDesktopEditionConfigured()) {
       downloadDebPackageStepAndSetPackagePath(request.getRequested().getResolvedVersion());
     }
