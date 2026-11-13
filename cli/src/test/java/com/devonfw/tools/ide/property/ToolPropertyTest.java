@@ -22,7 +22,7 @@ class ToolPropertyTest {
   @Test
   void testCompleteValue() {
     IdeContext context = new IdeTestContext();
-    String[] expectedCandidates = { "az", "android-studio", "aws", "agy" };
+    String[] expectedCandidates = { "ansible", "az", "android-studio", "aws", "agy" };
     String input = "a";
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
 

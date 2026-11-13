@@ -42,6 +42,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2725[#2725]: Consider robustness for VersionIdentifier parsing
 * https://github.com/devonfw/IDEasy/issues/2519[#2519]: Add Flutter SDK commandlet
 * https://github.com/devonfw/IDEasy/issues/2325[#2325]: Made Desktop and Start Menu shortcut creation configurable in the Windows MSI installer
+* https://github.com/devonfw/IDEasy/issues/2513[#2513]: Add commandlet for Ansible (ansible / ansible-playbook)
 * https://github.com/devonfw/IDEasy/issues/2553[#2553]: Add release support for yarn
 * https://github.com/devonfw/IDEasy/issues/2515[#2515]: Add commandlet for KubeLinter (kube-linter)
 * https://github.com/devonfw/IDEasy/issues/2427[#2427]: Improve update-cve workflow to detect and add OS specific CVEs to security.json files
