@@ -1,0 +1,65 @@
+:toc:
+toc::[]
+
+== CHANGELOG
+
+We document all change with relevant impact to the end-user in our link:../../CHANGELOG.adoc[CHANGELOG].
+We also have the link:milestone.adoc[milestones] documenting every change with all link:issue.adoc[issues] and link:pull-request.adoc[PRs] that is more technical.
+However, the purpose of the CHANGELOG is for end-users to see relevant changes and improvements of all releases at a single glance.
+
+=== Maintaining the CHANGELOG
+
+Instead of creating all CHANGELOG entries at once centrally quickly before the release, we add them continuously together with each implemented issue.
+This process avoids mistakes and also gives end-users a preview of what to expect from the next release before it is published (and what is already included in the latest SNAPSHOT release).
+Therefore, in each link:pull-request.adoc[PR] we already include adding a potentially necessary entry to the CHANGELOG so if the link:pull-request.adoc[PR] gets merged, the entry becomes available and when we create a release, the CHANGELOG is already prepared and up-to-date.
+
+=== Adding an entry to the CHANGELOG
+
+In your link:pull-request.adoc[PR] you follow these rules for the CHANGELOG:
+
+* Only make changes to the latest release that is not yet published at the top of the file
+* Only add links to link:issue.adoc[issues] (and *not* link:pull-request.adoc[PRs])
+* Copy the exact title of the link:issue.adoc[issue] as the summary after the issue link.
+This helps users to recognize issues (e.g. known bugs or issues they reported themselves) in the CHANGELOG.
+* If the issue title does not seem to fit, then the title was not chosen well and should first be updated in the issue and then be copied to the CHANGELOG.
+But the idea is that the CHANGELOG reflects the same title as the issue.
+* Only add an entry if that issue is relevant for the end-user.
+Typically, we mark link:issue.adoc[issues] and link:pull-request.adoc[PRs] not relevant for end-users with the label `internal`.
+Examples and guidelines can be found in the next section.
+
+=== Internal vs. external issues
+
+We mark link:issue.adoc[issues] and link:pull-request.adoc[PRs] not relevant for end-users with the label `internal`.
+However, you as contributor should think for themselves so if the issue creator forgot to set that label or did it wrong, you should not follow blindly.
+Examples for internal issues and changes:
+
+* Code-style cleanup
+* Workflows (GitHub actions)
+* Test only changes (more coverage, cleanup, etc.)
+* Changes to link:url-updater.adoc[UrlUpdater] or `ide-urls`
+* Changes to contributors documentation (in `documentation/contributing/`)
+* Fixing typos, enhancing JavaDoc
+
+So if you have only changes as described above in your link:pull-request.adoc[PR] it should be labelled `internal` and CHANGELOG should remain untouched.
+However, if something was not working for end-users and you fixed it or if you added a new feature (e.g. commandlet, CLI option, etc.) you are working on an "external" issue that needs to be documented in the CHANGELOG.
+
+In our workflows we have automated some checks so CHANGELOG modification and the presence or absence of the `internal` label do not match, the check will mark your link:pull-request.adoc[PR] as red.
+You then need to verify whether you have to fix the label or the CHANGELOG.
+
+=== Maintaining CHANGELOG
+
+If you plan a bigger link:pull-request.adoc[PR] you should start as a draft and plan the CHANGELOG entry for later.
+Your link:pull-request.adoc[PR] always includes a checklist for the link:DoD.adoc[DoD] to remind you of the CHANGELOG entry.
+In case of complex external PR, you may want to start the first team-review without the CHANGELOG entry, since it is likely that your PR could miss the current release.
+However, to complete the team-review phase you should assign the release as link:milestone.adoc[milestone] (PR and issue) and add the CHANGELOG entry as well as check the according item from the DoD.
+
+If your link:pull-request.adoc[PR] remains open for a while, you might get conflicts that you need to resolve.
+For the CHANGELOG you can typically resolve them in the browser on GitHub by pressing `accept both changes` but keep an eye on your resulting diff.
+
+==== Missing a release
+
+Still it may happen that your link:pull-request.adoc[PR] misses the release that you already assumed in the CHANGELOG entry.
+In such case, you need to update your link:pull-request.adoc[PR] and move the entry to the latest open release after rebasing your feature-branch with the upstream `main` branch.
+Please note, that when a release has just been published, the product-owner has to manually update the CHANGELOG adding the new release at the top.
+Only after this change has arrived on your feature-branch, you can move your entry up to the latest release.
+

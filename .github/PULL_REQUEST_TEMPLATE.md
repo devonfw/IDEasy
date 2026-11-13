@@ -22,19 +22,20 @@ our [DoD](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing
 - [ ] When running `mvn clean test` locally all tests pass and build is successful
 - [ ] PR title is of the form `#«issue-id»: «brief summary»` (e.g. `#921: fixed setup.bat` and not `feature/921 fixed setup.bat`).
   If no issue ID exists, title only.
-- [ ] PR top-level comment summarizes what has been done and contains link to addressed issue(s)
-- [ ] PR and issue(s) have suitable labels
+- [ ] PR top-level comment summarizes what has been done and contains link to addressed issue (s)
+- [ ] PR and issue (s) have suitable labels
 - [ ] Issue is set to `In Progress` and assigned to you *or* there is no issue (might happen for very small PRs)
 - [ ] You followed all [coding conventions](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/coding-conventions.adoc)
 - [ ] You have added the issue implemented by your PR in [CHANGELOG.adoc](https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.adoc) unless issue is labelled
-  with `internal`
+  with `internal` (please read [changelog documentation](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/changelog.adoc))
 - [ ] You have not changed any dependency in `pom.xml` files or otherwise if runtime dependencies changed,
   you have updated our [LICENSE.adoc](https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc)
 - [ ] You have formulated clear instructions on how to test your contribution under "Testing instructions"
 
 ### Checklist for tool commandlets
 
-Have you added a new `«tool»` as commandlet? There are the following additional checks:
+Have you added a new `«tool»` as commandlet?
+If no, remove this section, otherwise leave it and track the following additional checks:
 
 - [ ] The tool can be installed automatically (during setup via settings) or via the commandlet call
 - [ ] The tool is isolated in its IDEasy project, see [Sandbox Principle](https://github.com/devonfw/IDEasy/blob/main/documentation/sandbox.adoc)
@@ -47,8 +48,10 @@ Have you added a new `«tool»` as commandlet? There are the following additiona
 
 ### Checklist for GUI contributions
 
-Did you make user-facing changes to the GUI? There are the following additional checks:
+Did you make user-facing changes to the GUI?
+If no, remove this section, otherwise leave it and track the following additional checks:
 
-- [ ] You followed the [ui-contribution-process.adoc](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/ui-contribution-process.adoc) and [ui-structure.adoc](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/ui-structure.adoc)
+- [ ] You followed the [ui-contribution-process.adoc](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/ui-contribution-process.adoc)
+  and [ui-structure.adoc](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/ui-structure.adoc)
 - [ ] The UI changes are designed in the Figma project and the design was approved in the team review
 - [ ] You have added screenshots of the UI changes to the PR description
