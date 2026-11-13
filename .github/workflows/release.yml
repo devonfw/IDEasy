@@ -29,7 +29,7 @@ jobs:
     with:
       native_version: ${{ needs.resolve-version.outputs.release_version }}
       pkg_version: ${{ needs.resolve-version.outputs.release_version }}
-      signing_policy: 'release-signing'
+      signing_policy: 'test-signing'
 
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to Maven Central.
   # The version number for the next build will be incremented automatically.
