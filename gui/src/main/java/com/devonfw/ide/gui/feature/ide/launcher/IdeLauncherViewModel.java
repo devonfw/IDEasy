@@ -1,5 +1,6 @@
 package com.devonfw.ide.gui.feature.ide.launcher;
 
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 
@@ -8,7 +9,7 @@ import com.devonfw.ide.gui.core.service.CommandletService;
 import com.devonfw.ide.gui.core.tab.TabViewModel;
 
 /**
- * View model of the IDE launcher tab. It exposes the state that drives the launcher buttons, which stay disabled until a project/workspace is selected.
+ * View model of the IDE launcher tab. Launch buttons are disabled until a workspace is selected and while their IDE is starting.
  */
 public class IdeLauncherViewModel extends TabViewModel {
 
@@ -44,6 +45,15 @@ public class IdeLauncherViewModel extends TabViewModel {
 
   public BooleanProperty isIdeButtonsDisabledProperty() {
     return isIdeButtonsDisabledProperty;
+  }
+
+  /**
+   * @param commandlet the IDE controlled by the button.
+   * @return whether no workspace is selected or this IDE is already starting.
+   */
+  public BooleanBinding ideButtonDisabledBinding(String commandlet) {
+
+    return this.isIdeButtonsDisabledProperty.or(this.commandletService.runningBinding(commandlet));
   }
 
 }
