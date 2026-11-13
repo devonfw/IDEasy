@@ -1,0 +1,283 @@
+name: Stale board digest
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Preview without posting to Teams'
+        type: boolean
+        default: true
+  schedule:
+    - cron: '0 7 * * 1-5'   # 07:00 UTC, Mon-Fri (= 09:00 CEST / 08:00 CET)
+
+permissions: {}
+
+jobs:
+  watch:
+    if: >
+      github.repository == 'devonfw/IDEasy' &&
+      (github.event_name == 'workflow_dispatch' || vars.ENABLE_AUTOMATIC_WORKFLOWS == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check project board and notify Teams
+        env:
+          GH_TOKEN: ${{ secrets.ACTION_PUSH_TOKEN }}
+          WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+          STALE_BOARD_DAYS: ${{ vars.STALE_BOARD_DAYS }}
+          # Comma-separated status names.
+          STALE_BOARD_LANES: ${{ vars.STALE_BOARD_LANES }}
+        run: |
+          set -euo pipefail
+
+          DAYS=$(jq -en --arg days "${STALE_BOARD_DAYS:-7}" '
+            $days | select(test("^[0-9]+$")) | tonumber | select(. >= 1 and . <= 9007199254740991)
+          ') || { echo "STALE_BOARD_DAYS must be a positive whole number." >&2; exit 1; }
+          LANES=$(jq -cen --arg lanes "${STALE_BOARD_LANES:-🏗 In progress,Team Review}" '
+            reduce ($lanes | split(",")[] | gsub("^\\s+|\\s+$"; "") | select(length > 0)) as $lane
+              ([]; if index($lane) then . else . + [$lane] end)
+            | select(length > 0)
+          ') || { echo "STALE_BOARD_LANES must list at least one board status." >&2; exit 1; }
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "Missing GitHub Projects token." >&2
+            exit 1
+          fi
+
+          ITEMS_QUERY=$(cat <<'GRAPHQL'
+          query StaleBoardItems($after: String, $filter: String!, $cutoff: DateTime!) {
+            organization(login: "devonfw") {
+              projectV2(number: 5) {
+                id
+                items(first: 50, after: $after, query: $filter) {
+                  pageInfo { hasNextPage endCursor }
+                  nodes {
+                    isArchived
+                    updatedAt
+                    status: fieldValueByName(name: "Status") {
+                      ... on ProjectV2ItemFieldSingleSelectValue { name }
+                    }
+                    content {
+                      __typename
+                      ... on Issue {
+                        id number title url updatedAt
+                        assignees(first: 10) { nodes { login } }
+                        activity: timelineItems(first: 1, since: $cutoff, itemTypes: [ISSUE_COMMENT, LABELED_EVENT, UNLABELED_EVENT]) {
+                          nodes { __typename }
+                        }
+                      }
+                      ... on PullRequest {
+                        id number title url updatedAt
+                        author { login }
+                        commits(last: 1) { nodes { commit { committedDate } } }
+                        activity: timelineItems(first: 1, since: $cutoff,
+                          itemTypes: [ISSUE_COMMENT, LABELED_EVENT, UNLABELED_EVENT, PULL_REQUEST_COMMIT,
+                            PULL_REQUEST_COMMIT_COMMENT_THREAD, PULL_REQUEST_REVIEW, PULL_REQUEST_REVIEW_THREAD, HEAD_REF_FORCE_PUSHED_EVENT]) {
+                          nodes { __typename }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          GRAPHQL
+          )
+          STATUS_HISTORY_QUERY=$(cat <<'GRAPHQL'
+          query BoardStatusHistory($ids: [ID!]!, $before: String) {
+            nodes(ids: $ids) {
+              ... on Issue {
+                history: timelineItems(last: 10, before: $before, itemTypes: [PROJECT_V2_ITEM_STATUS_CHANGED_EVENT]) {
+                  pageInfo { hasPreviousPage startCursor }
+                  nodes { ...LaneChange }
+                }
+              }
+              ... on PullRequest {
+                history: timelineItems(last: 10, before: $before, itemTypes: [PROJECT_V2_ITEM_STATUS_CHANGED_EVENT]) {
+                  pageInfo { hasPreviousPage startCursor }
+                  nodes { ...LaneChange }
+                }
+              }
+            }
+          }
+          fragment LaneChange on ProjectV2ItemStatusChangedEvent {
+            createdAt
+            project { id }
+          }
+          GRAPHQL
+          )
+
+          graphql() {
+            local response
+            response=$(jq -cn --arg query "$1" --argjson variables "$2" '{query: $query, variables: $variables}' |
+              gh api graphql --input -) || return 1
+            jq -ce '.data' <<< "$response"
+          }
+
+          # GitHub returns UTC timestamps with or without fractional seconds.
+          DATE_FILTER='
+            def date_ms:
+              if type == "string" then
+                (try (capture("^(?<seconds>[^.]+)(?:\\.(?<fraction>[0-9]+))?Z$")
+                  | ((.seconds + "Z") | fromdateiso8601) * 1000
+                    + (((.fraction // "") + "000")[:3] | tonumber)) catch null) // null
+              else null end;
+          '
+
+          lane_entry() {
+            local item=$1 history=$2 project_id=$3 entry before variables
+            while [ "$history" != 'null' ]; do
+              # The same issue or PR can move on more than one board.
+              entry=$(jq -r --arg project "$project_id" '
+                [.nodes[] | select(.project.id == $project)] | last | .createdAt // empty
+              ' <<< "$history") || return 1
+              if [ -n "$entry" ]; then
+                printf '%s\n' "$entry"
+                return
+              fi
+              before=$(jq -c 'select(.pageInfo.hasPreviousPage) | .pageInfo.startCursor' <<< "$history") || return 1
+              if [ -z "$before" ]; then
+                jq -r '.updatedAt' <<< "$item"
+                return
+              fi
+              variables=$(jq -c --argjson before "$before" '{ids: [.content.id], before: $before}' <<< "$item") || return 1
+              history=$(graphql "$STATUS_HISTORY_QUERY" "$variables" | jq -c '.nodes[0].history') || return 1
+            done
+            printf 'Could not read project status history for %s.\n' "$(jq -r '.content.url' <<< "$item")" >&2
+            return 1
+          }
+
+          NOW=$(jq -n 'now * 1000 | floor')
+          CUTOFF=$(jq -en --argjson now "$NOW" --argjson days "$DAYS" '
+            $now - $days * 86400000 | select(. >= -8640000000000000)
+          ') || { echo "Invalid time value." >&2; exit 1; }
+          CUTOFF_DATE=$(jq -nr --argjson cutoff "$CUTOFF" '
+            ($cutoff / 1000 | floor | strftime("%Y-%m-%dT%H:%M:%S")) + "."
+            + ("00" + ((($cutoff % 1000 + 1000) % 1000) | tostring))[-3:] + "Z"
+          ')
+          FILTER=$(jq -r '"status:" + (map(tojson) | join(","))' <<< "$LANES")
+
+          STALE_ITEMS=$(mktemp)
+          trap 'rm -f "$STALE_ITEMS"' EXIT
+          AFTER=null
+          while :; do
+            VARIABLES=$(jq -cn --argjson after "$AFTER" --arg filter "$FILTER" --arg cutoff "$CUTOFF_DATE" '
+              {after: $after, filter: $filter, cutoff: $cutoff}
+            ')
+            BOARD_DATA=$(graphql "$ITEMS_QUERY" "$VARIABLES")
+            PROJECT=$(jq -ce '
+              .organization.projectV2 // error("Cannot read devonfw project #5. Check the Projects permission.")
+            ' <<< "$BOARD_DATA") || exit 1
+            CANDIDATES=$(jq -c --argjson lanes "$LANES" --argjson cutoff "$CUTOFF" "$DATE_FILTER"'
+              [.items.nodes[]
+                | select(. != null and (.isArchived | not))
+                | select(.status.name as $lane | $lanes | index($lane))
+                | select(.content.__typename == "Issue" or .content.__typename == "PullRequest")
+                | select((.content.activity.nodes | length) == 0
+                  and (.content.updatedAt | date_ms) < $cutoff
+                  and (.content.commits.nodes[0].commit.committedDate | date_ms) < $cutoff)]
+            ' <<< "$PROJECT")
+
+            if [ "$CANDIDATES" != '[]' ]; then
+              PROJECT_ID=$(jq -r '.id' <<< "$PROJECT")
+              VARIABLES=$(jq -c '{ids: map(.content.id), before: null}' <<< "$CANDIDATES")
+              HISTORIES=$(graphql "$STATUS_HISTORY_QUERY" "$VARIABLES")
+              ITEMS_WITH_HISTORY=$(jq -c --argjson candidates "$CANDIDATES" '
+                .nodes as $histories | $candidates | to_entries[]
+                | {item: .value, history: $histories[.key].history}
+              ' <<< "$HISTORIES")
+              while IFS= read -r RECORD; do
+                ITEM=$(jq -c '.item' <<< "$RECORD")
+                HISTORY=$(jq -c '.history' <<< "$RECORD")
+                ENTRY=$(lane_entry "$ITEM" "$HISTORY" "$PROJECT_ID")
+                jq -c --arg entry "$ENTRY" --argjson now "$NOW" --argjson cutoff "$CUTOFF" "$DATE_FILTER"'
+                  ($entry | date_ms) as $entered
+                  | select($entered != null and $entered < $cutoff)
+                  | {
+                      number: .content.number, title: .content.title, url: .content.url,
+                      lane: .status.name, daysInLane: (($now - $entered) / 86400000 | floor),
+                      logins: (if .content.__typename == "PullRequest"
+                               then [.content.author.login | select(. != null and . != "")]
+                               else [.content.assignees.nodes[].login] end)
+                    }
+                ' <<< "$ITEM" >> "$STALE_ITEMS"
+              done <<< "$ITEMS_WITH_HISTORY"
+            fi
+
+            if ! jq -e '.items.pageInfo.hasNextPage' <<< "$PROJECT" > /dev/null; then
+              break
+            fi
+            AFTER=$(jq -c '.items.pageInfo.endCursor' <<< "$PROJECT")
+          done
+
+          COUNT=$(jq -s 'length' "$STALE_ITEMS")
+          echo "Inactive board items: $COUNT"
+          CARDS=$(jq -cs '
+            def new_card($count):
+              {
+                type: "AdaptiveCard",
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                version: "1.4",
+                body: [{
+                  type: "TextBlock", size: "Large", weight: "Bolder", wrap: true, color: "warning",
+                  text: "⚠️ IDEasy-Board: Inaktive Einträge (\($count))"
+                }]
+              };
+            def row:
+              (.title | gsub("(?<char>[\\\\\u0060*_\\[\\]<>])"; "\\\(.char)")) as $title
+              | (.logins | join(", ") | if . == "" then "–" else . end) as $logins
+              | {
+                  type: "Container", separator: true, spacing: "Medium",
+                  items: [
+                    { type: "TextBlock", weight: "Bolder", wrap: true, text: "#\(.number) \($title)" },
+                    { type: "TextBlock", spacing: "None", isSubtle: true, size: "Small", wrap: true,
+                      text: "\(.lane) · \(.daysInLane) Tage · \($logins) · [Auf GitHub öffnen](\(.url))" }
+                  ]
+                };
+            def bytes: tojson | utf8bytelength;
+
+            if length == 0 then [] else
+              new_card(length) as $header
+              | ($header | bytes) as $header_bytes
+              | sort_by(-.daysInLane, .number)
+              | reduce .[] as $item ({cards: [], card: $header, bytes: $header_bytes};
+                  ($item | row) as $row
+                  | (($row | bytes) + 1) as $row_bytes
+                  | if .bytes + $row_bytes > 27000 then
+                      .cards += [.card] | .card = $header | .bytes = $header_bytes
+                    else . end
+                  | .card.body += [$row] | .bytes += $row_bytes
+                )
+              | .cards + [.card]
+            end
+          ' "$STALE_ITEMS")
+
+          if [ "${DRY_RUN:-false}" = 'true' ]; then
+            jq . <<< "$CARDS"
+            exit 0
+          fi
+          if [ "$CARDS" = '[]' ]; then
+            exit 0
+          fi
+          if [[ "${WEBHOOK:-}" != https://* ]]; then
+            echo "TEAMS_WEBHOOK_URL must be an HTTPS URL." >&2
+            exit 1
+          fi
+
+          CARD_COUNT=$(jq 'length' <<< "$CARDS")
+          CARD_NUMBER=0
+          jq -c '.[]' <<< "$CARDS" | while IFS= read -r CARD; do
+            CARD_NUMBER=$((CARD_NUMBER + 1))
+            if [ "$CARD_NUMBER" -gt 1 ]; then
+              sleep 0.3
+            fi
+            LABEL="Teams card $CARD_NUMBER/$CARD_COUNT"
+            STATUS=$(curl -sS --no-location -o /dev/null -w '%{http_code}' \
+              -X POST -H "Content-Type: application/json" -d "$CARD" "$WEBHOOK") ||
+              { echo "Could not send $LABEL." >&2; exit 1; }
+            if [[ "$STATUS" != 2[0-9][0-9] ]]; then
+              echo "$LABEL failed (HTTP $STATUS)." >&2
+              exit 1
+            fi
+          done
