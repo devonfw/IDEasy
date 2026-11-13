@@ -90,6 +90,12 @@ Therefore, the proper container image name from the `matrix.os` (see above) has 
 * Additionally we reference the https://github.com/devonfw/IDEasy/blob/10fc17b42ad4d465ee96fe5af7739d99a5132f51/cli/src/main/assembly/release-linux-x64.xml#L24[package content] (see above) and configure exclusions to ensure that only content relevant for the according platform gets included (e.g. `*.bat` files are only included in Windows releases but not for Linux or Mac).
 * Also the configuration includes the documentation as PDF (see https://github.com/devonfw/IDEasy/blob/10fc17b42ad4d465ee96fe5af7739d99a5132f51/cli/src/main/assembly/release-linux-x64.xml#L10-L13[here]).
 
+=== SignPath
+
+* Our Windows release artifacts (the `ideasy.exe` native image and the MSI installer) are code-signed with https://www.signpath.io[SignPath] via the https://github.com/signpath/github-action-submit-signing-request[SignPath GitHub Action] in the `build-natives` job of `release.yml` and `nightly-build.yml`.
+The unsigned exe/MSI is uploaded as a GitHub artifact first, and the action submits a signing request to the SignPath connector that downloads and signs it; the signed artifact replaces the unsigned one before it is packaged.
+* For details on how the signing is wired up, which objects have to exist on the SignPath side, how to verify that signing works and how to troubleshoot failures (incl. the `Error: Invalid URL for GitHub API.` error from #2864), see the link:signpath.adoc[Code Signing with SignPath] guide.
+
 === Workflows
 
 And finally we put it all togehter as github action workflow:

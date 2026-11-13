@@ -24,6 +24,7 @@ import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.BuildTool;
+import com.devonfw.tools.ide.tool.agy.Agy;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
 import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
@@ -64,6 +65,7 @@ import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.obsidian.Obsidian;
 import com.devonfw.tools.ide.tool.oc.Oc;
+import com.devonfw.tools.ide.tool.ollama.Ollama;
 import com.devonfw.tools.ide.tool.pandoc.Pandoc;
 import com.devonfw.tools.ide.tool.pgadmin.PgAdmin;
 import com.devonfw.tools.ide.tool.pip.Pip;
@@ -194,6 +196,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Spyder(context));
     add(new Nest(context));
     add(new Cdk(context));
+    add(new Agy(context));
     add(new Claude(context));
     add(new Mvnd(context));
     add(new Just(context));
@@ -204,6 +207,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Pandoc(context));
     add(new Flutter(context));
     add(new Gemini(context));
+    add(new Ollama(context));
   }
 
   /**
@@ -211,6 +215,7 @@ public class CommandletManagerImpl implements CommandletManager {
    */
   protected void add(AbstractCommandlet commandlet) {
 
+    commandlet.initialize();
     boolean hasRequiredProperty = false;
     List<Property<?>> properties = commandlet.getProperties();
     int propertyCount = properties.size();

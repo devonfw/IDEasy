@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class PandocUrlUpdater extends GithubUrlReleaseUpdater {
 
-  private static final VersionIdentifier MIN_PANDOC_VID = VersionIdentifier.of("3.1.2");
+  private static final VersionIdentifier MIN_PANDOC_VID = VersionIdentifier.ofRequired("3.1.2");
 
   /**
    * The Constructor.

@@ -58,7 +58,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
 
     // act
-    Path result = globalTool.getInstallationPath("default", VersionIdentifier.of("1.0"));
+    Path result = globalTool.getInstallationPath("default", VersionIdentifier.ofRequired("1.0"));
 
     // assert
     assertThat(result).isEqualTo(appPath);
@@ -83,7 +83,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
 
     // act & assert
-    assertThat(globalTool.getInstallationPath("default", VersionIdentifier.of("1.0"))).isNull();
+    assertThat(globalTool.getInstallationPath("default", VersionIdentifier.ofRequired("1.0"))).isNull();
     assertThat(context.getPath().getPath(DUMMY_BINARY)).isNull();
   }
 
@@ -106,7 +106,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     GlobalToolCommandlet globalTool = new GlobalToolDummyCommandlet(context, applicationsPath);
 
     // act
-    Path result = globalTool.getInstallationPath("default", VersionIdentifier.of("1.0"));
+    Path result = globalTool.getInstallationPath("default", VersionIdentifier.ofRequired("1.0"));
 
     // assert
     assertThat(result).isEqualTo(appPath);
@@ -145,8 +145,8 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that an already installed application bundle is removed before the new one is moved into the applications folder and that both privileged
-   * commands are logged before they are executed.
+   * Tests that an already installed application bundle is removed before the new one is moved into the applications folder and that both privileged commands
+   * are logged before they are executed.
    *
    * @param tempDir the temporary directory.
    * @throws IOException on test setup failure.
@@ -246,7 +246,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     @Override
     protected void completeRequest(ToolInstallRequest request) {
 
-      VersionIdentifier version = VersionIdentifier.of(TOOL_VERSION);
+      VersionIdentifier version = VersionIdentifier.ofRequired(TOOL_VERSION);
       ToolEdition edition = new ToolEdition(TOOL_NAME, "rancher");
       ToolEditionAndVersion requested = new ToolEditionAndVersion(edition, version);
       requested.setResolvedVersion(version);
@@ -256,7 +256,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     @Override
     protected ToolInstallation doInstall(ToolInstallRequest request) {
 
-      VersionIdentifier version = VersionIdentifier.of(TOOL_VERSION);
+      VersionIdentifier version = VersionIdentifier.ofRequired(TOOL_VERSION);
       return new ToolInstallation(null, null, null, version, true, true);
     }
   }
@@ -334,7 +334,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     AsyncInstallerToolCommandlet commandlet = new AsyncInstallerToolCommandlet(context);
 
     // act + assert
-    assertThat(commandlet.getInstalledVersion()).isEqualTo(VersionIdentifier.of("2.3.4"));
+    assertThat(commandlet.getInstalledVersion()).isEqualTo(VersionIdentifier.ofRequired("2.3.4"));
   }
 
   /**
@@ -429,7 +429,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.setSystemInfo(SystemInfoMock.LINUX_X64);
     PackageManagedToolCommandlet commandlet = new PackageManagedToolCommandlet(context);
-    VersionIdentifier version = VersionIdentifier.of("1.2.3");
+    VersionIdentifier version = VersionIdentifier.ofRequired("1.2.3");
 
     // act
     VersionIdentifier resolvedVersion = commandlet.resolveVersionForInstall("default", version);
@@ -449,7 +449,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.setSystemInfo(SystemInfoMock.LINUX_X64);
     PackageManagedToolCommandlet commandlet = new PackageManagedToolCommandlet(context);
-    VersionIdentifier version = VersionIdentifier.of("1.2.*");
+    VersionIdentifier version = VersionIdentifier.ofRequired("1.2.*");
 
     // act
     VersionIdentifier resolvedVersion = commandlet.resolveVersionForInstall("default", version);
@@ -669,6 +669,6 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     // assert: the edition comes from getEditionNames() (the meaningful name), not the tool-name placeholder
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("mytool-pro");
-    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.of("9.9.9"));
+    assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired("9.9.9"));
   }
 }
