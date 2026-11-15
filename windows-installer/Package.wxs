@@ -52,7 +52,7 @@
     <!-- MSI properties are not visible as environment variables to the started process, so the IDEasy variables are set explicitly -->
     <SetProperty
         Id="RunInstallAction"
-        Value='"[%SystemFolder]cmd.exe" /d /c &quot;[INSTALLFOLDER]scripts\install.cmd&quot; &quot;[INSTALLFOLDER]&quot; &quot;[IDEASY_CREATE_DESKTOP_SHORTCUT]&quot; &quot;[IDEASY_CREATE_STARTMENU_SHORTCUT]&quot;'
+        Value='"[%SystemFolder]cmd.exe" /d /c &quot;&quot;[INSTALLFOLDER]scripts\install.cmd&quot; &quot;[INSTALLFOLDER].&quot; &quot;[IDEASY_CREATE_DESKTOP_SHORTCUT]&quot; &quot;[IDEASY_CREATE_STARTMENU_SHORTCUT]&quot;&quot;'
         Before="RunInstallAction"
         Sequence="execute"
     />
@@ -69,7 +69,7 @@
     <!-- Execution of uninstall command-->
     <SetProperty
         Id="RunUninstallAction"
-        Value='"[%SystemFolder]cmd.exe" /d /c &quot;[INSTALLFOLDER]scripts\uninstall.cmd&quot; &quot;[INSTALLFOLDER]&quot;'
+        Value='"[%SystemFolder]cmd.exe" /d /c &quot;&quot;[INSTALLFOLDER]scripts\uninstall.cmd&quot; &quot;[INSTALLFOLDER].&quot;&quot;'
         Before="RunUninstallAction"
         Sequence="execute"
     />
