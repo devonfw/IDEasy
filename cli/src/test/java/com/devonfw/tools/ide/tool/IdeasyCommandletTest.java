@@ -422,10 +422,10 @@ class IdeasyCommandletTest extends AbstractIdeContextTest {
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context, UpgradeMode.SNAPSHOT) {
       @Override
       protected EditionAndVersion computeInstalledEditionAndVersion() {
-        return new EditionAndVersion("ideasy", VersionIdentifier.of(installedVersion));
+        return new EditionAndVersion("ideasy", VersionIdentifier.ofRequired(installedVersion));
       }
     };
-    VersionIdentifier latestVersionId = VersionIdentifier.of(latestVersion);
+    VersionIdentifier latestVersionId = VersionIdentifier.ofRequired(latestVersion);
 
     // act
     ToolInstallRequest request = new ToolInstallRequest(false);
