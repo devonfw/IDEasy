@@ -140,15 +140,20 @@ public class Docker extends GlobalToolCommandlet {
 
   @Override
   protected ToolInstallation doInstall(ToolInstallRequest request) {
-    if (isDockerDesktopEditionConfigured() && this.context.getSystemInfo().isLinux() && !isPackageManagerAvailable(NativePackageManager.APT)) {
-      throw new CliException("Docker Desktop cannot be installed on this Linux distribution: "
-          + "apt is required but not available. Please install Docker Desktop manually.");
-    }
+    validateDockerDesktopDistroSupport();
 
     if (isDockerDesktopEditionConfigured()) {
       downloadDebPackageStepAndSetPackagePath(request.getRequested().getResolvedVersion());
     }
     return super.doInstall(request);
+  }
+
+  protected void validateDockerDesktopDistroSupport() {
+    if (isDockerDesktopEditionConfigured() && this.context.getSystemInfo().isLinux()
+        && !isPackageManagerAvailable(NativePackageManager.APT)) {
+      throw new CliException("Docker Desktop cannot be installed on this Linux distribution: "
+          + "apt is required but not available. Please install Docker Desktop manually.");
+    }
   }
 
   private void downloadDebPackageStepAndSetPackagePath(VersionIdentifier resolvedVersion) {

@@ -15,6 +15,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.CapturingProcessContextMock;
@@ -203,20 +204,26 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     return appBinPath;
   }
 
-  private static class GlobalToolDummyCommandlet extends GlobalToolCommandlet {
+  /**
+   * Base class for the dummy {@link GlobalToolCommandlet}s of this test. It provides the tool-specific boilerplate (tool name, tag, and by extension the binary
+   * name) that does not contribute to what the individual tests verify, so the dummies only need to declare what their tests actually exercise.
+   */
+  static class DummyGlobalToolCommandlet extends GlobalToolCommandlet {
+
+    protected DummyGlobalToolCommandlet(IdeContext context, String toolName) {
+
+      super(context, toolName, Set.of(Tag.MISC));
+    }
+  }
+
+  private static class GlobalToolDummyCommandlet extends DummyGlobalToolCommandlet {
 
     private final Path applicationsPath;
 
     GlobalToolDummyCommandlet(IdeContext context, Path applicationsPath) {
 
-      super(context, DUMMY_BINARY, Set.of(Tag.TEST));
+      super(context, DUMMY_BINARY);
       this.applicationsPath = applicationsPath;
-    }
-
-    @Override
-    protected String getBinaryName() {
-
-      return DUMMY_BINARY;
     }
 
     @Override
@@ -355,13 +362,13 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   /**
    * Dummy {@link GlobalToolCommandlet} that provides {@link NativePackage}s for testing uninstall via package manager on Linux.
    */
-  static class PackageManagedToolCommandlet extends GlobalToolCommandlet {
+  static class PackageManagedToolCommandlet extends DummyGlobalToolCommandlet {
 
     private static final String TOOL_NAME = "mytool";
 
     PackageManagedToolCommandlet(IdeContext context) {
 
-      super(context, TOOL_NAME, Set.of(Tag.MISC));
+      super(context, TOOL_NAME);
     }
 
     @Override
@@ -370,16 +377,11 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
       return List.of(
           new NativePackage(
               NativePackageManager.APT,
-              List.of("mytool"),
+              List.of(TOOL_NAME),
               List.of(),
               List.of(),
               List.of("sudo rm -f /etc/apt/sources.list.d/mytool.list"))
       );
-    }
-
-    @Override
-    protected String getBinaryName() {
-      return TOOL_NAME;
     }
 
     @Override
@@ -461,24 +463,19 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   /**
    * Dummy {@link GlobalToolCommandlet} that declares a Homebrew cask for testing macOS uninstall via {@link NativePackageManager#BREW_CASK}.
    */
-  static class BrewCaskToolCommandlet extends GlobalToolCommandlet {
+  static class BrewCaskToolCommandlet extends DummyGlobalToolCommandlet {
 
     private static final String TOOL_NAME = "mytool";
 
     BrewCaskToolCommandlet(IdeContext context) {
 
-      super(context, TOOL_NAME, Set.of(Tag.MISC));
+      super(context, TOOL_NAME);
     }
 
     @Override
     protected List<NativePackage> getNativePackages() {
 
       return List.of(new NativePackage(NativePackageManager.BREW_CASK, List.of(TOOL_NAME)));
-    }
-
-    @Override
-    protected String getBinaryName() {
-      return TOOL_NAME;
     }
   }
 
@@ -508,18 +505,13 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
    * Dummy {@link GlobalToolCommandlet} that declares a known macOS application bundle name but no package manager, for testing the *.app removal fallback of
    * {@link GlobalToolCommandlet#uninstall()}.
    */
-  static class MacAppBundleToolCommandlet extends GlobalToolCommandlet {
+  static class MacAppBundleToolCommandlet extends DummyGlobalToolCommandlet {
 
     private static final String TOOL_NAME = "mytool";
 
     MacAppBundleToolCommandlet(IdeContext context) {
 
-      super(context, TOOL_NAME, Set.of(Tag.MISC));
-    }
-
-    @Override
-    protected String getBinaryName() {
-      return TOOL_NAME;
+      super(context, TOOL_NAME);
     }
 
     @Override
@@ -606,10 +598,10 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Dummy {@link GlobalToolCommandlet} that declares a non-trivial edition via {@link #getEditionNames()} and resolves its version through the native
-   * package manager, for testing that a Linux installation reports a meaningful (non-placeholder) edition.
+   * Dummy {@link GlobalToolCommandlet} that declares a non-trivial edition via {@link #getEditionNames()} and resolves its version through the native package
+   * manager, for testing that a Linux installation reports a meaningful (non-placeholder) edition.
    */
-  static class EditionResolvingToolCommandlet extends GlobalToolCommandlet {
+  static class EditionResolvingToolCommandlet extends DummyGlobalToolCommandlet {
 
     private static final String TOOL_NAME = "mytool";
 
@@ -617,7 +609,7 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
 
     EditionResolvingToolCommandlet(IdeContext context) {
 
-      super(context, TOOL_NAME, Set.of(Tag.MISC));
+      super(context, TOOL_NAME);
     }
 
     @Override
@@ -643,17 +635,11 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
 
       return "9.9.9";
     }
-
-    @Override
-    protected String getBinaryName() {
-
-      return TOOL_NAME;
-    }
   }
 
   /**
-   * Verifies that on Linux the installed edition is resolved via {@link GlobalToolCommandlet#getEditionNames()} — a meaningful edition
-   * {@code "mytool-pro"}, not the {@code this.tool} placeholder — and the version is read from the native package manager.
+   * Verifies that on Linux the installed edition is resolved via {@link GlobalToolCommandlet#getEditionNames()} — a meaningful edition {@code "mytool-pro"},
+   * not the {@code this.tool} placeholder — and the version is read from the native package manager.
    */
   @Test
   void testLinuxInstalledEditionResolvesThroughEditionNames() {
@@ -670,5 +656,55 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("mytool-pro");
     assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired("9.9.9"));
+  }
+
+  /**
+   * Dummy {@link GlobalToolCommandlet} that declares a native package for which no package manager is available, so nothing can be installed and the default
+   * {@link GlobalToolCommandlet#getInstalledVersionForEdition(String)} resolves to {@code null}.
+   */
+  static class NoPackageManagerToolCommandlet extends DummyGlobalToolCommandlet {
+
+    private static final String TOOL_NAME = "mytool";
+
+    NoPackageManagerToolCommandlet(IdeTestContext context) {
+
+      super(context, TOOL_NAME);
+    }
+
+    @Override
+    protected List<NativePackage> getNativePackages() {
+
+      return List.of(new NativePackage(NativePackageManager.APT, List.of(TOOL_NAME)));
+    }
+
+    @Override
+    protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
+
+      return false;
+    }
+
+    @Override
+    protected VersionIdentifier getInstalledVersionForEdition(String edition) {
+
+      return null;
+    }
+  }
+
+  /**
+   * Verifies that on Linux, when no package manager could install the tool and none is currently installed, the installation aborts with a clear error instead
+   * of silently proceeding to run a binary that was never installed.
+   */
+  @Test
+  void testInstallOnLinuxFailsWithClearErrorWhenPackageManagerUnavailableAndNothingInstalled() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    NoPackageManagerToolCommandlet tool = new NoPackageManagerToolCommandlet(context);
+
+    // act & assert
+    assertThatThrownBy(() -> tool.install())
+        .isInstanceOf(CliException.class)
+        .hasMessageContaining("Could not install mytool on this system");
   }
 }
