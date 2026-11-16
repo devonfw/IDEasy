@@ -24,6 +24,9 @@ mvn clean install
 ```
 +
 If that fails, fix your changes and rerun the tests.
++
+This runs the standard build and unit tests.
+For additional, more targeted ways to verify your changes locally, see <<Advanced Testing>>.
 . Commit your changes:
 +
 ```
@@ -86,9 +89,22 @@ In the configuration files many link:../variables.adoc[variables] can be defined
 == Documentation
 
 When reading this guide online on GitHub, see the directory tree on the left side-bar to navigate and browse the `documentation` folder.
-In case you are reading this from your cloned git repository locally, use your IDE of file explorer to browes it.
+In case you are reading this from your cloned git repository locally, use your IDE or file explorer to browse it.
 Please study the documentation that explains many important aspects of IDEasy.
-As a developer it is espcially important to study the link:coding-conventions.adoc[coding-conventions] and link:DoD.adoc[Definition of Done].
+As a developer it is especially important to study the link:coding-conventions.adoc[coding-conventions] and link:DoD.adoc[Definition of Done].
 Further, please browse the JavaDoc of the source-code to understand the different types and structures of our project.
 To get started see our link:./design.puml[design diagram] that needs PlantUml support to be viewed (e.g. via IntelliJ with according plugin).
 This diagram gives you a good overview of the most important types in the code-base.
+
+== Advanced Testing
+
+The standard check in step 4 above builds the project and runs the unit tests.
+The following links cover additional, more targeted ways to verify your changes locally, depending on what you have changed:
+
+* Running and debugging from IntelliJ or VS Code (including the native binary via `build-local-dev.sh`): link:run-ideasy-locally.adoc[Run IDEasy locally]
+* Writing and running JUnit tests (unit and component tests with a simulated `IdeContext`): link:junit-testing.adoc[JUnit tests]
+* Testing a new or changed UrlUpdater locally (e.g. via `UpdateInitiator` to see discovered versions and URLs): link:url-updater.adoc[Creating new UrlUpdaters]
+* Testing Linux-specific behavior while developing on Windows (WSL2): link:testing-linux-on-windows.adoc[Testing Linux on Windows]
+* Testing macOS-specific behavior (macOS VM via Docker): link:testing-mac-in-vm.adoc[Testing macOS in a VM]
+* Running the automated integration tests: link:integration-testing.adoc[Integration tests]
+* Testing changes to the GitHub Actions workflows locally with `act`: link:workflow-testing.adoc[Testing workflows locally]

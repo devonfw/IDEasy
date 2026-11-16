@@ -24,6 +24,7 @@ import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.BuildTool;
+import com.devonfw.tools.ide.tool.agy.Agy;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
 import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
@@ -53,6 +54,7 @@ import com.devonfw.tools.ide.tool.just.Just;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.kubectl.KubeCtl;
+import com.devonfw.tools.ide.tool.kubelinter.KubeLinter;
 import com.devonfw.tools.ide.tool.lazydocker.LazyDocker;
 import com.devonfw.tools.ide.tool.msvc.Msvc;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
@@ -63,6 +65,7 @@ import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.obsidian.Obsidian;
 import com.devonfw.tools.ide.tool.oc.Oc;
+import com.devonfw.tools.ide.tool.ollama.Ollama;
 import com.devonfw.tools.ide.tool.pgadmin.PgAdmin;
 import com.devonfw.tools.ide.tool.pip.Pip;
 import com.devonfw.tools.ide.tool.pycharm.Pycharm;
@@ -160,6 +163,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Kotlinc(context));
     add(new KotlincNative(context));
     add(new KubeCtl(context));
+    add(new KubeLinter(context));
     add(new Tomcat(context));
     add(new Task(context));
     add(new Vscode(context));
@@ -191,6 +195,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Spyder(context));
     add(new Nest(context));
     add(new Cdk(context));
+    add(new Agy(context));
     add(new Claude(context));
     add(new Mvnd(context));
     add(new Just(context));
@@ -200,6 +205,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Obsidian(context));
     add(new Flutter(context));
     add(new Gemini(context));
+    add(new Ollama(context));
   }
 
   /**
@@ -207,6 +213,7 @@ public class CommandletManagerImpl implements CommandletManager {
    */
   protected void add(AbstractCommandlet commandlet) {
 
+    commandlet.initialize();
     boolean hasRequiredProperty = false;
     List<Property<?>> properties = commandlet.getProperties();
     int propertyCount = properties.size();
