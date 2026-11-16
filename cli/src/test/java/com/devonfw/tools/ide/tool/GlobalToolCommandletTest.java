@@ -15,6 +15,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.CapturingProcessContextMock;
@@ -606,8 +607,8 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Dummy {@link GlobalToolCommandlet} that declares a non-trivial edition via {@link #getEditionNames()} and resolves its version through the native
-   * package manager, for testing that a Linux installation reports a meaningful (non-placeholder) edition.
+   * Dummy {@link GlobalToolCommandlet} that declares a non-trivial edition via {@link #getEditionNames()} and resolves its version through the native package
+   * manager, for testing that a Linux installation reports a meaningful (non-placeholder) edition.
    */
   static class EditionResolvingToolCommandlet extends GlobalToolCommandlet {
 
@@ -652,8 +653,8 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Verifies that on Linux the installed edition is resolved via {@link GlobalToolCommandlet#getEditionNames()} — a meaningful edition
-   * {@code "mytool-pro"}, not the {@code this.tool} placeholder — and the version is read from the native package manager.
+   * Verifies that on Linux the installed edition is resolved via {@link GlobalToolCommandlet#getEditionNames()} — a meaningful edition {@code "mytool-pro"},
+   * not the {@code this.tool} placeholder — and the version is read from the native package manager.
    */
   @Test
   void testLinuxInstalledEditionResolvesThroughEditionNames() {
@@ -670,5 +671,56 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("mytool-pro");
     assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired("9.9.9"));
+  }
+
+
+  /**
+   * Dummy {@link GlobalToolCommandlet} that declares a native package for which no package manager is available, so nothing can be installed and the default
+   * {@link GlobalToolCommandlet#getInstalledVersionForEdition(String)} resolves to {@code null}.
+   */
+  static class NoPackageManagerToolCommandlet extends GlobalToolCommandlet {
+
+    private static final String TOOL_NAME = "mytool";
+
+    NoPackageManagerToolCommandlet(IdeTestContext context) {
+
+      super(context, TOOL_NAME, Set.of(Tag.MISC));
+    }
+
+    @Override
+    protected List<NativePackage> getNativePackages() {
+
+      return List.of(new NativePackage(NativePackageManager.APT, List.of(TOOL_NAME)));
+    }
+
+    @Override
+    protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
+
+      return false;
+    }
+
+    @Override
+    protected VersionIdentifier getInstalledVersionForEdition(String edition) {
+
+      return null;
+    }
+  }
+
+  /**
+   * Verifies that on Linux, when no package manager could install the tool and none is currently installed, the installation aborts with a clear error instead
+   * of silently proceeding to run a binary that was never installed.
+   */
+  @Test
+  void testInstallOnLinuxFailsWithClearErrorWhenPackageManagerUnavailableAndNothingInstalled() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    NoPackageManagerToolCommandlet tool = new NoPackageManagerToolCommandlet(context);
+
+    // act & assert
+    assertThatThrownBy(() -> tool.install())
+        .isInstanceOf(CliException.class)
+        .hasMessageContaining("Could not install mytool on this system");
   }
 }

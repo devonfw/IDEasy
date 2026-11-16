@@ -7,8 +7,10 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsAppInstallation;
@@ -18,6 +20,7 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.tool.EditionAndVersion;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -77,8 +80,8 @@ class DockerTest extends AbstractIdeContextTest {
 
   /**
    * Stubs the {@code plutil} lookup that {@link Docker#getMacAppVersion(String)} performs: it is invoked as a single
-   * {@link ProcessContext#runAndGetSingleOutput} call with the executable and the four plutil arguments (the {@code Info.plist} path is one
-   * argument), so the mock's {@code errorHandling(NONE)} must return the mock itself for the chained call to work.
+   * {@link ProcessContext#runAndGetSingleOutput} call with the executable and the four plutil arguments (the {@code Info.plist} path is one argument), so the
+   * mock's {@code errorHandling(NONE)} must return the mock itself for the chained call to work.
    *
    * @param processContext the mocked {@link ProcessContext}.
    * @param plistPath the full {@code Info.plist} path to stub.
@@ -92,9 +95,9 @@ class DockerTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Verifies that the edition of a (non-rancher) Docker Desktop installation is reported as {@code "docker"} — the consistent
-   * name used by {@link Docker#getWindowsRegistryAppNames()} — and not the previously hard-coded, non-existent edition
-   * {@code "desktop"}. The version is resolved from the per-OS source (here the Linux {@code apt list} output).
+   * Verifies that the edition of a (non-rancher) Docker Desktop installation is reported as {@code "docker"} — the consistent name used by
+   * {@link Docker#getWindowsRegistryAppNames()} — and not the previously hard-coded, non-existent edition {@code "desktop"}. The version is resolved from the
+   * per-OS source (here the Linux {@code apt list} output).
    */
   @Test
   void testDockerDesktopEditionIsDockerOnLinux() {
@@ -142,9 +145,8 @@ class DockerTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Verifies that on macOS the lookup degrades gracefully (no exception) when the Docker Desktop app is not present: {@code plutil} exits
-   * non-zero when the {@code .app} bundle is missing, so no edition resolves a version and the whole lookup returns {@code null} instead of
-   * propagating the failure.
+   * Verifies that on macOS the lookup degrades gracefully (no exception) when the Docker Desktop app is not present: {@code plutil} exits non-zero when the
+   * {@code .app} bundle is missing, so no edition resolves a version and the whole lookup returns {@code null} instead of propagating the failure.
    */
   @Test
   void testDockerDesktopOnMacIsGracefulWhenAppMissing() {
@@ -167,9 +169,9 @@ class DockerTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Verifies that on Linux a Rancher Desktop installation is resolved to the {@code "rancher"} edition and its version is
-   * read from the native package manager (the {@code rancher-desktop} package), not from the Docker Desktop
-   * {@code apt list} source used for the {@code docker} edition. The Docker Desktop source is not consulted at all.
+   * Verifies that on Linux a Rancher Desktop installation is resolved to the {@code "rancher"} edition and its version is read from the native package manager
+   * (the {@code rancher-desktop} package), not from the Docker Desktop {@code apt list} source used for the {@code docker} edition. The Docker Desktop source
+   * is not consulted at all.
    */
   @Test
   void testRancherDesktopEditionAndVersionOnLinux() {
@@ -201,9 +203,9 @@ class DockerTest extends AbstractIdeContextTest {
 
   /**
    * Verifies that on macOS a Rancher Desktop installation is resolved to the {@code "rancher"} edition and its version is read from the
-   * {@code Rancher Desktop.app} bundle (via {@code plutil}) — the same app-bundle concept the {@code docker} edition uses on macOS. Docker Desktop
-   * is absent (no {@code docker} command, empty {@code Docker.app} output), so the probe order ({@code docker} first) must fall through to
-   * {@code rancher}. This closes the gap where macOS previously returned nothing for Rancher.
+   * {@code Rancher Desktop.app} bundle (via {@code plutil}) — the same app-bundle concept the {@code docker} edition uses on macOS. Docker Desktop is absent
+   * (no {@code docker} command, empty {@code Docker.app} output), so the probe order ({@code docker} first) must fall through to {@code rancher}. This closes
+   * the gap where macOS previously returned nothing for Rancher.
    */
   @Test
   void testRancherDesktopEditionAndVersionOnMac() {
@@ -253,8 +255,8 @@ class DockerTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Verifies that when both Docker Desktop and Rancher Desktop are installed on Windows (both registry entries present) the
-   * {@code docker} edition is resolved, because it is probed first (see {@link Docker#getEditionNames()}).
+   * Verifies that when both Docker Desktop and Rancher Desktop are installed on Windows (both registry entries present) the {@code docker} edition is resolved,
+   * because it is probed first (see {@link Docker#getEditionNames()}).
    */
   @Test
   void testBothDockerDesktopAndRancherDesktopInstalledOnWindowsResolvesDocker() {
@@ -277,8 +279,8 @@ class DockerTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Verifies that on Windows with only Rancher Desktop installed (no Docker Desktop registry entry) the resolution falls through to
-   * the {@code rancher} edition, with the version read from the {@code Rancher Desktop} registry entry.
+   * Verifies that on Windows with only Rancher Desktop installed (no Docker Desktop registry entry) the resolution falls through to the {@code rancher}
+   * edition, with the version read from the {@code Rancher Desktop} registry entry.
    */
   @Test
   void testRancherDesktopOnlyOnWindowsResolvesRancher() {
@@ -317,4 +319,47 @@ class DockerTest extends AbstractIdeContextTest {
     assertThat(appNames).containsEntry("docker", "Docker Desktop").containsEntry("rancher", "Rancher Desktop");
   }
 
+  /**
+   * Verifies that on a Linux distribution without apt the {@code docker} (Docker Desktop) edition fails with a clear error before downloading the {@code *.deb}
+   * package, because currently Docker Desktop on Linux can only be installed via apt.
+   */
+  @Test
+  void testDockerDesktopEditionOnLinuxWithoutAptFailsFastBeforeDownload() {
+
+    IdeTestContext context = newContext(Mockito.mock(ProcessContext.class));
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("DOCKER_EDITION", "docker");
+    Docker docker = new Docker(context) {
+      @Override
+      protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
+        return packageManager == NativePackageManager.ZYPPER;
+      }
+    };
+
+    // act & assert: the Docker Desktop distro guard must fail before the *.deb download is even attempted
+    assertThatThrownBy(() -> docker.doInstall(new ToolInstallRequest(false)))
+        .isInstanceOf(CliException.class)
+        .hasMessageContaining("apt is required");
+  }
+
+  /**
+   * Verifies that on a Linux distribution without apt and with the {@code rancher} edition configured, the Docker Desktop unsupported-distro guard does not
+   * kick in, so no {@link CliException} is thrown.
+   */
+  @Test
+  void testRancherEditionOnLinuxWithoutAptIsNotBlocked() {
+
+    IdeTestContext context = newContext(Mockito.mock(ProcessContext.class));
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("DOCKER_EDITION", "rancher");
+    Docker docker = new Docker(context) {
+      @Override
+      protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
+        return packageManager == NativePackageManager.ZYPPER;
+      }
+    };
+
+    // act & assert: the Docker Desktop unsupported-distro guard must not fire for the rancher edition
+    assertThatCode(docker::validateDockerDesktopDistroSupport).doesNotThrowAnyException();
+  }
 }
