@@ -1,6 +1,10 @@
 package com.devonfw.tools.ide.url;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
@@ -76,5 +80,19 @@ public class UpdateInitiator {
     }
 
     logger.info(urlFinalReport.toString());
+
+    String summaryPath = System.getenv("GITHUB_STEP_SUMMARY");
+
+    if (summaryPath != null && !summaryPath.isBlank()) {
+      try {
+        Files.write(
+            Path.of(summaryPath),
+            (urlFinalReport.toMarkdown() + System.lineSeparator()).getBytes(StandardCharsets.UTF_8),
+            StandardOpenOption.CREATE,
+            StandardOpenOption.APPEND);
+      } catch (IOException e) {
+        logger.error("Error: Could not append URL updater report to GitHub Actions step summary.", e);
+      }
+    }
   }
 }
