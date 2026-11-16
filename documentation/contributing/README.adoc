@@ -21,7 +21,15 @@ Further, we documented link:junit-testing.adoc[JUnit-testing] and link:integrati
 
 For security mapping in URL updater development, see link:cpe-url-updater.adoc[CPE integration for URL updaters].
 
+== Releases
+
+For the automated release process see the link:../github-release.adoc[Building IDEasy Releases] documentation.
+If you need to configure, verify or troubleshoot the SignPath code signing of our Windows release artifacts, see the link:../signpath.adoc[Code Signing with SignPath] guide.
+
 == GUI
 
 If you want to contribute to the GUI, please follow the link:ui-contribution-process.adoc[GUI contribution process] and read about the link:ui-structure.adoc[GUI architecture and structure].
 
+== Code-Reviews
+
+Please also study our link:review.adoc[code-review guidelines] and become a team-reviewer.
