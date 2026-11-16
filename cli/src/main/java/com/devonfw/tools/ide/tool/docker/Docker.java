@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -18,8 +19,6 @@ import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
-import com.devonfw.tools.ide.tool.ToolEdition;
-import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
@@ -140,24 +139,21 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   @Override
-  protected ToolEditionAndVersion adjustRequestedEdition(ToolEditionAndVersion requested) {
-
-    if (this.context.getSystemInfo().isLinux()) {
-      ToolEdition edition = requested.getEdition();
-      if (!"rancher".equals(edition.edition())) {
-        LOG.warn("Docker Desktop is not yet supported by IDEasy on Linux, installing Rancher Desktop instead.");
-        requested.replaceEdition(new ToolEdition(this.tool, "rancher"));
-      }
-    }
-    return requested;
-  }
-
-  @Override
   protected ToolInstallation doInstall(ToolInstallRequest request) {
+    validateDockerDesktopDistroSupport();
+
     if (isDockerDesktopEditionConfigured()) {
       downloadDebPackageStepAndSetPackagePath(request.getRequested().getResolvedVersion());
     }
     return super.doInstall(request);
+  }
+
+  protected void validateDockerDesktopDistroSupport() {
+    if (isDockerDesktopEditionConfigured() && this.context.getSystemInfo().isLinux()
+        && !isPackageManagerAvailable(NativePackageManager.APT)) {
+      throw new CliException("Docker Desktop cannot be installed on this Linux distribution: "
+          + "apt is required but not available. Please install Docker Desktop manually.");
+    }
   }
 
   private void downloadDebPackageStepAndSetPackagePath(VersionIdentifier resolvedVersion) {
