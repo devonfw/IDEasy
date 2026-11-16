@@ -129,6 +129,36 @@ public class PythonTest extends AbstractIdeContextTest {
     assertThat(venvPath.resolve("bin").resolve("python")).exists();
   }
 
+  /**
+   * Test that {@code ide uninstall python} also removes the per-project virtual environment, so it is not left behind like the uv-based tool store used to be
+   * (see <a href="https://github.com/devonfw/IDEasy/issues/2561">issue #2561</a>). The pristine interpreter stays shared in the software repository - only the
+   * per-project link and virtual environment are removed.
+   *
+   * @param wireMockRuntimeInfo the {@link WireMockRuntimeInfo}.
+   */
+  @Test
+  public void testUninstallRemovesPerProjectVenv(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange - install python (creates the shared pristine interpreter and the per-project virtual environment)
+    IdeTestContext context = newContext(PROJECT_UV, wireMockRuntimeInfo);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    Python python = context.getCommandletManager().getCommandlet(Python.class);
+    python.install();
+    Path venvPath = context.getIdeHome().resolve(Python.VENV_FOLDER);
+    Path pythonLink = context.getSoftwarePath().resolve("python");
+    Path pristineInterpreter = context.getFileAccess().toRealPath(pythonLink);
+    assertThat(venvPath.resolve("bin").resolve("python")).exists();
+
+    // act
+    python.uninstall();
+
+    // assert - the per-project virtual environment and the per-project link are gone...
+    assertThat(venvPath).doesNotExist();
+    assertThat(pythonLink).doesNotExist();
+    // assert - but the shared pristine interpreter is kept (it is shared with other projects/versions, so the per-project link must not be followed)
+    assertThat(pristineInterpreter).exists();
+  }
+
   @Test
   public void testSetEnvironment() {
 

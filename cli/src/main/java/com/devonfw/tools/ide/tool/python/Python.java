@@ -37,9 +37,6 @@ public class Python extends AbstractLocalToolCommandlet {
 
   private static final VersionIdentifier PYTHON_MIN_VERSION = VersionIdentifier.ofRequired("3.8.2");
 
-  /** The per-project folder (inside {@code IDE_HOME}) that holds the {@code uv} tool store (e.g. {@code ruff}). */
-  static final String UV_TOOLS_FOLDER = ".uv-tools";
-
   /** The per-project folder (inside {@code IDE_HOME}) that holds the virtual environment for the project's python packages. */
   static final String VENV_FOLDER = ".venv";
 
@@ -156,6 +153,23 @@ public class Python extends AbstractLocalToolCommandlet {
   }
 
   /**
+   * Removes the per-project virtual environment (see {@link #setupProjectEnvironment}) in addition to the per-project tool link (deleted by the default
+   * implementation, which points at the shared pristine interpreter and must not be followed). This leaves nothing behind inside the project on uninstall (see
+   * <a href="https://github.com/devonfw/IDEasy/issues/2561">#2561</a>).
+   *
+   * @param toolPath the current {@link #getToolPath() tool path} ({@code software/python}, the per-project link to the shared pristine interpreter).
+   */
+  @Override
+  protected void performUninstall(Path toolPath) {
+
+    super.performUninstall(toolPath);
+    Path venvPath = this.context.getIdeHome() == null ? null : this.context.getIdeHome().resolve(VENV_FOLDER);
+    if (venvPath != null) {
+      this.context.getFileAccess().delete(venvPath);
+    }
+  }
+
+  /**
    * Creates the per-project virtual environment (backed by the pristine interpreter) and primes {@code ruff} into the per-project {@code uv} tool store. Only
    * done inside a project (a pristine interpreter is shared and must not be modified).
    *
@@ -169,7 +183,6 @@ public class Python extends AbstractLocalToolCommandlet {
     }
     VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     Uv uv = this.context.getCommandletManager().getCommandlet(Uv.class);
-    Path uvToolDir = ideHome.resolve(UV_TOOLS_FOLDER);
 
     // create the per-project virtual environment backed by the pristine interpreter
     Path venvPath = ideHome.resolve(VENV_FOLDER);
@@ -183,6 +196,7 @@ public class Python extends AbstractLocalToolCommandlet {
     // prime ruff into the per-project uv tool store (best effort - a failure must not fail the python installation); only when the project explicitly
     // opted in, so we do not push a linter onto every project
     if (Boolean.TRUE.equals(IdeVariables.PYTHON_INSTALL_RUFF.get(this.context))) {
+      Path uvToolDir = Uv.getUvToolStorePath(this.context);
       ProcessContext processContext = request.getProcessContext().withEnvVar("UV_TOOL_DIR", uvToolDir.toString())
           .withEnvVar("UV_TOOL_BIN_DIR", uvToolDir.resolve("bin").toString());
       uv.installTool(RUFF_TOOL, processContext);
