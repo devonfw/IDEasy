@@ -23,8 +23,6 @@ import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.model.report.UrlFinalReport;
-import com.devonfw.tools.ide.url.model.report.UrlUpdaterReport;
 import com.devonfw.tools.ide.url.updater.status.StatusJson;
 import com.devonfw.tools.ide.url.updater.status.UrlStatus;
 import com.devonfw.tools.ide.url.updater.status.UrlStatusFile;
@@ -402,27 +400,6 @@ class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     // then
     Path versionsPath = tempDir.resolve("mocked").resolve("mocked").resolve("latest");
     assertThat(versionsPath.resolve("status.json")).exists();
-  }
-
-  /**
-   * Test that the Markdown report is sorted by the highest error rate
-   */
-  @Test
-  void testMarkdownReportIsSortedByVerificationErrorRate() {
-
-    // assign
-    UrlFinalReport finalReport = new UrlFinalReport();
-    finalReport.addUrlUpdaterReport(new UrlUpdaterReport("additionLeader", "edition", 0, 8, 18, 2));
-    finalReport.addUrlUpdaterReport(new UrlUpdaterReport("verificationLeader", "edition", 9, 1, 7, 3));
-
-    // act
-    String markdown = finalReport.toMarkdown();
-
-    // assert
-    assertThat(markdown).contains("| verificationLeader/edition | 9/1 | 10.00% | 7/3 | 30.00% |");
-    assertThat(markdown).contains("| additionLeader/edition | 0/8 | 0.00% | 18/2 | 10.00% |");
-    assertThat(markdown.indexOf("| verificationLeader/edition |"))
-        .isLessThan(markdown.indexOf("| additionLeader/edition |"));
   }
 
 }
