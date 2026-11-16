@@ -94,7 +94,7 @@ class DartTest extends AbstractIdeContextTest {
     context.setSystemInfo(systemInfo);
     Dart dart = new Dart(context);
     Path dummy = context.getSoftwarePath().resolve("dart");
-    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.of(DART_VERSION), false);
+    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.ofRequired(DART_VERSION), false);
     RecordingEnvironmentContext environmentContext = new RecordingEnvironmentContext();
 
     // act

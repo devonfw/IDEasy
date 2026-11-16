@@ -51,7 +51,7 @@ public class DartUrlUpdater extends AbstractUrlUpdater {
    * {@link com.devonfw.tools.ide.url.tool.flutter.FlutterUrlUpdater}: since {@link #addVersion(UrlVersion)} unconditionally adds a
    * {@code macos-arm64} download, recording an older release would produce a broken URL for that platform.
    */
-  private static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("3.0.0");
+  private static final VersionIdentifier MIN_VERSION = VersionIdentifier.ofRequired("3.0.0");
 
   /** The {@link Logger}. */
   private static final Logger logger = LoggerFactory.getLogger(DartUrlUpdater.class);
@@ -128,7 +128,7 @@ public class DartUrlUpdater extends AbstractUrlUpdater {
     if (normalized == null) {
       return null;
     }
-    VersionIdentifier versionIdentifier = VersionIdentifier.of(normalized);
+    VersionIdentifier versionIdentifier = VersionIdentifier.ofOptional(normalized);
     return ((versionIdentifier == null) || versionIdentifier.compareVersion(MIN_VERSION).isLess()) ? null : normalized;
   }
 
@@ -147,7 +147,7 @@ public class DartUrlUpdater extends AbstractUrlUpdater {
     doAddVersion(urlVersion, baseUrl + "macos-arm64-release.zip", MAC, ARM64);
     doAddVersion(urlVersion, baseUrl + "windows-x64-release.zip", WINDOWS, X64);
     // Dart does not publish a Windows arm64 archive before 3.3.0 (introduced with Dart 3.3.0), so only add it for newer releases.
-    if (!urlVersion.getVersionIdentifier().compareVersion(VersionIdentifier.of("3.3.0")).isLess()) {
+    if (!urlVersion.getVersionIdentifier().compareVersion(VersionIdentifier.ofRequired("3.3.0")).isLess()) {
       doAddVersion(urlVersion, baseUrl + "windows-arm64-release.zip", WINDOWS, ARM64);
     }
   }

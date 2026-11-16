@@ -9,20 +9,20 @@ Automatically generated open issue overview for Windows.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 211
+*Total Issues:* 217
 
 * OS-specific: 12
 
 * Multi-OS: 1
 
-* Cross-platform: 198
+* Cross-platform: 204
 
 == Windows Specific Issues
 
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *0-10 days*
+2+^| *11-30 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2753[#2753]
 | Install script blocked by MS Defender on windows when installing via git bash s…

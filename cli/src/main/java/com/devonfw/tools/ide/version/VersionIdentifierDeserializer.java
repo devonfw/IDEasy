@@ -18,7 +18,7 @@ public class VersionIdentifierDeserializer extends JsonDeserializer<VersionIdent
 
     JsonToken token = p.getCurrentToken();
     if (token == JsonToken.VALUE_STRING) {
-      return VersionIdentifier.of(p.getValueAsString());
+      return VersionIdentifier.ofRequired(p.getValueAsString());
     } else {
       throw new IllegalArgumentException("Invalid JSON for VersionRange!");
     }

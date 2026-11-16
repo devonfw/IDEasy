@@ -67,6 +67,6 @@ public class VariableDefinitionVersion extends AbstractVariableDefinition<Versio
   @Override
   public VersionIdentifier fromString(String value, IdeContext context) {
 
-    return VersionIdentifier.of(value);
+    return VersionIdentifier.ofOptional(value);
   }
 }
