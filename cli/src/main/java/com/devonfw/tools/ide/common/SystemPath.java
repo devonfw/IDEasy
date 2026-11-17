@@ -58,7 +58,7 @@ public class SystemPath {
    * ({@code tool2pathMap} is a {@link HashMap}). Ordering these tools first guarantees the pristine installation deterministically wins. If another tool ever
    * becomes independently versioned the same way, it is added here.
    */
-  private static final List<String> PATH_PRECEDENCE_TOOLS = List.of("npm");
+  private static final List<String> PATH_PRECEDENCE_TOOLS = List.of("npm", "corepack");
 
   private static final List<String> EXTENSION_PRIORITY = List.of(".exe", ".cmd", ".bat", ".msi", ".ps1", "");
 
