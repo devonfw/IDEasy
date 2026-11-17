@@ -159,6 +159,32 @@ public class PythonTest extends AbstractIdeContextTest {
     assertThat(pristineInterpreter).exists();
   }
 
+  /**
+   * Test that the user can relocate the per-project virtual environment via {@code PYTHON_VENV_DIR} (e.g. to a specific python module) instead of the default
+   * location inside {@code IDE_HOME}.
+   *
+   * @param wireMockRuntimeInfo the {@link WireMockRuntimeInfo}.
+   */
+  @Test
+  public void testVenvLocationCanBeRelocatedByUser(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange - relocate the virtual environment to a specific location instead of the default IDE_HOME/.venv
+    IdeTestContext context = newContext(PROJECT_UV, wireMockRuntimeInfo);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    Path venvTarget = context.getIdeHome().resolve("venv-relocated");
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("PYTHON_VENV_DIR", venvTarget.toString());
+    Python python = context.getCommandletManager().getCommandlet(Python.class);
+
+    // act
+    python.install();
+
+    // assert - the virtual environment was created at the relocated location...
+    assertThat(venvTarget.resolve("bin").resolve("python")).exists();
+    // assert - ...and the default location was not used
+    assertThat(context.getIdeHome().resolve(Python.VENV_FOLDER)).doesNotExist();
+    assertThat(context).logAtSuccess().hasMessageContaining("Successfully installed python");
+  }
+
   @Test
   public void testSetEnvironment() {
 

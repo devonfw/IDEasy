@@ -40,9 +40,6 @@ public class Python extends AbstractLocalToolCommandlet {
   /** The per-project folder (inside {@code IDE_HOME}) that holds the virtual environment for the project's python packages. */
   static final String VENV_FOLDER = ".venv";
 
-  /** The tool primed into the per-project {@code uv} tool store on installation so that it is available immediately. */
-  private static final String RUFF_TOOL = "ruff";
-
   private static final String FILE_PYVENV_CFG = "pyvenv.cfg";
 
   private static final String PYVENV_CFG_VERSION_INFO = "version_info";
@@ -128,18 +125,35 @@ public class Python extends AbstractLocalToolCommandlet {
     return softwareRepositoryPath.resolve(ToolRepository.ID_DEFAULT).resolve(this.tool).resolve(edition).resolve(resolvedVersion.toString());
   }
 
+  /**
+   * @return the {@link Path} to the per-project virtual environment (where the project's python packages live) or {@code null} if not inside a project.
+   * A stable per-project location (inside {@code IDE_HOME} by default) so the virtual environment can be created, updated and removed by IDEasy. The user may
+   * relocate it via {@link IdeVariables#PYTHON_VENV_DIR}.
+   */
+  Path getVenvPath() {
+
+    Path ideHome = this.context.getIdeHome();
+    if (ideHome == null) {
+      return null;
+    }
+    String venvDir = IdeVariables.PYTHON_VENV_DIR.get(this.context);
+    if (venvDir != null && !venvDir.isBlank()) {
+      return Path.of(venvDir);
+    }
+    return ideHome.resolve(VENV_FOLDER);
+  }
+
   @Override
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
-    Path ideHome = this.context.getIdeHome();
-    if (ideHome == null) {
+    // The python packages of the project (pip / ruff / ...) live in a per-project virtual environment so that two projects on the same python interpreter
+    // don't collide (see #352). The pristine interpreter itself stays shared in the software repository.
+    Path venvPath = getVenvPath();
+    if (venvPath == null) {
       // running in global mode (no project) - there is no per-project virtual environment to point to
       return;
     }
-    // The python packages of the project (pip / ruff / ...) live in a per-project virtual environment so that two projects on the same python interpreter
-    // don't collide (see #352). The pristine interpreter itself stays shared in the software repository.
-    Path venvPath = ideHome.resolve(VENV_FOLDER);
     environmentContext.withEnvVar("VIRTUAL_ENV", venvPath.toString());
     environmentContext.withEnvVar("UV_PROJECT_ENVIRONMENT", venvPath.toString());
     environmentContext.withPathEntry(venvPath.resolve("bin"));
@@ -163,15 +177,15 @@ public class Python extends AbstractLocalToolCommandlet {
   protected void performUninstall(Path toolPath) {
 
     super.performUninstall(toolPath);
-    Path venvPath = this.context.getIdeHome() == null ? null : this.context.getIdeHome().resolve(VENV_FOLDER);
+    Path venvPath = getVenvPath();
     if (venvPath != null) {
       this.context.getFileAccess().delete(venvPath);
     }
   }
 
   /**
-   * Creates the per-project virtual environment (backed by the pristine interpreter) and primes {@code ruff} into the per-project {@code uv} tool store. Only
-   * done inside a project (a pristine interpreter is shared and must not be modified).
+   * Creates the per-project virtual environment (backed by the pristine interpreter). Only done inside a project (a pristine interpreter is shared and must not
+   * be modified).
    *
    * @param request the {@link ToolInstallRequest}.
    */
@@ -184,22 +198,13 @@ public class Python extends AbstractLocalToolCommandlet {
     VersionIdentifier resolvedVersion = request.getRequested().getResolvedVersion();
     Uv uv = this.context.getCommandletManager().getCommandlet(Uv.class);
 
-    // create the per-project virtual environment backed by the pristine interpreter
-    Path venvPath = ideHome.resolve(VENV_FOLDER);
+    // create the per-project virtual environment backed by the pristine interpreter (honoring a relocated location via PYTHON_VENV_DIR, see getVenvPath)
+    Path venvPath = getVenvPath();
     Path interpreterDir = getInstallationPath(getConfiguredEdition(), resolvedVersion);
     if (interpreterDir != null) {
       uv.createVirtualEnvironment(venvPath, interpreterDir, request.getProcessContext());
       // uv lays the executables out in a "Scripts" folder on Windows - expose them as "bin" so the PATH entry set in setEnvironment resolves on all platforms
       createWindowsSymlinkBinFolder(this.context.getFileAccess(), venvPath);
-    }
-
-    // prime ruff into the per-project uv tool store (best effort - a failure must not fail the python installation); only when the project explicitly
-    // opted in, so we do not push a linter onto every project
-    if (Boolean.TRUE.equals(IdeVariables.PYTHON_INSTALL_RUFF.get(this.context))) {
-      Path uvToolDir = Uv.getUvToolStorePath(this.context);
-      ProcessContext processContext = request.getProcessContext().withEnvVar("UV_TOOL_DIR", uvToolDir.toString())
-          .withEnvVar("UV_TOOL_BIN_DIR", uvToolDir.resolve("bin").toString());
-      uv.installTool(RUFF_TOOL, processContext);
     }
   }
 
