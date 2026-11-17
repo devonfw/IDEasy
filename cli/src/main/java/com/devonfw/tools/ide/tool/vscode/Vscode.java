@@ -12,10 +12,10 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -57,7 +57,6 @@ public class Vscode extends AbstractIdeToolCommandlet {
     return "code";
   }
 
-
   @Override
   public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
@@ -81,9 +80,9 @@ public class Vscode extends AbstractIdeToolCommandlet {
       return true;
     }
     if (versionSpecified) {
-      IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
+      step.error("Failed to install plugin: {} with version: {}", plugin.name(), plugin.version());
     } else {
-      IdeLogLevel.ERROR.log(LOG, "Failed to install plugin: {}", plugin.name());
+      step.error("Failed to install plugin: {}", plugin.name());
     }
     return false;
   }
@@ -139,13 +138,20 @@ public class Vscode extends AbstractIdeToolCommandlet {
     }
     FileAccess fileAccess = this.context.getFileAccess();
     Path userData = getUserDataPath();
-    if (Files.exists(userData)) {
-      LOG.warn("Removing obsolete VSCode user-data folder {} from workspace since VSCode uses {}", legacyUserData, userData);
-      fileAccess.backup(legacyUserData);
-    } else {
-      LOG.info("Moving VSCode user-data folder {} out of workspace to {}", legacyUserData, userData);
-      fileAccess.mkdirs(userData.getParent());
-      fileAccess.move(legacyUserData, userData);
+    try {
+      if (Files.exists(userData)) {
+        LOG.warn("Removing obsolete VSCode user-data folder {} from workspace since VSCode uses {}", legacyUserData, userData);
+        fileAccess.backup(legacyUserData);
+      } else {
+        LOG.info("Moving VSCode user-data folder {} out of workspace to {}", legacyUserData, userData);
+        fileAccess.mkdirs(userData.getParent());
+        fileAccess.move(legacyUserData, userData);
+      }
+    } catch (CliException e) {
+      throw e;
+    } catch (RuntimeException e) {
+      // this is only house-keeping (e.g. files may be locked on Windows) and must never prevent the IDE from starting
+      LOG.warn("Failed to remove obsolete VSCode user-data folder {} from workspace. You can delete it manually.", legacyUserData, e);
     }
   }
 
@@ -174,7 +180,7 @@ public class Vscode extends AbstractIdeToolCommandlet {
     }
     Path vsCodeExtensionFolder = this.context.getIdeHome().resolve("plugins/vscode");
     pc.addArg("--extensions-dir=" + vsCodeExtensionFolder);
-    pc.addArg(this.context.getWorkspacePath());
+    pc.addArg(getOpenPath());
     super.configureToolArgs(pc, processMode, args);
   }
 

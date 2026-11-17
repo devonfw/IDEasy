@@ -6,4 +6,3 @@ It automates the setup and update of local development environments with all the
 include::features.adoc[leveloffset=2]
 
 include::setup.adoc[leveloffset=2]
-

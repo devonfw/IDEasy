@@ -11,6 +11,9 @@
 # Escape hatches (use sparingly):
 #   git commit --no-verify        -> skip all hooks for this commit
 #   HARNESS_SKIP=1 git commit ...  -> skip only this hook (keeps other hooks)
+if [ "$IDE_HOME" = "" ] && [ "$IDE_ROOT" != "" ]; then
+  source "$IDE_ROOT/_ide/installation/functions"
+fi
 
 if [ "${HARNESS_SKIP:-0}" = "1" ]; then
   echo "[pre-commit] HARNESS_SKIP=1 -> skipping harness."
@@ -30,7 +33,7 @@ fail() {
 # 1. Build + tests. 'documentation' is excluded on purpose: it triggers long-running AsciiDoc
 #    generation (the ide-doc module) irrelevant to a code commit. See AGENTS.md > Test Execution.
 echo "[pre-commit] Build + tests: mvn -q -ntp verify -pl '!documentation'"
-mvn -q -ntp verify -pl '!documentation' || fail "Build/tests failed."
+mvn -ntp verify -pl '!documentation' || fail "Build/tests failed."
 
 # 2. Formatting (Spotless ratchets to origin/main via pom config -> only your changed files).
 echo "[pre-commit] Formatting: mvn -q -ntp spotless:check"
