@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.plugin.AbstractPluginBasedCommandlet;
+import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
 
 /**
@@ -83,6 +84,7 @@ public abstract class AbstractIdeToolCommandlet extends AbstractPluginBasedComma
   public ProcessResult runTool(List<String> args) {
 
     List<String> effectiveArgs = extractProjectOption(args);
+    effectiveArgs = PluginBasedCommandlet.extractForcePluginReinstall(effectiveArgs, this.forcePluginReinstall);
     addIdeOptions(effectiveArgs);
     return runTool(ProcessMode.BACKGROUND, null, effectiveArgs);
   }

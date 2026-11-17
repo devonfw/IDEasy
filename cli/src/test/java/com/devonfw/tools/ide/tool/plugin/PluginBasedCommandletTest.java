@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextTestImpl;
+import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
@@ -365,6 +366,18 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     assertThat(commandlet.isPluginPurgeRequired(fixChange)).isTrue();
     assertThat(commandlet.isPluginPurgeRequired(minorChange)).isTrue();
     assertThat(commandlet.isPluginPurgeRequired(majorChange)).isTrue();
+  }
+
+  /**
+   * Tests that {@link PluginBasedCommandlet#extractForcePluginReinstall} removes the flag after other arguments and sets it.
+   */
+  @Test
+  void testExtractForcePluginReinstall() {
+
+    FlagProperty flag = new FlagProperty("--force-plugin-reinstall");
+    assertThat(PluginBasedCommandlet.extractForcePluginReinstall(List.of("some-folder", "--force-plugin-reinstall"), flag))
+        .containsExactly("some-folder");
+    assertThat(flag.isTrue()).isTrue();
   }
 
   private ExamplePluginBasedCommandlet newThresholdCommandlet(IdeTestContext context, int incompatibleSegmentIndex) {

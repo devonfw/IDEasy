@@ -67,8 +67,9 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
 
   @Override
   public ProcessResult runTool(List<String> args) {
+    List<String> effectiveArgs = PluginBasedCommandlet.extractForcePluginReinstall(args, this.forcePluginReinstall);
     configureWorkspace();
-    return runTool(ProcessMode.BACKGROUND, null, args);
+    return runTool(ProcessMode.BACKGROUND, null, effectiveArgs);
   }
 
   /**
