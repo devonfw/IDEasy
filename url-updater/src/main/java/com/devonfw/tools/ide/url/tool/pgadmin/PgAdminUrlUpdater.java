@@ -65,7 +65,7 @@ public class PgAdminUrlUpdater extends WebsiteUrlUpdater {
     String baseUrl = getDownloadBaseUrl() + "/pub/pgadmin/pgadmin4/";
     doAddVersion(urlVersion, baseUrl + "v${version}/windows/pgadmin4-${version}-x64.exe", OperatingSystem.WINDOWS);
 
-    if (vid.compareVersion(VersionIdentifier.of("7.6")).isGreater()) {
+    if (vid.compareVersion(VersionIdentifier.ofRequired("7.6")).isGreater()) {
       doAddVersion(urlVersion, baseUrl + "v${version}/macos/pgadmin4-${version}-arm64.dmg", MAC, ARM64);
       doAddVersion(urlVersion, baseUrl + "v${version}/macos/pgadmin4-${version}-x86_64.dmg", MAC, X64);
     } else {

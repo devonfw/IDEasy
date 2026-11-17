@@ -15,4 +15,4 @@ Typical examples are temporary extraction folders, intermediate downloads, or fi
 Temporary files are not intended to be edited manually.
 If IDEasy is interrupted, for example during a download or extraction, temporary files may remain in this directory.
 
-To free disk space, use the `ide cleanup` command once cleanup support for temporary files is available.
+To free disk space, run `ide cleanup`, which deletes the files in this folder that have not been modified within the given retention period. By default a file is only deleted once it is older than 1 year; you can change that with the `--retention-delay` option (an ISO-8601 duration such as `P30D` for 30 days). Before anything is deleted you are asked for confirmation.
