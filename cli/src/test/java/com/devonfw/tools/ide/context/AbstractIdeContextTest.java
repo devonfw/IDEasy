@@ -52,7 +52,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    *     E.g. "basic".
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected IdeTestContext newContext(String testProject) {
+  public static IdeTestContext newContext(String testProject) {
 
     return newContext(testProject, null, true, null);
   }
@@ -63,7 +63,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param wmRuntimeInfo the {@link WireMockRuntimeInfo} or {@code null} if not used.
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected IdeTestContext newContext(String testProject, WireMockRuntimeInfo wmRuntimeInfo) {
+  public static IdeTestContext newContext(String testProject, WireMockRuntimeInfo wmRuntimeInfo) {
 
     return newContext(testProject, null, true, wmRuntimeInfo);
   }
@@ -74,7 +74,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param projectPath the relative path inside the test project where to create the context.
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected static IdeTestContext newContext(String testProject, String projectPath) {
+  public static IdeTestContext newContext(String testProject, String projectPath) {
 
     return newContext(testProject, projectPath, true, null);
   }
@@ -87,7 +87,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    *     if you are 100% sure that your test never modifies anything in that project.)
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation) {
+  public static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation) {
 
     return newContext(testProject, projectPath, copyForMutation, null);
   }

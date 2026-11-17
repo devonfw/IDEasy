@@ -1,0 +1,95 @@
+name: Check PR Labels & Changelog
+
+# - Fails while a pull request has no labels.
+# - Passes as soon as at least one label is assigned.
+# - Enforces the changelog policy:
+#   - "internal" PR: must not add a CHANGELOG.adoc entry.
+#   - Non-"internal" PR: must add a CHANGELOG.adoc entry.
+# - Skips the changelog check until the PR has at least one label.
+# - Re-runs when:
+#   - PR labels change.
+#   - New commits are pushed (synchronize).
+# - Based on documentation/contributing/DoD.adoc: the changelog should contain only
+#   public, end-user-relevant changes.
+
+on:
+  pull_request:
+    types: [ opened, reopened, synchronize, labeled, unlabeled ]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  check-labels-and-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify the PR has at least one label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Fetch the PR fresh so the label state is authoritative for this run.
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+
+            const labels = pr.data.labels.map(label => label.name);
+            if (labels.length > 0) {
+              console.log(`PR has ${labels.length} label(s): ${labels.join(', ')}.`);
+            } else {
+              core.setFailed(
+                'This pull request has no labels assigned. Add at least one label to the PR '
+                + '(e.g. "bug", "enhancement", "documentation") to make this check pass.'
+              );
+            }
+
+      - name: Verify internal label and CHANGELOG.adoc entry are mutually exclusive
+        # Only meaningful once the PR has labels; an unlabeled PR already failed the
+        # step above and has to add a label first.
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const INTERNAL_LABEL = 'internal';
+            const CHANGELOG = 'CHANGELOG.adoc';
+            const prNumber = context.payload.pull_request.number;
+
+            // Fetch the PR fresh so the label state is authoritative for this run.
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+
+            const labels = pr.data.labels.map(label => label.name);
+            const isInternal = labels.includes(INTERNAL_LABEL);
+
+            // Paginate in case a PR changes more than 100 files. "additions" counts
+            // new lines in that file.
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              { owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber, per_page: 100 }
+            );
+            const changelog = files.find(file => file.filename === CHANGELOG);
+            const addedLines = changelog ? changelog.additions : 0;
+
+            if (isInternal && addedLines > 0) {
+              core.setFailed(
+                `This PR has the "${INTERNAL_LABEL}" label but adds ${addedLines} line(s) to ${CHANGELOG}. `
+                + `Internal changes have no user-facing impact and should not be documented. `
+                + `Please remove the entry from ${CHANGELOG}, or remove the "${INTERNAL_LABEL}" `
+                + `label if the change is user-facing. See documentation/contributing/DoD.adoc.`
+              );
+            } else if (!isInternal && addedLines === 0) {
+              core.setFailed(
+                `This PR is not labelled "${INTERNAL_LABEL}" but adds no line to ${CHANGELOG}. `
+                + `Please document this user-facing change by adding a line to ${CHANGELOG} under the next `
+                + `open release, or add the "${INTERNAL_LABEL}" label if the change has no user-facing `
+                + `impact. See documentation/contributing/DoD.adoc.`
+              );
+            } else {
+              console.log(isInternal
+                ? `PR is labelled "${INTERNAL_LABEL}" and adds no line to ${CHANGELOG}.`
+                : `${CHANGELOG} has ${addedLines} added line(s).`);
+            }

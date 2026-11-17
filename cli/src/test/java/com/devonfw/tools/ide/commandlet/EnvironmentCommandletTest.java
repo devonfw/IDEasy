@@ -148,7 +148,7 @@ class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofProcessable("WORKSPACE=\"foo-test\""), //
         IdeLogEntry.ofProcessable("WORKSPACE_PATH=\"" + normalize(context.getWorkspacePath()) + "\""), //
         IdeLogEntry.ofProcessable(
-            "export npm_config_prefix=\"" + context.getIdeHome() + FileSystems.getDefault().getSeparator() + Npm.NPM_GLOBAL_FOLDER + "\"") //
+            "export npm_config_prefix=\"" + context.getSoftwarePath() + FileSystems.getDefault().getSeparator() + Npm.NPM_GLOBAL_FOLDER + "\"") //
     );
   }
 

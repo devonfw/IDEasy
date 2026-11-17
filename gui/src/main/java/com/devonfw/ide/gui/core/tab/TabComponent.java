@@ -4,7 +4,6 @@ import javafx.scene.control.Tab;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.event.TabChangeEvent;
-import com.devonfw.ide.gui.core.mainwindow.console.ConsoleController;
 import com.devonfw.ide.gui.core.service.CommandletService;
 import com.devonfw.ide.gui.core.service.NlsService;
 
@@ -16,7 +15,6 @@ public abstract class TabComponent<T extends TabViewModel> {
   protected final GuiStateManager guiStateManager;
   protected final CommandletService commandletService;
   protected final NlsService nlsService;
-  protected ConsoleController consoleController;
 
   protected Tab tab;
   protected TabView view;
@@ -28,7 +26,6 @@ public abstract class TabComponent<T extends TabViewModel> {
    * @param guiStateManager the app-wide selection and context holder.
    */
   public TabComponent(GuiStateManager guiStateManager) {
-    this.consoleController = guiStateManager.getConsoleController();
     this.commandletService = guiStateManager.getCommandletService();
     this.nlsService = guiStateManager.getNlsService();
     this.guiStateManager = guiStateManager;

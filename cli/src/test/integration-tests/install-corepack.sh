@@ -10,4 +10,6 @@ else
   corepack_location="bin/"
 fi
 
-assertThat "${IDE_ROOT}/${TEST_PROJECT_NAME}/software/node/${corepack_location}corepack" exists
+# Since #2381, global npm packages are installed into the per-project software/node_modules prefix (not software/node).
+# npm places the launcher in the prefix root on Windows but in <prefix>/bin on POSIX (see Npm#setEnvironment).
+assertThat "${IDE_ROOT}/${TEST_PROJECT_NAME}/software/node_modules/${corepack_location}corepack" exists

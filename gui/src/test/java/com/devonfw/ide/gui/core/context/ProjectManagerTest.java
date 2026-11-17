@@ -48,39 +48,28 @@ public class ProjectManagerTest extends AbstractIdeContextTest {
   @Test
   void testConstructorWithNullDirectory() {
 
-    try {
-      projectManager = new ProjectManager(null);
-      fail("IllegalArgumentException expected");
-    } catch (IllegalArgumentException e) {
-      assertThat(e.getMessage()).contains("Root directory is null");
-    }
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> new ProjectManager(null))
+        .withMessageContaining("Root directory is null");
   }
 
   @Test
   void testConstructorWithNonExistentDirectory() {
 
-    try {
-      projectManager = new ProjectManager(ideRoot.resolve("nonExistent"));
-      fail("IllegalArgumentException expected");
-    } catch (IllegalArgumentException e) {
-      assertThat(e.getMessage()).contains("Root directory does not exist");
-    }
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> new ProjectManager(ideRoot.resolve("nonExistent")))
+        .withMessageContaining("Root directory does not exist");
   }
 
   @Test
   void testConstructorWithFile() throws IOException {
 
-    try {
-      Path testFile = ideRoot.resolve("testFile");
-      Files.createFile(testFile);
+    Path testFile = ideRoot.resolve("testFile");
+    Files.createFile(testFile);
 
-      projectManager = new ProjectManager(testFile);
-      fail("IllegalArgumentException expected");
-    } catch (IllegalArgumentException e) {
-      assertThat(e.getMessage()).contains("Root directory is not a directory");
-    } finally {
-      Files.deleteIfExists(ideRoot.resolve("testFile"));
-    }
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> new ProjectManager(testFile))
+        .withMessageContaining("Root directory is not a directory");
   }
 
   @Test
