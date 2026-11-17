@@ -42,6 +42,13 @@
                     <Region styleClass="welcomeButtonIcon"/>
                   </graphic>
                 </Button>
+                <Button fx:id="openToolConfigButton"
+                  text="%welcome_open_tool_config"
+                  styleClass="welcomeButton">
+                  <graphic>
+                    <Region styleClass="welcomeToolConfigIcon"/>
+                  </graphic>
+                </Button>
               </VBox>
             </StackPane>
             <TabPane fx:id="tabPane" tabClosingPolicy="ALL_TABS">
