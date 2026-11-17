@@ -15,6 +15,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemArchitecture;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
@@ -99,6 +100,18 @@ public class Docker extends GlobalToolCommandlet {
 
   private Path getRancherDesktopBinDir() {
     return this.context.getUserHome().resolve(FOLDER_RANCHER_DESKTOP).resolve(IdeContext.FOLDER_BIN);
+  }
+
+  @Override
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
+
+    super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
+    // docker itself runs further CLI tools from the PATH (e.g. the docker-credential-* helpers configured as credsStore) that Rancher Desktop only links
+    // into ~/.rd/bin, so the process needs this directory on its PATH if it is not there already.
+    Path rancherDesktopBinDir = getRancherDesktopBinDir();
+    if (!isCommandAvailable(this.tool) && Files.isDirectory(rancherDesktopBinDir)) {
+      environmentContext.withPathEntry(rancherDesktopBinDir);
+    }
   }
 
   @Override
