@@ -120,7 +120,7 @@
       <property name="query"
         value="//STRING_LITERAL[matches(@text, '-fx-[a-z-]+\s*:')] | //TEXT_BLOCK_CONTENT[matches(@text, '-fx-[a-z-]+\s*:')]"/>
       <message key="matchxpath.match"
-        value="Hardcoded inline CSS (e.g. for setStyle): define a style class in a CSS file and add it via getStyleClass() instead."/>
+        value="Hardcoded CSS in Java code"/>
     </module>
 
   </module>
