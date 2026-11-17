@@ -30,8 +30,8 @@ public abstract class UvBasedCommandlet extends PackageManagerBasedLocalToolComm
    * The constructor.
    *
    * @param context the {@link IdeContext}.
-   * @param tool    the {@link #getName() tool name}.
-   * @param tags    the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
+   * @param tool the {@link #getName() tool name}.
+   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
    */
   public UvBasedCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -78,7 +78,7 @@ public abstract class UvBasedCommandlet extends PackageManagerBasedLocalToolComm
     }
     String packageName = getPackageName();
     PackageManagerRequest request = new PackageManagerRequest("list", packageName).addArg("tool").addArg("list")
-            .setProcessMode(ProcessMode.DEFAULT_CAPTURE);
+        .setProcessMode(ProcessMode.DEFAULT_CAPTURE);
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE);
     request.setProcessContext(pc);
     ProcessResult result = runPackageManager(request, true);
@@ -86,7 +86,7 @@ public abstract class UvBasedCommandlet extends PackageManagerBasedLocalToolComm
       String prefix = packageName + " v";
       for (String line : result.getOut()) {
         if (line.startsWith(prefix)) {
-          return VersionIdentifier.of(line.substring(prefix.length()).trim());
+          return VersionIdentifier.ofRequired(line.substring(prefix.length()).trim());
         }
       }
     }
