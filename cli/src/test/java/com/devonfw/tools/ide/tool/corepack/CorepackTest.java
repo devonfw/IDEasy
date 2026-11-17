@@ -54,7 +54,7 @@ class CorepackTest extends AbstractIdeContextTest {
 
     // act II
     commandlet.uninstall();
-    
+
     assertThat(context).logAtSuccess().hasMessage("Successfully uninstalled corepack");
   }
 
