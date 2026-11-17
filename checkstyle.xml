@@ -53,6 +53,12 @@
       <property name="influenceFormat" value="0"/>
     </module>
 
+    <module name="SuppressWithNearbyCommentFilter">
+      <property name="commentFormat" value="checkstyle:ignore\s+InlineCss\b"/>
+      <property name="idFormat" value="InlineCss"/>
+      <property name="influenceFormat" value="0"/>
+    </module>
+
     <!-- No star imports (coding-conventions: "no star imports are used") -->
     <module name="AvoidStarImport"/>
     <module name="RedundantImport"/>
@@ -99,6 +105,22 @@
       <property name="message"
         value="Do not call printStackTrace(); log or wrap-and-rethrow the exception with its cause."/>
       <property name="ignoreComments" value="true"/>
+    </module>
+
+    <!-- No hardcoded inline CSS in Java code (ui-structure: "Styling with CSS Files"), e.g.
+         node.setStyle("-fx-padding: 5;") or a constant holding such a style.
+         Matches a JavaFX CSS declaration ("-fx-«property»:") in string literals and text blocks rather
+         than the name setStyle: checkstyle has no type information, and other APIs (e.g. the progress bar
+         used by the CLI) also have a setStyle method that has nothing to do with CSS.
+         severity=warning: reported, but does not fail the build (violationSeverity=error), because the
+         GUI still contains inline styles. Raise it to error once those are migrated to CSS files. -->
+    <module name="MatchXpath">
+      <property name="id" value="InlineCss"/>
+      <property name="severity" value="warning"/>
+      <property name="query"
+        value="//STRING_LITERAL[matches(@text, '-fx-[a-z-]+\s*:')] | //TEXT_BLOCK_CONTENT[matches(@text, '-fx-[a-z-]+\s*:')]"/>
+      <message key="matchxpath.match"
+        value="Hardcoded inline CSS (e.g. for setStyle): define a style class in a CSS file and add it via getStyleClass() instead."/>
     </module>
 
   </module>

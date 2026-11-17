@@ -196,6 +196,20 @@ gui
 * **Scalability**: New features can be added without touching existing ones
 * **Team autonomy**: Teams can own features end-to-end
 
+== Styling with CSS Files
+
+Define the look of the UI in CSS files in the `style` folder (see above) and assign it to the components via style classes, e.g. `node.getStyleClass().add("logEntry")` in Java or `styleClass="logEntry"` in FXML.
+Do not hardcode CSS inline, neither in Java (`node.setStyle("-fx-padding: 5;")`, also not via constants holding such a style) nor via the `style` attribute in FXML.
+Inline styles override the stylesheets, cannot be themed, and are hard to find and change consistently.
+
+Checkstyle reports inline CSS in Java code as a warning (rule `InlineCss`).
+For the rare justified exception, e.g. a style computed at runtime that CSS cannot express, add a trailing comment with the reason on that line:
+
+[source,java]
+----
+node.setStyle(dynamicStyle); // checkstyle:ignore InlineCss - why this inline style is needed
+----
+
 == Localization as a Best Practice
 
 All user-facing strings **must** be externalized for localization (i18n).
