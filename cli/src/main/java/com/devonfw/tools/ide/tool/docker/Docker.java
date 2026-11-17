@@ -106,8 +106,6 @@ public class Docker extends GlobalToolCommandlet {
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
-    // docker itself runs further CLI tools from the PATH (e.g. the docker-credential-* helpers configured as credsStore) that Rancher Desktop only links
-    // into ~/.rd/bin, so the process needs this directory on its PATH if it is not there already.
     Path rancherDesktopBinDir = getRancherDesktopBinDir();
     if (!isCommandAvailable(this.tool) && Files.isDirectory(rancherDesktopBinDir)) {
       environmentContext.withPathEntry(rancherDesktopBinDir);
