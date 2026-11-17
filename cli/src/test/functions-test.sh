@@ -283,8 +283,8 @@ checkTitle() {
   fi
 }
 
-checkTitle "outside any IDEasy project only shows the tool name" \
-  "ideasy" "MINGW64_NT-10.0-26200" "" "${TITLE_ROOT}/outside"
+checkTitle "IDEasy not initialized shows the CWD in the title instead of the bare tool name (#2875)" \
+  "${TITLE_ROOT}/outside" "MINGW64_NT-10.0-26200" "" "${TITLE_ROOT}/outside"
 checkTitle "project root shows project without workspace" \
   "ideasy>devonfw" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw"
 checkTitle "directory inside the project but outside any workspace shows no workspace" \
