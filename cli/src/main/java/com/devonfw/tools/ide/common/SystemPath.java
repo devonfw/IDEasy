@@ -57,10 +57,10 @@ public class SystemPath {
    * pristine, independently versioned {@code npm} install and the node-bundled one would compete for the same binary names in an arbitrary order
    * ({@code tool2pathMap} is a {@link HashMap}). The {@code flutter} framework likewise bundles its own {@code dart} inside its {@code bin/} folder, so the
    * pristine, independently versioned {@code dart} install and the flutter-bundled one would compete for the {@code dart} binary the same way. Ordering these
-   * tools first guarantees the pristine installation deterministically wins. If another tool ever becomes independently versioned the same way, it is
-   * added here.
+   * tools first guarantees the pristine installation deterministically wins. If another tool ever becomes independently versioned the same way, it is added
+   * here.
    */
-  private static final List<String> PATH_PRECEDENCE_TOOLS = List.of("npm", "dart");
+  private static final List<String> PATH_PRECEDENCE_TOOLS = List.of("npm", "dart", "corepack");
 
   private static final List<String> EXTENSION_PRIORITY = List.of(".exe", ".cmd", ".bat", ".msi", ".ps1", "");
 
@@ -218,8 +218,8 @@ public class SystemPath {
   }
 
   /**
-   * @return the tool bin {@link Path}s in the order in which they must be searched and placed on the PATH. The {@link #PATH_PRECEDENCE_TOOLS} are placed
-   *     first so that their executables deterministically take precedence over the copies bundled with the runtime that also ships them (e.g. the pristine
+   * @return the tool bin {@link Path}s in the order in which they must be searched and placed on the PATH. The {@link #PATH_PRECEDENCE_TOOLS} are placed first
+   *     so that their executables deterministically take precedence over the copies bundled with the runtime that also ships them (e.g. the pristine
    *     {@code npm} over the {@code npm}/{@code npx} bundled with {@code node}); the remaining tools are returned in their map order.
    */
   private List<Path> getToolPathsInResolutionOrder() {
