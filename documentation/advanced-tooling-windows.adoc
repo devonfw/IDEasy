@@ -70,6 +70,20 @@ Workspace and repository are derived from your current directory, so the title a
 As with `icd -r`, hidden folders are not considered to be repositories, and for a nested repository such as `backend/core` the top-level folder is shown to keep the title short.
 This only applies to git-bash on Windows - on macOS and Linux your prompt configuration is left untouched.
 
+==== Prompt Annotation
+
+Besides the window title, git-bash shows the project, workspace and repository in grey as an annotation at the end of your prompt while you are inside a workspace:
+
+[source,shell]
+----
+user@host MINGW64 /d/projects/IDEasy/workspaces/main/IDEasy/cli [IDEasy>main>IDEasy]
+$
+----
+
+The annotation follows your current directory like the window title, so it also reacts to a plain `cd`.
+It is empty outside of any workspace.
+This is limited to git-bash on Windows, on macOS and Linux your prompt is left untouched.
+
 == Windows Helpers
 
 === Handle passwords
