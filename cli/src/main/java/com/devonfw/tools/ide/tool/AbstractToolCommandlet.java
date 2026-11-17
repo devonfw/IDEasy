@@ -87,7 +87,6 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
     this.installedEditionAndVersion = new CachedValue<>(this::computeInstalledEditionAndVersion);
     addKeyword(tool);
     this.arguments = new ToolArgumentsProperty("", false, true, "args");
-    initProperties();
   }
 
   /**
@@ -125,6 +124,13 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
   public void completeToolArguments(String arg, CompletionCandidateCollector collector, Property<?> property) {
 
     getAutoCompletionRegistry().complete(arg, collector, property, this);
+  }
+
+  @Override
+  protected void initialize() {
+
+    super.initialize();
+    initProperties();
   }
 
   /**
@@ -424,9 +430,9 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
   }
 
   /**
-   * Ensures the request carries a {@link ToolInstallTracker}, creating one for a top-level request that does not yet have one. Dependencies inherit the
-   * tracker from their parent request, so a shared dependency is only installed and CVE-checked once (see issue #945). An already-provided tracker
-   * (shared by <code>ide update</code>) is kept.
+   * Ensures the request carries a {@link ToolInstallTracker}, creating one for a top-level request that does not yet have one. Dependencies inherit the tracker
+   * from their parent request, so a shared dependency is only installed and CVE-checked once (see issue #945). An already-provided tracker (shared by <code>ide
+   * update</code>) is kept.
    *
    * @param request the {@link ToolInstallRequest} to complete.
    */
