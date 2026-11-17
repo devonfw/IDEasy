@@ -1,14 +1,14 @@
 package com.devonfw.tools.ide.tool.custom;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link LocalToolCommandlet} for a {@link CustomToolMetadata}.
+ * {@link AbstractLocalToolCommandlet} for a {@link CustomToolMetadata}.
  */
-public class CustomToolCommandlet extends LocalToolCommandlet {
+public class CustomToolCommandlet extends AbstractLocalToolCommandlet {
 
   private CustomToolMetadata customTool;
 

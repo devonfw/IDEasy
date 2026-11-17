@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.repository.AbstractToolRepository;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
@@ -99,7 +99,7 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
   }
 
   @Override
-  protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
+  protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version, AbstractToolCommandlet toolCommandlet) {
 
     CustomToolMetadata customTool = getCustomTool(tool);
     if (!version.equals(customTool.getVersion())) {
@@ -121,7 +121,7 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
   }
 
   @Override
-  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, ToolCommandlet toolCommandlet) {
+  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, AbstractToolCommandlet toolCommandlet) {
 
     CustomToolMetadata customTool = getCustomTool(tool);
     VersionIdentifier customToolVersion = customTool.getVersion();
@@ -132,7 +132,7 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
   }
 
   @Override
-  public List<VersionIdentifier> getSortedVersions(String tool, String edition, ToolCommandlet toolCommandlet) {
+  public List<VersionIdentifier> getSortedVersions(String tool, String edition, AbstractToolCommandlet toolCommandlet) {
 
     CustomToolMetadata customTool = getCustomTool(tool);
     return List.of(customTool.getVersion());

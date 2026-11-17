@@ -4,13 +4,12 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 
 /**
- * {@link ToolCommandlet} for <a href="https://kotlinlang.org/docs/native-overview.html">Kotlin Native</a> (kotlincnative).
+ * {@link AbstractToolCommandlet} for <a href="https://kotlinlang.org/docs/native-overview.html">Kotlin Native</a> (kotlincnative).
  */
-public class KotlincNative extends LocalToolCommandlet {
+public class KotlincNative extends AbstractLocalToolCommandlet {
 
   /**
    * The constructor.

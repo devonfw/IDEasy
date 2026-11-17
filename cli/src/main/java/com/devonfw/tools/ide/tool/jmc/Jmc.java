@@ -14,14 +14,14 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 
 /**
- * {@link ToolCommandlet} for <a href="https://www.oracle.com/java/technologies/jdk-mission-control.html">JDK Mission Control</a>, An advanced set of tools for
- * managing, monitoring, profiling, and troubleshooting Java applications.
+ * {@link AbstractToolCommandlet} for <a href="https://www.oracle.com/java/technologies/jdk-mission-control.html">JDK Mission Control</a>, An advanced set of
+ * tools for managing, monitoring, profiling, and troubleshooting Java applications.
  */
-public class Jmc extends LocalToolCommandlet {
+public class Jmc extends AbstractLocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Jmc.class);
 

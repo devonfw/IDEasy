@@ -7,7 +7,7 @@ import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.property.EnumProperty;
@@ -38,11 +38,11 @@ public class CliSuggester {
   /**
    * Handles the case where a commandlet requires an IDEasy project context (IDE_ROOT/IDE_HOME) but the user is not inside one.
    *
-   * @param commandlet the {@link Commandlet} that the user tried to run.
+   * @param commandlet the {@link AbstractCommandlet} that the user tried to run.
    * @param step the current {@link StepImpl} for error reporting.
    * @return {@code true} if handled (message printed), {@code false} otherwise.
    */
-  public boolean isMissingProjectContextHandled(Commandlet commandlet, StepImpl step) {
+  public boolean isMissingProjectContextHandled(AbstractCommandlet commandlet, StepImpl step) {
 
     if (commandlet == null) {
       return false;
@@ -69,11 +69,11 @@ public class CliSuggester {
    * Handles invalid option errors and suggests corrections.
    *
    * @param result the {@link com.devonfw.tools.ide.validation.ValidationResult} from option parsing.
-   * @param commandlet the {@link Commandlet} that was being executed.
+   * @param commandlet the {@link AbstractCommandlet} that was being executed.
    * @param step the current {@link StepImpl} for error reporting.
    * @return {@code true} if handled (suggestion provided), {@code false} otherwise.
    */
-  public boolean isInvalidOptionHandled(ValidationState result, Commandlet commandlet, StepImpl step) {
+  public boolean isInvalidOptionHandled(ValidationState result, AbstractCommandlet commandlet, StepImpl step) {
 
     if ((result == null) || (commandlet == null)) {
       return false;
@@ -133,10 +133,10 @@ public class CliSuggester {
    * Handles invalid argument value errors for properties and suggests corrections.
    *
    * @param result the {@link com.devonfw.tools.ide.validation.ValidationResult} from argument parsing.
-   * @param commandlet the {@link Commandlet} that was being executed.
+   * @param commandlet the {@link AbstractCommandlet} that was being executed.
    * @return {@code true} if handled (suggestion provided), {@code false} otherwise.
    */
-  public boolean isInvalidArgumentHandled(ValidationState result, Commandlet commandlet) {
+  public boolean isInvalidArgumentHandled(ValidationState result, AbstractCommandlet commandlet) {
 
     if ((result == null) || (commandlet == null)) {
       return false;
@@ -201,10 +201,10 @@ public class CliSuggester {
   /**
    * Gets all option names for a commandlet.
    *
-   * @param cmd the {@link Commandlet}.
+   * @param cmd the {@link AbstractCommandlet}.
    * @return {@link List} of all option names and aliases.
    */
-  private List<String> getAllOptionNames(Commandlet cmd) {
+  private List<String> getAllOptionNames(AbstractCommandlet cmd) {
 
     List<String> opts = new ArrayList<>();
     for (Property<?> p : cmd.getProperties()) {
@@ -230,7 +230,7 @@ public class CliSuggester {
   private List<String> getAllCommandletNames() {
 
     List<String> names = new ArrayList<>();
-    for (Commandlet cmd : this.context.getCommandletManager().getCommandlets()) {
+    for (AbstractCommandlet cmd : this.context.getCommandletManager().getCommandlets()) {
       names.add(cmd.getName());
     }
     return names;
@@ -244,7 +244,7 @@ public class CliSuggester {
   private List<String> getAllToolNames() {
 
     List<String> names = new ArrayList<>();
-    for (Commandlet cmd : this.context.getCommandletManager().getCommandlets()) {
+    for (AbstractCommandlet cmd : this.context.getCommandletManager().getCommandlets()) {
       if (cmd instanceof ToolCommandlet) {
         names.add(cmd.getName());
       }
@@ -311,4 +311,3 @@ public class CliSuggester {
   }
 
 }
-

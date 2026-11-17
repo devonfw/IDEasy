@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
@@ -96,7 +96,7 @@ public class UrlMetadata implements AbstractUrlMetadata {
   }
 
   @Override
-  public List<VersionIdentifier> getSortedVersions(String tool, String edition, ToolCommandlet toolCommandlet) {
+  public List<VersionIdentifier> getSortedVersions(String tool, String edition, AbstractToolCommandlet toolCommandlet) {
 
     String key = tool + "/" + edition;
     return this.toolEdition2VersionMap.computeIfAbsent(key, k -> computeSortedVersions(tool, edition));
@@ -126,11 +126,11 @@ public class UrlMetadata implements AbstractUrlMetadata {
    * @param edition the name of the {@link UrlEdition}.
    * @param version the {@link GenericVersionRange} to match. May be a {@link VersionIdentifier#isPattern() pattern}, a specific version or {@code null} for
    *     the latest version.
-   * @param toolCommandlet the {@link ToolCommandlet}.
+   * @param toolCommandlet the {@link AbstractToolCommandlet}.
    * @return the latest matching {@link VersionIdentifier} for the given {@code tool} and {@code edition}.
    */
   @Override
-  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, ToolCommandlet toolCommandlet) {
+  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, AbstractToolCommandlet toolCommandlet) {
 
     List<VersionIdentifier> versions = getSortedVersions(tool, edition, toolCommandlet);
     return VersionIdentifier.resolveVersionPattern(version, versions);
@@ -141,10 +141,10 @@ public class UrlMetadata implements AbstractUrlMetadata {
    * @param edition the name of the {@link UrlEdition}.
    * @param version the {@link GenericVersionRange} to match. May be a {@link VersionIdentifier#isPattern() pattern}, a specific version or {@code null} for
    *     the latest version.
-   * @param toolCommandlet the {@link ToolCommandlet}.
+   * @param toolCommandlet the {@link AbstractToolCommandlet}.
    * @return the latest matching {@link UrlVersion} for the given {@code tool} and {@code edition}.
    */
-  public UrlVersion getVersionFolder(String tool, String edition, GenericVersionRange version, ToolCommandlet toolCommandlet) {
+  public UrlVersion getVersionFolder(String tool, String edition, GenericVersionRange version, AbstractToolCommandlet toolCommandlet) {
 
     VersionIdentifier resolvedVersion = resolveVersion(tool, edition, version, toolCommandlet);
     UrlVersion urlVersion = getEdition(tool, edition).getChild(resolvedVersion.toString());

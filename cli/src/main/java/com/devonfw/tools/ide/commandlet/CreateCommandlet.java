@@ -15,7 +15,7 @@ import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
- * {@link Commandlet} to create a new IDEasy instance
+ * {@link AbstractCommandlet} to create a new IDEasy instance
  */
 public class CreateCommandlet extends AbstractUpdateCommandlet {
 

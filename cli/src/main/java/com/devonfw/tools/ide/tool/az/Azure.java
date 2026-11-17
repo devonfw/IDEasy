@@ -7,16 +7,15 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.EnvironmentContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.python.Python;
 
 /**
- * {@link ToolCommandlet} for azure CLI (azure).
+ * {@link AbstractToolCommandlet} for azure CLI (azure).
  */
 
-public class Azure extends LocalToolCommandlet {
+public class Azure extends AbstractLocalToolCommandlet {
 
   /**
    * The constructor.

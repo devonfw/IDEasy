@@ -13,10 +13,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.tool.npm.Npm;
 
 /**
  * Tests of {@link SystemPath}.
@@ -166,6 +168,26 @@ class SystemPathTest extends AbstractIdeContextTest {
     String pathString = systemPath.toString();
     assertThat(pathString.indexOf(npmTool.resolve("bin").toString()))
         .isNotNegative().isLessThan(pathString.indexOf(nodeTool.toString()));
+  }
+
+  @Test
+  void testGlobalNpmPackagesInSoftwareNpmGlobalAreOnPath() throws IOException {
+    // arrange - npm's per-project global prefix is software/node_modules. npm places its global shims in <prefix>/bin on POSIX but in the prefix root
+    // on Windows, so the generic software scan (bin/ subdir if present, else the tool dir) picks the right entry on both platforms without special-casing.
+    IdeTestContext context = newContext(PROJECT_BASIC, "project/workspaces", true);
+    Path globalBin = context.getSystemInfo().isWindows() ? context.getSoftwarePath().resolve(Npm.NPM_GLOBAL_FOLDER)
+        : context.getSoftwarePath().resolve(Npm.NPM_GLOBAL_FOLDER).resolve(IdeContext.FOLDER_BIN);
+    Path globalPackage = globalBin.resolve("fakeglobal");
+    Files.createDirectories(globalBin);
+    Files.writeString(globalPackage, "fake");
+    SystemPath systemPath = new SystemPath(context, "", context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
+
+    // act
+    Path resolved = systemPath.findBinary(Path.of("fakeglobal"));
+
+    // assert - the globally installed npm package is resolvable through the generic software PATH scan
+    assertThat(resolved).isEqualTo(globalPackage);
+    assertThat(systemPath.toString()).contains(globalBin.toString());
   }
 
   @Test

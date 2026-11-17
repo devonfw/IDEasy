@@ -15,14 +15,16 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemArchitecture;
-import com.devonfw.tools.ide.tool.EditionAndVersion;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
+import com.devonfw.tools.ide.tool.PackageManagerCommand;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -36,11 +38,19 @@ public class Docker extends GlobalToolCommandlet {
 
   private static final String PODMAN = "podman";
 
+  /** The {@link #getWindowsRegistryAppNames() edition name} of Docker Desktop. */
+  private static final String DOCKER_EDITION = "docker";
+
+  /** The {@link #getWindowsRegistryAppNames() edition name} of Rancher Desktop. */
+  private static final String RANCHER_EDITION = "rancher";
+
   private static final String FOLDER_RANCHER_DESKTOP = ".rd";
 
-  private static final Pattern RDCTL_CLIENT_VERSION_PATTERN = Pattern.compile("client version:\\s*v?([\\d.]+)", Pattern.CASE_INSENSITIVE);
-
   private static final Pattern DOCKER_DESKTOP_VERSION_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+){1,2})");
+
+  private static final String EDITION_DOCKER = "docker";
+
+  private Path downloadedDebPackageForDocker;
 
   /**
    * The constructor.
@@ -55,14 +65,6 @@ public class Docker extends GlobalToolCommandlet {
   @Override
   public String getBinaryName() {
     return detectContainerRuntime();
-  }
-
-  private boolean isDockerInstalled() {
-    return resolveDockerCommand("docker") != null;
-  }
-
-  private boolean isRancherDesktopInstalled() {
-    return resolveDockerCommand("rdctl") != null;
   }
 
   private String detectContainerRuntime() {
@@ -101,6 +103,34 @@ public class Docker extends GlobalToolCommandlet {
 
   @Override
   protected List<NativePackage> getNativePackages() {
+
+    if (isDockerDesktopEditionConfigured()) {
+
+      List<Path> artifactPaths = (this.downloadedDebPackageForDocker == null) ? List.of() : List.of(this.downloadedDebPackageForDocker);
+
+      return List.of(
+          new NativePackage(
+              NativePackageManager.APT,
+              List.of("docker-desktop"),
+              List.of("--allow-downgrades"),
+              List.of(
+                  "sudo install -m 0755 -d /etc/apt/keyrings",
+                  "sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc",
+                  "sudo chmod a+r /etc/apt/keyrings/docker.asc",
+                  "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] "
+                      + "https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo \\\"$VERSION_CODENAME\\\") stable\" | "
+                      + "sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
+                  "sudo apt update"
+              ),
+              List.of(
+                  "sudo rm -f /etc/apt/sources.list.d/docker.list",
+                  "sudo rm -f /etc/apt/keyrings/docker.asc"
+              ),
+              artifactPaths
+          )
+      );
+    }
+
     return List.of(
         new NativePackage(
             NativePackageManager.ZYPPER,
@@ -151,6 +181,35 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   @Override
+  protected ToolInstallation doInstall(ToolInstallRequest request) {
+
+    boolean dockerDesktop = isDockerDesktopEditionConfigured();
+    if (dockerDesktop) {
+      downloadDebPackageStepAndSetPackagePath(request.getRequested().getResolvedVersion());
+    }
+    ToolInstallation installation = super.doInstall(request);
+    if (!dockerDesktop && this.context.getSystemInfo().isLinux() && !Files.isDirectory(getRancherDesktopBinDir())) {
+      throw new CliException("Rancher Desktop has been installed but not launched yet. Please start Rancher Desktop once so that it sets up its "
+          + "command-line tools (docker, kubectl, ...) in " + getRancherDesktopBinDir() + ", then re-run your command.", 2);
+    }
+    return installation;
+  }
+
+  private void downloadDebPackageStepAndSetPackagePath(VersionIdentifier resolvedVersion) {
+    ToolRepository toolRepository = this.context.getDefaultToolRepository();
+    this.downloadedDebPackageForDocker = toolRepository.download(this.tool, EDITION_DOCKER, resolvedVersion, this);
+  }
+
+  @Override
+  protected List<PackageManagerCommand> getInstallPackageManagerCommands(VersionIdentifier resolvedVersion) {
+    if (!isDockerDesktopEditionConfigured()) {
+      return super.getInstallPackageManagerCommands(resolvedVersion);
+    }
+
+    return getNativePackages().stream().map(nativePackage -> nativePackage.install(null)).toList();
+  }
+
+  @Override
   public boolean isExtract() {
 
     return switch (this.context.getSystemInfo().getOs()) {
@@ -161,56 +220,40 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   @Override
-  protected ToolInstallation doInstall(ToolInstallRequest request) {
+  protected List<String> getEditionNames() {
 
-    ToolInstallation installation = super.doInstall(request);
-    if (this.context.getSystemInfo().isLinux() && !Files.isDirectory(getRancherDesktopBinDir())) {
-      throw new CliException("Rancher Desktop has been installed but not launched yet. Please start Rancher Desktop once so that it sets up its "
-          + "command-line tools (docker, kubectl, ...) in " + getRancherDesktopBinDir() + ", then re-run your command.", 2);
-    }
-    return installation;
+    // probed in order, so on Windows the default edition (docker) is preferred over rancher when both are present.
+    return List.of(DOCKER_EDITION, RANCHER_EDITION);
   }
 
+  /**
+   * Resolves the installed version of the given edition on Linux and macOS (on Windows the base class reads the version from the registry via
+   * {@link #getWindowsRegistryAppNames()} instead, so this method is not called there). Both editions resolve the same way on each OS: the {@code docker}
+   * edition reads the Docker Desktop version ({@code docker-desktop} package on Linux, {@code Docker.app} bundle on macOS) and the {@code rancher} edition
+   * reads Rancher Desktop (the {@code rancher-desktop} package on Linux, the {@code Rancher Desktop.app} bundle on macOS).
+   */
   @Override
-  protected EditionAndVersion computeInstalledEditionAndVersion() {
+  protected VersionIdentifier getInstalledVersionForEdition(String edition) {
 
-    if (!isDockerInstalled()) {
-      return null;
+    if (DOCKER_EDITION.equals(edition)) {
+      return switch (this.context.getSystemInfo().getOs()) {
+        case LINUX -> getDockerDesktopVersionLinux();
+        case MAC -> getDockerDesktopVersionMac();
+        default -> null;
+      };
     }
-
-    String rdctl = resolveDockerCommand("rdctl");
-    if (rdctl != null) {
-      VersionIdentifier version = getRancherDesktopClientVersion(rdctl);
-      if (version == null) {
-        version = getNativePackageVersion();
-      }
-      return new EditionAndVersion("rancher", version);
-    }
-
-    // Docker Desktop: the edition is always "docker" (matching getWindowsRegistryAppNames()); on Windows it is
-    // resolved from the registry by super. Only the version source differs per OS: Windows reads the registry app
-    // version, Linux the docker-desktop package version, macOS the Docker.app bundle version.
-    VersionIdentifier version = switch (this.context.getSystemInfo().getOs()) {
-      case WINDOWS -> {
-        EditionAndVersion fromRegistry = super.computeInstalledEditionAndVersion();
-        yield (fromRegistry != null) ? fromRegistry.version() : null;
-      }
-      case LINUX -> getDockerDesktopVersionLinux();
-      case MAC -> getDockerDesktopVersionMac();
+    // the rancher edition is installed via the native package manager on Linux or from the app bundle on macOS
+    return switch (this.context.getSystemInfo().getOs()) {
+      case LINUX -> getNativePackageVersion();
+      case MAC -> getRancherDesktopVersionMac();
       default -> null;
     };
-
-    if (version == null) {
-      LOG.error("Couldn't get installed version of " + this.getName());
-    }
-
-    return new EditionAndVersion("docker", version);
   }
 
   @Override
   public Map<String, String> getWindowsRegistryAppNames() {
 
-    return Map.of("docker", "Docker Desktop", "rancher", "Rancher Desktop");
+    return Map.of(DOCKER_EDITION, "Docker Desktop", RANCHER_EDITION, "Rancher Desktop");
   }
 
   private VersionIdentifier getDockerDesktopVersionLinux() {
@@ -224,23 +267,35 @@ public class Docker extends GlobalToolCommandlet {
 
   private VersionIdentifier getDockerDesktopVersionMac() {
 
-    String dockerDesktopVersionMacCommand = "plutil -extract CFBundleShortVersionString raw /Applications/Docker.app/Contents/Info.plist";
-    // Log a warning and return null (instead of throwing) when the command produces no usable output, e.g. when
-    // Docker Desktop is not installed at /Applications/Docker.app.
-    String output = this.context.newProcess().runAndGetSingleOutput(IdeLogLevel.WARNING, "bash", "-lc", dockerDesktopVersionMacCommand);
+    return getMacAppVersion("/Applications/Docker.app");
+  }
+
+  private VersionIdentifier getRancherDesktopVersionMac() {
+
+    return getMacAppVersion("/Applications/Rancher Desktop.app");
+  }
+
+  /**
+   * Reads the installed version of a macOS application bundle (e.g. {@code Docker.app} or {@code Rancher Desktop.app}) from its
+   * {@code CFBundleShortVersionString}.
+   *
+   * @param appBundlePath the absolute path to the {@code .app} bundle, e.g. {@code /Applications/Docker.app}.
+   * @return the version read from the bundle or {@code null} if the bundle is not installed or its version cannot be determined.
+   */
+  private VersionIdentifier getMacAppVersion(String appBundlePath) {
+
+    // Call plutil directly rather than through `bash -lc` so the app bundle path (which contains a space for
+    // "Rancher Desktop.app") is passed as a single, correctly quoted argument. A missing bundle makes plutil exit
+    // non-zero - that is a legitimate "not installed" case, so swallow the failure and report the edition as not
+    // installed so the other editions are still probed.
+    String output = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE)
+        .runAndGetSingleOutput(IdeLogLevel.WARNING, "plutil", "-extract", "CFBundleShortVersionString", "raw",
+            appBundlePath + "/Contents/Info.plist");
     return (output != null) ? resolveVersionWithPattern(output, DOCKER_DESKTOP_VERSION_PATTERN) : null;
   }
 
-  private VersionIdentifier getRancherDesktopClientVersion(String rdctl) {
-
-    // rdctl may be on the PATH as a dangling symlink (e.g. Rancher Desktop was removed but ~/.rd/bin remained) so executing it can fail to start the process
-    try {
-      String output = this.context.newProcess().runAndGetSingleOutput(rdctl, "version");
-      return resolveVersionWithPattern(output, RDCTL_CLIENT_VERSION_PATTERN);
-    } catch (IllegalStateException e) {
-      LOG.warn("Could not determine the installed Rancher Desktop version - rdctl could not be executed: {}", e.getMessage());
-      return null;
-    }
+  private boolean isDockerDesktopEditionConfigured() {
+    return EDITION_DOCKER.equals(getConfiguredEdition());
   }
 
   @Override

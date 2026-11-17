@@ -298,6 +298,12 @@ public interface FileAccess {
   void compressTarBzip2(Path dir, OutputStream out);
 
   /**
+   * @param dir the {@link Path directory} to compress as TXZ.
+   * @param out the {@link OutputStream} to write the compressed data to.
+   */
+  void compressTarXz(Path dir, OutputStream out);
+
+  /**
    * @param dir the {@link Path directory} to compress as ZIP.
    * @param out the {@link OutputStream} to write the compressed data to.
    */

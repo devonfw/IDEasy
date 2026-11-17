@@ -98,3 +98,8 @@ See also our latest video https://vimeo.com/808368450/88d4af9d18[devon ide updat
 == License 
 
 * link:./LICENSE[License]
+
+== Sponsors
+
+|===
+|image:https://signpath.org/assets/favicon-50x50.png["signpath.io",link=https://signpath.io/] |Free code signing on Windows provided by https://signpath.io/[SignPath.io], certificate by https://signpath.org/[SignPath Foundation]

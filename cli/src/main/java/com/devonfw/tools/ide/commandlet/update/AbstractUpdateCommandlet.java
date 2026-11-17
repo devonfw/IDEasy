@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.commandlet.update;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliFatalException;
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CreateCommandlet;
 import com.devonfw.tools.ide.commandlet.update.settings.SettingsHealthCheckResult;
@@ -25,31 +27,36 @@ import com.devonfw.tools.ide.commandlet.update.settings.SettingsUpdater;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.git.repository.RepositoryType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.tool.ToolInstallTracker;
 import com.devonfw.tools.ide.tool.custom.CustomToolCommandlet;
 import com.devonfw.tools.ide.tool.custom.CustomToolMetadata;
 import com.devonfw.tools.ide.tool.extra.ExtraToolInstallation;
 import com.devonfw.tools.ide.tool.extra.ExtraTools;
 import com.devonfw.tools.ide.tool.extra.ExtraToolsMapper;
+import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Abstract {@link Commandlet} base-class for both {@link UpdateCommandlet} and {@link CreateCommandlet}.
+ * Abstract {@link AbstractCommandlet} base-class for both {@link UpdateCommandlet} and {@link CreateCommandlet}.
  */
-public abstract class AbstractUpdateCommandlet extends Commandlet {
+public abstract class AbstractUpdateCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractUpdateCommandlet.class);
+
+  private static final Set<String> TEXTUAL_EXTENSIONS = Set.of("txt", "adoc", "xml", "json", "md", "asciidoc", "yaml", "yml", "properties");
 
   /** {@link StringProperty} for the settings repository URL. */
   public final StringProperty settingsRepo;
@@ -95,7 +102,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     startContext.setForceRepositories(forceRepositories.isTrue());
 
     updateSettings();
-    updateConf();
+    updateProjectTemplates();
     reloadContext();
     this.context.verifyIdeMinVersion(true);
 
@@ -118,7 +125,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     ((AbstractIdeContext) this.context).reload();
   }
 
-  private void updateConf() {
+  private void updateProjectTemplates() {
 
     Path templatesFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES);
     if (!Files.exists(templatesFolder)) {
@@ -133,34 +140,67 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     Step step = this.context.newStep("Copy configuration templates", templatesFolder);
     final Path finalTemplatesFolder = templatesFolder;
-    step.run(() -> setupConf(finalTemplatesFolder, this.context.getIdeHome()));
+    step.run(() -> setupProjectTemplates(finalTemplatesFolder, this.context.getIdeHome()));
   }
 
-  private void setupConf(Path template, Path conf) {
+  private void setupProjectTemplates(Path templatePath, Path projectPath) {
 
-    List<Path> children = this.context.getFileAccess().listChildren(template, f -> true);
-    for (Path child : children) {
+    EnvironmentVariables variables = this.context.getVariables();
+    List<Path> templateChildren = this.context.getFileAccess().listChildren(templatePath, f -> true);
+    for (Path templateChild : templateChildren) {
 
-      String basename = child.getFileName().toString();
-      Path confPath = conf.resolve(basename);
+      String basename = templateChild.getFileName().toString();
+      Path projectChild = projectPath.resolve(basename);
 
-      if (Files.isDirectory(child)) {
-        if (!Files.isDirectory(confPath)) {
-          this.context.getFileAccess().mkdirs(confPath);
+      if (Files.isDirectory(templateChild)) {
+        if (!Files.isDirectory(projectChild)) {
+          this.context.getFileAccess().mkdirs(projectChild);
         }
-        setupConf(child, confPath);
-      } else if (Files.isRegularFile(child)) {
-        if (Files.isRegularFile(confPath)) {
-          LOG.debug("Configuration {} already exists - skipping to copy from {}", confPath, child);
+        setupProjectTemplates(templateChild, projectChild);
+      } else if (Files.isRegularFile(templateChild)) {
+        if (Files.isRegularFile(projectChild)) {
+          LOG.debug("Configuration {} already exists - skipping to instantiate from {}", projectChild, templateChild);
         } else {
-          if (!basename.equals("settings.xml")) {
-            LOG.info("Copying template {} to {}.", child, conf);
-            this.context.getFileAccess().copy(child, conf);
+          if (basename.equals("settings.xml")) {
+            LOG.debug("Skipping settings.xml that will later be instantiated via mvn.");
+          } else {
+            this.context.newStep("Instantiate template", templateChild, projectChild).run(() ->
+                setupProjectTemplate(templateChild, projectChild, variables));
           }
         }
       }
     }
   }
+
+  private void setupProjectTemplate(Path templateFile, Path projectFile, EnvironmentVariables variables) {
+    String basename = templateFile.getFileName().toString();
+    String extension = FilenameUtil.getExtension(basename);
+    if (TEXTUAL_EXTENSIONS.contains(extension)) {
+      instantiateProjectTemplate(templateFile, projectFile, variables);
+    } else {
+      this.context.getFileAccess().copy(templateFile, projectFile.getParent());
+    }
+  }
+
+  private void instantiateProjectTemplate(Path templateFile, Path projectFile, EnvironmentVariables variables) {
+
+    try (BufferedReader reader = Files.newBufferedReader(templateFile);
+        BufferedWriter writer = Files.newBufferedWriter(projectFile)
+    ) {
+      String line;
+      do {
+        line = reader.readLine();
+        if (line != null) {
+          String resolvedLine = variables.resolve(line, templateFile, false);
+          writer.write(resolvedLine);
+          writer.write('\n');
+        }
+      } while (line != null);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to instantiate template ", e);
+    }
+  }
+
 
   /**
    * Updates the settings repository in IDE_HOME/settings by either cloning if no such repository exists or pulling if the repository exists then saves the
@@ -255,13 +295,13 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   private void doUpdateSoftwareStep(Step step) {
 
-    Set<ToolCommandlet> toolCommandlets = new HashSet<>();
+    Set<AbstractToolCommandlet> toolCommandlets = new HashSet<>();
     CommandletManager commandletManager = this.context.getCommandletManager();
     // installed tools in IDE_HOME/software
     List<Path> softwarePaths = this.context.getFileAccess().listChildren(this.context.getSoftwarePath(), Files::isDirectory);
     for (Path softwarePath : softwarePaths) {
       String toolName = softwarePath.getFileName().toString();
-      ToolCommandlet toolCommandlet = commandletManager.getToolCommandlet(toolName);
+      AbstractToolCommandlet toolCommandlet = commandletManager.getToolCommandlet(toolName);
       if (toolCommandlet != null) {
         toolCommandlets.add(toolCommandlet);
       }
@@ -271,7 +311,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     List<String> regularTools = IdeVariables.IDE_TOOLS.get(this.context);
     if (regularTools != null) {
       for (String regularTool : regularTools) {
-        ToolCommandlet toolCommandlet = commandletManager.getToolCommandlet(regularTool);
+        AbstractToolCommandlet toolCommandlet = commandletManager.getToolCommandlet(regularTool);
         if (toolCommandlet == null) {
           String displayName = (regularTool == null || regularTool.isBlank()) ? "<empty>" : "'" + regularTool + "'";
           LOG.error("Cannot install or update tool '{}''. No matching commandlet found. Please check your IDE_TOOLS configuration.", displayName);
@@ -287,9 +327,13 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       toolCommandlets.add(customToolCommandlet);
     }
 
+    // Track tools installed during this operation so a shared dependency is not installed and CVE-checked redundantly. A single tracker is shared across
+    // all tools so cross-tool references are deduplicated too - see https://github.com/devonfw/IDEasy/issues/945
+    ToolInstallTracker tracker = new ToolInstallTracker();
+
     // update/install the toolCommandlets
-    for (ToolCommandlet toolCommandlet : toolCommandlets) {
-      this.context.newStep("Install " + toolCommandlet.getName()).run(() -> toolCommandlet.install(false));
+    for (AbstractToolCommandlet toolCommandlet : toolCommandlets) {
+      this.context.newStep("Install " + toolCommandlet.getName()).run(() -> toolCommandlet.install(tracker));
     }
 
     ExtraTools extraTools = ExtraToolsMapper.get().loadJsonFromFolder(this.context.getSettingsPath());
@@ -298,18 +342,18 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       LOG.info("Found extra installation of the following tools: {}", toolNames);
       for (String tool : toolNames) {
         List<ExtraToolInstallation> installations = extraTools.getExtraInstallations(tool);
-        this.context.newStep("Install extra version(s) of " + tool).run(() -> installExtraToolInstallations(tool, installations));
+        this.context.newStep("Install extra version(s) of " + tool).run(() -> installExtraToolInstallations(tool, installations, tracker));
       }
     }
 
   }
 
-  private void installExtraToolInstallations(String tool, List<ExtraToolInstallation> extraInstallations) {
+  private void installExtraToolInstallations(String tool, List<ExtraToolInstallation> extraInstallations, ToolInstallTracker tracker) {
 
     CommandletManager commandletManager = this.context.getCommandletManager();
     FileAccess fileAccess = this.context.getFileAccess();
     Path extraPath = this.context.getSoftwareExtraPath();
-    LocalToolCommandlet toolCommandlet = commandletManager.getRequiredLocalToolCommandlet(tool);
+    AbstractLocalToolCommandlet toolCommandlet = commandletManager.getRequiredLocalToolCommandlet(tool);
     for (ExtraToolInstallation extraInstallation : extraInstallations) {
       ToolInstallRequest request = new ToolInstallRequest(false);
       String edition = extraInstallation.edition();
@@ -322,6 +366,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       Path extraToolPath = extraPath.resolve(tool);
       Path toolPath = extraToolPath.resolve(extraInstallation.name());
       request.setToolPathForExtraInstallation(toolPath);
+      request.setTracker(tracker);
       toolCommandlet.install(request);
     }
   }
@@ -348,7 +393,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       return;
     }
     for (String ide : ides) {
-      ToolCommandlet tool = this.context.getCommandletManager().getToolCommandlet(ide);
+      AbstractToolCommandlet tool = this.context.getCommandletManager().getToolCommandlet(ide);
       if (tool == null) {
         LOG.error("Undefined IDE '{}' configured in variable CREATE_START_SCRIPTS.", ide);
       } else {

@@ -16,6 +16,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.DosFileAttributeView;
 import java.nio.file.attribute.FileTime;
@@ -53,6 +54,7 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipParameters;
+import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +66,7 @@ import com.devonfw.tools.ide.io.ini.IniFile;
 import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -192,24 +195,23 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
   private void copyFileWithProgressBar(Path source, Path target) {
 
+    copyWithProgressBar(source, target, FileCopyMode.COPY_FILE_TO_TARGET_OVERRIDE);
+  }
+
+  private void copyWithProgressBar(Path source, Path target, FileCopyMode mode) {
+
+    copyWithProgressBar(source, target, mode, false);
+  }
+
+  private void copyWithProgressBar(Path source, Path target, FileCopyMode mode, boolean preserveSymbolicLinks) {
+
     long size = getFileSize(source);
     if (size < 100_000) {
-      copy(source, target, FileCopyMode.COPY_FILE_TO_TARGET_OVERRIDE);
+      copy(source, target, mode, PathCopyListener.NONE, null, preserveSymbolicLinks);
       return;
     }
-    try (InputStream in = Files.newInputStream(source); OutputStream out = Files.newOutputStream(target)) {
-      byte[] buf = new byte[1024];
-      try (IdeProgressBar pb = this.context.newProgressbarForCopying(size)) {
-        int readBytes;
-        while ((readBytes = in.read(buf)) > 0) {
-          out.write(buf, 0, readBytes);
-          pb.stepBy(readBytes);
-        }
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to copy from " + source + " to " + target, e);
+    try (IdeProgressBar pb = this.context.newProgressbarForCopying(size)) {
+      copy(source, target, mode, PathCopyListener.NONE, pb, preserveSymbolicLinks);
     }
   }
 
@@ -359,6 +361,12 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void copy(Path source, Path target, FileCopyMode mode, PathCopyListener listener) {
 
+    copy(source, target, mode, listener, null, false);
+  }
+
+  private void copy(Path source, Path target, FileCopyMode mode, PathCopyListener listener, IdeProgressBar progressBar,
+      boolean preserveSymbolicLinks) {
+
     if (mode.isUseSourceFilename()) {
       // if we want to copy the file or folder "source" to the existing folder "target" in a shell this will copy
       // source into that folder so that we as a result have a copy in "target/source".
@@ -395,33 +403,57 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       delete(target);
     }
     try {
-      copyRecursive(source, target, mode, listener);
+      copyRecursive(source, target, mode, listener, progressBar, preserveSymbolicLinks);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to " + operation + " " + source + " to " + target, e);
     }
   }
 
-  private void copyRecursive(Path source, Path target, FileCopyMode mode, PathCopyListener listener) throws IOException {
+  private void copyRecursive(Path source, Path target, FileCopyMode mode, PathCopyListener listener, IdeProgressBar progressBar,
+      boolean preserveSymbolicLinks) throws IOException {
 
-    if (Files.isDirectory(source)) {
+    boolean symbolicLink = preserveSymbolicLinks && Files.isSymbolicLink(source);
+    if (!symbolicLink && Files.isDirectory(source)) {
       mkdirs(target);
       try (Stream<Path> childStream = Files.list(source)) {
         Iterator<Path> iterator = childStream.iterator();
         while (iterator.hasNext()) {
           Path child = iterator.next();
-          copyRecursive(child, target.resolve(child.getFileName().toString()), mode, listener);
+          copyRecursive(child, target.resolve(child.getFileName().toString()), mode, listener, progressBar, preserveSymbolicLinks);
         }
       }
       listener.onCopy(source, target, true);
-    } else if (Files.exists(source)) {
+    } else if (symbolicLink || Files.exists(source)) {
       if (mode.isOverride()) {
         delete(target);
       }
       LOG.trace("Starting to {} {} to {}", mode.getOperation(), source, target);
-      Files.copy(source, target);
+      if (symbolicLink) {
+        Files.copy(source, target, LinkOption.NOFOLLOW_LINKS);
+      } else if (progressBar == null) {
+        Files.copy(source, target);
+      } else {
+        copyFileBytes(source, target, progressBar);
+      }
       listener.onCopy(source, target, false);
     } else {
       throw new IOException("Path " + source + " does not exist.");
+    }
+  }
+
+  private void copyFileBytes(Path source, Path target, IdeProgressBar progressBar) throws IOException {
+
+    try (InputStream in = Files.newInputStream(source); OutputStream out = Files.newOutputStream(target, StandardOpenOption.CREATE_NEW)) {
+      byte[] buf = new byte[1024];
+      int readBytes;
+      while ((readBytes = in.read(buf)) > 0) {
+        out.write(buf, 0, readBytes);
+        progressBar.stepBy(readBytes);
+      }
+    }
+    // unlike Files.copy streaming does not carry over the file mode so e.g. executables inside a *.app would break
+    if (!skipPermissionsIfWindows(target)) {
+      Files.setPosixFilePermissions(target, Files.getPosixFilePermissions(source));
     }
   }
 
@@ -1000,18 +1032,28 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
     Path mountPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME);
     mkdirs(mountPath);
-    ProcessContext pc = this.context.newProcess();
-    pc.executable("hdiutil");
-    pc.addArgs("attach", "-quiet", "-nobrowse", "-mountpoint", mountPath, file);
-    pc.run();
-    Path appPath = findFirst(mountPath, p -> p.getFileName().toString().endsWith(".app"), false);
-    if (appPath == null) {
-      throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
-    }
+    boolean mounted = false;
+    try {
+      ProcessContext pc = this.context.newProcess();
+      pc.executable("hdiutil");
+      pc.addArgs("attach", "-quiet", "-nobrowse", "-mountpoint", mountPath, file);
+      pc.run();
+      mounted = true;
+      Path appPath = findFirst(mountPath, p -> p.getFileName().toString().endsWith(".app"), false);
+      if (appPath == null) {
+        throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
+      }
 
-    copy(appPath, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
-    pc.addArgs("detach", "-force", mountPath);
-    pc.run();
+      copyWithProgressBar(appPath, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE, true);
+    } finally {
+      if (mounted) {
+        ProcessContext detach = this.context.newProcess();
+        detach.errorHandling(ProcessErrorHandling.LOG_WARNING);
+        detach.executable("hdiutil");
+        detach.addArgs("detach", "-force", mountPath);
+        detach.run(ProcessMode.DEFAULT_SILENT);
+      }
+    }
   }
 
   @Override
@@ -1143,6 +1185,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       case NONE -> compressTar(dir, out);
       case GZ -> compressTarGz(dir, out);
       case BZIP2 -> compressTarBzip2(dir, out);
+      case XZ -> compressTarXz(dir, out);
       default -> throw new IllegalArgumentException("Unsupported tar compression: " + tarCompression);
     }
   }
@@ -1166,6 +1209,16 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       compressTarOrThrow(dir, bzip2Out);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to compress directory " + dir + " to tar.bz2 file.", e);
+    }
+  }
+
+  @Override
+  public void compressTarXz(Path dir, OutputStream out) {
+
+    try (XZCompressorOutputStream xzOut = new XZCompressorOutputStream(out)) {
+      compressTarOrThrow(dir, xzOut);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to compress directory " + dir + " to tar.xz file.", e);
     }
   }
 
@@ -1417,6 +1470,13 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
   private long getFileSize(Path file) {
 
+    if (Files.isDirectory(file)) {
+      long size = 0;
+      for (Path child : listChildren(file, f -> true)) {
+        size += getFileSize(child);
+      }
+      return size;
+    }
     try {
       return Files.size(file);
     } catch (IOException e) {
@@ -1424,7 +1484,6 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       return 0;
     }
   }
-
 
   @Override
   public Path findExistingFile(String fileName, List<Path> searchDirs) {

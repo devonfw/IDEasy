@@ -11,14 +11,14 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.EnumProperty;
 import com.devonfw.tools.ide.property.PasswordProperty;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 
 /**
- * {@link ToolCommandlet} for <a href="http://www.jasypt.org/">Jasypt</a>, The java library which allows to add basic encryption capabilities with minimum
- * effort.
+ * {@link AbstractToolCommandlet} for <a href="http://www.jasypt.org/">Jasypt</a>, The java library which allows to add basic encryption capabilities with
+ * minimum effort.
  */
-public class Jasypt extends LocalToolCommandlet {
+public class Jasypt extends AbstractLocalToolCommandlet {
 
   /** {@link EnumProperty} for the command (encrypt or decrypt) */
   public final EnumProperty<JasyptCommand> command;
@@ -42,7 +42,7 @@ public class Jasypt extends LocalToolCommandlet {
 
     super(context, "jasypt", Set.of(Tag.JAVA, Tag.ENCRYPTION));
 
-    this.command = add(new EnumProperty<>("", true, "command", JasyptCommand.class));
+    this.command = add(new EnumProperty<>("", true, JasyptCommand.class, "command"));
     this.masterPassword = add(new PasswordProperty("", true, "masterPassword"));
     this.secret = add(new PasswordProperty("", true, "secret"));
   }

@@ -7,7 +7,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -37,8 +37,8 @@ class IdeasyTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that a {@link Commandlet#isProcessableOutput() processable-output} commandlet that throws inside {@link Commandlet#run() run} does not leak
-   * an ERROR-level error block ("An unexpected error occurred! … please file a bug") nor a "Logfile can be found at …" line into the captured log, while
+   * Test that a {@link AbstractCommandlet#isProcessableOutput() processable-output} commandlet that throws inside {@link AbstractCommandlet#run() run} does not
+   * leak an ERROR-level error block ("An unexpected error occurred! … please file a bug") nor a "Logfile can be found at …" line into the captured log, while
    * still marking the step as failed.
    * <p>
    * Regression test: rethrowing the exception made {@link Ideasy#run(String...)} log the error at ERROR level into the machine-consumed (auto-completion)
@@ -66,10 +66,71 @@ class IdeasyTest extends AbstractIdeContextTest {
   }
 
   /**
-   * A minimal {@link Commandlet} that produces processable output (like {@code complete}) but always fails, used to verify how a failure in such a
+   * Test that an unexpected error in a regular (non-processable-output) commandlet reaches {@link BugReportHelper#offerAfterError}, so that the user is
+   * offered the derived bug report and, when declining it, the prefilled issue URL is printed instead.
+   */
+  @Test
+  void testUnexpectedCommandletErrorOffersBugReport() {
+
+    // arrange
+    IdeTestContext context = newContext(Path.of("/"));
+    context.setAnswers("Do not report");
+    context.addCommandlet(new ThrowingCommandlet(context));
+    Ideasy ideasy = new Ideasy(context);
+
+    // act
+    int exitCode = ideasy.run("boom");
+
+    // assert - the unexpected error is the primary outcome (exit code 255)
+    assertThat(exitCode).isEqualTo(255);
+    // assert - the derived bug report summary is shown before the question
+    assertThat(context).logAtInteraction().hasMessageContaining("Title: IllegalStateException: boom");
+    assertThat(context).logAtInteraction().hasMessageContaining("Actual behaviour: java.lang.IllegalStateException: boom");
+    assertThat(context).logAtInteraction().hasMessageContaining("Do you want to create a bug report for this error?");
+    // assert - declining offers the prefilled issue URL and nothing is reported
+    assertThat(context).logAtInfo().hasMessageContaining("You can also open the prefilled issue URL later:");
+    assertThat(context).logAtInfo().hasMessageContaining(BugReportHelper.createIssueUrl("IllegalStateException: boom"));
+  }
+
+  /**
+   * A minimal {@link AbstractCommandlet} that always fails with an unexpected {@link IllegalStateException}, used to verify that the user is offered to
+   * create a bug report after an unexpected error.
+   */
+  private static final class ThrowingCommandlet extends AbstractCommandlet {
+
+    /**
+     * @param context the {@link IdeContext}.
+     */
+    ThrowingCommandlet(IdeContext context) {
+
+      super(context);
+      addKeyword("boom");
+    }
+
+    @Override
+    public String getName() {
+
+      return "boom";
+    }
+
+    @Override
+    public boolean isIdeRootRequired() {
+
+      return false;
+    }
+
+    @Override
+    protected void doRun() {
+
+      throw new IllegalStateException("boom");
+    }
+  }
+
+  /**
+   * A minimal {@link AbstractCommandlet} that produces processable output (like {@code complete}) but always fails, used to verify how a failure in such a
    * commandlet is reported.
    */
-  private static final class ThrowingProcessableCommandlet extends Commandlet {
+  private static final class ThrowingProcessableCommandlet extends AbstractCommandlet {
 
     /**
      * @param context the {@link IdeContext}.
@@ -144,8 +205,7 @@ class IdeasyTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that running 'ide' without arguments does not trigger any tool installation.
-   * Verifies fix for issue #1667.
+   * Test that running 'ide' without arguments does not trigger any tool installation. Verifies fix for issue #1667.
    */
   @Test
   public void testRunWithoutArgumentsDoesNotTriggerInstallation() {

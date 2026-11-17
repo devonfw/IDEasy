@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.commandlet.InstallCommandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
@@ -24,12 +24,12 @@ class VersionPropertyTest {
     IdeContext context = new IdeTestContext();
     VersionProperty versionProp = new VersionProperty("", false, "");
 
-    assertThat(versionProp.parse("1", context)).isEqualTo(VersionIdentifier.of("1"));
-    assertThat(versionProp.parse("4.2-beta", context)).isEqualTo(VersionIdentifier.of("4.2-beta"));
+    assertThat(versionProp.parse("1", context)).isEqualTo(VersionIdentifier.ofRequired("1"));
+    assertThat(versionProp.parse("4.2-beta", context)).isEqualTo(VersionIdentifier.ofRequired("4.2-beta"));
   }
 
   /**
-   * Test of {@link VersionProperty#completeValue(String, IdeContext, Commandlet, CompletionCandidateCollector)}. When a commandlet that does not handle
+   * Test of {@link VersionProperty#completeValue(String, IdeContext, AbstractCommandlet, CompletionCandidateCollector)}. When a commandlet that does not handle
    * versions is provided as argument, we except on versions as candidates to be returned.
    */
   @Test
@@ -44,8 +44,8 @@ class VersionPropertyTest {
   }
 
   /**
-   * Test of {@link VersionProperty#completeValue(String, IdeContext, Commandlet, CompletionCandidateCollector)}. When a pattern is provided as argument to be
-   * completed, we expect this argument to be kept as is, and given as the sole candidate.
+   * Test of {@link VersionProperty#completeValue(String, IdeContext, AbstractCommandlet, CompletionCandidateCollector)}. When a pattern is provided as argument
+   * to be completed, we expect this argument to be kept as is, and given as the sole candidate.
    */
   @Test
   void testCompleteValuePatternGiven() {

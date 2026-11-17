@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -22,7 +23,8 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.BuildTool;
+import com.devonfw.tools.ide.tool.agy.Agy;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
 import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
@@ -33,8 +35,10 @@ import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.docker.Docker;
 import com.devonfw.tools.ide.tool.dotnet.DotNet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
+import com.devonfw.tools.ide.tool.flutter.Flutter;
 import com.devonfw.tools.ide.tool.gcloganalyzer.GcLogAnalyzer;
 import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
+import com.devonfw.tools.ide.tool.gemini.Gemini;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.go.Go;
 import com.devonfw.tools.ide.tool.graalvm.GraalVm;
@@ -50,7 +54,9 @@ import com.devonfw.tools.ide.tool.just.Just;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.kubectl.KubeCtl;
+import com.devonfw.tools.ide.tool.kubelinter.KubeLinter;
 import com.devonfw.tools.ide.tool.lazydocker.LazyDocker;
+import com.devonfw.tools.ide.tool.mn.Micronaut;
 import com.devonfw.tools.ide.tool.msvc.Msvc;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.mvnd.Mvnd;
@@ -60,6 +66,7 @@ import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.obsidian.Obsidian;
 import com.devonfw.tools.ide.tool.oc.Oc;
+import com.devonfw.tools.ide.tool.ollama.Ollama;
 import com.devonfw.tools.ide.tool.pgadmin.PgAdmin;
 import com.devonfw.tools.ide.tool.pip.Pip;
 import com.devonfw.tools.ide.tool.pycharm.Pycharm;
@@ -68,6 +75,7 @@ import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.ruby.Ruby;
 import com.devonfw.tools.ide.tool.ruff.Ruff;
 import com.devonfw.tools.ide.tool.rust.Rust;
+import com.devonfw.tools.ide.tool.snyk.Snyk;
 import com.devonfw.tools.ide.tool.soapui.SoapUi;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.spring.Spring;
@@ -87,18 +95,15 @@ public class CommandletManagerImpl implements CommandletManager {
 
   private static final Logger LOG = LoggerFactory.getLogger(CommandletManagerImpl.class);
 
-  /** The build commandlets in order of priority - the first one with a matching build descriptor wins. */
-  private static final List<Class<? extends LocalToolCommandlet>> BUILD_TOOLS = List.of(Mvn.class, Gradle.class, Yarn.class, Npm.class);
-
   private final IdeContext context;
 
-  private final Map<Class<? extends Commandlet>, Commandlet> commandletTypeMap;
+  private final Map<Class<? extends AbstractCommandlet>, AbstractCommandlet> commandletTypeMap;
 
-  private final Map<String, Commandlet> commandletNameMap;
+  private final Map<String, AbstractCommandlet> commandletNameMap;
 
-  private final Map<String, Commandlet> firstKeywordMap;
+  private final Map<String, AbstractCommandlet> firstKeywordMap;
 
-  private final Collection<Commandlet> commandlets;
+  private final Collection<AbstractCommandlet> commandlets;
 
   /**
    * The constructor.
@@ -109,7 +114,7 @@ public class CommandletManagerImpl implements CommandletManager {
 
     super();
     this.context = context;
-    this.commandletTypeMap = new HashMap<>();
+    this.commandletTypeMap = new LinkedHashMap<>();
     this.commandletNameMap = new HashMap<>();
     this.firstKeywordMap = new HashMap<>();
     this.commandlets = Collections.unmodifiableCollection(this.commandletTypeMap.values());
@@ -145,8 +150,8 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Java(context));
     add(new Ng(context));
     add(new Node(context));
-    add(new Npm(context));
     add(new Mvn(context));
+    add(new Micronaut(context));
     add(new Msvc(context));
     add(new RewriteCommandlet(context));
     add(new GcLogAnalyzer(context));
@@ -161,6 +166,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Kotlinc(context));
     add(new KotlincNative(context));
     add(new KubeCtl(context));
+    add(new KubeLinter(context));
     add(new Tomcat(context));
     add(new Task(context));
     add(new Vscode(context));
@@ -182,15 +188,18 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Spring(context));
     add(new Uv(context));
     add(new Yarn(context));
+    add(new Npm(context));
     add(new Copilot(context));
     add(new Corepack(context));
     add(new Pip(context));
     add(new Go(context));
     add(new Gui(context));
+    add(new Snyk(context));
     add(new SquirrelSql(context));
     add(new Spyder(context));
     add(new Nest(context));
     add(new Cdk(context));
+    add(new Agy(context));
     add(new Claude(context));
     add(new Mvnd(context));
     add(new Just(context));
@@ -198,13 +207,17 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Ruff(context));
     add(new CheckCommandlet(context));
     add(new Obsidian(context));
+    add(new Flutter(context));
+    add(new Gemini(context));
+    add(new Ollama(context));
   }
 
   /**
-   * @param commandlet the {@link Commandlet} to add.
+   * @param commandlet the {@link AbstractCommandlet} to add.
    */
-  protected void add(Commandlet commandlet) {
+  protected void add(AbstractCommandlet commandlet) {
 
+    commandlet.initialize();
     boolean hasRequiredProperty = false;
     List<Property<?>> properties = commandlet.getProperties();
     int propertyCount = properties.size();
@@ -232,30 +245,30 @@ public class CommandletManagerImpl implements CommandletManager {
       throw new IllegalStateException("Commandlet " + commandlet + " must have at least one mandatory property!");
     }
     this.commandletTypeMap.put(commandlet.getClass(), commandlet);
-    Commandlet duplicate = this.commandletNameMap.put(commandlet.getName(), commandlet);
+    AbstractCommandlet duplicate = this.commandletNameMap.put(commandlet.getName(), commandlet);
     if (duplicate != null) {
       throw new IllegalStateException("Commandlet " + commandlet + " has the same name as " + duplicate);
     }
   }
 
-  private void registerKeyword(String keyword, Commandlet commandlet) {
+  private void registerKeyword(String keyword, AbstractCommandlet commandlet) {
 
-    Commandlet duplicate = this.firstKeywordMap.putIfAbsent(keyword, commandlet);
+    AbstractCommandlet duplicate = this.firstKeywordMap.putIfAbsent(keyword, commandlet);
     if (duplicate != null) {
       LOG.debug("Duplicate keyword {} already used by {} so it cannot be associated also with {}", keyword, duplicate, commandlet);
     }
   }
 
   @Override
-  public Collection<Commandlet> getCommandlets() {
+  public Collection<AbstractCommandlet> getCommandlets() {
 
     return this.commandlets;
   }
 
   @Override
-  public <C extends Commandlet> C getCommandlet(Class<C> commandletType) {
+  public <C extends AbstractCommandlet> C getCommandlet(Class<C> commandletType) {
 
-    Commandlet commandlet = this.commandletTypeMap.get(commandletType);
+    AbstractCommandlet commandlet = this.commandletTypeMap.get(commandletType);
     if (commandlet == null) {
       throw new IllegalStateException("Commandlet for type " + commandletType + " is not registered!");
     }
@@ -263,26 +276,26 @@ public class CommandletManagerImpl implements CommandletManager {
   }
 
   @Override
-  public Commandlet getCommandlet(String name) {
+  public AbstractCommandlet getCommandlet(String name) {
 
     return this.commandletNameMap.get(name);
   }
 
   @Override
-  public Commandlet getCommandletByFirstKeyword(String keyword) {
+  public AbstractCommandlet getCommandletByFirstKeyword(String keyword) {
 
     return this.firstKeywordMap.get(keyword);
   }
 
   @Override
-  public Iterator<Commandlet> findCommandlet(CliArguments arguments, CompletionCandidateCollector collector) {
+  public Iterator<AbstractCommandlet> findCommandlet(CliArguments arguments, CompletionCandidateCollector collector) {
 
     CliArgument current = arguments.current();
     if (current.isEnd()) {
       return Collections.emptyIterator();
     }
     String keyword = current.get();
-    Commandlet commandlet = getCommandletByFirstKeyword(keyword);
+    AbstractCommandlet commandlet = getCommandletByFirstKeyword(keyword);
     if ((commandlet == null) && (collector == null)) {
       return Collections.emptyIterator();
     }
@@ -290,33 +303,32 @@ public class CommandletManagerImpl implements CommandletManager {
   }
 
   @Override
-  public LocalToolCommandlet findBuildTool(Path buildPath) {
+  public BuildTool findBuildTool(Path buildPath) {
 
     if (buildPath == null) {
       return null;
     }
-    for (Class<? extends LocalToolCommandlet> toolClass : BUILD_TOOLS) {
-      LocalToolCommandlet toolCommandlet = getCommandlet(toolClass);
-      if (toolCommandlet.findBuildDescriptor(buildPath) != null) {
-        return toolCommandlet;
+    for (Commandlet commandlet : getCommandlets()) {
+      if ((commandlet instanceof BuildTool buildTool) && (buildTool.findBuildDescriptor(buildPath) != null)) {
+        return buildTool;
       }
     }
     return null;
   }
 
-  private final class CommandletFinder implements Iterator<Commandlet> {
+  private final class CommandletFinder implements Iterator<AbstractCommandlet> {
 
-    private final Commandlet firstCandidate;
+    private final AbstractCommandlet firstCandidate;
 
-    private final Iterator<Commandlet> commandletIterator;
+    private final Iterator<AbstractCommandlet> commandletIterator;
 
     private final CliArguments arguments;
 
     private final CompletionCandidateCollector collector;
 
-    private Commandlet next;
+    private AbstractCommandlet next;
 
-    private CommandletFinder(Commandlet firstCandidate, CliArguments arguments, CompletionCandidateCollector collector) {
+    private CommandletFinder(AbstractCommandlet firstCandidate, CliArguments arguments, CompletionCandidateCollector collector) {
 
       this.firstCandidate = firstCandidate;
       this.commandletIterator = getCommandlets().iterator();
@@ -336,25 +348,25 @@ public class CommandletManagerImpl implements CommandletManager {
     }
 
     @Override
-    public Commandlet next() {
+    public AbstractCommandlet next() {
 
       if (this.next == null) {
         throw new NoSuchElementException();
       }
-      Commandlet result = this.next;
+      AbstractCommandlet result = this.next;
       this.next = findNext();
       return result;
     }
 
-    private boolean isSuitable(Commandlet commandlet) {
+    private boolean isSuitable(AbstractCommandlet commandlet) {
 
       return (commandlet != null) && (!commandlet.isIdeHomeRequired() || (context.getIdeHome() != null));
     }
 
-    private Commandlet findNext() {
+    private AbstractCommandlet findNext() {
 
       while (this.commandletIterator.hasNext()) {
-        Commandlet cmd = this.commandletIterator.next();
+        AbstractCommandlet cmd = this.commandletIterator.next();
         if ((cmd != this.firstCandidate) && isSuitable(cmd)) {
           List<Property<?>> properties = cmd.getProperties();
           // validation should already be done in add method and could be removed here...

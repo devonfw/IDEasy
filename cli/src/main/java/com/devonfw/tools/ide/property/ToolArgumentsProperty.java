@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.property;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 
 /**
  * {@link StringProperty} for tool arguments with support for tool-specific auto-completion.
@@ -25,17 +25,17 @@ public class ToolArgumentsProperty extends StringProperty {
 
 
   /**
-   * Completes a tool argument by delegating to the owning {@link ToolCommandlet}.
+   * Completes a tool argument by delegating to the owning {@link AbstractToolCommandlet}.
    *
    * @param arg the current argument to complete.
    * @param context the {@link IdeContext}.
-   * @param commandlet the owning {@link Commandlet}.
+   * @param commandlet the owning {@link AbstractCommandlet}.
    * @param collector the {@link CompletionCandidateCollector}.
    */
   @Override
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+  protected void completeValue(String arg, IdeContext context, AbstractCommandlet commandlet, CompletionCandidateCollector collector) {
 
-    if (commandlet instanceof ToolCommandlet toolCommandlet) {
+    if (commandlet instanceof AbstractToolCommandlet toolCommandlet) {
       toolCommandlet.completeToolArguments(arg, collector, this);
     }
 

@@ -1,16 +1,16 @@
 package com.devonfw.tools.ide.tool.inso;
 
+import java.util.Set;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
-import java.util.Set;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 
 
 /**
- * {@link ToolCommandlet} for <a href="https://github.com/Kong/Insomnia">Inso CLI</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://github.com/Kong/Insomnia">Inso CLI</a>.
  */
-public class Inso extends LocalToolCommandlet{
+public class Inso extends AbstractLocalToolCommandlet {
 
   /**
    * The constructor.

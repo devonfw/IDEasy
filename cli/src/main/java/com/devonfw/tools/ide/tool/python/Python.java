@@ -19,8 +19,8 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
@@ -28,13 +28,13 @@ import com.devonfw.tools.ide.tool.uv.Uv;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link ToolCommandlet} for <a href="https://www.python.org/">python</a>.
+ * {@link AbstractToolCommandlet} for <a href="https://www.python.org/">python</a>.
  */
-public class Python extends LocalToolCommandlet {
+public class Python extends AbstractLocalToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Python.class);
 
-  private static final VersionIdentifier PYTHON_MIN_VERSION = VersionIdentifier.of("3.8.2");
+  private static final VersionIdentifier PYTHON_MIN_VERSION = VersionIdentifier.ofRequired("3.8.2");
 
   /** The folder created by {@code uv venv} inside the software folder before it is renamed to the python installation. */
   static final String VENV_FOLDER = ".venv";
@@ -84,7 +84,6 @@ public class Python extends LocalToolCommandlet {
 
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
     environmentContext.withEnvVar("VIRTUAL_ENV", toolInstallation.rootDir().toString());
-    environmentContext.withEnvVar("UV_PROJECT_ENVIRONMENT", toolInstallation.rootDir().toString());
   }
 
   @Override
@@ -131,7 +130,7 @@ public class Python extends LocalToolCommandlet {
         String value = keyAndValue[1].trim();
         // uv only writes the minor version (e.g. "3.13") for its own interpreters what is too imprecise for us
         if (value.chars().filter(c -> c == '.').count() >= 2) {
-          return VersionIdentifier.of(value);
+          return VersionIdentifier.ofRequired(value);
         }
         LOG.debug("Ignoring imprecise version {} from {}.", value, pyvenvCfg);
       }
@@ -163,7 +162,7 @@ public class Python extends LocalToolCommandlet {
       version = version.substring(lastSpace + 1);
     }
     if (!version.isEmpty() && Character.isDigit(version.charAt(0))) {
-      return VersionIdentifier.of(version);
+      return VersionIdentifier.ofRequired(version);
     }
     LOG.debug("Could not parse version from output '{}' of {}.", output, binPath);
     return null;

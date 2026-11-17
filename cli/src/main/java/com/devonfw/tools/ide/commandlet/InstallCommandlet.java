@@ -9,19 +9,19 @@ import com.devonfw.tools.ide.cli.GraalVmHelper;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.property.VersionProperty;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.IdeasyCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link Commandlet} to install a tool.
+ * {@link AbstractCommandlet} to install a tool.
  *
- * @see ToolCommandlet#install()
+ * @see AbstractToolCommandlet#install()
  */
-public class InstallCommandlet extends Commandlet {
+public class InstallCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(InstallCommandlet.class);
 
@@ -78,13 +78,15 @@ public class InstallCommandlet extends Commandlet {
       ideasy.setupWindowsTerminal();
       return;
     }
-    ToolCommandlet commandlet = this.tool.getValue();
+    AbstractToolCommandlet commandlet = this.tool.getValue();
     VersionIdentifier versionIdentifier = this.version.getValue();
     VersionIdentifier version = versionIdentifier;
     if (version == null) {
       version = commandlet.getConfiguredVersion();
     }
     ToolInstallRequest request = ToolInstallRequest.ofDirect();
+    // The tracker is attached lazily during installation (see AbstractToolCommandlet#completeRequest) so a shared dependency is not CVE-checked and installed
+    // redundantly - see https://github.com/devonfw/IDEasy/issues/945
     request.setRequested(new ToolEditionAndVersion(version));
     ToolInstallation installation = commandlet.install(request);
     if (versionIdentifier != null) {
@@ -97,7 +99,7 @@ public class InstallCommandlet extends Commandlet {
   }
 
   @Override
-  public ToolCommandlet getToolForCompletion() {
+  public AbstractToolCommandlet getToolForCompletion() {
 
     return this.tool.getValue();
   }

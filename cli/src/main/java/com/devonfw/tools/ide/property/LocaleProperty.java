@@ -3,7 +3,7 @@ package com.devonfw.tools.ide.property;
 import java.util.Arrays;
 import java.util.Locale;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.validation.PropertyValidator;
@@ -53,7 +53,7 @@ public class LocaleProperty extends Property<Locale> {
   }
 
   @Override
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+  protected void completeValue(String arg, IdeContext context, AbstractCommandlet commandlet, CompletionCandidateCollector collector) {
 
     collector.addAllMatches(arg, getAvailableLocales(), this, commandlet);
   }

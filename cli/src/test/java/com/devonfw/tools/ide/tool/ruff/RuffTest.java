@@ -70,7 +70,7 @@ public class RuffTest extends AbstractIdeContextTest {
     VersionIdentifier installedVersion = commandlet.getInstalledVersion();
 
     // assert
-    assertThat(installedVersion).isEqualTo(VersionIdentifier.of("0.15.22"));
+    assertThat(installedVersion).isEqualTo(VersionIdentifier.ofRequired("0.15.22"));
   }
 
 }

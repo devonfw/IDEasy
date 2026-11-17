@@ -3,9 +3,10 @@ package com.devonfw.tools.ide.merge;
 import java.nio.file.Path;
 
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 
 /**
- * Interface for a merger responsible for merging {@link com.devonfw.tools.ide.tool.ide.IdeToolCommandlet IDE} configuration files into the workspace.
+ * Interface for a merger responsible for merging {@link AbstractIdeToolCommandlet IDE} configuration files into the workspace.
  */
 public interface WorkspaceMerger {
 

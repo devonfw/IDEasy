@@ -1,11 +1,10 @@
 package com.devonfw.tools.ide.commandlet.update;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.migration.IdeMigrator;
 
 /**
- * {@link Commandlet} to update settings, software and repositories
+ * {@link AbstractCommandlet} to update settings, software and repositories
  */
 public class UpdateCommandlet extends AbstractUpdateCommandlet {
 

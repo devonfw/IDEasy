@@ -9,7 +9,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.Property;
 
@@ -56,7 +56,7 @@ public class CompletionCandidateCollectorDefault implements CompletionCandidateC
   }
 
   @Override
-  public void add(String text, String description, Property<?> property, Commandlet commandlet) {
+  public void add(String text, String description, Property<?> property, AbstractCommandlet commandlet) {
 
     // Check if this candidate already exists to avoid duplicates
     for (CompletionCandidate existing : this.candidates) {

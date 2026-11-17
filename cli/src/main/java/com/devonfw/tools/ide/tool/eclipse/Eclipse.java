@@ -7,9 +7,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -19,17 +16,15 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
+import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
- * {@link IdeToolCommandlet} for <a href="https://www.eclipse.org/">Eclipse</a>.
+ * {@link AbstractIdeToolCommandlet} for <a href="https://www.eclipse.org/">Eclipse</a>.
  */
-public class Eclipse extends IdeToolCommandlet {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Eclipse.class);
+public class Eclipse extends AbstractIdeToolCommandlet {
 
   // version must correspond to eclipse-import.xml
   private static final String GROOVY_VERSION = "3.0.23";
@@ -47,6 +42,14 @@ public class Eclipse extends IdeToolCommandlet {
   public Eclipse(IdeContext context) {
 
     super(context, "eclipse", Set.of(Tag.ECLIPSE));
+  }
+
+  @Override
+  protected boolean isSupportProjectProperty() {
+
+    // Eclipse does not support the --project option - it always opens the managed workspace and its own workspace concept already
+    // allows mounting any directory into it.
+    return false;
   }
 
   @Override
@@ -84,7 +87,7 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  protected boolean isPluginUrlNeeded() {
+  public boolean isPluginUrlNeeded() {
 
     return true;
   }
@@ -97,8 +100,7 @@ public class Eclipse extends IdeToolCommandlet {
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("Overall install request is satisfiable")) {
-          IdeLogLevel.SUCCESS.log(LOG, "Successfully installed plugin: {}", plugin.name());
-          step.success();
+          step.success("Successfully installed plugin: {}", plugin.name());
           return true;
         }
       }

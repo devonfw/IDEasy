@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 
 /**
- * An internal {@link Commandlet} to get the installed version for a tool.
+ * An internal {@link AbstractCommandlet} to get the installed version for a tool.
  *
- * @see ToolCommandlet#getInstalledVersion()
+ * @see AbstractToolCommandlet#getInstalledVersion()
  */
 public class VersionGetCommandlet extends AbstractVersionOrEditionGetCommandlet {
 
@@ -33,13 +33,13 @@ public class VersionGetCommandlet extends AbstractVersionOrEditionGetCommandlet 
   }
 
   @Override
-  protected Object getConfiguredValue(ToolCommandlet commandlet) {
+  protected Object getConfiguredValue(AbstractToolCommandlet commandlet) {
 
     return commandlet.getConfiguredVersion();
   }
 
   @Override
-  protected Object getInstalledValue(ToolCommandlet commandlet) {
+  protected Object getInstalledValue(AbstractToolCommandlet commandlet) {
 
     return commandlet.getInstalledVersion();
   }

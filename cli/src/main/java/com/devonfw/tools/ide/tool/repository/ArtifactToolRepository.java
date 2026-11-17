@@ -7,7 +7,7 @@ import java.util.Map;
 
 import com.devonfw.tools.ide.cache.CachedValue;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.NpmRepository;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
@@ -38,7 +38,7 @@ public abstract class ArtifactToolRepository<A extends SoftwareArtifact, M exten
   }
 
   @Override
-  public List<VersionIdentifier> getSortedVersions(String tool, String edition, ToolCommandlet toolCommandlet) {
+  public List<VersionIdentifier> getSortedVersions(String tool, String edition, AbstractToolCommandlet toolCommandlet) {
 
     A artifact = resolveArtifact(tool, edition, null, toolCommandlet);
     CachedValue<List<VersionIdentifier>> cachedValue = this.versionCache.computeIfAbsent(artifact,
@@ -54,13 +54,13 @@ public abstract class ArtifactToolRepository<A extends SoftwareArtifact, M exten
   }
 
   /**
-   * @param tool the {@link ToolCommandlet#getName() tool name}.
-   * @param edition the {@link ToolCommandlet#getConfiguredEdition()  tool edition}.
+   * @param tool the {@link AbstractToolCommandlet#getName() tool name}.
+   * @param edition the {@link AbstractToolCommandlet#getConfiguredEdition()  tool edition}.
    * @param version the {@link SoftwareArtifact#getVersion() tool version} or {@code null} if undefined.
-   * @param toolCommandlet the {@link ToolCommandlet}.
+   * @param toolCommandlet the {@link AbstractToolCommandlet}.
    * @return the resolved {@link SoftwareArtifact}.
    */
-  protected abstract A resolveArtifact(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet);
+  protected abstract A resolveArtifact(String tool, String edition, VersionIdentifier version, AbstractToolCommandlet toolCommandlet);
 
   /**
    * @param artifact the {@link SoftwareArtifact}.
@@ -69,7 +69,7 @@ public abstract class ArtifactToolRepository<A extends SoftwareArtifact, M exten
   protected abstract List<VersionIdentifier> fetchVersions(A artifact);
 
   @Override
-  protected M getMetadata(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
+  protected M getMetadata(String tool, String edition, VersionIdentifier version, AbstractToolCommandlet toolCommandlet) {
 
     A artifact = resolveArtifact(tool, edition, version, toolCommandlet);
     return getMetadata(artifact, tool, edition);
@@ -77,8 +77,8 @@ public abstract class ArtifactToolRepository<A extends SoftwareArtifact, M exten
 
   /**
    * @param artifact the {@link SoftwareArtifact} to resolve.
-   * @param tool the {@link ToolCommandlet#getName() tool name}.
-   * @param edition the {@link ToolCommandlet#getConfiguredEdition()  tool edition}.
+   * @param tool the {@link AbstractToolCommandlet#getName() tool name}.
+   * @param edition the {@link AbstractToolCommandlet#getConfiguredEdition()  tool edition}.
    * @return the resolved {@link UrlDownloadFileMetadata}.
    */
   public abstract M getMetadata(A artifact, String tool, String edition);

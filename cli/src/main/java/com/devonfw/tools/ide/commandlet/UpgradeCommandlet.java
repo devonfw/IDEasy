@@ -10,9 +10,9 @@ import com.devonfw.tools.ide.tool.IdeasyCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 
 /**
- * {@link Commandlet} to upgrade the version of IDEasy
+ * {@link AbstractCommandlet} to upgrade the version of IDEasy
  */
-public class UpgradeCommandlet extends Commandlet {
+public class UpgradeCommandlet extends AbstractCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCommandlet.class);
 
@@ -28,7 +28,7 @@ public class UpgradeCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    this.mode = add(new EnumProperty<>("--mode", false, null, UpgradeMode.class));
+    this.mode = add(new EnumProperty<>("--mode", false, UpgradeMode.class, null));
   }
 
   @Override

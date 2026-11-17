@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
+import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.update.AbstractUpdateCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
@@ -17,6 +18,7 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.environment.IdeSystem;
 import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.repository.RepositoryType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarNone;
@@ -31,6 +33,7 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.custom.CustomToolRepository;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
+import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.mvn.MvnRepository;
 import com.devonfw.tools.ide.tool.npm.Npm;
@@ -49,7 +52,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * referenced instead of duplicating such string literals across the code-base. All central components can be accessed from here such as:
  * <ul>
  * <li>{@link #getPath() system path} (abstraction of PATH environment variable)</li>
- * <li>{@link #getCommandletManager() commandlet manager} (access {@link com.devonfw.tools.ide.commandlet.Commandlet}s)</li>
+ * <li>{@link #getCommandletManager() commandlet manager} (access {@link AbstractCommandlet}s)</li>
  * <li>{@link #getFileAccess() file access} (file and I/O operations on a higher level of abstraction)</li>
  * <li>{@link #getNetworkStatus() network status} (determine if we are online or offline)</li>
  * <li>{@link #newProcess() process context} (start external programs as process including logging, error handling, background and output processing)</li>
@@ -302,26 +305,10 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
-   * Marks the variable with the given name as secret so that its value is masked in all log output, even if the value is not entered by the user but read from
-   * an existing {@code ide.properties}.
-   *
-   * @param name the name of the variable (e.g. "MY_API_TOKEN").
-   */
-  void addSecretVariable(String name);
-
-  /**
-   * Registers the value of a variable as secret if the variable was marked via {@link #addSecretVariable(String)}. Has to be called before the value is
-   * logged.
-   *
-   * @param name the name of the variable.
-   * @param value the value of the variable.
-   */
-  void addSecretValue(String name, String value);
-
-  /**
    * @param question the question to ask.
    * @param args arguments for filling the templates
    * @return {@code true} if the user answered with "yes", {@code false} otherwise ("no").
+   * @throws CliAbortException if the question cannot be answered because we are in batch mode without force mode.
    */
   default boolean question(String question, Object... args) {
 
@@ -338,6 +325,8 @@ public interface IdeContext extends IdeStartContext {
    * @param options the available options for the user to answer. There should be at least two options given as otherwise the question cannot make sense.
    * @param question the question to ask.
    * @return the option selected by the user as answer.
+   * @throws CliAbortException if the question cannot be answered because we are in batch mode without force mode. In that case the first option is not selected
+   *     automatically - re-run the command with the force option to accept it.
    */
   @SuppressWarnings("unchecked")
   <O> O question(O[] options, String question, Object... args);
@@ -637,6 +626,55 @@ public interface IdeContext extends IdeStartContext {
   Path getSettingsCommitIdPath();
 
   /**
+   * Evaluates the state of the settings repository with a single update check.
+   *
+   * @return {@code OUTDATED} if an update should be fetched with {@code ide update}, {@code UP_TO_DATE} if it is current, and {@code UNKNOWN} if there is
+   *     no settings repository (e.g. outside an IDE project) or the repository is combined and an update is available.
+   */
+  default SettingsUpdateState evaluateSettingsUpdateStatus() {
+
+    Path settingsPath = getSettingsGitRepository();
+    if (settingsPath == null) {
+      return SettingsUpdateState.UNKNOWN;
+    }
+    if (getGitContext().isRepositoryUpdateAvailable(settingsPath, getSettingsCommitIdPath())) {
+      return isCombinedCodeSettingsRepository() ? SettingsUpdateState.UNKNOWN : SettingsUpdateState.OUTDATED;
+    }
+    return SettingsUpdateState.UP_TO_DATE;
+  }
+
+  /**
+   * @return {@code true} if the settings repository is a combined code and settings repository (a single repository that contains both the code and the
+   *     settings folder), in which case an available update does not produce an outdated warning.
+   */
+  default boolean isCombinedCodeSettingsRepository() {
+
+    return (RepositoryType.ofSettingsPath(getSettingsPath(), this) == RepositoryType.CODE_SETTINGS_COMBINED);
+  }
+
+  /**
+   * @param status the evaluated settings update status from {@link #evaluateSettingsUpdateStatus()}.
+   * @return the matching settings status line, or an empty string when no status is reported.
+   */
+  default String settingsStatusLine(SettingsUpdateState status) {
+
+    return switch (status) {
+      case OUTDATED -> "Your settings are not up-to-date, please run 'ide update'.";
+      case UP_TO_DATE -> "Your settings are up-to-date.";
+      default -> "";
+    };
+  }
+
+  /**
+   * @return the settings status line as shown by {@code ide status} ("Your settings are up-to-date." or "Your settings are not up-to-date, please run
+   *     'ide update'."), or an empty string when no status is reported.
+   */
+  default String getSettingsStatusLine() {
+
+    return settingsStatusLine(evaluateSettingsUpdateStatus());
+  }
+
+  /**
    * @return the {@link Path} to the templates folder inside the {@link #getSettingsPath() settings}. The relative directory structure in this templates folder
    *     is to be applied to {@link #getIdeHome() IDE_HOME} when the project is set up.
    */
@@ -763,7 +801,7 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
-   * @return the {@link DirectoryMerger} used to configure and merge the workspace for an {@link com.devonfw.tools.ide.tool.ide.IdeToolCommandlet IDE}.
+   * @return the {@link DirectoryMerger} used to configure and merge the workspace for an {@link AbstractIdeToolCommandlet IDE}.
    */
   DirectoryMerger getWorkspaceMerger();
 
@@ -964,4 +1002,18 @@ public interface IdeContext extends IdeStartContext {
     return npm.getOrCreateNpmConfigUserConfig();
   }
 
+  /**
+   * The evaluated state of the settings repository, as determined by {@link #evaluateSettingsUpdateStatus()}.
+   */
+  enum SettingsUpdateState {
+
+    /** A newer version of the settings is available and should be fetched with {@code ide update}. */
+    OUTDATED,
+
+    /** The settings repository is current. */
+    UP_TO_DATE,
+
+    /** No status is reported (no settings repository, or a combined code and settings repository). */
+    UNKNOWN
+  }
 }
