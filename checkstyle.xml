@@ -54,8 +54,8 @@
     </module>
 
     <module name="SuppressWithNearbyCommentFilter">
-      <property name="commentFormat" value="checkstyle:ignore\s+InlineCss\b"/>
-      <property name="idFormat" value="InlineCss"/>
+      <property name="commentFormat" value="checkstyle:ignore\s+HardcodedCss\b"/>
+      <property name="idFormat" value="HardcodedCss"/>
       <property name="influenceFormat" value="0"/>
     </module>
 
@@ -115,8 +115,8 @@
          severity=warning: reported, but does not fail the build (violationSeverity=error), because the
          GUI still contains inline styles. Raise it to error once those are migrated to CSS files. -->
     <module name="MatchXpath">
-      <property name="id" value="InlineCss"/>
-      <property name="severity" value="warning"/>
+      <property name="id" value="HardcodedCss"/>
+      <property name="severity" value="error"/>
       <property name="query"
         value="//STRING_LITERAL[matches(@text, '-fx-[a-z-]+\s*:')] | //TEXT_BLOCK_CONTENT[matches(@text, '-fx-[a-z-]+\s*:')]"/>
       <message key="matchxpath.match"
