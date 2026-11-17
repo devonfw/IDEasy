@@ -6,8 +6,18 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/2510[#2510]: Add commandlet for Micronaut CLI
+* https://github.com/devonfw/IDEasy/issues/2045[#2045]: Add tool selection and version or edition configuration to GUI
 
-The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/53?closed=1[milestone 2026.12.001].
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/54?closed=1[milestone 2026.12.001].
+
+== 2026.11.003
+
+Release where we only solved the Windows release signature:
+
+* https://github.com/devonfw/IDEasy/issues/1102[1102]: IDEasy MSI installer not working (unsigned)
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/53?closed=1[milestone 2026.11.003].
 
 == 2026.11.002
 
