@@ -122,7 +122,7 @@ All packages live below `com.devonfw.ide.gui`:
 ** `helper` — reusable JavaFX helpers, e.g. `FxHelper` (FXML loading, FX-thread-safe execution) and `ComboBoxViewModel`.
 ** `mainwindow` — the main window including the `console` and `navigation` panels.
 ** `modal` — dialogs (e.g. `IdeDialog`).
-** `progress` — progress tracking of running tasks and the task overview window.
+** `progress` — progress tracking of running tasks, the task overview window (`taskwindow`) and the overall progress in the taskbar button of the main window (`taskbar`, currently supported on Windows).
 ** `service` — business logic and data access independent of the UI (e.g. `CommandletService`, `NlsService`).
 ** `tab` — the base classes for tabs (`TabComponent`, `TabView`, `TabViewModel`).
 * `feature` — one package per feature containing its `TabComponent`, View and ViewModel (e.g. `feature.ide.launcher`).
@@ -143,6 +143,7 @@ gui
         │   │   └── navigation
         │   ├── modal
         │   ├── progress
+        │   │   ├── taskbar
         │   │   └── taskwindow
         │   ├── service
         │   └── tab

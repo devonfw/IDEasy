@@ -20,6 +20,8 @@ import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.mainwindow.MainWindowView;
 import com.devonfw.ide.gui.core.mainwindow.MainWindowViewModel;
 import com.devonfw.ide.gui.core.modal.IdeDialog;
+import com.devonfw.ide.gui.core.progress.taskbar.TaskbarProgress;
+import com.devonfw.ide.gui.core.progress.taskbar.TaskbarProgressUpdater;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.version.IdeVersion;
 
@@ -47,6 +49,9 @@ public class App extends Application {
 
   private Stage primaryStage;
 
+  /** Displays the overall progress of all running tasks in the taskbar button of the main window. */
+  private TaskbarProgressUpdater taskbarProgressUpdater;
+
   GuiStateManager guiStateManager = new GuiStateManager(null);
 
   private final Logger LOG = LoggerFactory.getLogger(App.class);
@@ -66,6 +71,7 @@ public class App extends Application {
     //this.nlsService.addLocaleChangeListener(this::reloadMainView);
 
     configureMainWindow(new Scene(mainWindow, MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT));
+    this.taskbarProgressUpdater = new TaskbarProgressUpdater(this.guiStateManager.getTaskManager(), TaskbarProgress.of(primaryStage));
 
     primaryStage.setOnCloseRequest(event -> {
 

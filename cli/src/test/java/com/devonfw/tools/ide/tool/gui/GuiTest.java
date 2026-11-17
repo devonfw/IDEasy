@@ -179,4 +179,21 @@ class GuiTest extends AbstractIdeContextTest {
     assertThat(args).contains("-Dexec.executable=/tmp/IDEasy.app/Contents/MacOS/IDEasy");
   }
 
+  /**
+   * Verifies that the GUI is launched with native access enabled, which it requires e.g. to display the progress of running tasks in the Windows taskbar.
+   */
+  @Test
+  void testBuildMvnArgsEnablesNativeAccess() {
+
+    // arrange
+    Path installationPath = this.tempDir;
+    IdeVersion.setMockVersionForTesting("2026.08.001");
+
+    // act
+    List<String> args = Gui.buildMvnArgs(installationPath, installationPath.resolve("gui/pom.xml"), "java");
+
+    // assert
+    assertThat(args).contains("-Dexec.args=--enable-native-access=ALL-UNNAMED -classpath %classpath com.devonfw.ide.gui.AppLauncher");
+  }
+
 }

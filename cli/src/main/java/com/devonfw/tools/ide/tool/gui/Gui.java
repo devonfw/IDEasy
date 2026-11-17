@@ -121,7 +121,8 @@ public class Gui extends AbstractCommandlet {
         "org.codehaus.mojo:exec-maven-plugin:3.1.0:exec",
         "-Dexec.executable=" + execExecutable,
         "-Dexec.classpathScope=compile",
-        "-Dexec.args=-classpath %classpath com.devonfw.ide.gui.AppLauncher",
+        // native access is required e.g. to display the progress in the Windows taskbar (and avoids warnings of JavaFX loading its native libraries)
+        "-Dexec.args=--enable-native-access=ALL-UNNAMED -classpath %classpath com.devonfw.ide.gui.AppLauncher",
         "-Dexec.async=true"
     ));
 
