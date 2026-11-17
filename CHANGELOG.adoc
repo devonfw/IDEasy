@@ -7,6 +7,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/2045[#2045]: Add tool selection and version or edition configuration to GUI
+* https://github.com/devonfw/IDEasy/issues/2797[#2797]: Remove the feature toggle `VSCODE_PROFILE_ENABLED` and the `--profile` launch mode of VS Code. VS Code is now always launched with `--user-data-dir` and `--shared-data-dir`. Note: users who enabled the toggle fall back to their per-workspace user-data folder in `$IDE_HOME/.ide/vscode/«workspace»`; the settings, plugins and login of the `ideasy-«project»-«workspace»` profile in the default user-data folder are not migrated.
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/54?closed=1[milestone 2026.12.001].
 

@@ -118,7 +118,7 @@ If you want the merge to happen, launch the IDE without the `--project` option.
 
 NOTE: The `--project` option is not supported for `eclipse` - it always opens the managed workspace, and its own workspace concept already allows mounting any directory into it. Passing `--project` to `ide eclipse` aborts the launch.
 
-NOTE: For `vscode` the `--project` option only changes the folder that is opened - VS Code keeps using the `main` profile (`--user-data-dir` / `--profile`), so all instances share the same profile. Per-project profile isolation is not yet implemented.
+NOTE: For `vscode` the `--project` option only changes the folder that is opened - VS Code keeps using the `main` user-data folder (`--user-data-dir`), so all instances share the same user-data folder. Per-project user-data isolation is not yet implemented.
 
 === Local vs. global tool commandlets
 
