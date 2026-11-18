@@ -436,8 +436,15 @@ checkPrompt "Cygwin leaves PS1 and PROMPT_COMMAND untouched" \
 # a render check (bash 4.4 and newer, including all 5.x): expand the real PS1 via ${PS1@P} and verify the
 # annotation text lands on the info line (the second line of the expanded prompt; the first line is empty
 # because the Git Bash PS1 starts with a literal newline) and that an empty annotation leaves no trailing
-# space (the lock for the issue mock).
-if [ "${BASH_VERSINFO[0]}" -gt 4 ] || { [ "${BASH_VERSINFO[0]}" -eq 4 ] && [ "${BASH_VERSINFO[1]}" -ge 4 ]; }; then
+# space (the lock for the issue mock). It only runs on Git Bash, the feature's target platform: the PS1
+# splice above is guarded by _ide_is_msys, so on macOS/Linux/zsh the annotation never reaches PS1 and there
+# is nothing to render, and ${PS1@P} behaves differently across platforms anyway.
+render_host_uname="$(uname -s 2>/dev/null)"
+case "${render_host_uname}" in
+  MINGW*|MSYS*) render_host_msys=yes ;;
+  *) render_host_msys=no ;;
+esac
+if [ "${render_host_msys}" = "yes" ] && { [ "${BASH_VERSINFO[0]}" -gt 4 ] || { [ "${BASH_VERSINFO[0]}" -eq 4 ] && [ "${BASH_VERSINFO[1]}" -ge 4 ]; }; }; then
   total=$((total + 1))
   render_out="$(FAKE_UNAME_S="MINGW64_NT-10.0-26200" FUNCTIONS_FILE="${FUNCTIONS_FILE}" STUB_DIR="${STUB_DIR}" TITLE_ROOT="${TITLE_ROOT}" \
     GIT_BASH_PS1_REALISTIC="${GIT_BASH_PS1_REALISTIC}" \
@@ -476,7 +483,11 @@ if [ "${BASH_VERSINFO[0]}" -gt 4 ] || { [ "${BASH_VERSINFO[0]}" -eq 4 ] && [ "${
     failed=$((failed + 1))
   fi
 else
-  echo "bash older than 4.4 - skipping the \${PS1@P} render check for the prompt annotation"
+  if [ "${render_host_msys}" = "no" ]; then
+    echo "not running on Git Bash - skipping the \${PS1@P} render check for the prompt annotation"
+  else
+    echo "bash older than 4.4 - skipping the \${PS1@P} render check for the prompt annotation"
+  fi
 fi
 
 # a failing command's exit status must survive the prompt hook chain
