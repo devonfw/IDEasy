@@ -119,7 +119,7 @@ public class CommandletService {
    * @param commandlet the commandlet to launch.
    * @return the task for the launch.
    */
-  protected Task<Void> runCommandletTask(String commandlet) {
+  protected Task<Void> createCommandletTask(String commandlet) {
 
     try (ProgressBarTask task = (ProgressBarTask) this.guiStateManager.getCurrentContext()
         .newProgressBarIndeterminate("Starting " + commandlet)) {
