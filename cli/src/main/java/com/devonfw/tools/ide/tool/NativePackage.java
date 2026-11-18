@@ -15,6 +15,7 @@ public class NativePackage {
   private final List<String> setupCommands;
   private final List<String> cleanupCommands;
   private final List<Path> optionalNativePackageArtifactPaths;
+  private final boolean interactiveInstall;
 
   /**
    * Creates a new {@link NativePackage} with optional fields defaulting to empty lists.
@@ -27,27 +28,63 @@ public class NativePackage {
    */
   public NativePackage(NativePackageManager pm, List<String> packages,
       List<String> extraInstallOptions, List<String> setupCommands, List<String> cleanupCommands) {
-    this(pm, packages, extraInstallOptions, setupCommands, cleanupCommands, null);
+    this(pm, packages, extraInstallOptions, setupCommands, cleanupCommands, null, false);
   }
 
   /**
-   * Creates a new {@link NativePackage} with optional fields defaulting to empty lists.
+   * Creates a new {@link NativePackage} that installs local package artifacts instead of the named {@code packages}.
    *
    * @param pm the specific {@link NativePackageManager}
    * @param packages the packages that need to be handled.
    * @param extraInstallOptions extra install options (optional)
    * @param setupCommands commands to run before install (optional)
    * @param cleanupCommands commands to run after uninstall (optional)
-   * @param optionalNativePackageArtifactPaths paths to local package artifacts (optional)
+   * @param optionalNativePackageArtifactPaths the local package artifacts to install (optional)
    */
   public NativePackage(NativePackageManager pm, List<String> packages,
-      List<String> extraInstallOptions, List<String> setupCommands, List<String> cleanupCommands, List<Path> optionalNativePackageArtifactPaths) {
+      List<String> extraInstallOptions, List<String> setupCommands, List<String> cleanupCommands,
+      List<Path> optionalNativePackageArtifactPaths) {
+    this(pm, packages, extraInstallOptions, setupCommands, cleanupCommands, optionalNativePackageArtifactPaths, false);
+  }
+
+  /**
+   * Creates a new {@link NativePackage} that installs the named {@code packages} (no local package artifacts).
+   *
+   * @param pm the specific {@link NativePackageManager}
+   * @param packages the packages that need to be handled.
+   * @param extraInstallOptions extra install options (optional)
+   * @param setupCommands commands to run before install (optional)
+   * @param cleanupCommands commands to run after uninstall (optional)
+   * @param interactiveInstall {@code true} to allow interactive user input during installation, {@code false} otherwise.
+   */
+  public NativePackage(NativePackageManager pm, List<String> packages,
+      List<String> extraInstallOptions, List<String> setupCommands, List<String> cleanupCommands,
+      boolean interactiveInstall) {
+    this(pm, packages, extraInstallOptions, setupCommands, cleanupCommands, null, interactiveInstall);
+  }
+
+  /**
+   * Creates a new {@link NativePackage}.
+   *
+   * @param pm the specific {@link NativePackageManager}
+   * @param packages the packages that need to be handled.
+   * @param extraInstallOptions extra install options (optional)
+   * @param setupCommands commands to run before install (optional)
+   * @param cleanupCommands commands to run after uninstall (optional)
+   * @param optionalNativePackageArtifactPaths the local package artifacts to install (optional)
+   * @param interactiveInstall {@code true} to allow interactive user input during installation, {@code false} otherwise.
+   */
+  public NativePackage(NativePackageManager pm, List<String> packages,
+      List<String> extraInstallOptions, List<String> setupCommands, List<String> cleanupCommands, List<Path> optionalNativePackageArtifactPaths,
+      boolean interactiveInstall) {
+
     this.packageManager = Objects.requireNonNull(pm, "package manager must not be null");
     this.packages = List.copyOf(Objects.requireNonNull(packages, "packages must not be null"));
     this.extraInstallOptions = extraInstallOptions != null ? List.copyOf(extraInstallOptions) : List.of();
     this.setupCommands = setupCommands != null ? List.copyOf(setupCommands) : List.of();
     this.cleanupCommands = cleanupCommands != null ? List.copyOf(cleanupCommands) : List.of();
     this.optionalNativePackageArtifactPaths = optionalNativePackageArtifactPaths != null ? List.copyOf(optionalNativePackageArtifactPaths) : List.of();
+    this.interactiveInstall = interactiveInstall;
   }
 
   /**
@@ -57,7 +94,7 @@ public class NativePackage {
    * @param packages the packages that need to be handled
    */
   public NativePackage(NativePackageManager pm, List<String> packages) {
-    this(pm, packages, null, null, null, null);
+    this(pm, packages, null, null, null, null, false);
   }
 
   /**
@@ -133,5 +170,12 @@ public class NativePackage {
    */
   public List<String> getVersionQueryCommand() {
     return this.packageManager.getVersionQueryCommand(this.packages.getFirst());
+  }
+
+  /**
+   * @return {@code true} if this package should be installed interactively, {@code false} otherwise.
+   */
+  public boolean isInteractiveInstall() {
+    return this.interactiveInstall;
   }
 }
