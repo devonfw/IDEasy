@@ -42,7 +42,7 @@ public class IdeGuiContext extends AbstractIdeContext {
   @Override
   public <O> O question(O[] options, String question, Object... args) {
 
-    // The GUI cannot collect a choice; retrying its empty input would never complete.
+    // The GUI cannot collect a choice as of now; retrying its empty input would never complete. See https://github.com/devonfw/IDEasy/issues/2439 and https://github.com/devonfw/IDEasy/issues/1785
     if ((options.length > 1) && !isBatchMode()) {
       throw new CliAbortException();
     }
