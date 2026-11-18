@@ -6,7 +6,7 @@ package com.devonfw.ide.gui;
  */
 public class AppLauncher {
 
-  //testmessage
+  //testmessage - with claude co author
 
   static void main(final String[] args) {
 
