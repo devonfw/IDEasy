@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.tool.python;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -21,10 +22,13 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolEdition;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.tool.uv.Uv;
+import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -54,19 +58,35 @@ public class Python extends AbstractLocalToolCommandlet {
   }
 
   /**
-   * /** Ensures {@code uv} is available before resolving Python versions.
+   * Ensures the tool dependencies required to resolve the Python version are installed before the version is resolved.
    * <p>
-   * The install path uses {@code uv python list} to resolve available versions, so {@code uv} is installed first if missing.
+   * Resolving the Python version uses {@code uv python list} and therefore requires {@code uv} already. The standard dependency installation
+   * ({@code installToolDependencies}) runs only after the version has been resolved, which is too late for that. The required dependencies (the {@code uv}
+   * version range) are not hard-coded but read from the {@code dependencies.json} of {@code ide-urls}, so the required {@code uv} version can be adjusted per
+   * Python version and fixed in emergencies without publishing a new IDEasy release.
    *
    * @param request the {@link ToolInstallRequest} to complete.
    */
   @Override
   protected void completeRequest(ToolInstallRequest request) {
 
-    Uv uv = this.context.getCommandletManager().getCommandlet(Uv.class);
-    if (!uv.isInstalled()) {
-      LOG.info("Installing uv to resolve the Python version.");
-      uv.install();
+    ToolEditionAndVersion requested = request.getRequested();
+    if (requested == null) {
+      // 'installAsDependency' logs the requested edition of this request, so make sure it is set before installing the dependencies.
+      request.setRequested(new ToolEditionAndVersion(new ToolEdition(this.tool, getConfiguredEdition())));
+    } else if (requested.getEdition() == null) {
+      requested.setEdition(new ToolEdition(this.tool, getConfiguredEdition()));
+    }
+    VersionIdentifier version = request.getRequested().getResolvedVersion();
+    if (version == null) {
+      // No explicit version is known (yet). Every version that will be resolved later is at least the minimum supported one, so use the configured or at
+      // least the minimum supported version to determine the required dependencies.
+      version = (getConfiguredVersion() != null) ? getConfiguredVersion() : PYTHON_MIN_VERSION;
+    }
+    Collection<ToolDependency> dependencies = getToolRepository().findDependencies(this.tool, getConfiguredEdition(), version);
+    for (ToolDependency dependency : dependencies) {
+      AbstractLocalToolCommandlet dependencyTool = this.context.getCommandletManager().getRequiredLocalToolCommandlet(dependency.tool());
+      dependencyTool.installAsDependency(dependency.versionRange(), request);
     }
     super.completeRequest(request);
   }

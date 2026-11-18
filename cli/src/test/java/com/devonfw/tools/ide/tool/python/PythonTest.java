@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -128,5 +129,26 @@ public class PythonTest extends AbstractIdeContextTest {
     // UV_PROJECT_ENVIRONMENT must not be set: pointing uv at the shared installation breaks all uv projects, see
     // https://github.com/devonfw/IDEasy/issues/2701
     assertThat(variables).doesNotContainKey("UV_PROJECT_ENVIRONMENT");
+  }
+
+  /**
+   * The {@code uv} dependency required to resolve the Python version must be taken from the {@code dependencies.json} of {@code ide-urls} and not hard-coded.
+   * This is verified by removing the {@code uv} dependency from the {@code dependencies.json}: without it the {@code uv} tool is no longer installed, so the
+   * Python version cannot be resolved and the installation must fail. If the dependency was still hard-coded (i.e. {@code uv} installed without consulting the
+   * {@code dependencies.json}) the {@code uv} tool would be installed and the installation would succeed.
+   */
+  @Test
+  public void testInstallUvDependencyIsReadFromDependenciesJson(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_UV, wireMockRuntimeInfo);
+    context.setSystemInfo(SystemInfoMock.MAC_X64);
+    // remove the uv dependency from the python tool: then uv is not installed and the Python version cannot be resolved
+    context.getFileAccess().writeFileContent("{ }", context.getUrlsPath().resolve("python").resolve("dependencies.json"));
+    Python python = context.getCommandletManager().getCommandlet(Python.class);
+
+    // act & assert - the uv tool is taken from the dependencies.json and thus not installed, so installing python must fail
+    assertThatThrownBy(python::install).isInstanceOf(CliException.class);
+    assertThat(context.getSoftwarePath().resolve("uv")).doesNotExist();
   }
 }
