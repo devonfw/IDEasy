@@ -4,8 +4,16 @@ import static org.testfx.assertions.api.Assertions.assertThat;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
+import javafx.concurrent.Task;
+import javafx.concurrent.Worker.State;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -21,9 +29,12 @@ import javafx.stage.Stage;
 
 import org.assertj.core.api.Assertions;
 import org.assertj.core.data.Offset;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.context.TaskManager;
@@ -32,6 +43,7 @@ import com.devonfw.ide.gui.core.mainwindow.MainWindowView;
 import com.devonfw.ide.gui.core.mainwindow.MainWindowViewModel;
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
 import com.devonfw.ide.gui.core.progress.taskwindow.TaskOverviewWindow;
+import com.devonfw.ide.gui.core.service.CommandletService;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
 
@@ -71,6 +83,12 @@ public class AppBaseTest extends UIBasedApplicationTest {
 
   private MainWindowView mainWindow;
 
+  private List<Task<Void>> launchTasks;
+
+  private CompletableFuture<Void> launchCompletion;
+
+  private CountDownLatch launchStarted;
+
   /** Throw-away user home for the isolated NlsService context so the persisted locale never rewrites the real {@code ~/.ide/ide.properties}. */
   @TempDir
   private static Path nlsUserHome;
@@ -86,7 +104,37 @@ public class AppBaseTest extends UIBasedApplicationTest {
     final IdeTestContext nlsContext = new IdeTestContext();
     nlsContext.setSystem(new IdeSystemTestImpl());
     nlsContext.setUserHome(nlsUserHome);
-    this.guiStateManager = new GuiStateManager(getTestContext().getIdeRoot().toString(), nlsContext);
+    this.launchTasks = new ArrayList<>();
+    this.launchCompletion = new CompletableFuture<>();
+    this.launchStarted = new CountDownLatch(1);
+    this.guiStateManager = new GuiStateManager(getTestContext().getIdeRoot().toString(), nlsContext) {
+      private CommandletService launchService;
+
+      @Override
+      public CommandletService getCommandletService() {
+
+        // TabFactory requests the service during GuiStateManager construction.
+        if (this.launchService == null) {
+          this.launchService = new CommandletService(this) {
+            @Override
+            protected Task<Void> createCommandletTask(String commandlet) {
+
+              Task<Void> task = new Task<>() {
+                @Override
+                protected Void call() throws Exception {
+
+                  AppBaseTest.this.launchStarted.countDown();
+                  return AppBaseTest.this.launchCompletion.get(10, TimeUnit.SECONDS);
+                }
+              };
+              AppBaseTest.this.launchTasks.add(task);
+              return task;
+            }
+          };
+        }
+        return this.launchService;
+      }
+    };
     this.guiStateManager.getNlsService().setLocale(Locale.ENGLISH);
     this.taskManager = guiStateManager.getTaskManager();
     this.viewModel = new MainWindowViewModel(guiStateManager);
@@ -113,6 +161,12 @@ public class AppBaseTest extends UIBasedApplicationTest {
 
     taskManager.clearTasks();
     waitForFxEvents();
+  }
+
+  @AfterEach
+  void finishLaunchTasks() {
+
+    interact(() -> this.launchTasks.forEach(task -> task.cancel(true)));
   }
 
   /**
@@ -182,7 +236,7 @@ public class AppBaseTest extends UIBasedApplicationTest {
   }
 
   @Test
-  void testOnlyClickedIdeButtonIsDisabledDuringLaunch() {
+  void testIdeButtonIsEnabledAgainIfLaunchSetupFails() {
 
     openLauncherTab();
 
@@ -195,12 +249,58 @@ public class AppBaseTest extends UIBasedApplicationTest {
         assertThat(this.androidStudioOpen.isDisabled()).isFalse();
         assertThat(this.vsCodeOpen.isDisabled()).isFalse();
 
-        // Stop before creating a real launch task, which would install or open an IDE.
+        // Exercise setup failure before a background launch task is created.
         throw new IllegalStateException("Expected setup failure");
       });
 
       Assertions.assertThatIllegalStateException().isThrownBy(this.intellijOpen::fire).withMessage("Expected setup failure");
       assertThat(this.intellijOpen.isDisabled()).isFalse();
+    });
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = State.class, names = { "SUCCEEDED", "FAILED", "CANCELLED" })
+  void testOnlyClickedIdeButtonIsDisabledUntilLaunchTaskEnds(State state) throws Exception {
+
+    openLauncherTab();
+    interact(() -> {
+      this.selectedProject.getSelectionModel().select("project-1");
+      this.selectedWorkspace.getSelectionModel().select("main");
+      this.intellijOpen.fire();
+    });
+    assertThat(this.launchStarted.await(5, TimeUnit.SECONDS)).as("Launch task should start").isTrue();
+    waitForFxEvents();
+    Task<Void> task = this.launchTasks.getFirst();
+
+    interact(() -> {
+      assertThat(task.getState()).isEqualTo(State.RUNNING);
+      assertThat(this.intellijOpen.isDisabled()).isTrue();
+      assertThat(this.eclipseOpen.isDisabled()).isFalse();
+      assertThat(this.androidStudioOpen.isDisabled()).isFalse();
+      assertThat(this.vsCodeOpen.isDisabled()).isFalse();
+      this.intellijOpen.fire();
+      assertThat(this.launchTasks).hasSize(1);
+    });
+
+    switch (state) {
+      case SUCCEEDED -> {
+        this.launchCompletion.complete(null);
+        task.get(5, TimeUnit.SECONDS);
+      }
+      case FAILED -> {
+        this.launchCompletion.completeExceptionally(new IllegalStateException("Expected launch failure"));
+        Assertions.assertThatExceptionOfType(ExecutionException.class).isThrownBy(() -> task.get(5, TimeUnit.SECONDS));
+      }
+      case CANCELLED -> interact(() -> task.cancel(true));
+      default -> throw new IllegalArgumentException("Unexpected test state: " + state);
+    }
+    waitForFxEvents();
+
+    interact(() -> {
+      assertThat(task.getState()).isEqualTo(state);
+      for (Button button : this.ideOpenButtons) {
+        assertThat(button.isDisabled()).as(button.getId() + " should be enabled after the launch ends").isFalse();
+      }
     });
   }
 

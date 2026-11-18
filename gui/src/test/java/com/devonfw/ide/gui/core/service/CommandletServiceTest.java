@@ -51,7 +51,7 @@ public class CommandletServiceTest extends UIBasedApplicationTest {
     GuiStateManager stateManager = new GuiStateManager(this.ideRoot.toString(), context);
     this.service = new CommandletService(stateManager) {
       @Override
-      protected Task<Void> runCommandletTask(String commandlet) {
+      protected Task<Void> createCommandletTask(String commandlet) {
 
         Task<Void> task = new Task<>() {
           @Override

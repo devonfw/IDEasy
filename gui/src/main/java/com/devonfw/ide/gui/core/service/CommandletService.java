@@ -85,7 +85,7 @@ public class CommandletService {
     try {
       this.preLaunchAction.run();
 
-      Task<Void> commandletTask = runCommandletTask(commandlet);
+      Task<Void> commandletTask = createCommandletTask(commandlet);
       commandletTask.stateProperty().addListener((_, _, state) -> {
         if ((state == State.SUCCEEDED) || (state == State.FAILED) || (state == State.CANCELLED)) {
           this.runningCommandlets.remove(commandlet);
