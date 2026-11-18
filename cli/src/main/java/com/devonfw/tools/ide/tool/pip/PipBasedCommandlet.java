@@ -119,7 +119,7 @@ public abstract class PipBasedCommandlet extends PackageManagerBasedLocalToolCom
         // we are looking for something like "Version: 25.3"
         if (line.startsWith(PIP_SHOW_VERSION_PREFIX)) {
           String version = line.substring(PIP_SHOW_VERSION_PREFIX.length()).trim();
-          return VersionIdentifier.of(version);
+          return VersionIdentifier.ofRequired(version);
         }
       }
     }

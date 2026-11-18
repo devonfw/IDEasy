@@ -77,7 +77,7 @@ class PipTest extends AbstractIdeContextTest {
     List<VersionIdentifier> versions = commandlet.getVersions();
 
     // assert
-    assertThat(versions).containsExactly(VersionIdentifier.of("24.2"), VersionIdentifier.of("24.1"), VersionIdentifier.of("24.0"));
+    assertThat(versions).containsExactly(VersionIdentifier.ofRequired("24.2"), VersionIdentifier.ofRequired("24.1"), VersionIdentifier.ofRequired("24.0"));
   }
 
   private void checkInstallation(IdeTestContext context) {
