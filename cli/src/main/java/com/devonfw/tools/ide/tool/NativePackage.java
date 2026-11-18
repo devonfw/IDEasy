@@ -32,7 +32,23 @@ public class NativePackage {
   }
 
   /**
-   * Creates a new {@link NativePackage}.
+   * Creates a new {@link NativePackage} that installs local package artifacts instead of the named {@code packages}.
+   *
+   * @param pm the specific {@link NativePackageManager}
+   * @param packages the packages that need to be handled.
+   * @param extraInstallOptions extra install options (optional)
+   * @param setupCommands commands to run before install (optional)
+   * @param cleanupCommands commands to run after uninstall (optional)
+   * @param optionalNativePackageArtifactPaths the local package artifacts to install (optional)
+   */
+  public NativePackage(NativePackageManager pm, List<String> packages,
+      List<String> extraInstallOptions, List<String> setupCommands, List<String> cleanupCommands,
+      List<Path> optionalNativePackageArtifactPaths) {
+    this(pm, packages, extraInstallOptions, setupCommands, cleanupCommands, optionalNativePackageArtifactPaths, false);
+  }
+
+  /**
+   * Creates a new {@link NativePackage} that installs the named {@code packages} (no local package artifacts).
    *
    * @param pm the specific {@link NativePackageManager}
    * @param packages the packages that need to be handled.
@@ -43,6 +59,23 @@ public class NativePackage {
    */
   public NativePackage(NativePackageManager pm, List<String> packages,
       List<String> extraInstallOptions, List<String> setupCommands, List<String> cleanupCommands,
+      boolean interactiveInstall) {
+    this(pm, packages, extraInstallOptions, setupCommands, cleanupCommands, null, interactiveInstall);
+  }
+
+  /**
+   * Creates a new {@link NativePackage}.
+   *
+   * @param pm the specific {@link NativePackageManager}
+   * @param packages the packages that need to be handled.
+   * @param extraInstallOptions extra install options (optional)
+   * @param setupCommands commands to run before install (optional)
+   * @param cleanupCommands commands to run after uninstall (optional)
+   * @param optionalNativePackageArtifactPaths the local package artifacts to install (optional)
+   * @param interactiveInstall {@code true} to allow interactive user input during installation, {@code false} otherwise.
+   */
+  public NativePackage(NativePackageManager pm, List<String> packages,
+      List<String> extraInstallOptions, List<String> setupCommands, List<String> cleanupCommands, List<Path> optionalNativePackageArtifactPaths,
       boolean interactiveInstall) {
 
     this.packageManager = Objects.requireNonNull(pm, "package manager must not be null");

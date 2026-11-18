@@ -12,7 +12,7 @@ public enum NativePackageManager {
   APT("apt", "install -y", "-y autoremove --purge", "=", "*", true),
 
   /** Zypper is the package manager of SUSE based Linux distributions. */
-  ZYPPER("zypper", "--non-interactive install", "remove", "=", "", true),
+  ZYPPER("zypper", "--non-interactive install", "install", "remove", "=", "", true),
 
   /** Yellowdog Updater Modified (YUM) is the package manager of RPM package based Linux distributions like Fedora, Red Hat, or CentOS. */
   YUM("yum", "install -y", "remove -y", "-", "*", true),
@@ -37,6 +37,7 @@ public enum NativePackageManager {
 
   private final String binaryName;
   private final String installCommand;
+  private final String interactiveInstallCommand;
   private final String uninstallCommand;
   private final String versionSeparator;
   private final String versionWildCard;
@@ -44,8 +45,15 @@ public enum NativePackageManager {
 
   NativePackageManager(String binaryName, String installCommand, String uninstallCommand, String versionSeparator, String versionWildCard,
       boolean needSudo) {
+    this(binaryName, installCommand, null, uninstallCommand, versionSeparator, versionWildCard, needSudo);
+  }
+
+  NativePackageManager(String binaryName, String installCommand, String interactiveInstallCommand, String uninstallCommand, String versionSeparator,
+      String versionWildCard,
+      boolean needSudo) {
     this.binaryName = binaryName;
     this.installCommand = installCommand;
+    this.interactiveInstallCommand = interactiveInstallCommand;
     this.uninstallCommand = uninstallCommand;
     this.versionSeparator = versionSeparator;
     this.versionWildCard = versionWildCard;
@@ -89,8 +97,8 @@ public enum NativePackageManager {
   }
 
   /**
-   * @return {@code true} if commands of this {@link NativePackageManager} need to be run with {@code sudo} (root permissions),
-   * {@code false} otherwise (e.g. for {@link #YAY} and {@link #BREW}/{@link #BREW_CASK} that must never be run as root).
+   * @return {@code true} if commands of this {@link NativePackageManager} need to be run with {@code sudo} (root permissions), {@code false} otherwise (e.g.
+   *     for {@link #YAY} and {@link #BREW}/{@link #BREW_CASK} that must never be run as root).
    */
   public boolean isNeedSudo() {
 
@@ -185,8 +193,8 @@ public enum NativePackageManager {
     }
 
     String installCommand = this.installCommand;
-    if ((this == ZYPPER) && nativePackage.isInteractiveInstall()) {
-      installCommand = "install";
+    if (nativePackage.isInteractiveInstall() && this.interactiveInstallCommand != null) {
+      installCommand = this.interactiveInstallCommand;
     }
     command.append(' ').append(installCommand);
 
