@@ -6,6 +6,8 @@ package com.devonfw.ide.gui;
  */
 public class AppLauncher {
 
+  //testmessage
+
   static void main(final String[] args) {
 
     App.main(args);
