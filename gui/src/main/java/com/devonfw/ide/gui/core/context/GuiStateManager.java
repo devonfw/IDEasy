@@ -106,7 +106,6 @@ public class GuiStateManager {
     IdeLogLevel logLevel = IdeLogLevel.DEBUG;
     startContext = new IdeStartContextImpl(logLevel, buffer);
 
-    this.projectManager = new ProjectManager(ideRootDir);
     this.eventBus = new GuiEventBus();
     this.taskManager = new TaskManager(eventBus);
     this.taskListViewModel = new TaskListViewModel(taskManager, eventBus);
