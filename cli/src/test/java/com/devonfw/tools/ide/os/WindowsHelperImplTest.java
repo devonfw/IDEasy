@@ -136,6 +136,40 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Test that an uninstall key is only taken for the app if its DisplayName matches, not if some other value of an unrelated app contains the app name.
+   */
+  @Test
+  void testGetAppInstallationFromRegistryIgnoresUnrelatedMatches() {
+    final String notepadKey = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Notepad++";
+    final String obsidianKey = "HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\0be84a2f-1c0e-5e1b-a4b0-d0f8f5a1c1d2";
+    AbstractIdeTestContext context = new IdeTestContext();
+    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
+      @Override
+      protected List<String> runReg(String... args) {
+        if (args.length >= 5 && "/f".equalsIgnoreCase(args[3])) {
+          if (args[1].startsWith("HKLM\\SOFTWARE\\Microsoft")) {
+            return List.of("", notepadKey, "    Comments    REG_SZ    Replacement for Obsidian and others", "", "End of search: 1 match(es) found.");
+          } else if (args[1].startsWith("HKCU")) {
+            return List.of("", obsidianKey, "    DisplayName    REG_SZ    Obsidian", "", "End of search: 1 match(es) found.");
+          }
+          return List.of();
+        }
+        if (args.length >= 2 && args[0].equalsIgnoreCase("query") && args[1].equals(obsidianKey)) {
+          return List.of(obsidianKey, "    DisplayName    REG_SZ    Obsidian", "    DisplayVersion    REG_SZ    1.8.9");
+        }
+        if (args.length >= 2 && args[0].equalsIgnoreCase("query") && args[1].equals(notepadKey)) {
+          return List.of(notepadKey, "    DisplayName    REG_SZ    Notepad++", "    DisplayVersion    REG_SZ    8.8.9");
+        }
+        return List.of();
+      }
+    };
+
+    WindowsAppInstallation inst = helper.getAppInstallationFromRegistry("Obsidian");
+    assertThat(inst).isNotNull();
+    assertThat(inst.version()).isEqualTo("1.8.9");
+  }
+
+  /**
    * Test if getAppInstallationFromRegistry returns null when no uninstall key is found
    */
   @Test
@@ -307,5 +341,62 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(helper.getExecutedUninstallCommand()).isNull();
+  }
+
+  private WindowsHelperImpl helperWithKeys(String appName, String... keysAndDisplayNames) {
+
+    // keysAndDisplayNames: key1, displayName1, key2, displayName2, ... in the order reg lists them
+    List<String> listing = new ArrayList<>();
+    listing.add("");
+    for (int i = 0; i < keysAndDisplayNames.length; i += 2) {
+      listing.add(keysAndDisplayNames[i]);
+      listing.add("    DisplayName    REG_SZ    " + keysAndDisplayNames[i + 1]);
+      listing.add("");
+    }
+    return new WindowsHelperImpl(new IdeTestContext()) {
+      @Override
+      protected List<String> runReg(String... args) {
+        if (args.length >= 5 && "/f".equalsIgnoreCase(args[3])) {
+          return args[1].startsWith("HKLM\\SOFTWARE\\Microsoft") ? listing : List.of();
+        }
+        for (int i = 0; i < keysAndDisplayNames.length; i += 2) {
+          if (args.length >= 2 && args[1].equals(keysAndDisplayNames[i])) {
+            return List.of(keysAndDisplayNames[i], "    DisplayName    REG_SZ    " + keysAndDisplayNames[i + 1],
+                "    DisplayVersion    REG_SZ    " + keysAndDisplayNames[i + 1].length());
+          }
+        }
+        return List.of();
+      }
+    };
+  }
+
+  /**
+   * Test that an exact DisplayName match wins over a key whose DisplayName only contains the app name, even if that key is listed first.
+   */
+  @Test
+  void testFindUninstallKeyPrefersExactDisplayName() {
+
+    final String webKey = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Obsidian Web";
+    final String appKey = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Obsidian";
+    WindowsHelperImpl helper = helperWithKeys("Obsidian", webKey, "Obsidian Web", appKey, "Obsidian");
+
+    WindowsAppInstallation inst = helper.getAppInstallationFromRegistry("Obsidian");
+
+    assertThat(inst).isNotNull();
+    assertThat(inst.version()).isEqualTo(String.valueOf("Obsidian".length()));
+  }
+
+  /**
+   * Test that a DisplayName that only contains the app name (e.g. "pgAdmin 4 version 8.1" for "pgAdmin") is still accepted.
+   */
+  @Test
+  void testFindUninstallKeyAcceptsDisplayNameContainingAppName() {
+
+    final String key = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\pgAdmin 4 version 8.1";
+    WindowsHelperImpl helper = helperWithKeys("pgAdmin", key, "pgAdmin 4 version 8.1");
+
+    WindowsAppInstallation inst = helper.getAppInstallationFromRegistry("pgAdmin");
+
+    assertThat(inst).isNotNull();
   }
 }

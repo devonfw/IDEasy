@@ -28,7 +28,7 @@ public class UvTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC);
     Uv uv = new Uv(context);
     Path rootDir = context.getSoftwarePath().resolve("uv");
-    ToolInstallation toolInstallation = new ToolInstallation(rootDir, rootDir, rootDir, VersionIdentifier.of("0.1.0"), true);
+    ToolInstallation toolInstallation = new ToolInstallation(rootDir, rootDir, rootDir, VersionIdentifier.ofRequired("0.1.0"), true);
     Map<String, VariableLine> variables = new HashMap<>();
     EnvironmentVariableCollectorContext environmentContext = new EnvironmentVariableCollectorContext(variables,
         new VariableSource(EnvironmentVariablesType.WORKSPACE, null), WindowsPathSyntax.MSYS);
@@ -53,7 +53,7 @@ public class UvTest extends AbstractIdeContextTest {
     };
     Uv uv = new Uv(context);
     Path toolDir = Path.of("/software/uv");
-    ToolInstallation toolInstallation = new ToolInstallation(toolDir, toolDir, toolDir, VersionIdentifier.of("0.1.0"), true);
+    ToolInstallation toolInstallation = new ToolInstallation(toolDir, toolDir, toolDir, VersionIdentifier.ofRequired("0.1.0"), true);
     Map<String, VariableLine> variables = new HashMap<>();
     EnvironmentVariableCollectorContext environmentContext = new EnvironmentVariableCollectorContext(variables,
         new VariableSource(EnvironmentVariablesType.WORKSPACE, null), WindowsPathSyntax.MSYS);

@@ -32,13 +32,13 @@
 <rect x="140.3" y="82" width="459.7" height="24" fill="#8c959f"/>
 <text x="608.0" y="99" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">210</text>
 <text x="98" y="147" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">Linux</text>
-<rect x="110.0" y="130" width="9.3" height="24" fill="#0969da"/>
-<rect x="119.3" y="130" width="4.7" height="24" fill="#8250df"/>
+<rect x="110.0" y="130" width="11.7" height="24" fill="#0969da"/>
+<rect x="121.7" y="130" width="2.3" height="24" fill="#8250df"/>
 <rect x="124.0" y="130" width="459.7" height="24" fill="#8c959f"/>
 <text x="591.7" y="147" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">203</text>
 <text x="98" y="195" text-anchor="end" fill="var(--chart-text)" font-family="sans-serif" font-size="14">macOS</text>
-<rect x="110.0" y="178" width="4.7" height="24" fill="#0969da"/>
-<rect x="114.7" y="178" width="4.7" height="24" fill="#8250df"/>
+<rect x="110.0" y="178" width="7.0" height="24" fill="#0969da"/>
+<rect x="117.0" y="178" width="2.3" height="24" fill="#8250df"/>
 <rect x="119.3" y="178" width="459.7" height="24" fill="#8c959f"/>
 <text x="587.0" y="195" fill="var(--chart-muted-text)" font-family="sans-serif" font-size="13" font-weight="600">201</text>
 </svg>
