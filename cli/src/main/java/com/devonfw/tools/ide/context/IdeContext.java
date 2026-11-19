@@ -325,8 +325,8 @@ public interface IdeContext extends IdeStartContext {
    * @param options the available options for the user to answer. There should be at least two options given as otherwise the question cannot make sense.
    * @param question the question to ask.
    * @return the option selected by the user as answer.
-   * @throws CliAbortException if the question cannot be answered because we are in batch mode without force mode. In that case the first option is not selected
-   *     automatically - re-run the command with the force option to accept it.
+   * @throws CliAbortException if the question cannot be answered because we are in batch mode without force mode. In that case the first option is not
+   *     selected automatically - re-run the command with the force option to accept it.
    */
   @SuppressWarnings("unchecked")
   <O> O question(O[] options, String question, Object... args);
@@ -479,6 +479,30 @@ public interface IdeContext extends IdeStartContext {
           .toList();
     } catch (IOException e) {
       throw new UncheckedIOException("Failed to find IDEasy projects in " + ideRoot, e);
+    }
+  }
+
+  /**
+   * Finds all workspaces of the given IDEasy project.
+   *
+   * @param ideHome the IDE home containing the workspaces.
+   * @return the paths of all detected workspaces.
+   */
+  static List<Path> findWorkspaces(Path ideHome) {
+
+    if ((ideHome == null) || !Files.isDirectory(ideHome)) {
+      return List.of();
+    }
+
+    Path workspaces = ideHome.resolve(FOLDER_WORKSPACES);
+    if (!Files.isDirectory(workspaces)) {
+      return List.of();
+    }
+
+    try (Stream<Path> children = Files.list(workspaces)) {
+      return children.filter(Files::isDirectory).toList();
+    } catch (IOException e) {
+      throw new UncheckedIOException("Failed to find workspaces in " + workspaces, e);
     }
   }
 
