@@ -22,7 +22,7 @@ class GoTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_GO, wireMockRuntimeInfo);
-    Go go = new Go(context);
+    Go go = context.getCommandletManager().getCommandlet(Go.class);
 
     // act
     go.install();
@@ -36,7 +36,7 @@ class GoTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_GO, wireMockRuntimeInfo);
-    Go go = new Go(context);
+    Go go = context.getCommandletManager().getCommandlet(Go.class);
     go.arguments.addValue("hello");
     go.arguments.addValue("world");
 

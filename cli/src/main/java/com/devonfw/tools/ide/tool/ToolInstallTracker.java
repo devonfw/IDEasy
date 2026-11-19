@@ -1,9 +1,7 @@
 package com.devonfw.tools.ide.tool;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -15,11 +13,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public final class ToolInstallTracker {
 
-  /** Keys {@link #installed} and {@link #cveChecked} by {@link ToolEdition}. */
-  private final Map<ToolEdition, Set<String>> installed = new HashMap<>();
-
-  /** Keys {@link #installed} and {@link #cveChecked} by {@link ToolEdition}. */
-  private final Map<ToolEdition, Set<String>> cveChecked = new HashMap<>();
+  /** Maps {@link ToolEditionAndVersion} to {@link ToolState}. */
+  private final Map<ToolEditionAndVersion, ToolState> state = new HashMap<>();
 
   /**
    * Records that the given tool edition+version has been installed during this process.
@@ -31,6 +26,7 @@ public final class ToolInstallTracker {
     if (toolEditionAndVersion == null) {
       return;
     }
+    // we need to disassemble as the configured and resolved version may differ causing equals mismatch
     recordInstalled(toolEditionAndVersion.getEdition(), toolEditionAndVersion.getResolvedVersion());
   }
 
@@ -42,7 +38,7 @@ public final class ToolInstallTracker {
    */
   public void recordInstalled(ToolEdition edition, VersionIdentifier resolvedVersion) {
 
-    record(this.installed, edition, resolvedVersion);
+    record(edition, resolvedVersion, ToolState.INSTALLED);
   }
 
   /**
@@ -54,6 +50,7 @@ public final class ToolInstallTracker {
     if (toolEditionAndVersion == null) {
       return false;
     }
+    // we need to disassemble as the configured and resolved version may differ causing equals mismatch
     return isInstalled(toolEditionAndVersion.getEdition(), toolEditionAndVersion.getResolvedVersion());
   }
 
@@ -63,7 +60,7 @@ public final class ToolInstallTracker {
    * @return {@code true} if the tool edition+version was already recorded as installed during this process, {@code false} otherwise.
    */
   private boolean isInstalled(ToolEdition edition, VersionIdentifier resolvedVersion) {
-    return isRecorded(this.installed, edition, resolvedVersion);
+    return isRecorded(edition, resolvedVersion, ToolState.INSTALLED);
   }
 
   /**
@@ -74,7 +71,7 @@ public final class ToolInstallTracker {
    */
   public void recordCveChecked(ToolEdition edition, VersionIdentifier resolvedVersion) {
 
-    record(this.cveChecked, edition, resolvedVersion);
+    record(edition, resolvedVersion, ToolState.CVE_CHECKED);
   }
 
   /**
@@ -83,36 +80,48 @@ public final class ToolInstallTracker {
    * @return {@code true} if the CVE check for the tool edition+version was already run during this process, {@code false} otherwise.
    */
   public boolean isCveChecked(ToolEdition edition, VersionIdentifier resolvedVersion) {
-    return isRecorded(this.cveChecked, edition, resolvedVersion);
+    return isRecorded(edition, resolvedVersion, ToolState.CVE_CHECKED);
   }
 
   /**
    * Records the given tool edition+version in the given state.
    *
-   * @param state the state to record into ({@link #installed} or {@link #cveChecked}).
    * @param edition the {@link ToolEdition} to record.
    * @param resolvedVersion the {@link VersionIdentifier} to record.
+   * @param state the {@link ToolState}.
    */
-  private void record(Map<ToolEdition, Set<String>> state, ToolEdition edition, VersionIdentifier resolvedVersion) {
+  private void record(ToolEdition edition, VersionIdentifier resolvedVersion, ToolState state) {
 
     if ((edition != null) && (resolvedVersion != null)) {
-      state.computeIfAbsent(edition, e -> new HashSet<>()).add(resolvedVersion.toString());
+      ToolEditionAndVersion key = new ToolEditionAndVersion(edition, resolvedVersion);
+      if ((state == ToolState.CVE_CHECKED) && this.state.get(key) == ToolState.INSTALLED) {
+        return; // INSTALLED implies CVE_CHECKED
+      }
+      this.state.put(key, state);
     }
   }
 
   /**
-   * @param state the state to look up in ({@link #installed} or {@link #cveChecked}).
    * @param edition the {@link ToolEdition} to look up.
    * @param resolvedVersion the {@link VersionIdentifier} to look up.
+   * @param state the {@link ToolState}.
    * @return {@code true} if the tool edition+version is recorded in the given state, {@code false} otherwise.
    */
-  private boolean isRecorded(Map<ToolEdition, Set<String>> state, ToolEdition edition, VersionIdentifier resolvedVersion) {
+  private boolean isRecorded(ToolEdition edition, VersionIdentifier resolvedVersion, ToolState state) {
 
     if ((edition == null) || (resolvedVersion == null)) {
       return false;
     }
-    Set<String> versions = state.get(edition);
-    return (versions != null) && versions.contains(resolvedVersion.toString());
+    ToolEditionAndVersion key = new ToolEditionAndVersion(edition, resolvedVersion);
+    ToolState recordedState = this.state.get(key);
+    return (recordedState == state) || ((recordedState == ToolState.INSTALLED) && (state == ToolState.CVE_CHECKED));
+  }
+
+  private static enum ToolState {
+
+    CVE_CHECKED,
+
+    INSTALLED
   }
 
 }
