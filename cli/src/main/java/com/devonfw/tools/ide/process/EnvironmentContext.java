@@ -19,6 +19,18 @@ public interface EnvironmentContext {
   EnvironmentContext withEnvVar(String key, String value);
 
   /**
+   * Sets or overrides the specified environment variable with the given {@link VariableScope}.
+   *
+   * @param key the name of the environment variable.
+   * @param value the value of the environment variable.
+   * @param scope the {@link VariableScope} defining whether the variable is local or exported.
+   * @return this {@link EnvironmentContext} for fluent API calls.
+   */
+  default EnvironmentContext withEnvVar(String key, String value, VariableScope scope) {
+    return withEnvVar(key, value);
+  }
+
+  /**
    * Extends the "PATH" variable with the given {@link Path} entry. The new entry will be added to the beginning of the "PATH" and potentially override other
    * entries if it contains the same binary.
    *

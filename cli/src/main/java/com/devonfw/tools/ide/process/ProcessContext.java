@@ -116,6 +116,9 @@ public interface ProcessContext extends EnvironmentContext {
   ProcessContext withEnvVar(String key, String value);
 
   @Override
+  ProcessContext withEnvVar(String key, String value, VariableScope scope);
+
+  @Override
   ProcessContext withPathEntry(Path path);
 
   /**

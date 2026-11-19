@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.VariableScope;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.claude.RecordingEnvironmentContext;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -114,6 +115,7 @@ class NpmTest extends AbstractIdeContextTest {
     // assert
     Path npmGlobalPath = context.getSoftwarePath().resolve(Npm.NPM_GLOBAL_FOLDER);
     assertThat(environmentContext.set).containsEntry("npm_config_prefix", npmGlobalPath.toString());
+    assertThat(environmentContext.scopes).containsEntry("npm_config_prefix", VariableScope.LOCAL);
   }
 
   /**
