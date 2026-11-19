@@ -1,32 +1,24 @@
 package com.devonfw.tools.ide.url.tool.dart;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collection;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.devonfw.tools.ide.json.JsonMapping;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
+import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * {@link AbstractUrlUpdater} for the Dart SDK.
+ * {@link JsonUrlUpdater} for the Dart SDK.
  * <p>
- * The official releases are published on Google Cloud Storage under the {@code dart-archive} bucket. Unlike
- * {@link com.devonfw.tools.ide.url.tool.flutter.FlutterUrlUpdater} (which reads a curated release feed per operating system), the bucket does not
- * expose a single feed of all past releases. This updater therefore enumerates the stable release folders via the GCS objects list API
- * ({@code /storage/v1/b/dart-archive/o?prefix=channels/stable/release/&delimiter=/}) and records the full stable history, so that a
- * {@code DART_VERSION} can be pinned. The version base URL therefore points at the host of the objects list API ({@code storage.googleapis.com}) while
- * the download base URL points at the {@code dart-archive} archive objects, which is why the two differ. As with Flutter, releases below
- * {@link #MIN_VERSION} are skipped: {@code 3.0.0} is the first stable
- * release that ships a macOS arm64 archive, and {@link #addVersion(UrlVersion)} unconditionally adds a {@code macos-arm64} download, so recording an
- * older release would produce a broken URL.
+ * The official releases are published on Google Cloud Storage under the {@code dart-archive} bucket, which does not expose a curated per-release feed (unlike
+ * {@link com.devonfw.tools.ide.url.tool.flutter.FlutterUrlUpdater}). It therefore enumerates the stable release folders via the single JSON listing returned by
+ * the GCS objects list API ({@code /storage/v1/b/dart-archive/o?prefix=channels/stable/release/&delimiter=/}) and maps every folder prefix to a version item.
+ * The download URLs are then composed from a template per operating system and architecture, so that a
+ * {@code DART_VERSION} can be pinned to any stable release. As with Flutter, releases below {@link #MIN_VERSION}
+ * are skipped: {@code 3.0.0} is the first stable release that ships a macOS arm64 archive, and
+ * {@link #addVersion(UrlVersion, DartRelease)} unconditionally adds a {@code macos-arm64} download, so recording
+ * an older release would produce a broken URL.
  */
-public class DartUrlUpdater extends AbstractUrlUpdater {
+public class DartUrlUpdater extends JsonUrlUpdater<DartReleaseList, DartRelease> {
 
   /** The base URL of the objects list API of the {@code dart-archive} bucket, used to enumerate the stable releases. */
   private static final String LIST_BASE_URL = "https://storage.googleapis.com";
@@ -46,18 +38,15 @@ public class DartUrlUpdater extends AbstractUrlUpdater {
   /** The path template to a Dart SDK archive, relative to {@link #RELEASE_BASE_URL}. */
   private static final String SDK_ARCHIVE = "/channels/stable/release/${version}/sdk/dartsdk-";
 
+  /** The first stable release that publishes a Windows arm64 archive. */
+  private static final VersionIdentifier WINDOWS_ARM64_MIN_VERSION = VersionIdentifier.ofRequired("3.3.0");
+
   /**
    * The minimum Dart version handled by this updater: {@code 3.0.0} is the first stable release that ships a macOS arm64 archive. This mirrors
-   * {@link com.devonfw.tools.ide.url.tool.flutter.FlutterUrlUpdater}: since {@link #addVersion(UrlVersion)} unconditionally adds a
+   * {@link com.devonfw.tools.ide.url.tool.flutter.FlutterUrlUpdater}: since {@link #addVersion(UrlVersion, DartRelease)} unconditionally adds a
    * {@code macos-arm64} download, recording an older release would produce a broken URL for that platform.
    */
   private static final VersionIdentifier MIN_VERSION = VersionIdentifier.ofRequired("3.0.0");
-
-  /** The {@link Logger}. */
-  private static final Logger logger = LoggerFactory.getLogger(DartUrlUpdater.class);
-
-  /** The shared {@link ObjectMapper}. */
-  private static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
 
   /**
    * The constructor.
@@ -83,37 +72,40 @@ public class DartUrlUpdater extends AbstractUrlUpdater {
   /**
    * {@inheritDoc}
    * <p>
-   * Returns the full stable version history, enumerated from the objects list of the {@code dart-archive} bucket. The {@code latest} alias folder and
-   * every release below {@link #MIN_VERSION} are filtered out (see {@link #mapVersion(String)}).
+   * Points at the GCS objects list API of the {@code dart-archive} bucket, which lists the stable release folders as JSON.
    */
   @Override
-  protected Set<String> getVersions() {
-    String listUrl = getVersionBaseUrl() + LIST_API;
-    String response = doGetResponseBodyAsString(listUrl);
-    DartReleaseList releaseList;
-    try {
-      releaseList = MAPPER.readValue(response, DartReleaseList.class);
-    } catch (IOException e) {
-      throw new IllegalStateException("Error while reading releases from " + listUrl, e);
-    }
-    Set<String> versions = new HashSet<>();
-    for (String prefix : releaseList.prefixes()) {
-      if (isTimeoutExpired()) {
-        break;
-      }
-      if (!prefix.startsWith(RELEASE_PREFIX) || !prefix.endsWith(RELEASE_PREFIX_SUFFIX)) {
-        continue;
-      }
-      addVersion(prefix.substring(RELEASE_PREFIX.length(), prefix.length() - RELEASE_PREFIX_SUFFIX.length()), versions);
-    }
-    return versions;
+  protected String doGetVersionUrl() {
+    return getVersionBaseUrl() + LIST_API;
+  }
+
+  @Override
+  protected Class<DartReleaseList> getJsonObjectType() {
+    return DartReleaseList.class;
   }
 
   /**
    * {@inheritDoc}
    * <p>
-   * In addition to the base class filtering, rejects every release folder that is not a dotted {@code x.y.z} version (which also covers the
-   * {@code latest} alias, being a non-concrete release) and every release below {@link #MIN_VERSION}.
+   * Maps the {@code prefixes} of the objects list API to the release folder names (e.g. {@code 3.13.5}). Folders that do not match the
+   * {@link #RELEASE_PREFIX} (and therefore are not release folders) are ignored.
+   *
+   * @param jsonObject the parsed objects list response.
+   * @return the collection of release version items.
+   */
+  @Override
+  protected Collection<DartRelease> getVersionItems(DartReleaseList jsonObject) {
+    return jsonObject.prefixes().stream()
+        .filter(prefix -> prefix.startsWith(RELEASE_PREFIX) && prefix.endsWith(RELEASE_PREFIX_SUFFIX))
+        .map(prefix -> new DartRelease(prefix.substring(RELEASE_PREFIX.length(), prefix.length() - RELEASE_PREFIX_SUFFIX.length())))
+        .toList();
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * In addition to the base class filtering, rejects every release folder that is not a dotted {@code x.y.z} version (which also covers the {@code latest}
+   * alias, being a non-concrete release) and every release below {@link #MIN_VERSION}.
    *
    * @param version the stable release folder name to check (e.g. {@code 3.13.5} or {@code latest}).
    * @return the version to store, or {@code null} to skip it.
@@ -135,11 +127,10 @@ public class DartUrlUpdater extends AbstractUrlUpdater {
   /**
    * {@inheritDoc}
    * <p>
-   * Adds the download URL for each supported operating system and architecture. As Dart does not publish checksums, the checksum is computed on
-   * download.
+   * Adds the download URL for each supported operating system and architecture. As Dart does not publish checksums, the checksum is computed on download.
    */
   @Override
-  protected void addVersion(UrlVersion urlVersion) {
+  protected void addVersion(UrlVersion urlVersion, DartRelease release) {
     String baseUrl = getDownloadBaseUrl() + SDK_ARCHIVE;
     doAddVersion(urlVersion, baseUrl + "linux-x64-release.zip", LINUX, X64);
     doAddVersion(urlVersion, baseUrl + "linux-arm64-release.zip", LINUX, ARM64);
@@ -147,7 +138,7 @@ public class DartUrlUpdater extends AbstractUrlUpdater {
     doAddVersion(urlVersion, baseUrl + "macos-arm64-release.zip", MAC, ARM64);
     doAddVersion(urlVersion, baseUrl + "windows-x64-release.zip", WINDOWS, X64);
     // Dart does not publish a Windows arm64 archive before 3.3.0 (introduced with Dart 3.3.0), so only add it for newer releases.
-    if (!urlVersion.getVersionIdentifier().compareVersion(VersionIdentifier.ofRequired("3.3.0")).isLess()) {
+    if (!urlVersion.getVersionIdentifier().compareVersion(WINDOWS_ARM64_MIN_VERSION).isLess()) {
       doAddVersion(urlVersion, baseUrl + "windows-arm64-release.zip", WINDOWS, ARM64);
     }
   }
