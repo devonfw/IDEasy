@@ -104,6 +104,38 @@ class IntellijTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that the plugins are installed into a version-specific folder and that the plugins of a previously installed (now obsolete) version are cleaned up
+   * once the new version is installed (see #1548). Unlike {@link #testIntellijInstallWhilePluginsOfPreviousVersionAreLocked()} this runs on every OS, so the
+   * per-version plugin handling is also covered by the CI build (ubuntu-latest).
+   *
+   * @param os the OS to use.
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  void testIntellijInstallsPluginsPerVersionAndCleansUpObsoleteVersion(String os) {
+
+    // arrange
+    this.context.setSystemInfo(SystemInfoMock.of(os));
+    Intellij commandlet = new Intellij(this.context);
+    commandlet.install(); // installs 2023.3.3, so the plugins go into plugins/intellij/2023.3
+
+    // simulate plugins of a previous (now obsolete) version still present on disk
+    Path intellijPluginsPath = this.context.getPluginsPath().resolve("intellij");
+    Path obsoleteVersionPath = intellijPluginsPath.resolve("2023.2");
+    Path obsoletePlugin = obsoleteVersionPath.resolve("some-plugin");
+    this.context.getFileAccess().mkdirs(obsoletePlugin);
+    this.context.getFileAccess().touch(obsoletePlugin.resolve("plugin.jar"));
+
+    // act
+    commandlet.install();
+
+    // assert - the current version keeps its per-version plugin folder and the obsolete one is removed
+    assertThat(commandlet.getPluginsInstallationPath()).isEqualTo(intellijPluginsPath.resolve("2023.3"));
+    assertThat(intellijPluginsPath.resolve("2023.3")).exists();
+    assertThat(obsoleteVersionPath).doesNotExist();
+  }
+
+  /**
    * Tests if the {@link Intellij} can be installed properly, and a plugin can be uninstalled afterward.
    *
    * @param os String of the OS to use.

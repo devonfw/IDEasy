@@ -51,7 +51,7 @@ public class IdeaPluginDownloader {
    * @param plugin the {@link ToolPluginDescriptor} to install.
    * @param step the {@link Step} for the plugin installation.
    * @param pc the {@link ProcessContext} to use.
-   * @return boolean {@code true} if successful installed, {@code false} if not.
+   * @return boolean {@code true} if successfully installed, {@code false} if not.
    */
   public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
     String downloadUrl = getDownloadUrl(plugin);
@@ -83,7 +83,7 @@ public class IdeaPluginDownloader {
   }
 
   /**
-   * @param plugin the {@link ToolPluginDescriptor} to be installer
+   * @param plugin the {@link ToolPluginDescriptor} to be installed
    * @return a {@link String} representing the download URL.
    */
   private String getDownloadUrl(ToolPluginDescriptor plugin) {
@@ -156,7 +156,7 @@ public class IdeaPluginDownloader {
     }
   }
 
-  private String getFileExtensionFromUrl(String urlString) throws RuntimeException {
+  private String getFileExtensionFromUrl(String urlString) {
 
     URI uri = null;
     HttpRequest request;

@@ -51,15 +51,16 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     assertThat(plugin2.name()).isEqualTo("anyedit");
     assertThat(plugin2.version()).isNull();
 
-    // Check if anyedit plugin has value "false" --> value from user directory
-    assertThat(plugin2.active()).isFalse();
+    // the anyedit plugin is inactive in the project settings, but the user directory overrides it to active
+    assertThat(plugin2.active()).isTrue();
   }
 
   @Test
   void testInstallPluginsWithForce() {
 
-    //arrange
-    IdeTestContext context = newContext(PROJECT_BASIC);
+    //arrange - use a project where anyedit is configured to be installed (via ECLIPSE_EXTRA_PLUGINS) so that the forced reinstallation can be
+    //observed despite the marker file created below
+    IdeTestContext context = newContext(PROJECT_EXTRA_PLUGINS);
     context.getStartContext().setForcePlugins(true);
     final ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
     ToolPluginDescriptor plugin = ToolPluginDescriptor.of(context.getSettingsPath().resolve(ANY_EDIT_PLUGIN_PATH), context, false);

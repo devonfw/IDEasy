@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.tool.plugin;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -105,20 +104,6 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   }
 
   /**
-   * @param plugins the configured {@link ToolPluginDescriptor plugins} used to detect undefined entries.
-   * @return the {@link Set} of {@link ToolPluginDescriptor#name() plugin names} configured in the tool-specific {@code «TOOL»_EXTRA_PLUGINS} variable (e.g.
-   *     {@code VSCODE_EXTRA_PLUGINS=copilot,docker}). This allows a user to permanently opt-in to plugins that are not
-   *     {@link ToolPluginDescriptor#active() active} in the project settings, without modifying the shared settings and without losing them when plugins are
-   *     purged and reinstalled on IDE upgrade. Values refer to the {@link ToolPluginDescriptor#name() name} of the plugin (the filename of its
-   *     {@code .properties} file) and not to the {@link ToolPluginDescriptor#id() id}. Names that do not resolve to a configured plugin are logged as a warning
-   *     and skipped so that a single stale entry cannot break the entire installation.
-   */
-  protected Set<String> getExtraPlugins(Collection<ToolPluginDescriptor> plugins) {
-
-    return this.pluginManager.getExtraPlugins(plugins);
-  }
-
-  /**
    * @return the {@link Path} where the plugins of the installed version are located. Plugins are installed per version up to the
    *     {@link #getIncompatibleVersionSegmentIndex() incompatible segment} (e.g. {@code plugins/intellij/2026.1} for IntelliJ 2026.1.4). This way, an update to
    *     a compatible version keeps the plugins, while an update to an incompatible version installs the plugins into a new folder so that the folder of the
@@ -160,6 +145,14 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   @Override
   public void deleteAllPlugins() {
 
-    this.context.getFileAccess().delete(getPluginsInstallationPath());
+    Path pluginsPath = getPluginsInstallationPath();
+    try {
+      this.context.getFileAccess().delete(pluginsPath);
+    } catch (RuntimeException e) {
+      // the plugins may still be in use by a running instance of the IDE that keeps the files locked (on Windows); they will be removed on a later
+      // installation or update
+      LOG.warn("Could not delete all plugins at {} as they may still be in use. They will be cleaned up on a later update.", pluginsPath);
+      LOG.debug("Deletion of all plugins failed.", e);
+    }
   }
 }

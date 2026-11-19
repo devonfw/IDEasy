@@ -91,8 +91,8 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
 
   /**
    * @return the {@link Path} to the python environment the plugins are installed into. Unlike for an {@link AbstractIdeToolCommandlet} this is not a folder
-   *     owned by this tool but the shared python environment (containing {@code site-packages}) that also holds th IDE itself. It must therefore never be
-   *     delted - plugins are removed via {@link #uninstallPlugin(ToolPluginDescriptor)} instead.
+   *     owned by this tool but the shared python environment (containing {@code site-packages}) that also holds the IDE itself. It must therefore never be
+   *     deleted - plugins are removed via {@link #uninstallPlugin(ToolPluginDescriptor)} instead.
    */
   @Override
   public Path getPluginsInstallationPath() {
