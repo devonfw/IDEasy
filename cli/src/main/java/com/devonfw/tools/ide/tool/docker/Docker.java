@@ -83,6 +83,7 @@ public class Docker extends GlobalToolCommandlet {
   /**
    * Rancher Desktop links its CLI tools (docker, kubectl, rdctl) into the fixed {@code ~/.rd/bin} directory, which it creates on its first launch.
    * Depending on the user's path management strategy this directory may not be on the PATH, so we look it up there explicitly as a fallback.
+   * This fallback is skipped if the docker edition (Docker Desktop) is configured, so that it cannot hide a missing Docker Desktop installation.
    *
    * @param command the name of a CLI shipped with the docker installation (e.g. docker, rdctl, kubectl).
    * @return the {@code command} unchanged if available on PATH, otherwise its absolute path inside {@code ~/.rd/bin} or {@code null} if not found.
@@ -90,6 +91,9 @@ public class Docker extends GlobalToolCommandlet {
   public String resolveDockerCommand(String command) {
     if (isCommandAvailable(command)) {
       return command;
+    }
+    if (isDockerDesktopEditionConfigured()) {
+      return null;
     }
     Path candidate = getRancherDesktopBinDir().resolve(command);
     Path rancherDesktopBinary = this.context.getPath().findBinary(candidate);
