@@ -1,0 +1,50 @@
+= IDEasy documentation
+
+For installation instructions, see link:setup.adoc[Setup].
+Once IDEasy is installed, see link:project.adoc[Create a project].
+
+== Search the documentation
+
+To https://github.com/search?q=repo%3Adevonfw%2FIDEasy%20path%3Adocumentation%2F&type=code[search the documentation on GitHub],
+sign in and add a command, variable, or error message after the repository and path filters.
+For example, the following query finds the guide for a certificate error:
+
+[source,text]
+----
+repo:devonfw/IDEasy path:documentation/ "PKIX path building failed"
+----
+
+Each release includes `IDEasy.pdf`.
+To search the manual for your installed version, open the PDF and use `Ctrl+F` (`Cmd+F` on macOS).
+For frequently asked questions, see https://github.com/devonfw/IDEasy/discussions/categories/q-a[Q&A in GitHub Discussions].
+
+== Usage
+
+* link:usage.adoc#update[Update a project] with `ide update`.
+* link:usage.adoc#upgrade[Upgrade IDEasy] with `ide upgrade`.
+* link:cli.adoc#tool-commandlets[Install a tool or select its version and edition].
+* link:software.adoc#extra-tool-installations[Use multiple versions of the same tool] in one project.
+* link:usage.adoc#working-with-multiple-workspaces[Work on different branches in separate workspaces].
+
+== Configuration
+
+* For team-wide tool versions and settings, see the link:usage.adoc#admin[ide-admin guide].
+* For the order in which IDEasy loads `ide.properties` files and applies overrides, see link:configuration.adoc[Configuration].
+* For individual settings such as `IDE_TOOLS`, see the link:variables.adoc[variable reference].
+
+== Troubleshooting
+
+* If setup fails, check the link:setup.adoc#installation-logs[installation logs].
+  For errors during an `ide` command, see link:log.adoc[IDEasy logs].
+* If downloads fail behind a corporate proxy, check the link:proxy-support.adoc#configuring-proxy-settings[proxy settings].
+  If the proxy requires credentials, see link:proxy-support.adoc#authentication[proxy authentication].
+* For `SSLHandshakeException` or `PKIX path building failed`, see link:proxy-support.adoc#tls-certificate-issues[TLS certificate issues].
+* If Windows reports that a file is in use, see how to link:windows-file-lock.adoc#finding-processes-that-block-specific-files[find the process that locks the file].
+* If macOS blocks IDEasy at startup, see the link:mac-gatekeeper.adoc#workaround[Gatekeeper workaround].
+* For known tool issues on Windows, macOS, and Linux, see link:quality-status/quality-status.adoc[Quality Status].
+
+== Reference
+
+* link:cli.adoc[Command line interface]
+* link:structure.adoc[Project directory structure]
+* link:contributing/README.adoc[Contributing to IDEasy]
