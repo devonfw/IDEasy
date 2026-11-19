@@ -51,8 +51,8 @@ class PluginBasedCommandletTest extends AbstractIdeContextTest {
     assertThat(plugin2.name()).isEqualTo("anyedit");
     assertThat(plugin2.version()).isNull();
 
-    // the anyedit plugin is inactive in the project settings, but the user directory overrides it to active
-    assertThat(plugin2.active()).isTrue();
+    // the anyedit plugin is configured as inactive in the project settings
+    assertThat(plugin2.active()).isFalse();
   }
 
   @Test

@@ -178,7 +178,6 @@ public class Vscode extends AbstractIdeToolCommandlet {
       pc.addArg("--user-data-dir=" + getUserDataPath());
       pc.addArg("--shared-data-dir=" + getSharedDataPath());
     }
-    pc.addArg(this.context.getWorkspacePath());
     pc.addArg("--extensions-dir=" + getPluginsInstallationPath());
     pc.addArg(getOpenPath());
     super.configureToolArgs(pc, processMode, args);
