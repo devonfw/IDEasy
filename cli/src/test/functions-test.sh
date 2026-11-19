@@ -250,6 +250,15 @@ mkdir -p "${TITLE_ROOT}/outside"
 GIT_BASH_PS1='\[\033]0;$TITLEPREFIX:$PWD\007\]\n\[\033[32m\]\u@\h \[\033[33m\]\w\[\033[0m\]\n$ '
 # the same prompt with the title sequence removed
 GIT_BASH_PS1_STRIPPED='\n\[\033[32m\]\u@\h \[\033[33m\]\w\[\033[0m\]\n$ '
+# the fragment the functions file injects into PS1, right before the "$ " sigil on Git Bash's own line (see #2876)
+PROMPT_ANNOTATION='\[\033[90m\]${IDEASY_PROMPT_ANNOTATION}\[\033[0m\]'
+# the Git Bash prompt with the title sequence removed and the IDEasy prompt annotation injected before the sigil
+GIT_BASH_PS1_ANNOTATED="${GIT_BASH_PS1_STRIPPED%'\n$ '}${PROMPT_ANNOTATION}\n\$ "
+# a prompt shaped like current Git for Windows git-prompt.sh builds it: title sequence, \w, the __git_ps1
+# command substitution for the branch, then the newline and "$ " sigil on its own line
+GIT_BASH_PS1_REALISTIC='\[\033]0;$TITLEPREFIX:$PWD\007\]\n\[\033[32m\]\u@\h \[\033[33m\]\w\[\033[36m\]`__git_ps1`\[\033[0m\]\n$ '
+# the realistic prompt with the title sequence removed (what the functions file produces after sourcing)
+GIT_BASH_PS1_REALISTIC_STRIPPED="${GIT_BASH_PS1_REALISTIC#*'\007\]'}"
 
 # runTitle <uname -s value> <IDE_HOME value> <directory to cd into> : sources the functions file in a fresh
 # shell simulating the given environment and prints the title text emitted by _ide_title without its escape
@@ -326,7 +335,10 @@ runPrompt() {
       done
       printf "PS1=%s\n" "${PS1}"
       printf "PROMPT_COMMAND=%s\n" "${PROMPT_COMMAND[*]:-}"
-      printf "HOOKS=%s\n" "$(printf "%s" "${PROMPT_COMMAND[*]:-}" | grep -c "_ide_title")"
+      pc_joined="${PROMPT_COMMAND[*]:-}"
+      title_count="$(grep -c "_ide_title" <<<"${pc_joined}")"
+      prompt_count="$(grep -c "_ide_prompt" <<<"${pc_joined}")"
+      printf "HOOKS=%s\n" "$((title_count + prompt_count))"
     '
 }
 
@@ -351,24 +363,159 @@ checkPrompt() {
   fi
 }
 
-checkPrompt "Git Bash: title sequence is removed from PS1 and the hook is installed" \
-  "MINGW64_NT-10.0-26200" "" 1 "${GIT_BASH_PS1_STRIPPED}" "_ide_title" 1
-checkPrompt "Git Bash: sourcing twice does not duplicate the hook nor strip PS1 twice" \
-  "MINGW64_NT-10.0-26200" "" 2 "${GIT_BASH_PS1_STRIPPED}" "_ide_title" 1
-checkPrompt "Git Bash: an existing PROMPT_COMMAND string is preserved" \
-  "MINGW64_NT-10.0-26200" 'PROMPT_COMMAND="my_hook"' 1 "${GIT_BASH_PS1_STRIPPED}" "_ide_title; my_hook" 1
-checkPrompt "Git Bash: an array-valued PROMPT_COMMAND is preserved as array" \
-  "MINGW64_NT-10.0-26200" 'PROMPT_COMMAND=(my_hook other_hook)' 1 "${GIT_BASH_PS1_STRIPPED}" "_ide_title my_hook other_hook" 1
-checkPrompt "Git Bash: a custom prompt without the title sequence is left untouched" \
-  "MINGW64_NT-10.0-26200" 'PS1="custom> "' 1 "custom> " "_ide_title" 1
+# runAnnotation <uname -s value> <IDE_HOME value> <directory to cd into> : sources the functions file in a fresh
+# shell simulating the given environment and prints the prompt annotation computed by _ide_prompt, or
+# "<none>" if the functions file did not define _ide_prompt.
+runAnnotation() {
+  FAKE_UNAME_S="$1" FAKE_IDE_HOME="$2" FAKE_PWD="$3" \
+  FUNCTIONS_FILE="${FUNCTIONS_FILE}" STUB_DIR="${STUB_DIR}" TITLE_ROOT="${TITLE_ROOT}" \
+    bash --noprofile --norc -c '
+      export PATH="${STUB_DIR}:${PATH}"
+      export IDE_ROOT="${TITLE_ROOT}"
+      uname() { if [ "$1" = "-s" ]; then echo "${FAKE_UNAME_S}"; else command uname "$@"; fi; }
+      cygpath() { echo "${@: -1}"; }
+      source "${FUNCTIONS_FILE}" >/dev/null 2>&1
+      declare -F _ide_prompt >/dev/null || { echo "<none>"; exit 0; }
+      # "ide" resets IDE_HOME while sourcing, so the simulated project is set afterwards
+      IDE_HOME="${FAKE_IDE_HOME}"
+      cd "${FAKE_PWD}" || exit 99
+      _ide_prompt
+      echo "annotation:${IDEASY_PROMPT_ANNOTATION:-}"
+    '
+}
 
-# the title must never interfere with prompts on other operating systems
+# checkAnnotation <description> <expected annotation|"" > <uname -s value> <IDE_HOME value> <directory to cd into>
+checkAnnotation() {
+  local description="$1" expected="$2" uname_s="$3" ide_home="$4" dir="$5"
+  total=$((total + 1))
+  local actual
+  actual="$(runAnnotation "${uname_s}" "${ide_home}" "${dir}")"
+  actual="${actual#annotation:}"
+  if [ "${actual}" = "${expected}" ]; then
+    doSuccess "PASSED: ${description} (annotation '${actual}')"
+  else
+    doError "FAILED: ${description} - expected annotation '${expected}' but was '${actual}'"
+    failed=$((failed + 1))
+  fi
+}
+
+checkAnnotation "inside a workspace shows [project>workspace>repository] (#2876)" \
+  " [devonfw>main>IDEasy]" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces/main/IDEasy"
+checkAnnotation "deep inside a repository still shows the top-level repository" \
+  " [devonfw>main>IDEasy]" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces/main/IDEasy/cli"
+checkAnnotation "a non-default workspace is shown" \
+  " [devonfw>feature-x>foo]" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces/feature-x/foo"
+checkAnnotation "inside the workspace root shows no repository" \
+  " [devonfw>main]" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces/main"
+checkAnnotation "a hidden folder in the workspace is not a repository" \
+  " [devonfw>main]" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces/main/.vscode"
+checkAnnotation "a nested repository shows its top-level folder" \
+  " [devonfw>dev>backend]" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces/dev/backend/core"
+checkAnnotation "the workspaces directory itself shows nothing" \
+  "" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/workspaces"
+checkAnnotation "inside the project but outside any workspace shows nothing" \
+  "" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw/conf"
+checkAnnotation "IDEasy not initialized shows nothing" \
+  "" "MINGW64_NT-10.0-26200" "" "${TITLE_ROOT}/outside"
+
+checkPrompt "Git Bash: title sequence is removed from PS1 and the hooks are installed" \
+  "MINGW64_NT-10.0-26200" "" 1 "${GIT_BASH_PS1_ANNOTATED}" "_ide_prompt; _ide_title" 2
+checkPrompt "Git Bash: the annotation fragment is inserted right before the git-prompt.sh \"\n\$ \" tail, after __git_ps1 (#2876)" \
+  "MINGW64_NT-10.0-26200" "PS1='${GIT_BASH_PS1_REALISTIC}'" 2 "${GIT_BASH_PS1_REALISTIC_STRIPPED%'\n$ '}${PROMPT_ANNOTATION}\n\$ " "_ide_prompt; _ide_title" 2
+checkPrompt "Git Bash: an existing PROMPT_COMMAND string is preserved" \
+  "MINGW64_NT-10.0-26200" 'PROMPT_COMMAND="my_hook"' 1 "${GIT_BASH_PS1_ANNOTATED}" "_ide_prompt; _ide_title; my_hook" 2
+checkPrompt "Git Bash: an array-valued PROMPT_COMMAND is preserved as array" \
+  "MINGW64_NT-10.0-26200" 'PROMPT_COMMAND=(my_hook other_hook)' 1 "${GIT_BASH_PS1_ANNOTATED}" "_ide_prompt _ide_title my_hook other_hook" 2
+checkPrompt "Git Bash: a custom prompt without the title sequence gets the annotation suffix" \
+  "MINGW64_NT-10.0-26200" 'PS1="custom> "' 1 "custom> ${PROMPT_ANNOTATION}" "_ide_prompt; _ide_title" 2
+
+# the title and the prompt annotation must never interfere with prompts on other operating systems
 checkPrompt "macOS leaves PS1 and PROMPT_COMMAND untouched" \
   "Darwin" "" 1 "${GIT_BASH_PS1}" "" 0
 checkPrompt "Linux leaves PS1 and PROMPT_COMMAND untouched" \
   "Linux" "" 1 "${GIT_BASH_PS1}" "" 0
 checkPrompt "Cygwin leaves PS1 and PROMPT_COMMAND untouched" \
   "CYGWIN_NT-10.0-26200" "" 1 "${GIT_BASH_PS1}" "" 0
+
+# a render check (bash 4.4 and newer, including all 5.x): expand the real PS1 via ${PS1@P} and verify the
+# annotation text lands on the info line (the second line of the expanded prompt; the first line is empty
+# because the Git Bash PS1 starts with a literal newline) and that an empty annotation leaves no trailing
+# space (the lock for the issue mock). It only runs on Git Bash, the feature's target platform: the PS1
+# splice above is guarded by _ide_is_msys, so on macOS/Linux/zsh the annotation never reaches PS1 and there
+# is nothing to render, and ${PS1@P} behaves differently across platforms anyway.
+render_host_uname="$(uname -s 2>/dev/null)"
+case "${render_host_uname}" in
+  MINGW*|MSYS*) render_host_msys=yes ;;
+  *) render_host_msys=no ;;
+esac
+if [ "${render_host_msys}" = "yes" ] && { [ "${BASH_VERSINFO[0]}" -gt 4 ] || { [ "${BASH_VERSINFO[0]}" -eq 4 ] && [ "${BASH_VERSINFO[1]}" -ge 4 ]; }; }; then
+  total=$((total + 1))
+  render_out="$(FAKE_UNAME_S="MINGW64_NT-10.0-26200" FUNCTIONS_FILE="${FUNCTIONS_FILE}" STUB_DIR="${STUB_DIR}" TITLE_ROOT="${TITLE_ROOT}" \
+    GIT_BASH_PS1_REALISTIC="${GIT_BASH_PS1_REALISTIC}" \
+    bash --noprofile --norc -c '
+      export PATH="${STUB_DIR}:${PATH}"
+      export IDE_ROOT="${TITLE_ROOT}"
+      uname() { if [ "$1" = "-s"; then echo "${FAKE_UNAME_S}"; else command uname "$@"; fi; }
+      cygpath() { echo "${@: -1}"; }
+      # single-quoted so the `__git_ps1` backticks of the fixture stay in PS1 until ${PS1@P} expands the
+      # prompt; the stub stands in for the git branch display
+      PS1='"'"'${GIT_BASH_PS1_REALISTIC}'"'"'
+      source "${FUNCTIONS_FILE}" >/dev/null 2>&1
+      IDE_HOME="${TITLE_ROOT}/devonfw"
+      cd "${TITLE_ROOT}/devonfw/workspaces/main/IDEasy" || exit 99
+      __git_ps1() { printf " (main)"; }
+      _ide_prompt
+      expanded="${PS1@P}"
+      info_line="${expanded#*$'"'"'\n'"'"'}"
+      info_line="${info_line%%$'"'"'\n'"'"'*}"
+      if grep -qF " [devonfw>main>IDEasy]" <<<"${info_line}"; then has="yes"; else has="no"; fi
+      __git_ps1() { :; }
+      IDEASY_PROMPT_ANNOTATION=""
+      expanded_empty="${PS1@P}"
+      info_line_empty="${expanded_empty#*$'"'"'\n'"'"'}"
+      info_line_empty="${info_line_empty%%$'"'"'\n'"'"'*}"
+      if [[ "${info_line_empty}" == *" " ]]; then trailing_space="yes"; else trailing_space="no"; fi
+      printf "HAS_ANNOTATION=%s\n" "${has}"
+      printf "HAS_TRAILING_SPACE=%s\n" "${trailing_space}"
+    ')"
+  has_annotation="$(printf '%s\n' "${render_out}" | sed -n 's/^HAS_ANNOTATION=//p')"
+  has_trailing_space="$(printf '%s\n' "${render_out}" | sed -n 's/^HAS_TRAILING_SPACE=//p')"
+  if [ "${has_annotation}" = "yes" ] && [ "${has_trailing_space}" = "no" ]; then
+    doSuccess "PASSED: the \${PS1@P} render check shows the annotation on the info line and no trailing space when empty"
+  else
+    doError "FAILED: render check - output='${render_out}' (expected annotation present, no trailing space when empty)"
+    failed=$((failed + 1))
+  fi
+else
+  if [ "${render_host_msys}" = "no" ]; then
+    echo "not running on Git Bash - skipping the \${PS1@P} render check for the prompt annotation"
+  else
+    echo "bash older than 4.4 - skipping the \${PS1@P} render check for the prompt annotation"
+  fi
+fi
+
+# a failing command's exit status must survive the prompt hook chain
+total=$((total + 1))
+exit_survival="$(FAKE_UNAME_S="MINGW64_NT-10.0-26200" FUNCTIONS_FILE="${FUNCTIONS_FILE}" STUB_DIR="${STUB_DIR}" TITLE_ROOT="${TITLE_ROOT}" \
+  bash --noprofile --norc -c '
+    export PATH="${STUB_DIR}:${PATH}"
+    export IDE_ROOT="${TITLE_ROOT}"
+    uname() { if [ "$1" = "-s"; then echo "${FAKE_UNAME_S}"; else command uname "$@"; fi; }
+    cygpath() { echo "${@: -1}"; }
+    source "${FUNCTIONS_FILE}" >/dev/null 2>&1
+    IDE_HOME="${TITLE_ROOT}/devonfw"
+    cd "${TITLE_ROOT}/devonfw/workspaces/main/IDEasy"
+    false
+    _ide_prompt >/dev/null
+    _ide_title >/dev/null
+    echo "${?}"
+  ')"
+if [ "${exit_survival}" = "1" ]; then
+  doSuccess "PASSED: the exit status of a failed command survives the _ide_prompt/_ide_title hook chain"
+else
+  doError "FAILED: the exit status of a failed command must survive the hook chain (got '${exit_survival}', expected 1)"
+  failed=$((failed + 1))
+fi
 
 # zsh has no PROMPT_COMMAND (it uses precmd), so the hook must not be installed there
 if command -v zsh >/dev/null 2>&1; then
