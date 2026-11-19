@@ -46,4 +46,24 @@ class JqUrlUpdaterTest extends AbstractUrlUpdaterTest {
     assertUrlVersionOsArch(jqDir.resolve("1.8.2"));
     assertThat(jqDir.resolve("1.8.1")).doesNotExist();
   }
+
+  /**
+   * Test of {@link JqUrlUpdater#mapVersion(String)}: locks in that the spaced {@code "jq "} release-name prefix (and any surrounding whitespace) is stripped
+   * before the base mapping, so a future reader does not "fix" it to a hyphen. The minimum-version gate (1.8.2) is applied when the version is added, not here,
+   * so a below-cutoff version such as {@code jq 1.8.1} still maps to {@code 1.8.1}.
+   */
+  @Test
+  void testJqUrlUpdaterMapVersion() {
+
+    JqUrlUpdater updater = new JqUrlUpdater();
+
+    // the spaced release name is normalized to the plain version (this is the "jq " prefix)
+    assertThat(updater.mapVersion("jq 1.8.2")).isEqualTo("1.8.2");
+    // surrounding whitespace is trimmed before the base mapping
+    assertThat(updater.mapVersion("  jq 1.8.2  ")).isEqualTo("1.8.2");
+    // a version that already carries no prefix is returned unchanged
+    assertThat(updater.mapVersion("1.8.2")).isEqualTo("1.8.2");
+    // a hyphenated pre-release is stripped of the prefix and then filtered out by the base mapping
+    assertThat(updater.mapVersion("jq 1.9-rc1")).isNull();
+  }
 }

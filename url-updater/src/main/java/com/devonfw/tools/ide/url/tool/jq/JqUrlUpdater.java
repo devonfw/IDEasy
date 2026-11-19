@@ -19,6 +19,9 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * <li><a
  * href="https://github.com/jqlang/jq/releases/download/jq-1.8.2/jq-windows-arm64.exe">github.com/jqlang/jq/releases/download/jq-1.8.2/jq-windows-arm64.exe</a></li>
  * </ul>
+ * <p>
+ * Note that the download tag is the hyphenated {@code jq-&lt;version&gt;} (the release tag) while the release {@code name} is spaced {@code jq <version>};
+ * the {@code "jq "} prefix in {@link #getVersionPrefixToRemove()} strips the spaced name, so it must not be "fixed" to a hyphen.
  */
 public class JqUrlUpdater extends GithubUrlReleaseUpdater {
 
