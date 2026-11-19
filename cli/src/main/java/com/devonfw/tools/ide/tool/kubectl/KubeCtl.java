@@ -6,6 +6,8 @@ import java.util.regex.Pattern;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.DelegatingToolCommandlet;
 import com.devonfw.tools.ide.tool.EditionAndVersion;
 import com.devonfw.tools.ide.tool.docker.Docker;
@@ -33,6 +35,13 @@ public class KubeCtl extends DelegatingToolCommandlet {
 
     String binary = getCommandlet(Docker.class).resolveDockerCommand(this.tool);
     return (binary == null) ? this.tool : binary;
+  }
+
+  @Override
+  protected void configureToolBinary(ProcessContext pc, ProcessMode processMode) {
+
+    getCommandlet(Docker.class).verifyRancherDesktopLaunched(this.tool);
+    super.configureToolBinary(pc, processMode);
   }
 
   @Override

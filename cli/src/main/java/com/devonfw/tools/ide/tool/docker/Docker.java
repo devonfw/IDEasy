@@ -16,7 +16,9 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
@@ -118,6 +120,27 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   @Override
+  protected void configureToolBinary(ProcessContext pc, ProcessMode processMode) {
+
+    verifyRancherDesktopLaunched(this.tool);
+    super.configureToolBinary(pc, processMode);
+  }
+
+  /**
+   * Fails with a clear message if Rancher Desktop is installed but was never launched, so it has not set up its CLI tools in {@code ~/.rd/bin} yet.
+   *
+   * @param command the CLI that is about to run (e.g. docker or kubectl).
+   */
+  public void verifyRancherDesktopLaunched(String command) {
+
+    if (!isDockerDesktopEditionConfigured() && this.context.getSystemInfo().isLinux() && (resolveDockerCommand(command) == null)
+        && (getNativePackageVersion() != null)) {
+      throw new CliException("Rancher Desktop has been installed but not launched yet. Please start Rancher Desktop once so that it sets up its "
+          + "command-line tools (docker, kubectl, ...) in " + getRancherDesktopBinDir() + ", then re-run your command.", ProcessResult.TOOL_NOT_INSTALLED);
+    }
+  }
+
+  @Override
   protected List<NativePackage> getNativePackages() {
 
     if (isDockerDesktopEditionConfigured()) {
@@ -198,17 +221,10 @@ public class Docker extends GlobalToolCommandlet {
 
   @Override
   protected ToolInstallation doInstall(ToolInstallRequest request) {
-
-    boolean dockerDesktop = isDockerDesktopEditionConfigured();
-    if (dockerDesktop) {
+    if (isDockerDesktopEditionConfigured()) {
       downloadDebPackageStepAndSetPackagePath(request.getRequested().getResolvedVersion());
     }
-    ToolInstallation installation = super.doInstall(request);
-    if (!dockerDesktop && this.context.getSystemInfo().isLinux() && !Files.isDirectory(getRancherDesktopBinDir())) {
-      throw new CliException("Rancher Desktop has been installed but not launched yet. Please start Rancher Desktop once so that it sets up its "
-          + "command-line tools (docker, kubectl, ...) in " + getRancherDesktopBinDir() + ", then re-run your command.", ProcessResult.TOOL_NOT_INSTALLED);
-    }
-    return installation;
+    return super.doInstall(request);
   }
 
   private void downloadDebPackageStepAndSetPackagePath(VersionIdentifier resolvedVersion) {
