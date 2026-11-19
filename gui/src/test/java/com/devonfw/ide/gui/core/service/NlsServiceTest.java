@@ -87,7 +87,7 @@ public class NlsServiceTest extends AbstractIdeContextTest {
   @MethodSource("testGetInstanceWithLocaleProvider")
   public void testGetInstanceWithLocale(Locale systemLocale, Locale providedLocale, Locale expectedServiceLocale) {
     Locale.setDefault(systemLocale);
-    NlsService service = new NlsService(providedLocale);
+    NlsService service = newService(providedLocale);
 
     assertThat(service.getLocale()).isEqualTo(expectedServiceLocale);
     assertThat(service.getResourceBundle()).isNotNull();

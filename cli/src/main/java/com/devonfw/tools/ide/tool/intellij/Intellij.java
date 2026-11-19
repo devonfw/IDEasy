@@ -20,6 +20,7 @@ import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
+import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -31,7 +32,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Intellij.class);
 
-  private static final VersionIdentifier INTELLIJ_LAST_SEPARATE_VERSION = VersionIdentifier.of("2025.2.6.1");
+  private static final VersionIdentifier INTELLIJ_LAST_SEPARATE_VERSION = VersionIdentifier.ofRequired("2025.2.6.1");
 
   private static final String IDEA = "idea";
 
@@ -44,7 +45,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   private static final String MISC_XML = "misc.xml";
   private static final String IDEA_PROPERTIES = "idea.properties";
 
-  private static final Map<Class<? extends AbstractLocalToolCommandlet>, String> BUILD_TOOL_TO_IJ_TEMPLATE = Map.of(Mvn.class, MISC_XML, Gradle.class, GRADLE_XML);
+  private static final Map<Class<? extends AbstractLocalToolCommandlet>, String> BUILD_TOOL_TO_IJ_TEMPLATE =
+      Map.of(Mvn.class, MISC_XML, Gradle.class, GRADLE_XML);
 
   /**
    * The constructor.
@@ -82,7 +84,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   @Override
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
-    environmentContext.withEnvVar("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve(IDEA_PROPERTIES).toString());
+    // point at the opened folder's own idea.properties
+    environmentContext.withEnvVar("IDEA_PROPERTIES", getOpenPath().resolve(IDEA_PROPERTIES).toString());
   }
 
   @Override
@@ -94,7 +97,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
       VersionIdentifier version;
       if (requested.getVersion() != null) {
-        version = VersionIdentifier.of(requested.getVersion().toString());
+        version = VersionIdentifier.ofRequired(requested.getVersion().toString());
       } else {
         version = getConfiguredVersion();
       }

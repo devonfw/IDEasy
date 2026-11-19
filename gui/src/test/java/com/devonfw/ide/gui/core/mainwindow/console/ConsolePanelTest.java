@@ -5,6 +5,7 @@ import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 
@@ -15,14 +16,22 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.ide.gui.UIBasedApplicationTest;
 import com.devonfw.ide.gui.core.context.IdeGuiLogListener;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.service.NlsService;
+import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
+import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
 class ConsolePanelTest extends UIBasedApplicationTest {
+
+  /** Throw-away user home for the isolated NlsService context so a persisted locale never rewrites the real {@code ~/.ide/ide.properties}. */
+  @TempDir
+  private static Path nlsUserHome;
 
   private ConsoleViewModel consoleViewModel;
 
@@ -34,7 +43,11 @@ class ConsolePanelTest extends UIBasedApplicationTest {
     URL consoleViewUrl = getClass().getResource("console.fxml");
     assertThat(consoleViewUrl).as("Cannot resolve console UI FXML resource!").isNotNull();
 
-    NlsService nlsService = new NlsService(Locale.ENGLISH);
+    // isolate the NlsService from the developer's real user home and the IDE_OPTIONS environment variable so constructing it has no side effects
+    final IdeTestContext nlsContext = new IdeTestContext();
+    nlsContext.setSystem(new IdeSystemTestImpl());
+    nlsContext.setUserHome(nlsUserHome);
+    NlsService nlsService = new NlsService(nlsContext, Locale.ENGLISH);
     this.eventBus = new GuiEventBus();
 
     FXMLLoader fxmlLoader = new FXMLLoader(consoleViewUrl);
@@ -143,16 +156,19 @@ class ConsolePanelTest extends UIBasedApplicationTest {
 
     // Forward logs over the event bus - the path used since the rework instead of a direct appendOutput call
     IdeGuiLogListener listener = new IdeGuiLogListener(eventBus);
+    // The listener buffers by default; end buffering first so the following onLog() calls forward their entries over the event bus.
+    listener.flushAndEndBuffering();
     Platform.runLater(() -> {
-      listener.onLog(IdeLogLevel.INFO, "Info via EventBus", null, null, null);
-      listener.onLog(IdeLogLevel.ERROR, "Error via EventBus", null, null, new RuntimeException("boom"));
+      listener.onLog(new IdeLogEntry(IdeLogLevel.INFO, "Info via EventBus", null, null, null));
+      listener.onLog(new IdeLogEntry(IdeLogLevel.ERROR, "Error via EventBus", null, null, new RuntimeException("boom")));
     });
     waitForFxEvents();
 
     List<String> snapshot = consoleViewModel.getConsoleOutputSnapshot();
     assertThat(snapshot).anyMatch(s -> s.contains("[INFO] Info via EventBus"));
     assertThat(snapshot).anyMatch(s -> s.contains("[ERROR] Error via EventBus"));
-    assertThat(snapshot).anyMatch(s -> s.contains("[ERROR]   Error: boom"));
+    assertThat(snapshot).as("the error is kept on the entry, not printed as an extra line").hasSize(2);
+
   }
 
   /**
@@ -162,8 +178,11 @@ class ConsolePanelTest extends UIBasedApplicationTest {
   @Test
   void testLogEventArrivingOnOffFxThreadIsShown() throws InterruptedException {
 
+    IdeGuiLogListener listener = new IdeGuiLogListener(eventBus);
+    // The listener buffers by default; end buffering first so the onLog() call below forwards its entry over the event bus.
+    listener.flushAndEndBuffering();
     Thread worker = new Thread(() -> {
-      new IdeGuiLogListener(eventBus).onLog(IdeLogLevel.INFO, "Off FX", null, null, null);
+      listener.onLog(new IdeLogEntry(IdeLogLevel.INFO, "Off FX", null, null, null));
     });
     worker.start();
     worker.join(); // ensure the log was emitted before asserting
