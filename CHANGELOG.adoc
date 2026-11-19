@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1167[#1167]: Automatic project import for vs code
 * https://github.com/devonfw/IDEasy/issues/2551[#2551]: Add release support for Gradle
 * https://github.com/devonfw/IDEasy/issues/2561[#2561]: Make python a pristine versioned tool with per-project virtual environment for package isolation, with the uv tool store relocated to a per-project `software/uv-tools` (previously-installed uv tools are migrated there automatically)
 * https://github.com/devonfw/IDEasy/issues/2510[#2510]: Add commandlet for Micronaut CLI
