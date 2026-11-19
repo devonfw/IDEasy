@@ -41,10 +41,9 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Dummy commandlet extending {@link AbstractLocalToolCommandlet} that tolerates a missing software version file (see
-   * {@link AbstractLocalToolCommandlet#isIgnoreMissingSoftwareVersionFile()}) and can determine its installed version from the installation itself (like
-   * python does).
-   * The repository lookups and the actual installation performed by {@link AbstractLocalToolCommandlet#installTool(ToolInstallRequest)} are short-circuited
-   * so the relevant branches can be tested in isolation without requiring the tool to be registered in the tool repository.
+   * {@link AbstractLocalToolCommandlet#isIgnoreMissingSoftwareVersionFile()}) and can determine its installed version from the installation itself (like python
+   * does). The repository lookups and the actual installation performed by {@link AbstractLocalToolCommandlet#installTool(ToolInstallRequest)} are
+   * short-circuited so the relevant branches can be tested in isolation without requiring the tool to be registered in the tool repository.
    */
   public static class LocalToolRestoreVersionDummyCommandlet extends LocalToolDummyCommandlet {
 
@@ -52,7 +51,7 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
     private final VersionIdentifier computedVersion;
 
     LocalToolRestoreVersionDummyCommandlet(IdeContext context) {
-      this(context, VersionIdentifier.of("9.9.9"));
+      this(context, VersionIdentifier.ofRequired("9.9.9"));
     }
 
     LocalToolRestoreVersionDummyCommandlet(IdeContext context, VersionIdentifier computedVersion) {
@@ -214,8 +213,8 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
 
     ToolInstallRequest parentRequest = new ToolInstallRequest(false);
     parentRequest.setIgnoreProject(true);
-    parentRequest.setRequested(new ToolEditionAndVersion(new ToolEdition("intellij", null), VersionIdentifier.of("2023.3.3")));
-    VersionRange versionRange = VersionRange.of(VersionIdentifier.of("17"), VersionIdentifier.of("25.0.9"), BoundaryType.CLOSED);
+    parentRequest.setRequested(new ToolEditionAndVersion(new ToolEdition("intellij", null), VersionIdentifier.ofRequired("2023.3.3")));
+    VersionRange versionRange = VersionRange.of(VersionIdentifier.ofRequired("17"), VersionIdentifier.ofRequired("25.0.9"), BoundaryType.CLOSED);
 
     // act
     ToolInstallation installation = javaTool.installAsDependency(versionRange, parentRequest);
@@ -231,8 +230,8 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Verifies that {@link AbstractLocalToolCommandlet#installTool(ToolInstallRequest)} re-installs an existing installation when the software version
-   * file is missing and the installed version cannot be determined.
+   * Verifies that {@link AbstractLocalToolCommandlet#installTool(ToolInstallRequest)} re-installs an existing installation when the software version file is
+   * missing and the installed version cannot be determined.
    * <p>
    * The dummy tool cannot recover its installed version from the installation itself ({@code computeInstalledVersionFromLocalSoftwareFolder()} returns
    * {@code null}). Since the version remains unknown, the installation isconsidered broken and must be re-installed instead of being preserved.
@@ -248,7 +247,7 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
     context.getFileAccess().writeFileContent("tool content", installationPath.resolve("somefile.txt"));
     Path versionFile = installationPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
     assertThat(versionFile).doesNotExist();
-    VersionIdentifier resolvedVersion = VersionIdentifier.of("1.2.3");
+    VersionIdentifier resolvedVersion = VersionIdentifier.ofRequired("1.2.3");
     ToolInstallRequest request = new ToolInstallRequest(false);
     request.setRequested(new ToolEditionAndVersion(new ToolEdition("dummy", "dummy"), resolvedVersion));
 
@@ -268,9 +267,8 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
   /**
    * Verifies that a missing software version file is restored when the installed version can be determined from the installation itself.
    * <p>
-   * The tool reports its actual installed version via
-   * {@link AbstractLocalToolCommandlet#computeInstalledVersionFromLocalSoftwareFolder()}. That version is written back to the missing version file and the
-   * existing installation is kept if it matches the requested version.
+   * The tool reports its actual installed version via {@link AbstractLocalToolCommandlet#computeInstalledVersionFromLocalSoftwareFolder()}. That version is
+   * written back to the missing version file and the existing installation is kept if it matches the requested version.
    */
   @Test
   void testGetInstalledEditionAndVersionRestoresMissingVersionFile() {
@@ -287,7 +285,7 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
 
     // assert - the version was determined from the installation itself
     assertThat(installed).isNotNull();
-    assertThat(installed.version()).isEqualTo(VersionIdentifier.of("9.9.9"));
+    assertThat(installed.version()).isEqualTo(VersionIdentifier.ofRequired("9.9.9"));
     // assert - the missing version file was restored with the determined (actual) version
     assertThat(versionFile).exists().hasContent("9.9.9");
     assertThat(context).logAtWarning().hasMessageContaining("restoring it with version 9.9.9");
@@ -311,7 +309,7 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
     Path versionFile = installationPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
     assertThat(versionFile).doesNotExist();
     ToolInstallRequest request = new ToolInstallRequest(false);
-    request.setRequested(new ToolEditionAndVersion(new ToolEdition("dummy", "dummy"), VersionIdentifier.of("9.9.9")));
+    request.setRequested(new ToolEditionAndVersion(new ToolEdition("dummy", "dummy"), VersionIdentifier.ofRequired("9.9.9")));
 
     // act
     ToolInstallation installation = commandlet.installTool(request);
@@ -321,7 +319,7 @@ class LocalToolCommandletTest extends AbstractIdeContextTest {
     // assert - the installation was kept (not reinstalled, because installed version matches the requested version)
     assertThat(installation.rootDir()).isEqualTo(installationPath);
     assertThat(installation.newInstallation()).isFalse();
-    assertThat(installation.resolvedVersion()).isEqualTo(VersionIdentifier.of("9.9.9"));
+    assertThat(installation.resolvedVersion()).isEqualTo(VersionIdentifier.ofRequired("9.9.9"));
     assertThat(installationPath.resolve("somefile.txt")).exists();
     // assert - the tool was not treated as broken and reinstalled
     assertThat(context).logAtWarning().hasMessageContaining("restoring it with version 9.9.9");

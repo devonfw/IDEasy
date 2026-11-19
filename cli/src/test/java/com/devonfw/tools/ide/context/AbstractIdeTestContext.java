@@ -49,6 +49,8 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   private int answerIndex;
 
+  private boolean readLineEof;
+
   private final Map<String, IdeProgressBarTestImpl> progressBarMap;
 
   private SystemInfo systemInfo;
@@ -156,6 +158,10 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   @Override
   protected String readLine() {
 
+    if (this.readLineEof) {
+      // mimic System.console().readLine() reaching the end of the input stream, which returns {@code null}
+      return null;
+    }
     String answer = nextAnswer();
     IdeLogLevel.INTERACTION.log(LOG, answer);
     return answer;
@@ -194,6 +200,16 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     requireMutable();
     this.answers = answers;
     this.answerIndex = 0;
+  }
+
+  /**
+   * Simulates that the end of the input stream (EOF) is reached, so that {@link #readLine()} returns {@code null} like
+   * {@code System.console().readLine()} does at the end of the input.
+   */
+  public void setReadLineEof() {
+
+    requireMutable();
+    this.readLineEof = true;
   }
 
   /**

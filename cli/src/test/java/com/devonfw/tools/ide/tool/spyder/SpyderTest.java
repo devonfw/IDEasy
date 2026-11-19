@@ -75,7 +75,7 @@ class SpyderTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_PIP);
     Spyder commandlet = new Spyder(context);
     Path rootDir = context.getSoftwarePath().resolve("spyder");
-    ToolInstallation installation = new ToolInstallation(rootDir, rootDir, rootDir.resolve("bin"), VersionIdentifier.of("1.0.0"), false);
+    ToolInstallation installation = new ToolInstallation(rootDir, rootDir, rootDir.resolve("bin"), VersionIdentifier.ofRequired("1.0.0"), false);
     RecordingEnvironmentContext environmentContext = new RecordingEnvironmentContext();
 
     // act

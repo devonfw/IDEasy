@@ -24,7 +24,7 @@ class ToolDependenciesTest extends AbstractUrlModelTest {
 
     // act
     Collection<ToolDependency> dependencies = context.getDefaultToolRepository()
-        .findDependencies("tomcat", "tomcat", VersionIdentifier.of("11.0.0"));
+        .findDependencies("tomcat", "tomcat", VersionIdentifier.ofRequired("11.0.0"));
 
     // assert
     assertThat(dependencies).containsExactly(new ToolDependency("java", VersionRange.of("[17,)")));
@@ -38,7 +38,7 @@ class ToolDependenciesTest extends AbstractUrlModelTest {
 
     // act
     Collection<ToolDependency> dependencies = context.getDefaultToolRepository()
-        .findDependencies("tomcat", "undefined", VersionIdentifier.of("11.0.0"));
+        .findDependencies("tomcat", "undefined", VersionIdentifier.ofRequired("11.0.0"));
 
     // assert
     assertThat(dependencies).containsExactly(
@@ -53,7 +53,7 @@ class ToolDependenciesTest extends AbstractUrlModelTest {
 
     // act
     Collection<ToolDependency> dependencies = context.getDefaultToolRepository()
-        .findDependencies("mvn", "undefined", VersionIdentifier.of("3.9.0"));
+        .findDependencies("mvn", "undefined", VersionIdentifier.ofRequired("3.9.0"));
 
     // assert
     assertThat(dependencies).containsExactly(new ToolDependency("java", VersionRange.of("[8,)")));
@@ -68,11 +68,11 @@ class ToolDependenciesTest extends AbstractUrlModelTest {
         .getDependencies();
 
     // act
-    Collection<ToolDependency> macArmDependencies = dependencies.findDependencies(VersionIdentifier.of("1.5"),
+    Collection<ToolDependency> macArmDependencies = dependencies.findDependencies(VersionIdentifier.ofRequired("1.5"),
         new SystemInfoImpl("Mac OS X", "13.0", "arm64"));
-    Collection<ToolDependency> windowsX64Dependencies = dependencies.findDependencies(VersionIdentifier.of("1.5"),
+    Collection<ToolDependency> windowsX64Dependencies = dependencies.findDependencies(VersionIdentifier.ofRequired("1.5"),
         new SystemInfoImpl("Windows 11", "11.0", "amd64"));
-    Collection<ToolDependency> linuxArmDependencies = dependencies.findDependencies(VersionIdentifier.of("1.5"),
+    Collection<ToolDependency> linuxArmDependencies = dependencies.findDependencies(VersionIdentifier.ofRequired("1.5"),
         new SystemInfoImpl("Linux", "5.15", "arm64"));
 
     // assert
