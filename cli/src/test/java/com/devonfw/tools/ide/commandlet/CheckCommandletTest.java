@@ -13,6 +13,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.check.CheckCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 
@@ -122,5 +123,164 @@ public class CheckCommandletTest extends AbstractIdeContextTest {
     check.run();
 
     assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("No issues found."));
+  }
+
+  /**
+   * Test that {@code ide check --all} detects all repositories across all workspaces and fails without --fix if they lack a .gitignore.
+   */
+  @Test
+  void testCheckAllDetectsAllRepositoriesAcrossWorkspaces(@TempDir Path tempDir) throws IOException {
+
+    Path ideHome = tempDir;
+    Path repoA = ideHome.resolve("workspaces").resolve("main").resolve("testRepoA");
+    Path repoB = ideHome.resolve("workspaces").resolve("dev").resolve("testRepoB");
+    Path settings = ideHome.resolve("settings");
+    newGitRepo(repoA);
+    newGitRepo(repoB);
+    newGitRepo(settings);
+
+    Path cwd = repoA;
+    IdeTestContext context = newContext(cwd);
+    context.setCwd(cwd, IdeContext.WORKSPACE_MAIN, ideHome);
+    CheckCommandlet check = new CheckCommandlet(context);
+    check.all.setValue(true);
+
+    assertThrows(CliException.class, check::run);
+    assertThat(context).logAtWarning().hasMessageContaining(repoA.resolve(".gitignore").toString());
+    assertThat(context).logAtWarning().hasMessageContaining(repoB.resolve(".gitignore").toString());
+  }
+
+  /**
+   * Test that {@code ide check --all --fix} creates a .gitignore in every detected repository and does not touch repositories above the CWD (e.g. the settings
+   * repository).
+   */
+  @Test
+  void testCheckAllWithFixCreatesGitignoreInAllRepositories(@TempDir Path tempDir) throws IOException {
+
+    Path ideHome = tempDir;
+    Path repoA = ideHome.resolve("workspaces").resolve("main").resolve("testRepoA");
+    Path repoB = ideHome.resolve("workspaces").resolve("dev").resolve("testRepoB");
+    Path settings = ideHome.resolve("settings");
+    newGitRepo(repoA);
+    newGitRepo(repoB);
+    newGitRepo(settings);
+
+    Path cwd = repoA;
+    IdeTestContext context = newContext(cwd);
+    context.setCwd(cwd, IdeContext.WORKSPACE_MAIN, ideHome);
+    CheckCommandlet check = new CheckCommandlet(context);
+    check.all.setValue(true);
+    check.fix.setValue(true);
+
+    check.run();
+
+    assertThat(repoA.resolve(".gitignore")).exists();
+    assertThat(repoB.resolve(".gitignore")).exists();
+    assertThat(settings.resolve(".gitignore")).doesNotExist();
+  }
+
+  /**
+   * Test that {@code ide check --all} succeeds without issues if no repository is found.
+   */
+  @Test
+  void testCheckAllWithoutRepositoriesSucceeds(@TempDir Path tempDir) throws IOException {
+
+    Path ideHome = tempDir;
+    Path cwd = ideHome.resolve("workspaces").resolve("main").resolve("empty");
+    Files.createDirectories(cwd);
+    IdeTestContext context = newContext(cwd);
+    context.setCwd(cwd, IdeContext.WORKSPACE_MAIN, ideHome);
+    CheckCommandlet check = new CheckCommandlet(context);
+    check.all.setValue(true);
+
+    check.run();
+
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("No issues found."));
+  }
+
+  /**
+   * Test that {@code ide check --all} detects nested repositories.
+   */
+  @Test
+  void testCheckAllDetectsNestedRepositories(@TempDir Path tempDir) throws IOException {
+
+    Path ideHome = tempDir;
+    Path repoA = ideHome.resolve("workspaces").resolve("main").resolve("myrepo");
+    Path nestedRepo = repoA.resolve("nested");
+    newGitRepo(repoA);
+    newGitRepo(nestedRepo);
+
+    Path cwd = repoA;
+    IdeTestContext context = newContext(cwd);
+    context.setCwd(cwd, IdeContext.WORKSPACE_MAIN, ideHome);
+    CheckCommandlet check = new CheckCommandlet(context);
+    check.all.setValue(true);
+    check.fix.setValue(true);
+
+    check.run();
+
+    assertThat(repoA.resolve(".gitignore")).exists();
+    assertThat(nestedRepo.resolve(".gitignore")).exists();
+    assertThat(context).logAtInfo().hasMessage("Found 2 repository root(s) to check.");
+  }
+
+  /**
+   * Test that {@code ide check --all} scans the IDEasy workspaces when the CWD is outside them.
+   */
+  @Test
+  void testCheckAllFromOutsideWorkspacesScansWorkspaces(@TempDir Path tempDir) throws IOException {
+
+    Path ideHome = tempDir.resolve("ide");
+    Path repoA = ideHome.resolve("workspaces").resolve("main").resolve("testRepoA");
+    Path repoB = ideHome.resolve("workspaces").resolve("dev").resolve("testRepoB");
+    Path externalRepo = tempDir.resolve("externalRepo");
+    newGitRepo(repoA);
+    newGitRepo(repoB);
+    newGitRepo(externalRepo);
+
+    IdeTestContext context = newContext(externalRepo);
+    context.setCwd(externalRepo, IdeContext.WORKSPACE_MAIN, ideHome);
+    CheckCommandlet check = new CheckCommandlet(context);
+    check.all.setValue(true);
+    check.fix.setValue(true);
+
+    check.run();
+
+    assertThat(repoA.resolve(".gitignore")).exists();
+    assertThat(repoB.resolve(".gitignore")).exists();
+    assertThat(externalRepo.resolve(".gitignore")).doesNotExist();
+    assertThat(context).logAtInfo().hasMessage("Found 2 repository root(s) to check.");
+  }
+
+  /**
+   * Test that {@code ide check --all} uses the CWD if no workspaces base path is available.
+   */
+  @Test
+  void testCheckAllUsesCwdAsFallback(@TempDir Path tempDir) throws IOException {
+
+    Path repo = tempDir.resolve("repository");
+    newGitRepo(repo);
+
+    IdeTestContext context = newContext(repo);
+    CheckCommandlet check = new CheckCommandlet(context);
+    check.all.setValue(true);
+    check.fix.setValue(true);
+
+    check.run();
+
+    assertThat(repo.resolve(".gitignore")).exists();
+    assertThat(context).logAtInfo().hasMessage("Found 1 repository root(s) to check.");
+  }
+
+  /**
+   * Creates a fake git repository at the given directory (i.e. creates the directory along with a {@code .git} sub-directory).
+   *
+   * @param repositoryRoot the {@link Path} of the repository to create.
+   * @return the {@link Path} of the created {@code .git} folder.
+   * @throws IOException if the directories could not be created.
+   */
+  private Path newGitRepo(Path repositoryRoot) throws IOException {
+
+    return Files.createDirectories(repositoryRoot.resolve(".git"));
   }
 }
