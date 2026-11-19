@@ -7,6 +7,6 @@ if sed '/^# -\{24\} >8 -\{24\}$/,$d' "$msg_file" | grep -Eiq \
   '^co-authored-by:.*(\b(claude|copilot|cursor|codex|gemini)\b|\[bot\]|noreply@anthropic\.com)'
 then
   echo "ERROR: AI attribution detected."
-  echo "Remove AI co-author trailers or AI-generated notices."
+  echo "Remove AI co-author (Co-authored-by) trailers."
   exit 1
 fi
