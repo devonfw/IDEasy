@@ -20,8 +20,8 @@ import com.devonfw.tools.ide.version.IdeVersion;
 class BugReportHelperTest extends AbstractIdeContextTest {
 
   /**
-   * Installs a {@link TestCommandletManager} that returns the given {@link Gh} stub instead of the real one, so that no real GitHub CLI binary is ever
-   * resolved or executed (the test must stay hermetic even when {@code gh} is present on the machine's PATH).
+   * Installs a {@link TestCommandletManager} that returns the given {@link Gh} stub instead of the real one, so that no real GitHub CLI binary is ever resolved
+   * or executed (the test must stay hermetic even when {@code gh} is present on the machine's PATH).
    *
    * @param context the {@link IdeTestContext}.
    * @param ghStub the {@link Gh} commandlet to return for {@link Gh#class}.
@@ -155,8 +155,8 @@ class BugReportHelperTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test of {@link BugReportHelper#createStatusSnippet}. The IDE paths must be masked with {@link PrivacyUtil} so that the generated report is safe to
-   * share publicly, mirroring the output of {@code ide -p status}.
+   * Test of {@link BugReportHelper#createStatusSnippet}. The IDE paths must be masked with {@link PrivacyUtil} so that the generated report is safe to share
+   * publicly, mirroring the output of {@code ide -p status}.
    */
   @Test
   void testCreateStatusSnippetMasksPaths() {
@@ -280,8 +280,8 @@ class BugReportHelperTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that {@link BugReportHelper#offerAfterError} derives the issue from the error and the invoked command (masked), prints a summary and asks
-   * whether to report.
+   * Test that {@link BugReportHelper#offerAfterError} derives the issue from the error and the invoked command (masked), prints a summary and asks whether to
+   * report.
    */
   @Test
   void testOfferAfterErrorAsksAndDerivesPrefill() {
@@ -322,8 +322,7 @@ class BugReportHelperTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that reporting as is falls back to the prefilled browser URL when the GitHub CLI is not available and includes the auto-derived (masked)
-   * details.
+   * Test that reporting as is falls back to the prefilled browser URL when the GitHub CLI is not available and includes the auto-derived (masked) details.
    */
   @Test
   void testOfferAfterErrorReportAsIsFallsBackToUrlWhenNoGh() {
@@ -394,8 +393,8 @@ class BugReportHelperTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that the "edit and then report" option lets the user adjust all prefilled values (title, actual behaviour, reproduce, expected behaviour,
-   * related, comments) and reports the edited issue.
+   * Test that the "edit and then report" option lets the user adjust all prefilled values (title, actual behaviour, reproduce, expected behaviour, related,
+   * comments) and reports the edited issue.
    */
   @Test
   void testOfferAfterErrorEditAndThenReport() {
@@ -405,8 +404,8 @@ class BugReportHelperTest extends AbstractIdeContextTest {
     context.getNetworkStatus().simulateOnline();
     context.setAnswers("Edit and then report", "edited title", "edited actual behaviour", "edited steps", "edited expected", "#99",
         "edited comments");
-    final String[] createdTitle = {null};
-    final String[] createdBody = {null};
+    final String[] createdTitle = { null };
+    final String[] createdBody = { null };
     useGhStub(context, new Gh(context) {
       @Override
       public Path getGhBinary() {
@@ -453,8 +452,8 @@ class BugReportHelperTest extends AbstractIdeContextTest {
     context.getNetworkStatus().simulateOnline();
     context.setAnswers("Report as is");
     String message = "failed to read C:/Users/hdawoud/myproject/config.xml: access denied";
-    final String[] createdTitle = {null};
-    final String[] createdBody = {null};
+    final String[] createdTitle = { null };
+    final String[] createdBody = { null };
     useGhStub(context, new Gh(context) {
       @Override
       public Path getGhBinary() {
@@ -484,4 +483,26 @@ class BugReportHelperTest extends AbstractIdeContextTest {
     assertThat(createdTitle[0]).doesNotContain("hdawoud").doesNotContain("myproject");
     assertThat(createdBody[0]).doesNotContain("hdawoud").doesNotContain("myproject");
   }
+
+  @Test
+  void testSanitizeStackTrace() {
+
+    String stackTrace = """
+        java.lang.IllegalStateException: Failed for C:\\Users\\testuser\\projects\\testproject
+                at java.base@25.0.2/sun.nio.fs.WindowsFileCopy.move(WindowsFileCopy.java:400)
+                at java.base@25.0.2/sun.nio.fs.WindowsFileSystemProvider.move(WindowsFileSystemProvider.java:287)
+                at java.base@25.0.2/java.nio.file.Files.move(Files.java:1319)
+                at com.devonfw.tools.ide.io.FileAccessImpl.move(FileAccessImpl.java:350)
+        """;
+
+    String sanitized = BugReportHelper.sanitizeStackTrace(stackTrace);
+
+    assertThat(sanitized).doesNotContain("testuser");
+    assertThat(sanitized).doesNotContain("testproject");
+    assertThat(sanitized).contains("sun.nio.fs.WindowsFileCopy.move(WindowsFileCopy.java:400)");
+    assertThat(sanitized).contains("sun.nio.fs.WindowsFileSystemProvider.move(WindowsFileSystemProvider.java:287)");
+    assertThat(sanitized).contains("java.nio.file.Files.move(Files.java:1319)");
+    assertThat(sanitized).contains("com.devonfw.tools.ide.io.FileAccessImpl.move(FileAccessImpl.java:350)");
+  }
+
 }
