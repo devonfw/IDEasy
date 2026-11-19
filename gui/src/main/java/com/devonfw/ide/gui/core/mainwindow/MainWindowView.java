@@ -218,14 +218,9 @@ public class MainWindowView extends BorderPane {
   }
 
   private void applyStatusLabelStyle(boolean clickable) {
-
+    this.statusLabel.getStyleClass().remove("status-label");
     if (clickable) {
-      this.statusLabel.setStyle(
-          "-fx-text-fill: blue;"
-              + "-fx-cursor: hand"
-      );
-    } else {
-      this.statusLabel.setStyle("");
+      this.statusLabel.getStyleClass().add("status-label");
     }
   }
 
