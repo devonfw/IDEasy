@@ -7,6 +7,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/2551[#2551]: Add release support for Gradle
+* https://github.com/devonfw/IDEasy/issues/2561[#2561]: Make python a pristine versioned tool with per-project virtual environment for package isolation, with the uv tool store relocated to a per-project `software/uv-tools` (previously-installed uv tools are migrated there automatically)
 * https://github.com/devonfw/IDEasy/issues/2510[#2510]: Add commandlet for Micronaut CLI
 * https://github.com/devonfw/IDEasy/issues/2045[#2045]: Add tool selection and version or edition configuration to GUI
 * https://github.com/devonfw/IDEasy/issues/2518[#2518]: Add Snyk CLI commandlet
