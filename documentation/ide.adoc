@@ -12,7 +12,7 @@ IDEasy can start your IDE either on its managed link:workspaces.adoc[workspace] 
 By default, when you launch an IDE (e.g. `ide intellij` or `ide vscode`), IDEasy opens the folder of your current link:workspaces.adoc[workspace], which is by default `workspaces/main`.
 
 This is the managed workspace.
-It is configured by the link:configurator.adoc[configurator], which merges the workspace settings and syncs the additional SDKs into it.
+It is configured by the link:configurator.adoc[configurator], which merges the workspace settings and syncs the additional SDKs for the IDE.
 
 == Opening an external project
 
@@ -97,4 +97,4 @@ When your project uses several SDKs of the same tool (e.g. different Java versio
 For each IDE that supports this, the link:configurator.adoc[configurator] then syncs those extra SDKs into the current workspace on startup, so the IDE offers them for use (e.g. IntelliJ registers them in the JDK table).
 
 This sync is part of the workspace configuration and therefore only happens for your managed link:workspaces.adoc[workspace].
-If you open an external folder via the `--project` option, the extra SDKs are not synced into it (see the "external = no merge" behavior described above).
+If you open an external folder via the `--project` option, the extra SDK configuration is not synced for the external project (see the "external = no merge" behavior described above).
