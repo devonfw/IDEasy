@@ -1,0 +1,38 @@
+:toc:
+toc::[]
+
+== Code-reviews
+
+This guide describes the process and best-practices for code-reviews in the IDEasy project.
+
+Before you continue reading this guide, please first study our general guide on link:constructive-review.adoc[constructive reviews] that we recommend for all projects (not only IDEasy).
+
+Next, we want to add the IDEasy specific aspects on code-reviews:
+
+* **Readiness:**
+If a PR is marked as `draft` or has a red build, do not start a review, request someone for review or move it to `Team-Review` or `Review`.
+First complete your work and then mark it ready for review.
+* **Know your tools:**
+Make yourself familiar with the https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-proposed-changes-in-a-pull-request[GitHub code-reviews capabilities].
+Also consider using the GitHub plugin for your IDE and do reviews with better support avoiding to end up coding in the browser.
+* **Use suggestions:**
+Especially make use of suggestions in review-comments where suitable.
+* **Submit your review:**
+Do not forget to submit your pending review-comments to complete the review as otherwise nobody else can see your feedback.
+Therefore, you have to choose between three options: , , and .
+** `Comment`:
+Use this option if you have collected pending review-comments but run out of time and still want to make your current feedback visible (e.g. before the end of the day or leaving for some days).
+However, keep in mind to complete your review later with one of the other two options.
+** `Approve`:
+Usually, you want to submit your review using the `Approve` option.
+If you have findings, you added those as review-comments annotating specific lines of code.
+The merge of the PR is still blocked until all review-comments are resolved.
+** `Request changes`:
+Only use this option, if you want to say that the PR went in a wrong direction and there is more to rework than what can easily be expressed with a list of review-comments.
+If you chose this option, always be aware that you are then (logically) blocking the merge of the PR and commit yourself to later do another review giving an approval to remove this blockage.
+* **Resolving review-comments:**
+The PR author is in charge to address review-comments.
+To avoid misunderstandings, the person creating the review-comment should be in charge to resolve it.
+Only resolve review-comments as a PR author when you are cristal clear that the issue is resolved.
+If suggestions are used and get applied, the review-comment gets resolved automatically by GitHub.
+

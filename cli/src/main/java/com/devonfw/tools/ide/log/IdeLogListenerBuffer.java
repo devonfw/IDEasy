@@ -36,10 +36,10 @@ public class IdeLogListenerBuffer implements IdeLogListener {
   }
 
   @Override
-  public boolean onLog(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error) {
+  public boolean onLog(IdeLogEntry entry) {
     if (this.buffering) {
-      if (level.ordinal() >= threshold.ordinal()) {
-        this.buffer.add(new IdeLogEntry(level, message, rawMessage, args, error));
+      if (entry.level().ordinal() >= threshold.ordinal()) {
+        this.buffer.add(entry);
       }
       return false;
     }
