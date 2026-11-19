@@ -148,7 +148,7 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
     MvnRepository mavenRepo = new MvnRepository(context);
     String tool = "ideasy";
     String edition = tool;
-    VersionIdentifier version = VersionIdentifier.of("2025.01.001-beta");
+    VersionIdentifier version = VersionIdentifier.ofRequired("2025.01.001-beta");
     OperatingSystem os = context.getSystemInfo().getOs();
     SystemArchitecture arch = context.getSystemInfo().getArchitecture();
     AbstractToolCommandlet toolCommandlet = null;
@@ -189,7 +189,7 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
     MvnRepository mavenRepo = new MvnRepository(context);
     String tool = "ideasy";
     String edition = tool;
-    VersionIdentifier version = VersionIdentifier.of("2025.01.001-beta-20250121.023134-9");
+    VersionIdentifier version = VersionIdentifier.ofRequired("2025.01.001-beta-20250121.023134-9");
     OperatingSystem os = context.getSystemInfo().getOs();
     SystemArchitecture arch = context.getSystemInfo().getArchitecture();
     AbstractToolCommandlet toolCommandlet = null;
@@ -341,7 +341,7 @@ class MvnRepositoryTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC);
     context.setSystemInfo(SystemInfoMock.WINDOWS_ARM64);
     MvnRepository repository = context.getMvnRepository();
-    VersionIdentifier version = VersionIdentifier.of("2025.01.001-beta");
+    VersionIdentifier version = VersionIdentifier.ofRequired("2025.01.001-beta");
 
     // act
     UrlDownloadFileMetadata metadata = repository.getMetadata(

@@ -112,7 +112,7 @@ public class Npm extends AbstractLocalToolCommandlet implements BuildTool {
     if ((version == null) || !version.isTextual()) {
       throw new CliException("Could not find 'version' in " + packageJson);
     }
-    return VersionIdentifier.of(version.asText());
+    return VersionIdentifier.ofRequired(version.asText());
   }
 
   @Override
