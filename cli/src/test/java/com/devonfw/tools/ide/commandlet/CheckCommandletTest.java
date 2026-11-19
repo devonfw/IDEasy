@@ -199,16 +199,16 @@ public class CheckCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that {@code ide check --all} stops at each detected repository root and does not descend into it (so a nested repository is not checked twice).
+   * Test that {@code ide check --all} detects nested repositories.
    */
   @Test
-  void testCheckAllDoesNotDescendIntoDetectedRepository(@TempDir Path tempDir) throws IOException {
+  void testCheckAllDetectsNestedRepositories(@TempDir Path tempDir) throws IOException {
 
     Path ideHome = tempDir;
     Path repoA = ideHome.resolve("workspaces").resolve("main").resolve("myrepo");
-    Path nested = repoA.resolve("nested");
+    Path nestedRepo = repoA.resolve("nested");
     newGitRepo(repoA);
-    newGitRepo(nested);
+    newGitRepo(nestedRepo);
 
     Path cwd = repoA;
     IdeTestContext context = newContext(cwd);
@@ -220,32 +220,56 @@ public class CheckCommandletTest extends AbstractIdeContextTest {
     check.run();
 
     assertThat(repoA.resolve(".gitignore")).exists();
-    assertThat(nested.resolve(".gitignore")).doesNotExist();
+    assertThat(nestedRepo.resolve(".gitignore")).exists();
+    assertThat(context).logAtInfo().hasMessage("Found 2 repository root(s) to check.");
   }
 
   /**
-   * Test that {@code ide check --all} reports each repository root only once when the CWD lies within the workspaces base path, so a repository found by both
-   * scans is de-duplicated.
+   * Test that {@code ide check --all} scans the IDEasy workspaces when the CWD is outside them.
    */
   @Test
-  void testCheckAllDeduplicatesRepositoryRoots(@TempDir Path tempDir) throws IOException {
+  void testCheckAllFromOutsideWorkspacesScansWorkspaces(@TempDir Path tempDir) throws IOException {
 
-    Path ideHome = tempDir;
+    Path ideHome = tempDir.resolve("ide");
     Path repoA = ideHome.resolve("workspaces").resolve("main").resolve("testRepoA");
     Path repoB = ideHome.resolve("workspaces").resolve("dev").resolve("testRepoB");
+    Path externalRepo = tempDir.resolve("externalRepo");
     newGitRepo(repoA);
     newGitRepo(repoB);
+    newGitRepo(externalRepo);
 
-    // the CWD is inside the workspaces base path, so repoA is discovered by both the workspaces scan and the CWD scan
-    Path cwd = repoA;
-    IdeTestContext context = newContext(cwd);
-    context.setCwd(cwd, IdeContext.WORKSPACE_MAIN, ideHome);
+    IdeTestContext context = newContext(externalRepo);
+    context.setCwd(externalRepo, IdeContext.WORKSPACE_MAIN, ideHome);
     CheckCommandlet check = new CheckCommandlet(context);
     check.all.setValue(true);
+    check.fix.setValue(true);
 
-    assertThrows(CliException.class, check::run);
-    // without de-duplication repoA would be found twice, resulting in 3 instead of 2 repository roots
+    check.run();
+
+    assertThat(repoA.resolve(".gitignore")).exists();
+    assertThat(repoB.resolve(".gitignore")).exists();
+    assertThat(externalRepo.resolve(".gitignore")).doesNotExist();
     assertThat(context).logAtInfo().hasMessage("Found 2 repository root(s) to check.");
+  }
+
+  /**
+   * Test that {@code ide check --all} uses the CWD if no workspaces base path is available.
+   */
+  @Test
+  void testCheckAllUsesCwdAsFallback(@TempDir Path tempDir) throws IOException {
+
+    Path repo = tempDir.resolve("repository");
+    newGitRepo(repo);
+
+    IdeTestContext context = newContext(repo);
+    CheckCommandlet check = new CheckCommandlet(context);
+    check.all.setValue(true);
+    check.fix.setValue(true);
+
+    check.run();
+
+    assertThat(repo.resolve(".gitignore")).exists();
+    assertThat(context).logAtInfo().hasMessage("Found 1 repository root(s) to check.");
   }
 
   /**

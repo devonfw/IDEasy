@@ -112,8 +112,9 @@ public class CheckCommandlet extends AbstractCommandlet {
     Path workspacesBasePath = this.context.getWorkspacesBasePath();
     if (workspacesBasePath != null) {
       baseDirs.add(workspacesBasePath);
+    } else {
+      baseDirs.add(this.context.getCwd());
     }
-    baseDirs.add(this.context.getCwd());
 
     Set<Path> seen = new LinkedHashSet<>();
     List<Path> roots = new ArrayList<>();
@@ -144,7 +145,7 @@ public class CheckCommandlet extends AbstractCommandlet {
 
           if (isRepositoryRoot(dir)) {
             roots.add(dir);
-            return FileVisitResult.SKIP_SUBTREE;
+            return FileVisitResult.CONTINUE;
           }
           return FileVisitResult.CONTINUE;
         }
