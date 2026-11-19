@@ -93,7 +93,7 @@ public class Docker extends GlobalToolCommandlet {
     }
     Path candidate = getRancherDesktopBinDir().resolve(command);
     Path rancherDesktopBinary = this.context.getPath().findBinary(candidate);
-    if (rancherDesktopBinary != candidate) {
+    if ((rancherDesktopBinary != candidate) && Files.isExecutable(rancherDesktopBinary)) {
       return rancherDesktopBinary.toString();
     }
     return null;
@@ -107,9 +107,9 @@ public class Docker extends GlobalToolCommandlet {
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
-    Path rancherDesktopBinDir = getRancherDesktopBinDir();
-    if (!isCommandAvailable(this.tool) && Files.isDirectory(rancherDesktopBinDir)) {
-      environmentContext.withPathEntry(rancherDesktopBinDir);
+    String docker = resolveDockerCommand(this.tool);
+    if ((docker != null) && !docker.equals(this.tool)) {
+      environmentContext.withPathEntry(getRancherDesktopBinDir());
     }
   }
 
