@@ -6,7 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
-* https://github.com/devonfw/IDEasy/issues/2794[#2794]: `--force-plugin-reinstall` is consumed by IDEasy (forces a plugin purge) and no longer passed to the IDE (vscode, intellij, pycharm, eclipse, android-studio, spyder)
+* https://github.com/devonfw/IDEasy/issues/2794[#2794]: `--force-plugin-reinstall` is consumed by IDEasy and no longer passed to the IDE
 * https://github.com/devonfw/IDEasy/issues/2551[#2551]: Add release support for Gradle
 * https://github.com/devonfw/IDEasy/issues/2561[#2561]: Make python a pristine versioned tool with per-project virtual environment for package isolation, with the uv tool store relocated to a per-project `software/uv-tools` (previously-installed uv tools are migrated there automatically)
 * https://github.com/devonfw/IDEasy/issues/2510[#2510]: Add commandlet for Micronaut CLI
