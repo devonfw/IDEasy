@@ -30,6 +30,9 @@ public class MainWindowViewModel {
 
   private final TabFactory tabFactory;
 
+  /** Flags whether a project and workspace are selected, as held by the {@link GuiStateManager}. */
+  private final BooleanProperty workspaceSelected;
+
   private final StringProperty statusText = new SimpleStringProperty();
 
   private final BooleanProperty statusProgressVisible = new SimpleBooleanProperty(false);
@@ -52,6 +55,7 @@ public class MainWindowViewModel {
     this.nlsService = Objects.requireNonNull(guiStateManager.getNlsService());
     this.tabFactory = Objects.requireNonNull(guiStateManager.getTabFactory());
     this.tabFactory.setPreLaunchAction(() -> this.setConsoleVisible(true));
+    this.workspaceSelected = Objects.requireNonNull(guiStateManager.workspaceSelectedProperty());
 
     this.tasks = Objects.requireNonNull(guiStateManager.getTaskListViewModel()).getTasks();
     this.tasks.addListener((InvalidationListener) _ -> updateStatus());
@@ -169,7 +173,7 @@ public class MainWindowViewModel {
    */
   public BooleanProperty workspaceSelectedProperty() {
 
-    return this.guiStateManager.workspaceSelectedProperty();
+    return this.workspaceSelected;
   }
 
 }
