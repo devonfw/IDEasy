@@ -1,12 +1,10 @@
 package com.devonfw.ide.gui.core.mainwindow.navigation;
 
 import java.io.FileNotFoundException;
-import java.nio.file.NotDirectoryException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
 import javafx.scene.control.Alert.AlertType;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
@@ -57,11 +55,7 @@ public class NavigationPanelViewModel {
 
   private List<String> loadWorkspaces(String project) {
 
-    try {
-      return this.guiStateManager.getWorkspaceNames(project);
-    } catch (NotDirectoryException e) {
-      throw new RuntimeException(e);
-    }
+    return this.guiStateManager.getWorkspaceNames(project);
   }
 
   private void initLanguageComboBox() {

@@ -1,13 +1,10 @@
 package com.devonfw.ide.gui.core.context;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Stream;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -154,7 +151,8 @@ public class GuiStateManager {
    */
   public List<String> getProjectNames() {
 
-    return IdeContext.findProjects(ideRootDir).stream()
+    return IdeContext.findProjects(ideRootDir)
+        .stream()
         .map(Path::getFileName)
         .map(Path::toString)
         .toList();
@@ -163,22 +161,15 @@ public class GuiStateManager {
   /**
    * @param projectName the name of the project whose workspaces to list.
    * @return the workspace names of the given project.
-   * @throws NotDirectoryException if the given project does not contain a {@code workspaces} directory.
    */
-  public List<String> getWorkspaceNames(String projectName) throws NotDirectoryException {
+  public List<String> getWorkspaceNames(String projectName) {
 
-    Path workspacesDir = ideRootDir.resolve(projectName).resolve(IdeContext.FOLDER_WORKSPACES);
-    if (!Files.isDirectory(workspacesDir)) {
-      throw new NotDirectoryException("invalid workspaces directory for project: " + projectName);
-    }
-    try (Stream<Path> subPaths = Files.list(workspacesDir)) {
-      return subPaths.filter(Files::isDirectory)
-          .map(Path::getFileName)
-          .map(Path::toString)
-          .toList();
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to read workspaces for " + projectName, e);
-    }
+    Path workspacesDir = ideRootDir.resolve(projectName);
+    return IdeContext.findWorkspaces(workspacesDir)
+        .stream()
+        .map(Path::getFileName)
+        .map(Path::toString)
+        .toList();
   }
 
   /**

@@ -64,11 +64,9 @@ public class GuiStateManagerTest extends AbstractIdeContextTest {
   }
 
   @Test
-  void testGetWorkspaceNamesThrowsIfNoWorkspacesFolder() {
+  void testGetWorkspaceNamesEmptyIfNoWorkspacesFolder() {
 
-    assertThatExceptionOfType(NotDirectoryException.class)
-        .isThrownBy(() -> guiStateManager.getWorkspaceNames("nonExistentProject"))
-        .withMessageContaining("invalid workspaces directory for project: nonExistentProject");
+    assertThat(guiStateManager.getWorkspaceNames("nonExistentProject")).isEmpty();
   }
 
   @Test
