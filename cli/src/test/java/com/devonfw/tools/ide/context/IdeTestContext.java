@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.context;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitContextMock;
@@ -22,6 +23,8 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 public class IdeTestContext extends AbstractIdeTestContext {
 
   private GitContext gitContext;
+
+  private Map<String, String> processEnv;
 
   /**
    * The constructor.
@@ -76,7 +79,23 @@ public class IdeTestContext extends AbstractIdeTestContext {
   @Override
   protected ProcessContext createProcessContext() {
 
-    return new ProcessContextTestImpl(this);
+    ProcessContext processContext = new ProcessContextTestImpl(this);
+    if (this.processEnv != null) {
+      for (Map.Entry<String, String> entry : this.processEnv.entrySet()) {
+        processContext.withEnvVar(entry.getKey(), entry.getValue());
+      }
+    }
+    return processContext;
+  }
+
+  /**
+   * Exports the given environment variables to all {@link ProcessContext}s created for this context (e.g. to steer the mocked {@code uv} executable).
+   *
+   * @param processEnv the environment variables to export.
+   */
+  public void setProcessEnv(Map<String, String> processEnv) {
+
+    this.processEnv = processEnv;
   }
 
   /**
