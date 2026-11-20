@@ -38,6 +38,10 @@ if [[ " $* " == *" env "* ]]; then
     echo "WORKSPACE_PATH=${workspace_path}"
   fi
 fi
+# marker so the wrapper tests can observe that a bare tool call (e.g. pip) was routed through "ide <tool>"
+if [[ " $* " == *" pip "* && " $* " != *" env "* ]]; then
+  echo "CALL-IDE-PIPS $*"
+fi
 exit 0
 EOS
 chmod +x "${STUB_DIR}/ideasy"
@@ -283,8 +287,8 @@ checkTitle() {
   fi
 }
 
-checkTitle "outside any IDEasy project only shows the tool name" \
-  "ideasy" "MINGW64_NT-10.0-26200" "" "${TITLE_ROOT}/outside"
+checkTitle "IDEasy not initialized shows the CWD in the title instead of the bare tool name (#2875)" \
+  "${TITLE_ROOT}/outside" "MINGW64_NT-10.0-26200" "" "${TITLE_ROOT}/outside"
 checkTitle "project root shows project without workspace" \
   "ideasy>devonfw" "MINGW64_NT-10.0-26200" "${TITLE_ROOT}/devonfw" "${TITLE_ROOT}/devonfw"
 checkTitle "directory inside the project but outside any workspace shows no workspace" \
@@ -387,6 +391,50 @@ if command -v zsh >/dev/null 2>&1; then
 else
   echo "zsh not found on PATH - skipping the zsh check for the terminal title"
 fi
+
+# The per-project python packages (pip / ...) live in the virtual environment and are therefore not reachable on the
+# exported PATH, so the shell integration must expose a "pip" function that routes to "ide pip" inside a project and
+# falls back to the system pip outside of one - exactly like the "python" / "node" / "npm" wrappers.
+PIP_ROOT="${STUB_DIR}/pip-root"
+mkdir -p "${PIP_ROOT}/ideasy/workspaces/main" "${PIP_ROOT}/ideasy/settings"
+# system "pip" that is found when the wrapper falls through (i.e. must not be invoked inside a project)
+cat > "${STUB_DIR}/pip" <<'EOS'
+#!/usr/bin/env bash
+echo "SYSTEM-PIP"
+exit 0
+EOS
+chmod +x "${STUB_DIR}/pip"
+
+runWrapper() {
+  # the functions file re-runs "ide" while sourcing, which refreshes IDE_HOME from the "ideasy env --bash"
+  # output - so the project home must be supplied via STUB_IDE_HOME (what the stub emits), not by exporting IDE_HOME
+  local stub_ide_home="$1"
+  FUNCTIONS_FILE="${FUNCTIONS_FILE}" STUB_DIR="${STUB_DIR}" PIP_ROOT="${PIP_ROOT}" \
+    STUB_IDE_HOME="${stub_ide_home}" bash --noprofile --norc -c '
+      export PATH="${STUB_DIR}:${PATH}"
+      export IDE_ROOT="${PIP_ROOT}"
+      source "${FUNCTIONS_FILE}" >/dev/null 2>&1
+      cd "${IDE_HOME}/workspaces/main" 2>/dev/null
+      command -v pip >/dev/null || { echo "NO-PIP"; exit 0; }
+      pip --version 2>&1
+    '
+}
+
+checkWrapper() {
+  local description="$1" ide_home="$2" expected="$3"
+  total=$((total + 1))
+  local output
+  output="$(runWrapper "${ide_home}" "pip --version")"
+  if echo "${output}" | grep -qF "${expected}"; then
+    doSuccess "PASSED: ${description}"
+  else
+    doError "FAILED: ${description} - expected '${expected}' but was '${output}'"
+    failed=$((failed + 1))
+  fi
+}
+
+checkWrapper "bare pip inside a project routes to ide pip" "${PIP_ROOT}/ideasy" "CALL-IDE-PIP"
+checkWrapper "bare pip outside a project uses the system pip" "" "SYSTEM-PIP"
 
 echo
 if [ "${failed}" = 0 ]; then
