@@ -17,11 +17,9 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.ExtensibleEnvironmentVariables;
 import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
 import com.devonfw.tools.ide.merge.xml.XmlMerger;
-import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
-import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
@@ -82,13 +80,6 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   protected String getIdeProductPrefix() {
 
     return IDEA;
-  }
-
-  @Override
-  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
-    super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
-    // point at the opened folder's own idea.properties
-    environmentContext.withEnvVar("IDEA_PROPERTIES", getOpenPath().resolve(IDEA_PROPERTIES).toString());
   }
 
   @Override
