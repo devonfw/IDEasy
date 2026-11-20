@@ -144,9 +144,6 @@ public abstract class AbstractIdeToolCommandlet extends AbstractPluginBasedComma
   public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
 
     validateOpenPath();
-    if ((processMode != null) && processMode.isBackground() && !hasExplicitProject()) {
-      configureWorkspace();
-    }
     return super.runTool(pc, processMode, args);
   }
 

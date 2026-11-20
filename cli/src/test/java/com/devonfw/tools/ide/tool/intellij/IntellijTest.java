@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.tool.intellij;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
@@ -14,13 +13,12 @@ import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.context.ProcessContextTestImpl;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
+import com.devonfw.tools.ide.io.WindowsSymlinkTestHelper;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
-import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallation;
@@ -172,16 +170,19 @@ class IntellijTest extends AbstractIdeContextTest {
   @Test
   void testDefaultLaunchRunsWorkspaceConfiguration() {
 
+    WindowsSymlinkTestHelper.assumeSymlinksSupported();
     // arrange
     IdeTestContext context = newContext(PROJECT_INTELLIJ);
     context.setSystemInfo(SystemInfoMock.of("linux"));
     Intellij intellij = context.getCommandletManager().getCommandlet(Intellij.class);
     intellij.install(); // make the IDE binary available so the launch path under test can run
     context.getTestStartContext().getEntries().clear(); // ignore the merge that happened during install
-    // act - invoke the launch seam directly without a --project folder (bypassing the ensure-install phase)
-    intellij.runTool(new ProcessContextTestImpl(context), ProcessMode.BACKGROUND, new ArrayList<>());
+    // act - include the ensure-install phase that configures the workspace through postInstall
+    int exitCode = context.run(new CliArguments("intellij"));
     // assert
-    assertThat(context).log().hasMessageContaining("Configuring workspace");
+    assertThat(exitCode).isEqualTo(0);
+    assertThat(context.getTestStartContext().getEntries()).extracting(IdeLogEntry::message)
+        .containsOnlyOnce("Start: Configuring workspace main for IDE intellij");
   }
 
   /**
