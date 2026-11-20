@@ -94,7 +94,7 @@ class AbstractToolCommandletTest extends AbstractIdeContextTest {
     VersionIdentifier result =
         commandlet.resolveVersionWithPattern("release v2.5", pattern);
 
-    assertThat(result).isEqualTo(VersionIdentifier.of("2.5"));
+    assertThat(result).isEqualTo(VersionIdentifier.ofRequired("2.5"));
   }
 
   @Test
@@ -122,7 +122,7 @@ class AbstractToolCommandletTest extends AbstractIdeContextTest {
     VersionIdentifier result =
         commandlet.resolveVersionWithPattern("v1.0 v2.0", pattern);
 
-    assertThat(result).isEqualTo(VersionIdentifier.of("1.0"));
+    assertThat(result).isEqualTo(VersionIdentifier.ofRequired("1.0"));
   }
 
   @Test
