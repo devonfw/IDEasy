@@ -56,7 +56,7 @@ public class PluginManager {
 
 
   /**
-   * @return the {@link ToolPlugins} of this {@link AbstractPluginBasedCommandlet}.
+   * @return the {@link ToolPlugins} of the {@link PluginBasedCommandlet} tool managed by this {@link PluginManager}.
    */
   public ToolPlugins getPlugins() {
 
