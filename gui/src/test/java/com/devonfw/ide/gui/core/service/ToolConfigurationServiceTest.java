@@ -11,6 +11,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.ide.gui.core.context.IdeGuiContext;
 import com.devonfw.ide.gui.core.context.TaskManager;
+import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.model.ToolConfiguration;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
@@ -403,7 +404,7 @@ class ToolConfigurationServiceTest extends AbstractIdeContextTest {
       Files.writeString(ideHome.resolve("settings").resolve("ide.properties"), idePropertiesContent);
     }
     IdeStartContextImpl startContext = new IdeStartContextImpl(IdeLogLevel.WARNING, new IdeLogListenerBuffer());
-    return new IdeGuiContext(startContext, ideHome.resolve("workspaces").resolve("main"), new TaskManager());
+    return new IdeGuiContext(startContext, ideHome.resolve("workspaces").resolve("main"), new TaskManager(new GuiEventBus()));
   }
 
   private String readSettingsFile(Path tempDir) throws IOException {

@@ -18,6 +18,7 @@
   fx:controller="com.devonfw.ide.gui.core.mainwindow.console.ConsoleView"
   prefWidth="Infinity"
   styleClass="console-root"
+  stylesheets="@../../../style/console.css"
   AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
   AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
   minHeight="0"
