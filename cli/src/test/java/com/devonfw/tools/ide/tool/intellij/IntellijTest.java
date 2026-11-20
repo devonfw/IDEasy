@@ -295,6 +295,26 @@ class IntellijTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests that {@code --force-plugin-reinstall} is consumed by IDEasy and not passed to the IDE.
+   */
+  @Test
+  void testIntellijRunConsumesForcePluginReinstall() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_INTELLIJ);
+    context.setSystemInfo(SystemInfoMock.of("linux"));
+    // act
+    int exitCode = context.run(new CliArguments("intellij", "--force-plugin-reinstall"));
+    // assert
+    Intellij intellij = context.getCommandletManager().getCommandlet(Intellij.class);
+    assertThat(exitCode).isEqualTo(0);
+    assertThat(intellij.isForcePluginReinstall()).isTrue();
+    assertThat(context).log().hasMessageContaining("forced via --force-plugin-reinstall");
+    String launchedArgs = context.getFileAccess().readFileContent(intellij.getToolBinPath().resolve("intellijtest")).trim();
+    assertThat(launchedArgs).doesNotContain("--force-plugin-reinstall");
+  }
+
+  /**
    * Tests if after the installation of intellij the expected plugin marker file is existing.
    */
   @Test

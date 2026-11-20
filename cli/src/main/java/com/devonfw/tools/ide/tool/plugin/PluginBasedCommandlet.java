@@ -3,11 +3,14 @@ package com.devonfw.tools.ide.tool.plugin;
 import static com.devonfw.tools.ide.version.VersionIdentifier.MINOR_SEGMENT;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
@@ -33,6 +36,22 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
    * @return {@code true} if the reset and reinstallation of the plugins is forced for the current run via the {@code --force-plugin-reinstall} flag.
    */
   boolean isForcePluginReinstall();
+
+  /**
+   * Extracts the {@code --force-plugin-reinstall} flag from launch arguments and remembers it via {@code flag}.
+   *
+   * @param args the trailing tool arguments to launch the IDE.
+   * @param flag the {@code --force-plugin-reinstall} {@link FlagProperty} of the owning commandlet to remember the flag on.
+   * @return the remaining tool arguments with the flag removed.
+   */
+  static List<String> extractForcePluginReinstall(List<String> args, FlagProperty flag) {
+
+    List<String> effectiveArgs = new ArrayList<>(args);
+    if (effectiveArgs.removeIf(flag.getName()::equals)) {
+      flag.setValue(true);
+    }
+    return effectiveArgs;
+  }
 
   /**
    * Determines whether all installed plugins of this tool have to be purged (reset and reinstalled) as part of the installation. A purge is required if the
