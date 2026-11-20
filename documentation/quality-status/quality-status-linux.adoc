@@ -9,13 +9,13 @@ Automatically generated open issue overview for Linux.
 
 link:quality-status.adoc[Back to overview]
 
-*Total Issues:* 210
+*Total Issues:* 203
 
-* OS-specific: 4
+* OS-specific: 5
 
-* Multi-OS: 2
+* Multi-OS: 1
 
-* Cross-platform: 204
+* Cross-platform: 197
 
 == Linux Specific Issues
 
@@ -26,6 +26,11 @@ link:quality-status.adoc[Back to overview]
 
 | link:https://github.com/devonfw/IDEasy/issues/2726[#2726]
 | Docker Desktop installation fails on Linux
+
+2+^| *31-60 days*
+
+| link:https://github.com/devonfw/IDEasy/issues/2544[#2544]
+| Native package manager commands inherit IDEasy tool environment
 
 2+^| *90+ days*
 
@@ -47,22 +52,10 @@ link:quality-status.adoc[Back to overview]
 [%header, cols="^1,7"]
 |===
 | Issue | Summary
-2+^| *31-60 days*
+2+^| *61-90 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2464[#2464]
 | Add unit tests for `OperatingSystem`
-
-|===
-
-=== Linux + macOS (1)
-
-[%header, cols="^1,7"]
-|===
-| Issue | Summary
-2+^| *31-60 days*
-
-| link:https://github.com/devonfw/IDEasy/issues/2467[#2467]
-| Obsidian: fix installation on macOS/Linux and duplicate LINUX/X64 artifact in O…
 
 |===
 
