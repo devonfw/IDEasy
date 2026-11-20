@@ -84,7 +84,7 @@ These are strict prohibitions. Contributions carrying AI authorship/attribution 
   about the tooling used to produce it.
 
 The `commit-msg` hook, installed by `./install-hooks.sh`, and the "Check commit messages" CI 
-reject commits with non-human authors `git-hooks/check-ai-attribution.sh`.
+reject commits with non-human authors `git-hooks/check-ai-author.sh`.
 
 ## Pull Request Guidelines
 
