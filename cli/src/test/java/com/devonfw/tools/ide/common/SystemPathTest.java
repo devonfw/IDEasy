@@ -155,12 +155,19 @@ class SystemPathTest extends AbstractIdeContextTest {
     Path npmTool = context.getSoftwarePath().resolve("npm");
     Files.createDirectories(npmTool.resolve("bin"));
     Files.writeString(npmTool.resolve("bin/npm"), "pristine-npm");
+    Path corepackTool = context.getSoftwarePath().resolve("corepack");
+    Files.createDirectories(corepackTool.resolve("bin"));
+    Files.writeString(corepackTool.resolve("bin/corepack"), "pristine-corepack");
     Path nodeTool = context.getSoftwarePath().resolve("node");
     Files.createDirectories(nodeTool);
     Files.writeString(nodeTool.resolve("npm"), "node-bundled-npm");
-    SystemPath systemPath = new SystemPath(context, "", context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
+    Files.writeString(nodeTool.resolve("corepack"), "node-bundled-corepack");
+    SystemPath systemPath = new SystemPath(
+        context, "", context.getIdeRoot(), context.getSoftwarePath(), ';', new ArrayList<>());
     Path pristine = npmTool.resolve("bin").resolve("npm");
     Path bundled = nodeTool.resolve("npm");
+    Path pristineCorepack = corepackTool.resolve("bin").resolve("corepack");
+    Path bundledCorepack = nodeTool.resolve("corepack");
 
     // act & assert - findBinary resolves the pristine npm, not the node-bundled one
     assertThat(systemPath.findBinary(Path.of("npm"))).isEqualTo(pristine).isNotEqualTo(bundled);
@@ -168,6 +175,13 @@ class SystemPathTest extends AbstractIdeContextTest {
     String pathString = systemPath.toString();
     assertThat(pathString.indexOf(npmTool.resolve("bin").toString()))
         .isNotNegative().isLessThan(pathString.indexOf(nodeTool.toString()));
+    assertThat(systemPath.findBinary(Path.of("corepack")))
+        .isEqualTo(pristineCorepack)
+        .isNotEqualTo(bundledCorepack);
+
+    assertThat(pathString.indexOf(corepackTool.resolve("bin").toString()))
+        .isNotNegative()
+        .isLessThan(pathString.indexOf(nodeTool.toString()));
   }
 
   @Test

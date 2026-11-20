@@ -255,6 +255,11 @@ function npm() {
   fi
 }
 
+function corepack() {
+  if [ -n "${IDE_HOME}" ]; then
+    ide corepack "$@"
+  else
+    command corepack "$@"
 function python() {
   if [ -n "${IDE_HOME}" ]; then
     ide python "$@"
