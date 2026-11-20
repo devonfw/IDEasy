@@ -1,5 +1,6 @@
 package com.devonfw.ide.gui.core.mainwindow.console;
 
+
 import java.text.MessageFormat;
 
 import javafx.collections.ListChangeListener.Change;
@@ -9,6 +10,9 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextArea;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
@@ -88,39 +92,65 @@ public class ConsoleView {
    */
   private static class LogEntryCell extends ListCell<IdeLogEntry> {
 
+
+    private final TextArea textArea;
+    public LogEntryCell(){
+      textArea = new TextArea();
+      textArea.setWrapText(true);
+      textArea.setEditable(false);
+      textArea.setFocusTraversable(false);
+    }
+
+    private static double computeTextHeight(String text, double width) {
+
+      Text helper = new Text(text);
+
+      helper.setFont(Font.font("Consolas", 11));
+      helper.setWrappingWidth(width);
+
+      return helper.getLayoutBounds().getHeight();
+    }
     @Override
     protected void updateItem(IdeLogEntry entry, boolean empty) {
 
       super.updateItem(entry, empty);
-
-      getStyleClass().removeAll(
-          "base-style",
-          "error-style",
-          "warning-style",
-          "info-style",
-          "debug-style",
-          "trace-style",
-          "plain-style",
-          "error-bg",
-          "warning-bg");
-
       if (empty || entry == null) {
-        setText(null);
-        return;
+        textArea.clear();
+        setGraphic(null);
+      } else {
+        String text= entry.displayValue();
+        textArea.setText(text);
+        textArea.getStyleClass().removeIf(style ->
+            style.startsWith("log-entry"));
+
+        textArea.getStyleClass().add("log-entry");
+        textArea.getStyleClass().add(getStyleClassForEntry(entry));
+        textArea.setText(text);
+
+        textArea.applyCss();
+
+        double textHeight = computeTextHeight(text, textArea.getWidth());
+
+        textArea.setPrefHeight(textHeight + 11);
+
+
+        setGraphic(textArea);
       }
+    }
 
-      setText(entry.displayValue());
+    private String getStyleClassForEntry(IdeLogEntry entry) {
 
-      getStyleClass().add("base-style");
-
-      switch (entry.level()) {
-        case ERROR -> getStyleClass().addAll("error-style", "error-bg");
-        case WARNING -> getStyleClass().addAll("warning-style", "warning-bg");
-        case INFO -> getStyleClass().add("info-style");
-        case DEBUG -> getStyleClass().add("debug-style");
-        case TRACE -> getStyleClass().add("trace-style");
-        default -> getStyleClass().add("plain-style");
+      if (entry.level() == null) {
+        return "log-entry-plain";
       }
+      return switch (entry.level()) {
+        case ERROR -> "log-entry-error";
+        case WARNING -> "log-entry-warning";
+        case INFO -> "log-entry-info";
+        case DEBUG -> "log-entry-debug";
+        case TRACE -> "log-entry-trace";
+        default -> "log-entry-plain";
+      };
     }
   }
 }
