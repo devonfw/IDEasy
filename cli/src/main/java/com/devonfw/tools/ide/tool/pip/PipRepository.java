@@ -1,6 +1,8 @@
 package com.devonfw.tools.ide.tool.pip;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.json.JsonMapping;
@@ -23,6 +25,12 @@ public class PipRepository extends ArtifactToolRepository<PipArtifact, PipArtifa
 
   /** The {@link #getId() repository ID}. */
   public static final String ID = "pip";
+
+  /**
+   * PEP 440 pre-release suffixes ({@code aN}, {@code bN}, {@code rcN}, {@code devN}) preceded by a digit or a dot (e.g. "12.0.0b1", "1.0.dev5"), so
+   * pre-releases are not accidentally resolved as latest version.
+   */
+  private static final Pattern PRE_RELEASE = Pattern.compile("(?:\\d|\\.)(?:a|b|rc|dev)\\d*$");
 
   /**
    * The constructor.
@@ -59,7 +67,15 @@ public class PipRepository extends ArtifactToolRepository<PipArtifact, PipArtifa
     String json = this.context.getFileAccess().download(url);
     try {
       PypiObject pypiObject = MAPPER.readValue(json, PypiObject.class);
-      return pypiObject.releases();
+      // PyPI also publishes pre-releases (aN/bN/rcN/devN); exclude them so a default install never resolves a pre-release. The list must remain mutable
+      // since the repository sorts it in place.
+      List<VersionIdentifier> stableReleases = new ArrayList<>();
+      for (VersionIdentifier version : pypiObject.releases()) {
+        if (!PRE_RELEASE.matcher(version.toString()).find()) {
+          stableReleases.add(version);
+        }
+      }
+      return stableReleases;
     } catch (JsonProcessingException e) {
       throw new RuntimeException("Failed to process JSON from " + url, e);
     }
