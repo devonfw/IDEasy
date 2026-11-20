@@ -92,13 +92,7 @@ public class ConsoleView {
    */
   private static class LogEntryCell extends ListCell<IdeLogEntry> {
 
-    private static final String BASE_STYLE = "plain-style";
-    private static final String ERROR_STYLE = BASE_STYLE + " -fx-text-fill: #cc0000; -fx-control-inner-background: #fff0e0;";
-    private static final String WARNING_STYLE = BASE_STYLE + " -fx-text-fill: #cc8800; -fx-control-inner-background: #fff8e0;";
-    private static final String INFO_STYLE = BASE_STYLE + " -fx-text-fill: #000000;";
-    private static final String DEBUG_STYLE = BASE_STYLE + " -fx-text-fill: #666666;";
-    private static final String TRACE_STYLE = BASE_STYLE + " -fx-text-fill: #888888;";
-    private static final String PLAIN_STYLE = BASE_STYLE + " -fx-text-fill: #333333;";
+
     private final TextArea textArea;
     public LogEntryCell(){
       textArea = new TextArea();
@@ -123,11 +117,14 @@ public class ConsoleView {
       if (empty || entry == null) {
         textArea.clear();
         setGraphic(null);
-        setStyle(BASE_STYLE);
       } else {
         String text= entry.displayValue();
         textArea.setText(text);
-        textArea.setStyle(getStyleForEntry(entry));
+        textArea.getStyleClass().removeIf(style ->
+            style.startsWith("log-entry"));
+
+        textArea.getStyleClass().add("log-entry");
+        textArea.getStyleClass().add(getStyleClassForEntry(entry));
         textArea.setText(text);
 
         textArea.applyCss();
@@ -141,18 +138,18 @@ public class ConsoleView {
       }
     }
 
-    private String getStyleForEntry(IdeLogEntry entry) {
+    private String getStyleClassForEntry(IdeLogEntry entry) {
 
       if (entry.level() == null) {
-        return PLAIN_STYLE;
+        return "log-entry-plain";
       }
       return switch (entry.level()) {
-        case ERROR -> ERROR_STYLE;
-        case WARNING -> WARNING_STYLE;
-        case INFO -> INFO_STYLE;
-        case DEBUG -> DEBUG_STYLE;
-        case TRACE -> TRACE_STYLE;
-        default -> PLAIN_STYLE;
+        case ERROR -> "log-entry-error";
+        case WARNING -> "log-entry-warning";
+        case INFO -> "log-entry-info";
+        case DEBUG -> "log-entry-debug";
+        case TRACE -> "log-entry-trace";
+        default -> "log-entry-plain";
       };
     }
   }
