@@ -1,25 +1,20 @@
 package com.devonfw.ide.gui.core.progress;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.LongProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleLongProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.core.context.TaskManager;
-import com.devonfw.ide.gui.core.helper.FxHelper;
+import com.devonfw.ide.gui.core.event.TaskProgressEvent;
 import com.devonfw.tools.ide.io.AbstractIdeProgressBar;
 
 /**
- * This is a handler for the progress bars in the GUI
+ * This is a handler for the progress bars in the GUI. It is plain Java without any JavaFX dependency: the progress is advanced by a worker thread, reported to
+ * the {@link TaskManager} (that sends a {@link TaskProgressEvent}), and read by the UI on the JavaFX thread.
  */
 public class ProgressBarTask extends AbstractIdeProgressBar {
 
-  private final TaskManager taskManager;
   /**
    * This is the format representing how task titles are displayed in the UI. It follows the scheme "Task title [current progress/maximum progress Unit]"
    */
@@ -27,19 +22,20 @@ public class ProgressBarTask extends AbstractIdeProgressBar {
 
   private static final Logger LOG = LoggerFactory.getLogger(ProgressBarTask.class.getName());
 
-  private boolean isIndeterminate = false;
+  private final TaskManager taskManager;
+
   private final String taskId; //We use a task id to differentiate between multiple tasks with the same title.
 
-  private final LongProperty progressProperty = new SimpleLongProperty(getCurrentProgress());
-
-  //we only set the title on this line, once. the title is final in AbstractIdeContext,
-  // but we also use a property here to be consistent and allow dynamic updates if needed in the future.
-  private final StringProperty titleProperty = new SimpleStringProperty(getTitle());
-  private final BooleanProperty indeterminateProperty = new SimpleBooleanProperty(isIndeterminate());
+  private volatile boolean indeterminate;
 
   /**
-   * @param taskManager the {@link TaskManager} to link this progress bar to. Note: The task manager supplied here is only used for closing the task, in
-   *     case {link #close()} is called.
+   * Mirror of the progress of {@link AbstractIdeProgressBar}, whose field is not {@code volatile} and therefore not safely readable from the JavaFX thread.
+   */
+  private volatile long progress;
+
+  /**
+   * @param taskManager the {@link TaskManager} to link this progress bar to. It is notified about progress changes and used for closing the task, in case
+   *     {@link #close()} is called.
    * @param taskId a unique id to identify this task.
    * @param title title of the task
    * @param maxSize maximum progress
@@ -49,24 +45,22 @@ public class ProgressBarTask extends AbstractIdeProgressBar {
   public ProgressBarTask(TaskManager taskManager, String taskId, String title, long maxSize, String unitName, long unitSize) {
 
     super(title, maxSize, unitName, unitSize);
+    this.taskManager = Objects.requireNonNull(taskManager);
     this.taskId = taskId;
-    this.taskManager = taskManager;
   }
 
   /**
    * This constructor is used for indeterminate progress bars in the UI.
    *
-   * @param taskManager the {@link TaskManager} to link this progress bar to. Note: The task manager supplied here is only used for closing the task, in
-   *     case {link #close()} is called.
+   * @param taskManager the {@link TaskManager} to link this progress bar to. It is notified about progress changes and used for closing the task, in case
+   *     {@link #close()} is called.
    * @param taskId a unique id to identify this task.
    * @param title the title of the progress bar
    */
   public ProgressBarTask(TaskManager taskManager, String taskId, String title) {
 
-    super(title, 100, "%", 1);
-    setIndeterminate(true);
-    this.taskId = taskId;
-    this.taskManager = taskManager;
+    this(taskManager, taskId, title, 100, "%", 1);
+    this.indeterminate = true;
   }
 
   //currentProgress is only for test purposes, see AbstractIdeProgressBar
@@ -74,27 +68,39 @@ public class ProgressBarTask extends AbstractIdeProgressBar {
   protected void doStepBy(long stepSize, long currentProgress) {
 
     LOG.debug("Updating progress bar by {} to {}", stepSize, currentProgress);
-
-    FxHelper.runFxSafe(() -> progressProperty.setValue(getCurrentProgress()));
+    this.progress = currentProgress;
+    this.taskManager.notifyProgress(this);
   }
 
   /**
-   * Exposed publicly (wider than the {@code protected} declaration in {@link AbstractIdeProgressBar}) so the task window tests, which live in a separate
-   * subpackage, can drive the progress bar to a precise position.
+   * Exposed publicly (wider than the {@code protected} declaration in {@link AbstractIdeProgressBar}) so the tests can drive the progress bar to a precise
+   * position.
    */
   @Override
-  public void doStepTo(long stepPosition) {
+  public void stepTo(long stepPosition) {
 
-    LOG.debug("Updating progress bar to {}", getCurrentProgress());
+    super.stepTo(stepPosition);
+  }
 
-    FxHelper.runFxSafe(() -> progressProperty.setValue(stepPosition));
+  @Override
+  protected void doStepTo(long stepPosition) {
+
+    LOG.debug("Updating progress bar to {}", stepPosition);
+    this.progress = stepPosition;
+    this.taskManager.notifyProgress(this);
+  }
+
+  @Override
+  public long getCurrentProgress() {
+
+    return this.progress;
   }
 
   @Override
   public void close() {
 
     LOG.info("Closing progress bar");
-    taskManager.removeTask(this);
+    this.taskManager.removeTask(this);
     super.close();
   }
 
@@ -102,44 +108,24 @@ public class ProgressBarTask extends AbstractIdeProgressBar {
    * @return true if the progress bar is indeterminate, false otherwise
    */
   public boolean isIndeterminate() {
-    return isIndeterminate;
+
+    return this.indeterminate;
   }
 
   /**
    * @param indeterminate set whether the progress bar is indeterminate or not
    */
   public void setIndeterminate(boolean indeterminate) {
-    isIndeterminate = indeterminate;
-    indeterminateProperty.set(indeterminate);
+
+    this.indeterminate = indeterminate;
+    this.taskManager.notifyProgress(this);
   }
 
   /**
    * @return id of the current task
    */
   public String getTaskId() {
-    return taskId;
-  }
 
-  /**
-   * Properties are relevant for dynamically updating the ui.
-   *
-   * @return progress property of this task.
-   */
-  public LongProperty currentProgressProperty() {
-    return progressProperty;
-  }
-
-  /**
-   * @return title property of this task.
-   */
-  public StringProperty titleProperty() {
-    return titleProperty;
-  }
-
-  /**
-   * @return indeterminate property of this task.
-   */
-  public BooleanProperty indeterminateProperty() {
-    return indeterminateProperty;
+    return this.taskId;
   }
 }
