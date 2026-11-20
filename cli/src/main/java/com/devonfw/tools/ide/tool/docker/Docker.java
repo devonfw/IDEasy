@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.docker;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -9,11 +10,16 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemArchitecture;
+import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.NativePackage;
 import com.devonfw.tools.ide.tool.NativePackageManager;
@@ -42,6 +48,8 @@ public class Docker extends GlobalToolCommandlet {
   /** The {@link #getWindowsRegistryAppNames() edition name} of Rancher Desktop. */
   private static final String RANCHER_EDITION = "rancher";
 
+  private static final String FOLDER_RANCHER_DESKTOP = ".rd";
+
   private static final Pattern DOCKER_DESKTOP_VERSION_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+){1,2})");
 
   private static final String EDITION_DOCKER = "docker";
@@ -64,12 +72,71 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   private String detectContainerRuntime() {
-    if (isCommandAvailable(this.tool)) {
-      return this.tool;
+    String docker = resolveDockerCommand(this.tool);
+    if (docker != null) {
+      return docker;
     } else if (isCommandAvailable(PODMAN)) {
       return PODMAN;
     } else {
       return this.tool;
+    }
+  }
+
+  /**
+   * Rancher Desktop links its CLI tools (docker, kubectl, rdctl) into the fixed {@code ~/.rd/bin} directory, which it creates on its first launch.
+   * Depending on the user's path management strategy this directory may not be on the PATH, so we look it up there explicitly as a fallback.
+   * This fallback is skipped if the docker edition (Docker Desktop) is configured, so that it cannot hide a missing Docker Desktop installation.
+   *
+   * @param command the name of a CLI shipped with the docker installation (e.g. docker, rdctl, kubectl).
+   * @return the {@code command} unchanged if available on PATH, otherwise its absolute path inside {@code ~/.rd/bin} or {@code null} if not found.
+   */
+  public String resolveDockerCommand(String command) {
+    if (isCommandAvailable(command)) {
+      return command;
+    }
+    if (isDockerDesktopEditionConfigured()) {
+      return null;
+    }
+    Path candidate = getRancherDesktopBinDir().resolve(command);
+    Path rancherDesktopBinary = this.context.getPath().findBinary(candidate);
+    if ((rancherDesktopBinary != candidate) && Files.isExecutable(rancherDesktopBinary)) {
+      return rancherDesktopBinary.toString();
+    }
+    return null;
+  }
+
+  private Path getRancherDesktopBinDir() {
+    return this.context.getUserHome().resolve(FOLDER_RANCHER_DESKTOP).resolve(IdeContext.FOLDER_BIN);
+  }
+
+  @Override
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
+
+    super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
+    String docker = resolveDockerCommand(this.tool);
+    if ((docker != null) && !docker.equals(this.tool)) {
+      environmentContext.withPathEntry(getRancherDesktopBinDir());
+    }
+  }
+
+  @Override
+  protected void configureToolBinary(ProcessContext pc, ProcessMode processMode) {
+
+    verifyRancherDesktopLaunched(this.tool);
+    super.configureToolBinary(pc, processMode);
+  }
+
+  /**
+   * Fails with a clear message if Rancher Desktop is installed but was never launched, so it has not set up its CLI tools in {@code ~/.rd/bin} yet.
+   *
+   * @param command the CLI that is about to run (e.g. docker or kubectl).
+   */
+  public void verifyRancherDesktopLaunched(String command) {
+
+    if (!isDockerDesktopEditionConfigured() && this.context.getSystemInfo().isLinux() && (resolveDockerCommand(command) == null)
+        && (getNativePackageVersion() != null)) {
+      throw new CliException("Rancher Desktop has been installed but not launched yet. Please start Rancher Desktop once so that it sets up its "
+          + "command-line tools (docker, kubectl, ...) in " + getRancherDesktopBinDir() + ", then re-run your command.", ProcessResult.TOOL_NOT_INSTALLED);
     }
   }
 
