@@ -76,17 +76,15 @@ commit only when strictly necessary with `git commit --no-verify`.
 These are strict prohibitions. Contributions carrying AI authorship/attribution cannot be accepted
 (CLA assistant cannot resolve AI-authored commits).
 
-- DO NOT add `Co-authored-by:` (or any co-author) trailers referencing AI tools or assistants
-  (e.g. Claude, Copilot, "Claude Code", an AI model name) to commits.
-- DO NOT add AI advertising or "generated with"/"co-authored with" remarks to commit messages,
-  commit descriptions, PR titles, PR descriptions, or PR/issue comments.
+- When adding AI advertising or "generated with"/"co-authored with" remarks to commit messages,
+  commit descriptions, PR titles, PR descriptions, or PR/issue comments, make sure the author of the commit message is human.
 - DO NOT set commit author or committer identity to an AI tool or bot. Commit under the human
   contributor's git identity.
 - Commit messages must contain only the issue reference and a description of the change — nothing
   about the tooling used to produce it.
 
-The `commit-msg` hook, installed by `./install-hooks.sh`, and the "Check commit messages" CI step
-reject AI co-author trailers via `git-hooks/check-ai-attribution.sh`.
+The `commit-msg` hook, installed by `./install-hooks.sh`, and the "Check commit messages" CI 
+reject commits with non-human authors `git-hooks/check-ai-attribution.sh`.
 
 ## Pull Request Guidelines
 
