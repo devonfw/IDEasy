@@ -4,6 +4,7 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -41,6 +42,23 @@ class CveCheckInstallTest extends AbstractIdeContextTest {
       """;
 
   private final IdeTestContext context = newContext(PROJECT_INTELLIJ);
+
+  /**
+   * Installing a tool in batch mode ({@code -b}) without force mode ({@code -f}) whose resolved version has CVEs must abort cleanly with a
+   * {@link CliAbortException} so the user knows to re-run with {@code -f}. Previously the version choice could not be asked and the {@code null} answer
+   * caused a {@link NullPointerException}. Regression test for <a href="https://github.com/devonfw/IDEasy/issues/2635">#2635</a>.
+   */
+  @Test
+  void testInstallToolInBatchModeAbortsInsteadOfNpeWhenVersionHasCves() {
+    //arrange
+    IdeTestContext batchContext = newContext(PROJECT_INTELLIJ);
+    batchContext.setUrlsPath(URLS_PATH);
+    batchContext.getStartContext().setBatchMode(true);
+    Intellij commandlet = new Intellij(batchContext);
+
+    //act & assert
+    assertThatThrownBy(commandlet::install).isInstanceOf(CliAbortException.class);
+  }
 
 
   /**

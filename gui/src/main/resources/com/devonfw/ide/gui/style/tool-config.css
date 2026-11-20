@@ -1,0 +1,47 @@
+.toolConfigHeader {
+
+  -fx-font-weight: bold;
+  -fx-font-size: 12;
+  -fx-border-color: #e0e0e0;
+  -fx-border-width: 0 0 1 0;
+}
+
+.toolConfigList {
+
+  -fx-font-size: 10;
+}
+
+.toolConfigRow {
+
+  -fx-padding: 5 0 5 0;
+}
+
+.toolConfigName {
+
+  -fx-font-weight: bold;
+  -fx-font-size: 13;
+}
+
+.toolConfigCombo {
+
+  -fx-font-size: 12;
+}
+
+.toolConfigCombo:invalid {
+
+  -fx-border-color: red;
+  -fx-border-width: 2;
+}
+
+.toolConfigErrorIcon {
+
+  -fx-text-fill: red;
+  -fx-font-size: 14;
+  -fx-font-weight: bold;
+  -fx-cursor: hand;
+}
+
+.toolConfigSavedLabel {
+
+  -fx-text-fill: grey;
+}
