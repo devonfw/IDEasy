@@ -136,7 +136,14 @@ public class ProcessContextImpl implements ProcessContext {
 
   @Override
   public ProcessContext withEnvVar(String key, String value) {
+    return withEnvVar(key, value, VariableScope.EXPORT);
+  }
 
+  @Override
+  public ProcessContext withEnvVar(String key, String value, VariableScope scope) {
+    if (scope == VariableScope.LOCAL) {
+      return this;
+    }
     if (IdeVariables.PATH.getName().equals(key)) {
       this.overriddenPath = value;
     } else {

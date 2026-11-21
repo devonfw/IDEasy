@@ -36,11 +36,17 @@ public class EnvironmentVariableCollectorContext implements EnvironmentContext {
 
   @Override
   public EnvironmentContext withEnvVar(String key, String value) {
+    return withEnvVar(key, value, VariableScope.EXPORT);
+  }
+
+  @Override
+  public EnvironmentContext withEnvVar(String key, String value, VariableScope scope) {
     if (this.pathSyntax != null) {
       value = pathSyntax.normalize(value);
     }
     if (!this.environmentVariables.containsKey(key)) {
-      environmentVariables.put(key, VariableLine.of(true, key, value, variableSource));
+      boolean export = scope == VariableScope.EXPORT;
+      environmentVariables.put(key, VariableLine.of(export, key, value, variableSource));
     }
     return this;
   }
