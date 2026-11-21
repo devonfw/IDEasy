@@ -1,4 +1,5 @@
 ---
+name: report-pr-overview
 description: Report all open non-draft pull requests to the chat, prioritized by the IDEasy board (#5) pipeline and by what YOU (the current user) need to act on
 model: opus
 ---

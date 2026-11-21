@@ -12,6 +12,10 @@ However, to make our lives easier, make your contribution being accepted faster,
 
 To get started as a developer of IDEasy follow the link:setup.adoc[developer setup].
 
+== AI coding agents
+
+If you use an AI coding agent such as Claude Code or GitHub Copilot, read link:ai-agents.adoc[AI coding agents] for the shared instructions and skills of this repository.
+
 == Testing
 
 To support cross-platform testing also consider link:testing-linux-on-windows.adoc[testing Linux on Windows] and if applicable link:testing-mac-in-vm.adoc[testing Max in VM].
