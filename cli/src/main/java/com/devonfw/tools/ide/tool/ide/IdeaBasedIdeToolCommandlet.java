@@ -12,10 +12,12 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
@@ -190,5 +192,14 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
   private boolean isSameJvmKey(String a, String b) {
 
     return extractJvmOptionsKey(a).equals(extractJvmOptionsKey(b));
+  }
+
+  @Override
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
+
+    super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
+    String prefix = getIdeProductPrefix();
+    String variableName = prefix.toUpperCase(Locale.ROOT) + "_PROPERTIES";
+    environmentContext.withEnvVar(variableName, getOpenPath().resolve(prefix + ".properties").toString());
   }
 }

@@ -5,10 +5,8 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaPluginDownloader;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
@@ -54,14 +52,6 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
   protected String getIdeProductPrefix() {
 
     return STUDIO;
-  }
-
-  @Override
-  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
-
-    super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
-    // point at the opened folder's own studio.properties
-    environmentContext.withEnvVar("STUDIO_PROPERTIES", getOpenPath().resolve("studio.properties").toString());
   }
 
   @Override
