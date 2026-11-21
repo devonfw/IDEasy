@@ -501,6 +501,12 @@ public class VersionSegment implements VersionObject<VersionSegment> {
   }
 
   @Override
+  public int hashCode() {
+
+    return Objects.hash(this.digits, this.letters, this.pattern);
+  }
+
+  @Override
   public boolean equals(Object obj) {
 
     if (obj == this) {

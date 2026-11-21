@@ -1,12 +1,14 @@
 package com.devonfw.tools.ide.tool;
 
+import java.util.Objects;
+
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Container for a {@link ToolEdition} together with its version.
  */
-public class ToolEditionAndVersion {
+public final class ToolEditionAndVersion {
 
   private ToolEdition edition;
 
@@ -68,7 +70,7 @@ public class ToolEditionAndVersion {
     this.edition = edition;
   }
 
-    /**
+  /**
    * @param edition new value of {@link #getEdition()}.
    */
   public void replaceEdition(ToolEdition edition) {
@@ -115,6 +117,23 @@ public class ToolEditionAndVersion {
       throw new IllegalStateException();
     }
     this.resolvedVersion = resolvedVersion;
+  }
+
+  @Override
+  public int hashCode() {
+
+    return Objects.hash(edition, version, resolvedVersion);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ToolEditionAndVersion other = (ToolEditionAndVersion) o;
+    return Objects.equals(edition, other.edition) && Objects.equals(version, other.version) && Objects.equals(resolvedVersion,
+        other.resolvedVersion);
   }
 
   @Override
