@@ -1,8 +1,12 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -33,6 +37,32 @@ class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
     verifyUpdateLegacyFolders();
     verifyUpdateProperties();
     verifyUpdateWorkspaceTemplates();
+  }
+
+  /**
+   * Verifies that {@link UpgradeSettingsCommandlet} preserves LF and CRLF line endings when migrating repository properties.
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "\n", "\r\n" })
+  void testPreservesLineSeparators(String lineSeparator) throws IOException {
+
+    // arrange
+    Path legacyProperties = UPGRADE_SETTINGS_PATH.resolve("settings/projects/IDEasy.properties");
+    String originalContent = Files.readString(legacyProperties);
+    String normalizedContent = originalContent.replace("\r\n", "\n").replace("\r", "\n");
+    Files.writeString(legacyProperties, normalizedContent.replace("\n", lineSeparator));
+
+    // act
+    UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(context);
+    upgradeSettingsCommandlet.run();
+
+    // assert
+    Path migratedProperties = UPGRADE_SETTINGS_PATH.resolve("settings/repositories/IDEasy.properties");
+    String migratedContent = Files.readString(migratedProperties);
+    assertThat(migratedContent).contains("import=eclipse");
+    assertThat(migratedContent).contains(lineSeparator);
+    String otherLineSeparator = "\n".equals(lineSeparator) ? "\r" : "\n";
+    assertThat(migratedContent.replace(lineSeparator, "")).doesNotContain(otherLineSeparator);
   }
 
   private void verifyUpdateProperties() {

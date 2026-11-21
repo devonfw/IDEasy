@@ -214,6 +214,10 @@ public class UpgradeSettingsCommandlet extends AbstractCommandlet {
   }
 
   private void updateRepositoryPropertiesFile(Path filePath) throws IOException {
+    String originalContent = Files.readString(filePath);
+    boolean usesCrLfLineSeparator = originalContent.contains("\r\n");
+    String lineSeparator = usesCrLfLineSeparator ? "\r\n" : "\n";
+    boolean endsWithLineSeparator = originalContent.endsWith("\n") || originalContent.endsWith("\r");
     List<String> lines = Files.readAllLines(filePath);
     boolean updated = false;
 
@@ -232,7 +236,11 @@ public class UpgradeSettingsCommandlet extends AbstractCommandlet {
     }
     if (updated) {
       try {
-        Files.write(filePath, lines, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+        String updatedContent = String.join(lineSeparator, lines);
+        if (endsWithLineSeparator) {
+          updatedContent += lineSeparator;
+        }
+        Files.writeString(filePath, updatedContent, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
         IdeLogLevel.SUCCESS.log(LOG, "Successfully updated repository configuration file {}", filePath);
       } catch (IOException e) {
         LOG.error("Failed to write updated repository configuration file {}", filePath);
