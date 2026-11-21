@@ -26,6 +26,7 @@ Uninstall with `git config --unset core.hooksPath`.
 
   Any violation or test failure blocks the commit.
 
+- **commit-msg**: rejects commit messages that carry AI attribution (see `check-ai-attribution.sh`).
 ### Escape hatches (use sparingly)
 
 | Goal | Command |
