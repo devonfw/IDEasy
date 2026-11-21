@@ -49,7 +49,7 @@ public class App extends Application {
 
   GuiStateManager guiStateManager = new GuiStateManager(null);
 
-  private final Logger LOG = LoggerFactory.getLogger(App.class);
+  private static final Logger LOG = LoggerFactory.getLogger(App.class);
 
   @Override
   public void start(Stage primaryStage) {
@@ -91,8 +91,7 @@ public class App extends Application {
       setIconInMacOsDock();
     }
 
-    Image icon = new Image(ICON_PATH);
-    primaryStage.getIcons().add(icon);
+    addStageIcon();
     primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
     primaryStage.setScene(mainWindowScene);
     primaryStage.show();
@@ -106,6 +105,20 @@ public class App extends Application {
     primaryStage.setWidth(Math.min(MAIN_WINDOW_WIDTH + decorationWidth, bounds.getWidth()));
     primaryStage.setHeight(Math.min(MAIN_WINDOW_HEIGHT + decorationHeight, bounds.getHeight()));
     primaryStage.centerOnScreen();
+  }
+
+  /**
+   * Adds the app icon to the stage. The icon is a declared resource, so it is normally on the classpath. The guard only keeps startup from aborting if a
+   * classpath is used that does not carry it (e.g. a plain {@code java -cp}); in that case a warning is logged and the app starts without an icon.
+   */
+  private void addStageIcon() {
+
+    if (getClass().getClassLoader().getResource(ICON_PATH) == null) {
+      LOG.warn("App icon {} not found on the classpath, starting without an icon", ICON_PATH);
+      return;
+    }
+    Image icon = new Image(ICON_PATH);
+    primaryStage.getIcons().add(icon);
   }
 
   private void exitApplication() {
