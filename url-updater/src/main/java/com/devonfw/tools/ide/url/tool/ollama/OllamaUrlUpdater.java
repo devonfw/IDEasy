@@ -1,9 +1,5 @@
 package com.devonfw.tools.ide.url.tool.ollama;
 
-import java.util.Collection;
-
-import com.devonfw.tools.ide.github.GithubRelease;
-import com.devonfw.tools.ide.github.GithubReleases;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.GithubUrlReleaseUpdater;
 
@@ -58,19 +54,8 @@ public class OllamaUrlUpdater extends GithubUrlReleaseUpdater {
     doAddVersion(urlVersion, baseUrl + "windows-arm64.zip", WINDOWS, ARM64);
     // linux assets are distributed as .tar.zst (zstd) which IDEasy cannot extract yet
     // (see com.devonfw.tools.ide.io.TarCompression), hence they are intentionally not added
-  }
-
-  /**
-   * Filters out pre-releases before version handling.
-   * <p>
-   * Ollama flags some releases as pre-release without a version suffix (e.g. {@code v0.32.10}, and the tag {@code v0.40.0-rc3} is
-   * named {@code v0.40.0}), so the suffix-based {@link #isAcceptVersion(String)} check does not catch them. Filtering on the GitHub
-   * {@link GithubRelease#prerelease()} flag avoids publishing such releases as stable versions.
-   */
-  @Override
-  protected Collection<GithubRelease> getVersionItems(GithubReleases releases) {
-
-    return releases.stream().filter(release -> !release.prerelease()).toList();
+    // Ollama flags some releases as pre-release without a version suffix (e.g. v0.32.10, and the tag v0.40.0-rc3 is named v0.40.0), so the suffix-based
+    // version filter does not catch them. That is why the generic pre-release filter is inherited from GithubUrlReleaseUpdater (Ollama keeps the default).
   }
 
   @Override
