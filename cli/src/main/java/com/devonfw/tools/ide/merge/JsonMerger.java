@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
@@ -107,9 +108,8 @@ public class JsonMerger extends FileMerger {
   }
 
   /**
-   * Scans a JSONC file and maps each property key to the comment block immediately preceding it.
-   * Only leading-line comments ({@code //} and block comments) are captured; inline trailing comments are ignored.
-   * Blank lines between a comment block and its property are tolerated.
+   * Scans a JSONC file and maps each property key to the comment block immediately preceding it. Only leading-line comments ({@code //} and block comments) are
+   * captured; inline trailing comments are ignored. Blank lines between a comment block and its property are tolerated.
    *
    * @param file the JSONC file to scan.
    * @return map from property key to its preceding comment text (trimmed lines joined with {@code \n}).
@@ -140,8 +140,8 @@ public class JsonMerger extends FileMerger {
   }
 
   /**
-   * Re-inserts comment blocks into a clean JSON file above the property each comment was associated with.
-   * The indentation of each injected comment line matches the indentation of the following property line.
+   * Re-inserts comment blocks into a clean JSON file above the property each comment was associated with. The indentation of each injected comment line matches
+   * the indentation of the following property line.
    *
    * @param file the saved JSON file to rewrite with comments.
    * @param comments map from property key to its preceding comment text (as returned by {@link #extractComments}).
@@ -332,8 +332,9 @@ public class JsonMerger extends FileMerger {
   @Override
   protected boolean doUpgrade(Path workspaceFile) throws Exception {
 
+    Map<String, String> comments = extractComments(workspaceFile);
     JsonNode jsonNode;
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JSONC_MAPPER;
     try (Reader reader = Files.newBufferedReader(workspaceFile)) {
       jsonNode = mapper.reader().readTree(reader);
     }
@@ -345,6 +346,9 @@ public class JsonMerger extends FileMerger {
     if (modified) {
       try (Writer writer = Files.newBufferedWriter(workspaceFile)) {
         mapper.writer(new JsonPrettyPrinter()).writeValue(writer, migratedNode);
+      }
+      if (!comments.isEmpty()) {
+        injectComments(workspaceFile, comments);
       }
     }
     return modified;
