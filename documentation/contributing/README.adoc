@@ -23,7 +23,7 @@ For security mapping in URL updater development, see link:cpe-url-updater.adoc[C
 
 == Releases
 
-For the automated release process see the link:../github-release.adoc[Building IDEasy Releases] documentation.
+For the automated release process see the link:github-release.adoc[Building IDEasy Releases] documentation.
 If you need to configure, verify or troubleshoot the SignPath code signing of our Windows release artifacts, see the link:../signpath.adoc[Code Signing with SignPath] guide.
 
 == GUI
