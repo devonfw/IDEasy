@@ -1,0 +1,77 @@
+name: Ping author when new issue has no labels
+
+on:
+  workflow_call:
+    inputs:
+      issue-number:
+        description: Number of the issue to check
+        required: true
+        type: number
+      issue-author:
+        description: Login of the issue author
+        required: true
+        type: string
+
+permissions:
+  issues: write
+
+jobs:
+  ping-author:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping author if issue has no labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issueNumber = ${{ inputs.issue-number }};
+            const issueAuthor = '${{ inputs.issue-author }}';
+            const reminderMarker = '<!-- missing-issue-labels-reminder -->';
+
+            const { data: issue } = await github.rest.issues.get({
+              owner,
+              repo,
+              issue_number: issueNumber
+            });
+
+            if (issue.labels.length > 0) {
+              core.info(
+                `Issue #${issueNumber} already has labels. No reminder is required.`
+              );
+              return;
+            }
+
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              {
+                owner,
+                repo,
+                issue_number: issueNumber,
+                per_page: 100
+              }
+            );
+
+            const reminderAlreadyExists = comments.some(
+              comment => comment.body?.includes(reminderMarker)
+            );
+
+            if (reminderAlreadyExists) {
+              core.info(
+                `Issue #${issueNumber} already has a missing-label reminder.`
+              );
+              return;
+            }
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: issueNumber,
+              body: `${reminderMarker}
+            @${issueAuthor}, no labels could be assigned automatically. Please add the appropriate label or labels to this issue.`
+            });
+
+            core.info(
+              `Posted a missing-label reminder for @${issueAuthor}.`
+            );
