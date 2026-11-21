@@ -5,6 +5,8 @@ set -euo pipefail
 mvn -B -ntp -f documentation/pom.xml clean install
 
 mkdir -p windows-installer/msi-files
+mkdir -p windows-installer/msi-files/scripts
+cp windows-installer/scripts/*.cmd windows-installer/msi-files/scripts
 cp documentation/target/generated-docs/IDEasy.pdf windows-installer/msi-files
 cp -r cli/target/package/* windows-installer/msi-files
 rm -rf windows-installer/msi-files/system/mac
