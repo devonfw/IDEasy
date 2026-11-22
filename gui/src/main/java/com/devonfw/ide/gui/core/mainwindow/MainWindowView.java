@@ -212,20 +212,15 @@ public class MainWindowView extends BorderPane {
 
     this.statusLabel.setOnMouseClicked(_ -> {
       if (this.viewModel.statusClickableProperty().get()) {
-        TaskOverviewWindow.getInstance(this.guiStateManager.getTaskManager()).showRelativeToReferenceNode(this.statusLabel);
+        TaskOverviewWindow.getInstance(this.guiStateManager.getTaskListViewModel()).showRelativeToReferenceNode(this.statusLabel);
       }
     });
   }
 
   private void applyStatusLabelStyle(boolean clickable) {
-
+    this.statusLabel.getStyleClass().remove("status-label");
     if (clickable) {
-      this.statusLabel.setStyle(
-          "-fx-text-fill: blue;"
-              + "-fx-cursor: hand"
-      );
-    } else {
-      this.statusLabel.setStyle("");
+      this.statusLabel.getStyleClass().add("status-label");
     }
   }
 
