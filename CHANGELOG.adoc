@@ -15,6 +15,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2875[#2875]: Keep the current working directory in the git-bash window title when the shell is not initialised with IDEasy, instead of showing only `ideasy`
 * https://github.com/devonfw/IDEasy/issues/2518[#2518]: Add Snyk CLI commandlet
 * https://github.com/devonfw/IDEasy/issues/2544[#2544]: Remove npm_config_prefix from native package manager commands
+* https://github.com/devonfw/IDEasy/issues/2468[#2468]: Global tool commandlets ignore edition for name/version detection
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/54?closed=1[milestone 2026.12.001].
 
@@ -53,7 +54,6 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2325[#2325]: Made Desktop and Start Menu shortcut creation configurable in the Windows MSI installer
 * https://github.com/devonfw/IDEasy/issues/2553[#2553]: Add release support for yarn
 * https://github.com/devonfw/IDEasy/issues/2515[#2515]: Add commandlet for KubeLinter (kube-linter)
-* https://github.com/devonfw/IDEasy/issues/2468[#2468]: Global tool commandlets ignore edition for name/version detection
 * https://github.com/devonfw/IDEasy/issues/2427[#2427]: Improve update-cve workflow to detect and add OS specific CVEs to security.json files
 * https://github.com/devonfw/IDEasy/issues/2514[#2514]: Add commandlet for Ollama CLI
 * https://github.com/devonfw/IDEasy/issues/2705[#2705]: Obsidian not working as proxy commandlet
