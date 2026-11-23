@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.environment.IdeSystem;
@@ -32,7 +33,7 @@ public class IdeGuiContextTest extends Assertions {
     IdeSystemTestImpl testSystem = new IdeSystemTestImpl();
     testSystem.getProperties().setProperty("user.home", this.workingDirectory.toString());
     this.startContext = new IdeStartContextImpl(IdeLogLevel.INFO, IdeLogListenerNone.INSTANCE);
-    this.context = new IdeGuiContext(this.startContext, this.workingDirectory, new TaskManager()) {
+    this.context = new IdeGuiContext(this.startContext, this.workingDirectory, new TaskManager(new GuiEventBus())) {
 
       private boolean inputRequested;
 
