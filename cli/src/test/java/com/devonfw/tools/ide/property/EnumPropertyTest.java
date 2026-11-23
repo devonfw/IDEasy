@@ -30,14 +30,14 @@ class EnumPropertyTest {
 
   @Test
   void testGetValueType() {
-    EnumProperty<TestEnum> enumProp = new EnumProperty<>("", false, "", TestEnum.class);
+    EnumProperty<TestEnum> enumProp = new EnumProperty<>("", false, TestEnum.class, "");
     assertThat(enumProp.getValueType()).isEqualTo(TestEnum.class);
   }
 
   @Test
   void testParse() {
     IdeContext context = new IdeTestContext();
-    EnumProperty<TestEnum> enumProp = new EnumProperty<>("", false, "", TestEnum.class);
+    EnumProperty<TestEnum> enumProp = new EnumProperty<>("", false, TestEnum.class, "");
 
     assertThat(enumProp.parse("elementzero", context)).isEqualTo(TestEnum.ELEMENTZERO);
     assertThrows(IllegalArgumentException.class, () -> enumProp.parse(null, context));
@@ -51,7 +51,7 @@ class EnumPropertyTest {
     String input = "ele";
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
 
-    EnumProperty<TestEnum> enumProp = new EnumProperty<>("", false, "", TestEnum.class);
+    EnumProperty<TestEnum> enumProp = new EnumProperty<>("", false, TestEnum.class, "");
     enumProp.completeValue(input, context, new ContextCommandlet(), collector);
 
     assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactly(expectedCandidates);
@@ -63,7 +63,7 @@ class EnumPropertyTest {
     // arrange
     IdeTestContext context = new IdeTestContext();
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
-    EnumProperty<UpgradeMode> property = new EnumProperty<>("--mode", false, null, UpgradeMode.class);
+    EnumProperty<UpgradeMode> property = new EnumProperty<>("--mode", false, UpgradeMode.class, null);
 
     // act
     property.completeValue(input, context, new UpgradeCommandlet(context), collector);
@@ -81,7 +81,7 @@ class EnumPropertyTest {
     // arrange
     IdeContext context = new IdeTestContext();
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
-    EnumProperty<UpgradeMode> property = new EnumProperty<>("--mode", false, null, UpgradeMode.class);
+    EnumProperty<UpgradeMode> property = new EnumProperty<>("--mode", false, UpgradeMode.class, null);
 
     // act
     property.completeValue("ss", context, new UpgradeCommandlet(context), collector);

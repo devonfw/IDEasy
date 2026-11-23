@@ -23,7 +23,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class KubeLinterUrlUpdater extends GithubUrlReleaseUpdater {
 
   /** The minimum version for which all six platform/architecture release assets are available. */
-  private static final VersionIdentifier MIN_KUBE_LINTER_VERSION_IDENTIFIER = VersionIdentifier.of("0.7.0");
+  private static final VersionIdentifier MIN_KUBE_LINTER_VERSION_IDENTIFIER = VersionIdentifier.ofRequired("0.7.0");
 
   /**
    * The constructor.
