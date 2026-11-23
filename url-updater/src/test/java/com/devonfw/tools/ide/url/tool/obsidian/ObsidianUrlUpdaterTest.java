@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -34,7 +35,7 @@ public class ObsidianUrlUpdaterTest extends AbstractUrlUpdaterTest {
   void testObsidianUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // arrange
-    stubFor(get(urlMatching("/repos/obsidianmd/obsidian-releases/releases"))
+    stubFor(get(urlPathMatching("/repos/obsidianmd/obsidian-releases/releases"))
         .willReturn(aResponse()
             .withStatus(200)
             .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("ObsidianUrlUpdater")

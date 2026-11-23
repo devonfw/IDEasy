@@ -5,8 +5,8 @@ import com.devonfw.tools.ide.url.updater.GithubUrlReleaseUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link GithubUrlReleaseUpdater} for the OpenAI Codex CLI. The openai/codex repo also releases a Python SDK and voice builds, so we only take releases
- * named as a bare version (the Rust CLI), whose git tag is prefixed with {@code rust-v} (e.g. {@code rust-v0.154.0}).
+ * {@link GithubUrlReleaseUpdater} for the OpenAI Codex CLI. The openai/codex repo also releases a Python SDK and voice builds, so we only take releases named
+ * as a bare version (the Rust CLI), whose git tag is prefixed with {@code rust-v} (e.g. {@code rust-v0.154.0}).
  */
 public class CodexUrlUpdater extends GithubUrlReleaseUpdater {
 
@@ -42,12 +42,6 @@ public class CodexUrlUpdater extends GithubUrlReleaseUpdater {
   @Override
   protected String getGithubRepository() {
     return "codex";
-  }
-
-  @Override
-  protected String doGetVersionUrl() {
-    // openai/codex publishes many releases per day, so request a full page to keep recent stable versions in view.
-    return super.doGetVersionUrl() + "?per_page=100";
   }
 
   @Override

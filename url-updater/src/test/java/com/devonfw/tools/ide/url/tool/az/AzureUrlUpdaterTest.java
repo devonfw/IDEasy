@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -30,7 +31,7 @@ class AzureUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testAzureUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // arrange
-    stubFor(get(urlMatching("/repos/Azure/azure-cli/git/refs/tags")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/Azure/azure-cli/git/refs/tags")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("AzureUrlUpdater").resolve("azure-cli-tags.json"), wmRuntimeInfo))));
     stubFor(any(urlMatching("/msi/azure-cli-.*\\.msi")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
     stubFor(any(urlMatching("/Azure/azure-cli/releases/download/azure-cli-.*/azure-cli-.*-macos-.*\\.tar\\.gz"))

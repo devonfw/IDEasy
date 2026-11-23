@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -32,7 +33,7 @@ class OllamaUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testOllamaUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
     // arrange
-    stubFor(get(urlMatching("/repos/ollama/ollama/releases"))
+    stubFor(get(urlPathMatching("/repos/ollama/ollama/releases"))
         .willReturn(aResponse()
             .withStatus(200)
             .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("OllamaUrlUpdater")

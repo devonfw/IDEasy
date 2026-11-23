@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.nio.file.Path;
 
@@ -26,7 +27,7 @@ class RustUrlUpdaterTest extends AbstractUrlUpdaterTest {
   void testRustGithubUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
-    stubFor(get(urlMatching("/repos/rust-lang/rustup/git/refs/tags")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/rust-lang/rustup/git/refs/tags")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("RustUrlUpdater").resolve("github-tags.json"), wmRuntimeInfo))));
     stubFor(any(urlMatching("/rustup\\.sh")).willReturn(aResponse().withStatus(200).withHeader("content-type", "text/plain").withBody(DOWNLOAD_CONTENT)));
 

@@ -3,8 +3,12 @@ package com.devonfw.tools.ide.url.tool.aws;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -35,7 +39,7 @@ class AwsGithubUrlTagUpdaterTest extends AbstractUrlUpdaterTest {
   void testAwsGithubUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // arrange
-    stubFor(get(urlMatching("/repos/.*")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/.*")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("AwsUrlUpdater").resolve("github-tags.json"), wmRuntimeInfo))));
 
     stubFor(any(urlMatching("/download/.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
@@ -51,6 +55,8 @@ class AwsGithubUrlTagUpdaterTest extends AbstractUrlUpdaterTest {
     for (String version : new String[] { "2.7.22", "2.7.23", "2.7.24" }) {
       assertUrlVersionOsX64(awsEditionDir.resolve(version));
     }
+    verify(getRequestedFor(
+        urlEqualTo("/repos/aws/aws-cli/git/refs/tags?per_page=50&page=1")));
   }
 
 }

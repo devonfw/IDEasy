@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -30,7 +31,7 @@ class TomcatUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testTomcatUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // given
-    stubFor(get(urlMatching("/repos/apache/tomcat/git/refs/tags")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/apache/tomcat/git/refs/tags")).willReturn(aResponse().withStatus(200)
         .withBody(Files.readAllBytes(PATH_INTEGRATION_TEST.resolve("TomcatUrlUpdater").resolve("tomcat-tags.json")))));
     stubFor(head(urlMatching("/dist/tomcat/tomcat-.*/v.*/bin/apache-tomcat-.*\\.tar.gz")).willReturn(aResponse().withStatus(200)));
     stubFor(get(urlMatching("/dist/tomcat/tomcat-.*/v.*/bin/apache-tomcat-.*\\.tar.gz")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));

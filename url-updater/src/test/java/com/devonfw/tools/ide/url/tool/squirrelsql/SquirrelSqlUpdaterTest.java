@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -33,7 +34,7 @@ public class SquirrelSqlUpdaterTest extends AbstractUrlUpdaterTest {
   void testSquirrelSqlUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
-    stubFor(get(urlMatching("/repos/squirrel-sql-client/squirrel-sql-stable-releases/releases"))
+    stubFor(get(urlPathMatching("/repos/squirrel-sql-client/squirrel-sql-stable-releases/releases"))
         .willReturn(aResponse()
             .withStatus(200)
             .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("SquirrelSqlUpdater")

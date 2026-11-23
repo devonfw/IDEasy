@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -29,7 +30,7 @@ class TerraformUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testTerraformUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // arrange
-    stubFor(get(urlMatching("/repos/hashicorp/terraform/git/refs/tags")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/hashicorp/terraform/git/refs/tags")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("TerraformUrlUpdater").resolve("terraform-tags.json"), wmRuntimeInfo))));
     stubFor(
         any(urlMatching("/terraform/.*/terraform_.*_(linux|windows|darwin)_(amd|arm)64\\.zip")).willReturn(

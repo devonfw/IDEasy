@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -29,7 +30,7 @@ class SonarUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testSonarUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // arrange
-    stubFor(get(urlMatching("/repos/SonarSource/sonarqube/git/refs/tags")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/SonarSource/sonarqube/git/refs/tags")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("SonarUrlUpdater").resolve("sonar-tags.json"), wmRuntimeInfo))));
     stubFor(any(urlMatching("/Distribution/sonarqube/sonarqube-.*\\.zip"))
         .willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));

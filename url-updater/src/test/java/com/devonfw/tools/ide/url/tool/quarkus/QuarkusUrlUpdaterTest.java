@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -29,7 +30,7 @@ class QuarkusUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testQuarkusUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // arrange
-    stubFor(get(urlMatching("/repos/quarkusio/quarkus/git/refs/tags")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/quarkusio/quarkus/git/refs/tags")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("QuarkusUrlUpdater").resolve("quarkus-tags.json"), wmRuntimeInfo))));
     stubFor(
         any(urlMatching("/quarkusio/quarkus/releases/download/.*/quarkus-cli-.*\\.(zip|tar\\.gz)")).willReturn(

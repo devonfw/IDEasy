@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -24,7 +25,7 @@ class GoUrlUpdaterTest extends AbstractUrlUpdaterTest {
   void testGoUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // given
-    stubFor(get(urlMatching("/repos/golang/go/git/refs/tags")).willReturn(
+    stubFor(get(urlPathMatching("/repos/golang/go/git/refs/tags")).willReturn(
         aResponse().withStatus(200).withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("GoUrlUpdater").resolve("go-tags.json"), wmRuntimeInfo))));
     stubFor(any(urlMatching("/dl/go[\\d\\.]+\\.(windows|linux|darwin)-(amd64|arm64)\\.(zip|tar\\.gz)")).willReturn(
         aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
