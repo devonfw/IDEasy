@@ -5,7 +5,9 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
+<?import java.net.URL?>
 <fx:root prefHeight="-Infinity" prefWidth="-Infinity" type="BorderPane" xmlns="http://javafx.com/javafx/25.0.0" xmlns:fx="http://javafx.com/fxml/1">
+  <stylesheets><URL value="@../../style/mainWindowView.css"/></stylesheets>
   <center>
     <BorderPane>
       <center>
@@ -40,6 +42,13 @@
                   styleClass="welcomeButton">
                   <graphic>
                     <Region styleClass="welcomeButtonIcon"/>
+                  </graphic>
+                </Button>
+                <Button fx:id="openToolConfigButton"
+                  text="%welcome_open_tool_config"
+                  styleClass="welcomeButton">
+                  <graphic>
+                    <Region styleClass="welcomeToolConfigIcon"/>
                   </graphic>
                 </Button>
               </VBox>
