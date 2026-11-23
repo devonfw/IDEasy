@@ -7,6 +7,8 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/162[#162]: Difficulty to find the right spot in the documentation
+* https://github.com/devonfw/IDEasy/issues/2552[#2552]: Add release support for npm
+* https://github.com/devonfw/IDEasy/issues/2520[#2520]: Add Dart SDK commandlet
 * https://github.com/devonfw/IDEasy/issues/2484[#2484]: Tab completion for ide install python <version> triggers uv installation/update
 * https://github.com/devonfw/IDEasy/issues/2326[#2326]: Migrated project loading from ProjectManager to GuiStateManager
 * https://github.com/devonfw/IDEasy/issues/2551[#2551]: Add release support for Gradle
