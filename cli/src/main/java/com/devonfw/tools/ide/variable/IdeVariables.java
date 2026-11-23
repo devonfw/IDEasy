@@ -120,6 +120,20 @@ public interface IdeVariables {
   VariableDefinitionBoolean IDE_WRITE_LOGFILE = new VariableDefinitionBoolean("IDE_WRITE_LOGFILE", null,
       c -> Boolean.TRUE);
 
+  /**
+   * {@link VariableDefinition} that controls if the GUI desktop shortcut is created when IDEasy gets installed on Windows. Set by the checkbox of the MSI
+   * installer.
+   */
+  VariableDefinitionBoolean IDEASY_CREATE_DESKTOP_SHORTCUT = new VariableDefinitionBoolean("IDEASY_CREATE_DESKTOP_SHORTCUT", null,
+      c -> Boolean.TRUE);
+
+  /**
+   * {@link VariableDefinition} that controls if the GUI Start Menu shortcut is created when IDEasy gets installed on Windows. Set by the checkbox of the MSI
+   * installer.
+   */
+  VariableDefinitionBoolean IDEASY_CREATE_STARTMENU_SHORTCUT = new VariableDefinitionBoolean("IDEASY_CREATE_STARTMENU_SHORTCUT", null,
+      c -> Boolean.TRUE);
+
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getProjectName() DEVON_IDE_CUSTOM_TOOLS}. */
   VariableDefinitionString DEVON_IDE_CUSTOM_TOOLS = new VariableDefinitionString("DEVON_IDE_CUSTOM_TOOLS");
 
@@ -143,6 +157,12 @@ public interface IdeVariables {
   VariableDefinitionPath UV_CACHE_DIR = new VariableDefinitionPath("UV_CACHE_DIR", null,
       c -> c.getIdePath() == null ? null : c.getIdePath().resolve(IdeContext.FOLDER_SOFTWARE).resolve("uv"), true, true);
 
+  /**
+   * {@link VariableDefinition} to relocate the per-project python virtual environment (see {@code Python}) from its default location inside {@code IDE_HOME}
+   * to a specific location chosen by the user (e.g. a python module). While not set (the default) the virtual environment is created inside {@code IDE_HOME}.
+   */
+  VariableDefinitionString PYTHON_VENV_DIR = new VariableDefinitionString("PYTHON_VENV_DIR", null, c -> null);
+
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, USER, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, HTTP_VERSIONS,
       CREATE_START_SCRIPTS,
@@ -150,7 +170,7 @@ public interface IdeVariables {
       GRADLE_USER_HOME,
       YARN_BUILD_OPTS, JASYPT_OPTS,
       MAVEN_ARGS, INTELLIJ_VM_ARGS, ANDROID_STUDIO_VM_ARGS, PYCHARM_VM_ARGS,
-      UV_CACHE_DIR,
+      UV_CACHE_DIR, PYTHON_VENV_DIR,
       PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED, PREFERRED_GIT_PROTOCOL);
 
   /**

@@ -38,7 +38,7 @@ class IdeMigratorTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext("migration");
     // ensure no migration is applied
-    context.setProjectVersion(VersionIdentifier.of("2999.12.999"));
+    context.setProjectVersion(VersionIdentifier.ofRequired("2999.12.999"));
     IdeMigrator migrator = new IdeMigrator();
     // act
     migrator.run(context);

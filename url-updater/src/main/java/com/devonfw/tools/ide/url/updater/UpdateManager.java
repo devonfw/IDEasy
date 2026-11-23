@@ -49,6 +49,7 @@ import com.devonfw.tools.ide.url.tool.kotlinc.KotlincNativeUrlUpdater;
 import com.devonfw.tools.ide.url.tool.kotlinc.KotlincUrlUpdater;
 import com.devonfw.tools.ide.url.tool.kubelinter.KubeLinterUrlUpdater;
 import com.devonfw.tools.ide.url.tool.lazydocker.LazyDockerUrlUpdater;
+import com.devonfw.tools.ide.url.tool.mn.MicronautUrlUpdater;
 import com.devonfw.tools.ide.url.tool.mvn.MvnUrlUpdater;
 import com.devonfw.tools.ide.url.tool.mvnd.MvndUrlUpdater;
 import com.devonfw.tools.ide.url.tool.ng.NgUrlUpdater;
@@ -56,6 +57,7 @@ import com.devonfw.tools.ide.url.tool.node.NodeUrlUpdater;
 import com.devonfw.tools.ide.url.tool.npm.NpmUrlUpdater;
 import com.devonfw.tools.ide.url.tool.obsidian.ObsidianUrlUpdater;
 import com.devonfw.tools.ide.url.tool.oc.OcUrlUpdater;
+import com.devonfw.tools.ide.url.tool.ollama.OllamaUrlUpdater;
 import com.devonfw.tools.ide.url.tool.pgadmin.PgAdminUrlUpdater;
 import com.devonfw.tools.ide.url.tool.pip.PipUrlUpdater;
 import com.devonfw.tools.ide.url.tool.pycharm.PycharmUrlUpdater;
@@ -64,6 +66,7 @@ import com.devonfw.tools.ide.url.tool.ruby.RubyJdxUrlUpdater;
 import com.devonfw.tools.ide.url.tool.ruby.RubyUrlUpdater;
 import com.devonfw.tools.ide.url.tool.rust.RustUrlUpdater;
 import com.devonfw.tools.ide.url.tool.scalacli.ScalaCliUrlUpdater;
+import com.devonfw.tools.ide.url.tool.snyk.SnykUrlUpdater;
 import com.devonfw.tools.ide.url.tool.soapui.SoapUiUrlUpdater;
 import com.devonfw.tools.ide.url.tool.sonar.SonarUrlUpdater;
 import com.devonfw.tools.ide.url.tool.squirrelsql.SquirrelSqlUrlUpdater;
@@ -97,10 +100,12 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new GcViewerUrlUpdater(), new GhUrlUpdater(), new GitUrlUpdater(), new GoUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
       new GradleUrlUpdater(), new HelmUrlUpdater(), new InsoUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(), new JavaAzulUrlUpdater(),
       new JavaUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(), new KubeLinterUrlUpdater(), new KotlincNativeUrlUpdater(),
-      new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new MvndUrlUpdater(), new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(),
-      new ObsidianUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(), new QuarkusUrlUpdater(),
-      new RubyUrlUpdater(), new RubyJdxUrlUpdater(), new RustUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new ScalaCliUrlUpdater(),
-      new SonarUrlUpdater(), new SquirrelSqlUrlUpdater(), new SoapUiUrlUpdater(), new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(),
+      new LazyDockerUrlUpdater(), new MicronautUrlUpdater(),
+      new MvnUrlUpdater(), new MvndUrlUpdater(), new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(),
+      new ObsidianUrlUpdater(), new OcUrlUpdater(), new OllamaUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(),
+      new PycharmUrlUpdater(), new QuarkusUrlUpdater(), new RubyUrlUpdater(), new RubyJdxUrlUpdater(), new RustUrlUpdater(),
+      new SnykUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new ScalaCliUrlUpdater(), new SonarUrlUpdater(),
+      new SquirrelSqlUrlUpdater(), new SoapUiUrlUpdater(), new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(),
       new VsCodeUrlUpdater(), new VsCodiumUrlUpdater()
   );
 
