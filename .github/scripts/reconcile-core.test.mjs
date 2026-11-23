@@ -16,6 +16,7 @@ const CFG = {
   authorOnlyColumns: ['🏗 In progress'],
   finalReviewColumn: '👀 In review',
   finalReviewer: 'hohwille',
+  finalReviewTeam: 'ide-writers',
 };
 
 // pr helper: `reviewer` is the current "Team Reviewer" field value (a login or '').
