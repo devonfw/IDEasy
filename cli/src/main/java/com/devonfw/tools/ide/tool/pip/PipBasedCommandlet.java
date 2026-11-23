@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -108,15 +109,17 @@ public abstract class PipBasedCommandlet extends PackageManagerBasedLocalToolCom
         return null;
       }
     }
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE);
+    this.context.setEnvironmentOfInstalledTools(pc);
     PackageManagerRequest request = new PackageManagerRequest("show", getPackageName()).setProcessMode(ProcessMode.DEFAULT_CAPTURE)
-        .setProcessContext(this.context.newProcess().errorHandling(ProcessErrorHandling.NONE));
-    ProcessResult processResult = runPackageManager(request);
+        .setProcessContext(pc);
+    ProcessResult processResult = runPackageManager(request, true);
     if (processResult.isSuccessful()) {
       for (String line : processResult.getOut()) {
         // we are looking for something like "Version: 25.3"
         if (line.startsWith(PIP_SHOW_VERSION_PREFIX)) {
           String version = line.substring(PIP_SHOW_VERSION_PREFIX.length()).trim();
-          return VersionIdentifier.of(version);
+          return VersionIdentifier.ofRequired(version);
         }
       }
     }

@@ -85,6 +85,8 @@ public class InstallCommandlet extends AbstractCommandlet {
       version = commandlet.getConfiguredVersion();
     }
     ToolInstallRequest request = ToolInstallRequest.ofDirect();
+    // The tracker is attached lazily during installation (see AbstractToolCommandlet#completeRequest) so a shared dependency is not CVE-checked and installed
+    // redundantly - see https://github.com/devonfw/IDEasy/issues/945
     request.setRequested(new ToolEditionAndVersion(version));
     ToolInstallation installation = commandlet.install(request);
     if (versionIdentifier != null) {

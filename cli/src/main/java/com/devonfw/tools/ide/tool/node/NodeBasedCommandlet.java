@@ -65,13 +65,16 @@ public abstract class NodeBasedCommandlet<P extends AbstractToolCommandlet> exte
     return "--help";
   }
 
-  @Override
+  /**
+   * @param directory the {@link Path} to the build directory.
+   * @return the build descriptor file ({@value #PACKAGE_JSON}) or {@code null} if not found.
+   */
   public Path findBuildDescriptor(Path directory) {
 
     Path buildDescriptor = directory.resolve(PACKAGE_JSON);
     if (Files.exists(buildDescriptor)) {
       return buildDescriptor;
     }
-    return super.findBuildDescriptor(directory);
+    return null;
   }
 }

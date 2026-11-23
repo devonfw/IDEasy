@@ -3,6 +3,7 @@ package com.devonfw.ide.gui.core.context;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
@@ -22,15 +24,16 @@ public class GuiStateManagerTest extends AbstractIdeContextTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(GuiStateManagerTest.class);
 
+  private static final String FIRST_PROJECT = "project-0";
+
   private static IdeTestContext context;
 
   private static GuiStateManager guiStateManager;
-  private static ProjectManager projectManager;
 
   @BeforeAll
   static void setup() {
 
-    context = newContext("testProject", "project-0");
+    context = newContext("testProject", FIRST_PROJECT);
     LOG.debug("root: {}", context.getIdeRoot());
   }
 
@@ -38,33 +41,50 @@ public class GuiStateManagerTest extends AbstractIdeContextTest {
   void reset() {
 
     guiStateManager = new GuiStateManager(context.getIdeRoot().toString());
-    projectManager = guiStateManager.getProjectManager();
   }
 
   @Test
   void testThrowsIfIdeRootDoesNotExist() {
 
-    try {
-      new GuiStateManager("nonExistingIdeRoot");
-      fail("IllegalArgumentException expected");
-    } catch (IllegalArgumentException e) {
-      assertThat(e.getMessage()).contains("Root directory does not exist");
-    }
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> new GuiStateManager("nonExistingIdeRoot"))
+        .withMessageContaining("Root directory does not exist");
+  }
+
+  @Test
+  void testGetProjectNames() {
+
+    assertThat(guiStateManager.getProjectNames()).contains(FIRST_PROJECT, "project-1", "project-2");
+  }
+
+  @Test
+  void testGetWorkspaceNames() throws NotDirectoryException {
+
+    assertThat(guiStateManager.getWorkspaceNames(FIRST_PROJECT)).containsExactlyInAnyOrder("main", "foo-test-0");
+  }
+
+  @Test
+  void testGetWorkspaceNamesEmptyIfNoWorkspacesFolder() {
+
+    assertThat(guiStateManager.getWorkspaceNames("nonExistentProject")).isEmpty();
   }
 
   @Test
   void testGetContext() throws FileNotFoundException {
 
-    IdeGuiContext context = guiStateManager.switchContext(projectManager.getProjectNames().getFirst(), "main");
+    IdeGuiContext context = guiStateManager.switchContext(guiStateManager.getProjectNames().getFirst(), "main");
     assertThat(context).as("context was null after switchContext was called").isNotNull(); // When switching to a project, the context should be set.
   }
 
   @Test
   void testSwitchContext() {
 
-    projectManager.getProjectNames().forEach((projectName) -> {
+    guiStateManager.getProjectNames().forEach((projectName) -> {
       try {
         guiStateManager.switchContext(projectName, "main");
+        assertThat(guiStateManager.getCurrentContext().getCwd()).isNotNull();
+        assertThat(guiStateManager.getCurrentContext().getCwd())
+            .isEqualTo(context.getIdeRoot().resolve(projectName).resolve(IdeContext.FOLDER_WORKSPACES).resolve("main"));
       } catch (FileNotFoundException e) {
         throw new RuntimeException(e);
       }
@@ -76,13 +96,9 @@ public class GuiStateManagerTest extends AbstractIdeContextTest {
 
     Path fakeProject = context.getIdeRoot().resolve("nonExistingProject");
 
-    try {
-      guiStateManager.switchContext(fakeProject.getFileName().toString(), "main");
-      fail("FileNotFoundException expected");
-    } catch (FileNotFoundException e) {
-      assertThat(e.getMessage()).contains("Project " + fakeProject + " does not exist!")
-          .as("GuiStateManager.switchContext should throw an exception, if a non-existent project is selected");
-    }
+    assertThatExceptionOfType(FileNotFoundException.class)
+        .isThrownBy(() -> guiStateManager.switchContext(fakeProject.getFileName().toString(), "main"))
+        .withMessageContaining("Project " + fakeProject + " does not exist!");
   }
 
   @Test
@@ -92,12 +108,10 @@ public class GuiStateManagerTest extends AbstractIdeContextTest {
       stream.forEach((projectPath) -> {
         Path fakeWorkspacePath = projectPath.resolve("workspaces").resolve("nonExistingWorkspace");
 
-        try {
-          guiStateManager.switchContext(projectPath.getFileName().toString(), fakeWorkspacePath.getFileName().toString());
-        } catch (FileNotFoundException e) {
-          assertThat(e.getMessage()).contains("Workspace " + fakeWorkspacePath + " does not exist!")
-              .as("GuiStateManager.switchContext should throw an exception, if a non-existent workspace is selected");
-        }
+        assertThatExceptionOfType(FileNotFoundException.class)
+            .as("switchContext should throw if a non-existent workspace is selected")
+            .isThrownBy(() -> guiStateManager.switchContext(projectPath.getFileName().toString(), fakeWorkspacePath.getFileName().toString()))
+            .withMessageContaining("Workspace " + fakeWorkspacePath + " does not exist!");
       });
     }
   }

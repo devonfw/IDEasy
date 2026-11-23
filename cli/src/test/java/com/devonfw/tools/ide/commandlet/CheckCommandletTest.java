@@ -48,7 +48,8 @@ public class CheckCommandletTest extends AbstractIdeContextTest {
     CheckCommandlet check = new CheckCommandlet(context);
 
     assertThrows(CliException.class, check::run);
-    Path gitignore = tempDir.resolve(".gitignore");
+    // findRepositoryRoot resolves symlinks, so /var and /private/var must not be compared as different paths.
+    Path gitignore = context.getFileAccess().toRealPath(tempDir).resolve(".gitignore");
     assertThat(gitignore).doesNotExist();
     assertThat(context).log().hasEntries(IdeLogEntry.ofWarning(gitignore + ": No .gitignore found in repository root."));
   }

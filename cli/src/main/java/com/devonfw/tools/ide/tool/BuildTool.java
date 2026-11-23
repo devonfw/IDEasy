@@ -12,8 +12,25 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public interface BuildTool {
 
   /**
+   * @return the name of this build-tool.
+   */
+  String getName();
+
+  /**
+   * @param args the arguments for the build-tool.
+   * @return the {@link ProcessResult}.
+   */
+  ProcessResult runTool(List<String> args);
+
+  /**
+   * @param directory the {@link Path} to the build directory.
+   * @return the build descriptor file for this build-tool or {@code null} if not found.
+   */
+  Path findBuildDescriptor(Path directory);
+
+  /**
    * @param projectPath the {@link Path} to the top-level directory of the project.
-   * @return the current {@link VersionIdentifier version} of the project.
+   * @return the current {@link VersionIdentifier version} of the project or {@code null} if this build-tool does not support releasing.
    */
   VersionIdentifier getProjectVersion(Path projectPath);
 

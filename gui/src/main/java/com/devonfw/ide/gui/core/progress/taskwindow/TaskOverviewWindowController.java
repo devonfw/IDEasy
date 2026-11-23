@@ -1,13 +1,12 @@
 package com.devonfw.ide.gui.core.progress.taskwindow;
 
-import javafx.beans.Observable;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import java.util.Objects;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 
-import com.devonfw.ide.gui.core.context.TaskManager;
-import com.devonfw.ide.gui.core.progress.ProgressBarTask;
+import com.devonfw.ide.gui.core.progress.TaskListViewModel;
+import com.devonfw.ide.gui.core.progress.TaskViewModel;
 
 /**
  * Controller for the task overview window, which shows all currently running tasks and their progressbar.
@@ -15,34 +14,23 @@ import com.devonfw.ide.gui.core.progress.ProgressBarTask;
 public class TaskOverviewWindowController {
 
   @FXML
-  private ListView<ProgressBarTask> taskList;
-  private final TaskManager taskManager;
+  private ListView<TaskViewModel> taskList;
+
+  private final TaskListViewModel taskListViewModel;
 
   /**
-   * @param taskManager the {@link TaskManager} to link to this TaskOverviewWindow.
+   * @param taskListViewModel the {@link TaskListViewModel} providing the tasks to display.
    */
-  public TaskOverviewWindowController(TaskManager taskManager) {
+  public TaskOverviewWindowController(TaskListViewModel taskListViewModel) {
 
-    this.taskManager = taskManager;
+    this.taskListViewModel = Objects.requireNonNull(taskListViewModel);
   }
 
   @FXML
   private void initialize() {
 
+    // the items are updated in place by the view model and the cells bind to their properties, so no manual refresh is required
     taskList.setCellFactory(new TaskWindowCellFactory());
-
-    /* This part...
-       1. connects the task list to the UI, automatically reacting to additions and removals
-       2. also sets an Observable on progress property, so the UI also gets updated in case it changes
-     */
-    ObservableList<ProgressBarTask> tasks = taskManager.getTasks();
-    FXCollections.observableList(
-        tasks,
-        task -> new Observable[] {
-            task.currentProgressProperty()
-        }
-    );
-
-    taskList.setItems(tasks);
+    taskList.setItems(this.taskListViewModel.getTasks());
   }
 }
