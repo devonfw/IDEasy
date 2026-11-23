@@ -20,6 +20,8 @@ For frequently asked questions, see https://github.com/devonfw/IDEasy/discussion
 
 == Usage
 
+The link:usage.adoc[usage guide] covers daily tasks for developers and project administrators.
+
 * link:usage.adoc#update[Update a project] with `ide update`.
 * link:usage.adoc#upgrade[Upgrade IDEasy] with `ide upgrade`.
 * link:cli.adoc#tool-commandlets[Install a tool or select its version and edition].
@@ -28,7 +30,7 @@ For frequently asked questions, see https://github.com/devonfw/IDEasy/discussion
 
 == Configuration
 
-* For team-wide tool versions and settings, see the link:usage.adoc#admin[ide-admin guide].
+* To share tool versions across a team, see link:settings.adoc[project settings] and the link:usage.adoc#admin[ide-admin guide].
 * For the order in which IDEasy loads `ide.properties` files and applies overrides, see link:configuration.adoc[Configuration].
 * For individual settings such as `IDE_TOOLS`, see the link:variables.adoc[variable reference].
 
@@ -45,6 +47,8 @@ For frequently asked questions, see https://github.com/devonfw/IDEasy/discussion
 
 == Reference
 
+* link:features.adoc[IDEasy features]
 * link:cli.adoc[Command line interface]
 * link:structure.adoc[Project directory structure]
+* link:advanced-tooling.adoc[Advanced tooling]
 * link:contributing/README.adoc[Contributing to IDEasy]
