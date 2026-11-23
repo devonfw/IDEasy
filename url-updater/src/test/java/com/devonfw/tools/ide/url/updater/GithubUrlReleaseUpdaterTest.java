@@ -94,7 +94,7 @@ class GithubUrlReleaseUpdaterTest {
     String getVersionResponse() {
       return doGetVersionResponseBodyAsString(doGetVersionUrl());
     }
-    
+
     @Override
     public String getTool() {
 
@@ -135,4 +135,3 @@ class GithubUrlReleaseUpdaterTest {
     }
   }
 }
-
