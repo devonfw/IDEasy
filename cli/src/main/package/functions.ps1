@@ -354,6 +354,48 @@ function npm {
     & $npmCommand.Source @args
 }
 
+function python {
+    if (-not [string]::IsNullOrEmpty($env:IDE_HOME)) {
+        ide python @args
+        return
+    }
+
+    # "python" is now a PowerShell function, so explicitly search for
+    # the external command to avoid recursively calling this function.
+    $pythonCommand = Get-Command python `
+        -CommandType Application, ExternalScript `
+        -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+
+    if ($null -eq $pythonCommand) {
+        Write-Error "The command 'python' could not be found."
+        return
+    }
+
+    & $pythonCommand.Source @args
+}
+
+function pip {
+    if (-not [string]::IsNullOrEmpty($env:IDE_HOME)) {
+        ide pip @args
+        return
+    }
+
+    # "pip" is now a PowerShell function, so explicitly search for
+    # the external command to avoid recursively calling this function.
+    $pipCommand = Get-Command pip `
+        -CommandType Application, ExternalScript `
+        -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+
+    if ($null -eq $pipCommand) {
+        Write-Error "The command 'pip' could not be found."
+        return
+    }
+
+    & $pipCommand.Source @args
+}
+
 function _ide_completion {
     $registerCommand = Get-Command Register-ArgumentCompleter -ErrorAction SilentlyContinue
 
