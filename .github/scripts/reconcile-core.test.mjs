@@ -192,6 +192,64 @@ test('computeDiff: null target removes everyone (defensive)', () => {
   assert.deepEqual(d.toAdd, []);
 });
 
+// Final review team request tests.
+test('computeReviewRequest: nothing requested -> request the team', () => {
+  const result = computeReviewRequest(
+      pr({author: 'author', assignees: ['finalReviewer', 'author']}),
+      CFG);
+  assert.deepEqual(result, {team: 'ide-writers', request: true});
+});
+
+test('computeReviewRequest: the team is already a requested reviewer -> do not request the team', () => {
+  const result = computeReviewRequest(
+      pr({
+        author: 'author',
+        assignees: ['finalReviewer', 'author'],
+        requestedReviewers: {'ide-writers': null}
+      }),
+      CFG);
+  assert.deepEqual(result, {team: 'ide-writers', request: false});
+});
+
+test('computeReviewRequest: a requested individual who is NOT the team reviewer -> do not request the team', () => {
+  const result = computeReviewRequest(
+      pr({
+        author: 'author',
+        assignees: ['finalReviewer', 'teamReviewer', 'author'],
+        reviewer: 'teamReviewer',
+        requestedReviewers: {otherReviewer: null}
+      }),
+      CFG);
+  assert.deepEqual(result, {team: 'ide-writers', request: false});
+});
+
+test('computeReviewRequest: ONLY the team reviewer (field value) requested -> request the team', () => {
+  const result = computeReviewRequest(
+      pr({
+        author: 'author',
+        assignees: ['finalReviewer', 'teamReviewer', 'author'],
+        reviewer: 'teamReviewer',
+        requestedReviewers: {teamReviewer: null}
+      }),
+      CFG);
+  assert.deepEqual(result, {team: 'ide-writers', request: true});
+});
+
+test('computeReviewRequest: team reviewer plus another requested -> do not request the team', () => {
+  const result = computeReviewRequest(
+      pr({
+        author: 'author',
+        assignees: ['finalReviewer', 'teamReviewer', 'author'],
+        reviewer: 'teamReviewer',
+        requestedReviewers: {
+          teamReviewer: null,
+          otherReviewer: null
+        }
+      }),
+      CFG);
+  assert.deepEqual(result, {team: 'ide-writers', request: false});
+});
+
 test('parseBoardNumber: accepts a positive integer', () => {
   assert.equal(parseBoardNumber('5'), 5);
   assert.equal(parseBoardNumber(' 12 '), 12);

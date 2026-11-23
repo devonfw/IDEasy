@@ -14,13 +14,16 @@
 //     even if they were unassigned in between.
 //   - In each configured "author-only" column a PR has exactly one assignee:
 //     the author (the Team Reviewer field is kept as a record, not cleared).
+//   - In the review column ("👀 In review") the configured ide-writers team is
+//     requested unless it or an independent team member is already requested.
 //   - Every other column is left untouched.
 //   - A PR carrying the explicit TAKEOVER label (default "takeover") is left
 //     completely alone: this is how the team marks a PR handed over after its
 //     author left the team, so the bot does not re-assign the departed author.
 //
-// It changes PR assignees (Issues/PRs REST API) and writes the Team Reviewer
-// field (GraphQL updateProjectV2ItemFieldValue). It never moves cards between
+// It changes PR assignees (Issues/PRs REST API), requests the ide-writers team
+// as a reviewer (Issues/PRs REST API), and writes the Team Reviewer field
+// (GraphQL updateProjectV2ItemFieldValue). It never moves cards between
 // columns; humans keep doing that on the board. If the Team Reviewer field
 // does not exist yet, it degrades to inference-only behaviour and says so.
 //
@@ -64,7 +67,7 @@
 //
 // Exit codes: 0 ok (incl. dry run), 1 config/runtime error, 2 API error.
 
-import { COLUMNS, computeTarget, computeDiff, parseBoardNumber, resolveBoard } from './reconcile-core.mjs';
+import {COLUMNS, computeDiff, computeReviewRequest, computeTarget, parseBoardNumber, resolveBoard,} from './reconcile-core.mjs';
 
 const API = 'https://api.github.com';
 
@@ -386,6 +389,70 @@ mutation ($input: UpdateProjectV2ItemFieldValueInput!) {
   console.log(`[reconcile]   wrote Team Reviewer field = ${login} (item ${item?.id})`);
 }
 
+// Review requests in the final review column.
+
+/** @typedef {{ [loginOrTeam: string]: string }} ReviewRequestMap */
+
+/**
+ * Read the current requested reviewers of a PR.
+ *
+ * @returns {Promise<ReviewRequestMap | null>}
+ */
+async function readRequestedReviewers(repo, number) {
+  const response = await fetch(`${API}/repos/${repo}/pulls/${number}/requested_reviewers`, {
+    method: 'GET',
+    headers: headers(),
+  });
+  if (!res.ok) {
+    console.warn(`[reconcile]   ! could not read requested reviewers of ${repo}#${number} (HTTP ${response.status}); skipping the team review decision`,);
+    return null;
+  }
+
+  const json = await response.json();
+  const requested = {};
+
+  for (const user of json.users ?? []) {
+    if (user?.login) {
+      requested[user.login] = user.login;
+    }
+  }
+
+  for (const team of json.requested_team_reviewers ?? []) {
+    if (team?.slug) {
+      requested[team.slug] = team.slug;
+    }
+  }
+
+  for (const slug of json.team_slugs ?? []) {
+    requested[slug] = slug;
+  }
+
+  // Excluded reviewers still count as requested.
+  if (json.requested_reviewers && typeof json.requested_reviewers === 'object') {
+    for (const key of Object.keys(json.requested_reviewers)) {
+      requested[key] = key;
+    }
+  }
+
+  return requested;
+}
+
+/**
+ * Request a team as reviewer of a PR.
+ *
+ * @returns {Promise<boolean>} true if successful
+ */
+async function requestTeamReviewer(repo, number, team) {
+  const response = await rest('POST', `/repos/${repo}/pulls/${number}/requested_reviewers`, {
+    team_reviewers: [team],
+  });
+  if (!response.ok) {
+    console.warn(`[reconcile]   ! could not request team "${team}" on ${repo}#${number} (HTTP ${response.status})`);
+    return false;
+  }
+  return true;
+}
+
 async function main() {
   const login = process.env.GH_ACCOUNT || 'devonfw';
   const title = process.env.BOARD_TITLE || 'IDEasy board';
@@ -410,14 +477,17 @@ async function main() {
   // does the final reviews) next to the author.
   const finalReviewColumn = process.env.FINAL_REVIEW_COLUMN || '👀 In review';
   const finalReviewer = process.env.FINAL_REVIEWER || 'hohwille';
+  // Team requested as a reviewer when a PR reaches the final review column.
+  const finalReviewTeam = process.env.FINAL_REVIEW_TEAM || 'ide-writers';
   const dryRun = (process.env.DRY_RUN ?? 'true').toLowerCase() !== 'false';
 
   const cfg = { teamReviewColumn, authorOnlyColumns, finalReviewColumn, finalReviewer };
 
   console.log(`[reconcile] account=${login} board=#${boardNumber} "${title}" dryRun=${dryRun}`);
   console.log(
-    `[reconcile] teamReview="${teamReviewColumn}" authorOnly=[${authorOnlyColumns.join(', ')}] ` +
-      `finalReview="${finalReviewColumn}" -> ${finalReviewer} reviewerField="${reviewerFieldName}" takeoverLabel="${takeoverLabel}"`,
+      `[reconcile] teamReview="${teamReviewColumn}" authorOnly=[${authorOnlyColumns.join(', ')}] ` +
+      `finalReview="${finalReviewColumn}" -> ${finalReviewer} (+team "${finalReviewTeam}") ` +
+      `reviewerField="${reviewerFieldName}" takeoverLabel="${takeoverLabel}"`,
   );
 
   const board = await findBoard(login, boardNumber, title);
@@ -440,6 +510,7 @@ async function main() {
   let skipped = 0;
   let takeovers = 0;
   let fieldWrites = 0;
+  let teamRequests = 0;
 
   for (const pr of prCards) {
     const target = computeTarget(pr, cfg);
@@ -457,7 +528,22 @@ async function main() {
     }
     const diff = computeDiff(pr.assignees, target.targets);
     const willFillField = target.setField !== null && reviewerField !== null;
-    if (!diff.changed && !willFillField) {
+
+    // Request the ide-writers team for PRs in the final review column.
+    let requestedReviewers = null;
+    let teamRequest = null;
+    if (target.kind === COLUMNS.FINAL_REVIEW) {
+      requestedReviewers = await readRequestedReviewers(pr.repo, pr.number);
+      if (requestedReviewers !== null) {
+        teamRequest = computeReviewRequest(
+            {...pr, requestedReviewers},
+            cfg,
+        );
+      }
+    }
+    const willRequestTeam = teamRequest?.request === true;
+
+    if (!diff.changed && !willFillField && !willRequestTeam) {
       continue;
     }
 
@@ -467,15 +553,20 @@ async function main() {
     console.log(
       `[reconcile] #${pr.number} [${pr.statusName}] ${pr.assignees.join(', ') || '(none)'}${who} ` +
         `(author=${pr.author}, ${diff.toRemove.length} removed, ${diff.toAdd.length} added)` +
-        (willFillField ? ` [field: "${reviewerFieldName}" = ${target.setField}]` : ''),
+        (willFillField ? ` [field: "${reviewerFieldName}" = ${target.setField}]` : '') +
+        (willRequestTeam ? ` [team review: "${teamRequest.team}"]` : ''),
     );
     if (target.anomaly) {
       console.warn(`[reconcile]   ! ${pr.number}: ${target.anomaly}`);
     }
-    // Count the field writes the same way as the assignee changes: in dry-run
-    // this is how many the run WOULD have written, in apply how many it does.
+    // Count the field writes and the team requests the same way as the assignee
+    // changes: in dry-run this is how many the run WOULD have done, in apply
+    // how many it does.
     if (willFillField) {
       fieldWrites++;
+    }
+    if (willRequestTeam) {
+      teamRequests++;
     }
     if (!dryRun) {
       // Apply the assignee change first and only then record the reviewer in
@@ -488,12 +579,17 @@ async function main() {
       if (willFillField) {
         await setReviewerField(board.id, pr.itemId, reviewerField.id, target.setField);
       }
+      if (willRequestTeam) {
+        await requestTeamReviewer(pr.repo, pr.number, teamRequest.team);
+      }
     }
   }
 
   console.log(
-    `[reconcile] done. cards=${prCards.length} changed=${changes} skipped=${skipped} takeovers=${takeovers}` +
-      ` fieldWrites=${dryRun ? `(dry-run) ${fieldWrites}` : fieldWrites} mode=${dryRun ? 'dry-run' : 'apply'}`,
+      `[reconcile] done. cards=${prCards.length} changed=${changes} skipped=${skipped} takeovers=${takeovers}` +
+      ` fieldWrites=${dryRun ? `(dry-run) ${fieldWrites}` : fieldWrites}` +
+      ` teamRequests=${dryRun ? `(dry-run) ${teamRequests}` : teamRequests}` +
+      ` mode=${dryRun ? 'dry-run' : 'apply'}`,
   );
 }
 

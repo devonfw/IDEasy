@@ -171,6 +171,28 @@ export function computeDiff(currentAssignees, targets) {
   return { toAdd, toRemove, changed: toAdd.length > 0 || toRemove.length > 0 };
 }
 
+/**
+ * Determines whether the final review team should be requested.
+ *
+ * @param {{ reviewer?: string, requestedReviewers?: { [loginOrTeam: string]: string | null } }} pr
+ * @param {{ finalReviewTeam: string }} cfg
+ * @returns {{ team: string, request: boolean }}
+ */
+export function computeReviewRequest(pr, cfg) {
+  const team = cfg.finalReviewTeam;
+  const requested = pr.requestedReviewers ?? {};
+
+  if (Object.hasOwn(requested, team)) {
+    return {team, request: false};
+  }
+
+  // The designated team reviewer does not count as an independent reviewer.
+  const teamReviewer = (pr.reviewer ?? '').trim();
+  const covered = Object.keys(requested).some((login) => login !== teamReviewer);
+
+  return {team, request: !covered};
+}
+
 /** Number of the IDEasy board (github.com/orgs/devonfw/projects/5). */
 const DEFAULT_BOARD_NUMBER = 5;
 
