@@ -49,12 +49,9 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     super(context, tool, tags);
     this.workspaceConfigurer = new IdeWorkspaceConfigurer(context, tool);
     this.pluginManager = new PluginManager(context, this);
-  }
-
-  @Override
-  protected void initProperties() {
+    // The flag is registered in the constructor (not in #initProperties) as commandlets may also be instantiated without going through the
+    // CommandletManager (e.g. in tests), which is the only caller of #initialize()
     add(new FlagProperty("--force-plugin-reinstall"));
-    super.initProperties();
   }
 
   @Override
