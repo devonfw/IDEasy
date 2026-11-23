@@ -20,6 +20,8 @@
 //   - Columns that are neither (e.g. New / Research / Refinement / Done) are
 //     left untouched so the bot never fights the team's other conventions.
 //
+// Request the final review team unless an independent team member is already
+// requested. The designated team reviewer does not count.
 // This file has no I/O so the rules can be unit tested in isolation.
 
 export const COLUMNS = Object.freeze({
