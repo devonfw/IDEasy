@@ -1,0 +1,100 @@
+:toc:
+toc::[]
+
+= IDE Usage
+
+IDEasy supports using and configuring integrated development environments (IDEs).
+This page provides practical information about launching and using IDEs with IDEasy.
+
+== Workspace and external projects
+
+IDEasy can start your IDE either on its managed link:workspaces.adoc[workspace] or on a different, external project folder.
+By default, when you launch an IDE (e.g. `ide intellij` or `ide vscode`), IDEasy opens the folder of your current link:workspaces.adoc[workspace], which is by default `workspaces/main`.
+
+This is the managed workspace.
+It is configured by the link:configurator.adoc[configurator], which merges the workspace settings and syncs the additional SDKs for the IDE.
+
+== Opening an external project
+
+Use the `--project` option to open a different folder instead:
+
+[source,bash]
+----
+ide «ide» --project           # open the current folder
+ide «ide» --project=<path>    # open the given folder
+----
+
+A bare `--project` opens the current working directory (e.g. the repo you are standing in).
+`--project=<path>` opens the given folder: an absolute path is used as-is, a path starting with `~/` is resolved against your home directory, a relative one is resolved against the current working directory, and it is safe for paths with spaces.
+
+If the resolved path does not exist or is not a folder, the launch aborts with an error.
+
+This is meant to open a project that uses the same toolchain with your managed IDE without it being part of your workspace.
+
+For example, you can open another Java repository with your IntelliJ setup:
+
+[source,bash]
+----
+[~/repos/test-project]$ ide intellij --project
+----
+
+An important consequence of `--project` is that the given folder is treated as _external_:
+IDEasy will not run its link:configurator.adoc[configurator]
+(the workspace merge and the sync of extra SDKs) into it.
+
+This also holds when you point `--project=<path>` at your own workspace, e.g. `--project=workspaces/main/IDEasy` from inside the checkout:
+the launch opens that folder but skips the merge.
+
+If you want the merge to happen, launch the IDE without the `--project` option.
+
+=== Eclipse
+
+The `--project` option is not supported for Eclipse.
+Eclipse uses a different workspace concept and allows mounting arbitrary directories into a workspace.
+
+Therefore, Eclipse always opens the managed workspace.
+The `--project` option is ignored for Eclipse.
+
+=== Visual Studio Code
+
+VS Code keeps using the user-data directory or profile associated with the current IDEasy workspace (`--user-data-dir` or `--profile`).
+The profile is not derived from the folder opened via `--project`, so opening a different project reuses the existing IDEasy-managed VS Code configuration.
+
+== IDE start scripts
+
+IDEasy can create start scripts for IDEs using the `CREATE_START_SCRIPTS` variable.
+The variable defines the IDEs for which start scripts are created during setup, e.g. `eclipse vscode`.
+
+For details about this variable, see link:variables.adoc[variables].
+
+== IDE configuration
+
+Besides the workspace template merge of the link:configurator.adoc[configurator], IDEasy provides additional mechanisms to configure and start your IDEs.
+
+=== VM options
+
+For the JetBrains IDEs (IntelliJ, Android Studio, PyCharm) you can tune the JVM the IDE is started with via the `«IDE»_VM_ARGS` variable (e.g. `INTELLIJ_VM_ARGS` or `PYCHARM_VM_ARGS`).
+The value is a space-separated list of JVM arguments (e.g. `-Xmx4096m`).
+
+On startup IDEasy merges these with the default JVM options shipped with the IDE and writes the result to a `.vmoptions` file in the IDE-specific metadata folder of your workspace (under `$IDE_HOME/.ide/«ide»/«workspace»`).
+This keeps the effective VM options managed per IDE and per workspace without cluttering the link:workspaces.adoc[workspace] itself.
+
+NOTE: These variables are listed together with all other variables in link:variables.adoc[variables].
+Use the IDE-specific variable (e.g. `INTELLIJ_VM_ARGS`) to configure a single IDE, or the generic `«IDE»_OPTIONS` for plain launch arguments.
+
+=== Properties
+
+For some IDEs (IntelliJ, Android Studio, PyCharm) IDEasy exports an IDE-specific properties environment variable — `IDEA_PROPERTIES`, `STUDIO_PROPERTIES`, or `PYCHARM_PROPERTIES` — that points at the properties file of the folder the IDE is opening (e.g. the opened folder's `idea.properties`).
+This is the same folder the IDE is launched with, whether that is your managed link:workspaces.adoc[workspace] or an external folder opened via the `--project` option described above.
+So when you open an external project, the IDE reads that project's own properties file instead of your workspace's.
+
+NOTE: The properties filename follows the IDE, e.g. `idea.properties`, `studio.properties`, or `pycharm.properties`.
+The `«IDE»_OPTIONS` and `«IDE»_VM_ARGS` variables, in contrast, apply globally when launching the IDE and are not tied to a specific opened folder.
+
+=== Additional SDKs
+
+When your project uses several SDKs of the same tool (e.g. different Java versions), IDEasy can install the additional ones as link:software.adoc[extra tool installations] into `$IDE_HOME/software/extra/«tool»/«name»` (configured in `settings/ide-extra-tools.json`).
+For each IDE that supports this, the link:configurator.adoc[configurator] then syncs those extra SDKs into the current workspace on startup, so the IDE offers them for use (e.g. IntelliJ registers them in the JDK table).
+
+This sync is part of the workspace configuration and therefore only happens for your managed link:workspaces.adoc[workspace].
+If you open an external folder via the `--project` option, the extra SDK configuration is not synced for the external project (see the "external = no merge" behavior described above).
