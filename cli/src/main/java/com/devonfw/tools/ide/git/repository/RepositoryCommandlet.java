@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
+import com.devonfw.tools.ide.commandlet.check.CheckCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitUrl;
@@ -194,9 +195,13 @@ public class RepositoryCommandlet extends AbstractCommandlet {
       if (createRepository) {
         if (firstRepository == null) {
           GitUrl gitUrl = config.asGitUrl();
+          boolean newRepository = !Files.isDirectory(repositoryPath.resolve(GitContext.GIT_FOLDER));
           boolean success = cloneOrPullRepository(repositoryPath, gitUrl, repositoryCreatedStatusFile);
           if (success) {
             firstRepository = repositoryPath;
+            if (newRepository) {
+              getCommandlet(CheckCommandlet.class).checkRepository(repositoryPath, false);
+            }
             buildRepository(config, repositoryPath);
             importRepository(config, repositoryPath, config.id());
           }

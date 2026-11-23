@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -71,6 +72,27 @@ class RepositoryCommandletTest extends AbstractIdeContextTest {
     rc.run();
     // assert
     assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve(TEST_REPO)).isDirectory();
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
+  }
+
+  @Test
+  void testNewlyClonedRepositoryIsCheckedWithoutFailingSetup(@TempDir Path repositorySource) {
+
+    // arrange
+    IdeTestContext context = newContext(IdeContext.FOLDER_REPOSITORY);
+    context.setGitContext(new GitContextImplMock(context, repositorySource));
+    Properties properties = createDefaultProperties();
+    properties.setProperty("active", "true");
+    RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    saveProperties(context, properties);
+
+    // act
+    rc.run();
+
+    // assert
+    Path repositoryPath = context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve(TEST_REPO);
+    assertThat(repositoryPath.resolve(".gitignore")).doesNotExist();
+    assertThat(context).logAtWarning().hasMessageContaining("No .gitignore found in repository root.");
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
   }
 
