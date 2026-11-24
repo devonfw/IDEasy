@@ -1,8 +1,5 @@
 package com.devonfw.ide.gui.core.progress.taskwindow;
 
-import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.StringExpression;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -13,20 +10,16 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.devonfw.ide.gui.core.progress.ProgressBarTask;
+import com.devonfw.ide.gui.core.progress.TaskViewModel;
 
 /**
- * Cell factory for displaying a list of tasks in the {@link TaskOverviewWindow}
+ * Cell factory for displaying a list of tasks in the {@link TaskOverviewWindow}. A cell binds to the properties of its {@link TaskViewModel}, so it follows
+ * the progress of its task.
  */
-public class TaskWindowCellFactory implements Callback<ListView<ProgressBarTask>, ListCell<ProgressBarTask>> {
-
-  private static final Logger LOG = LoggerFactory.getLogger(TaskWindowCellFactory.class);
+public class TaskWindowCellFactory implements Callback<ListView<TaskViewModel>, ListCell<TaskViewModel>> {
 
   @Override
-  public ListCell<ProgressBarTask> call(ListView<ProgressBarTask> param) {
+  public ListCell<TaskViewModel> call(ListView<TaskViewModel> param) {
     return new ListCell<>() {
 
       final ProgressBar progressBar = new ProgressBar();
@@ -38,44 +31,24 @@ public class TaskWindowCellFactory implements Callback<ListView<ProgressBarTask>
       {
         HBox.setHgrow(contentBox, Priority.ALWAYS);
         root.setAlignment(Pos.CENTER_LEFT);
+        //set the size of the progress bar to fill the window completely
+        progressBar.setMaxWidth(Double.MAX_VALUE);
       }
 
       @Override
-      public void updateItem(ProgressBarTask progressTask, boolean empty) {
-        super.updateItem(progressTask, empty);
+      public void updateItem(TaskViewModel task, boolean empty) {
+        super.updateItem(task, empty);
 
-        Platform.runLater(() -> {
-          if (empty || progressTask == null) {
-            setText(null);
-            setGraphic(null);
-          } else {
-            LOG.debug("updating task {} '{}'", progressTask.getTaskId(), progressTask.getTitle());
-
-            StringExpression formattedLabelText = Bindings.format(
-                ProgressBarTask.TASK_DESCRIPTION_STRING_FORMAT,
-                progressTask.titleProperty(),
-                progressTask.currentProgressProperty(),
-                progressTask.getMaxSize(),
-                progressTask.getUnitName()
-            );
-
-            titleLabel.textProperty().bind(
-                Bindings.when(progressTask.indeterminateProperty())
-                    .then(progressTask.titleProperty())
-                    .otherwise(formattedLabelText)
-            );
-            progressBar.progressProperty().bind(
-                Bindings.when(progressTask.indeterminateProperty())
-                    .then(-1)
-                    .otherwise(progressTask.currentProgressProperty().divide((double) progressTask.getMaxSize()))
-            );
-
-            //set the size of the progress bar to fill the window completely
-            progressBar.setMaxWidth(Double.MAX_VALUE);
-
-            setGraphic(root);
-          }
-        });
+        titleLabel.textProperty().unbind();
+        progressBar.progressProperty().unbind();
+        if (empty || task == null) {
+          setText(null);
+          setGraphic(null);
+        } else {
+          titleLabel.textProperty().bind(task.descriptionProperty());
+          progressBar.progressProperty().bind(task.progressProperty());
+          setGraphic(root);
+        }
       }
     };
   }
