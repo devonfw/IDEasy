@@ -33,7 +33,7 @@ public class KubeCtl extends DelegatingToolCommandlet {
   @Override
   protected String getBinaryName() {
 
-    String binary = getCommandlet(Docker.class).resolveDockerCommand(this.tool);
+    String binary = getCommandlet(Docker.class).resolveCommand(this.tool);
     return (binary == null) ? this.tool : binary;
   }
 

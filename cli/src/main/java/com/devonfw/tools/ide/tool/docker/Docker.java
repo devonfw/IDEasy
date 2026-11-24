@@ -72,7 +72,7 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   private String detectContainerRuntime() {
-    String docker = resolveDockerCommand(this.tool);
+    String docker = resolveCommand(this.tool);
     if (docker != null) {
       return docker;
     } else if (isCommandAvailable(PODMAN)) {
@@ -90,7 +90,7 @@ public class Docker extends GlobalToolCommandlet {
    * @param command the name of a CLI shipped with the docker installation (e.g. docker, rdctl, kubectl).
    * @return the {@code command} unchanged if available on PATH, otherwise its absolute path inside {@code ~/.rd/bin} or {@code null} if not found.
    */
-  public String resolveDockerCommand(String command) {
+  public String resolveCommand(String command) {
     if (isCommandAvailable(command)) {
       return command;
     }
@@ -113,7 +113,7 @@ public class Docker extends GlobalToolCommandlet {
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
-    String docker = resolveDockerCommand(this.tool);
+    String docker = resolveCommand(this.tool);
     if ((docker != null) && !docker.equals(this.tool)) {
       environmentContext.withPathEntry(getRancherDesktopBinDir());
     }
@@ -133,7 +133,7 @@ public class Docker extends GlobalToolCommandlet {
    */
   public void verifyRancherDesktopLaunched(String command) {
 
-    if (!isDockerDesktopEditionConfigured() && this.context.getSystemInfo().isLinux() && (resolveDockerCommand(command) == null)
+    if (!isDockerDesktopEditionConfigured() && this.context.getSystemInfo().isLinux() && (resolveCommand(command) == null)
         && (getNativePackageVersion() != null)) {
       throw new CliException("Rancher Desktop has been installed but not launched yet. Please start Rancher Desktop once so that it sets up its "
           + "command-line tools (docker, kubectl, ...) in " + getRancherDesktopBinDir() + ", then re-run your command.", ProcessResult.TOOL_NOT_INSTALLED);
