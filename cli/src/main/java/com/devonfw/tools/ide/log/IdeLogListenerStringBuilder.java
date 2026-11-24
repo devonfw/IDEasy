@@ -11,6 +11,8 @@ public class IdeLogListenerStringBuilder implements IdeLogListener {
 
   private final StringBuilder builder;
 
+  private final IdeLogLevel threshold;
+
   /**
    * The constructor.
    */
@@ -18,6 +20,7 @@ public class IdeLogListenerStringBuilder implements IdeLogListener {
 
     super();
     this.builder = new StringBuilder();
+    this.threshold = IdeLogLevel.TRACE;
   }
 
   /**
@@ -29,11 +32,42 @@ public class IdeLogListenerStringBuilder implements IdeLogListener {
 
     super();
     this.builder = builder;
+    this.threshold = IdeLogLevel.TRACE;
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param threshold the minimum {@link IdeLogLevel} to capture (log events of a lower level are ignored). Use {@link IdeLogLevel#TRACE} to capture all
+   *     log events.
+   */
+  public IdeLogListenerStringBuilder(IdeLogLevel threshold) {
+
+    super();
+    this.builder = new StringBuilder();
+    this.threshold = (threshold == null) ? IdeLogLevel.TRACE : threshold;
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param builder the {@link StringBuilder} to append the captured log messages to.
+   * @param threshold the minimum {@link IdeLogLevel} to capture (log events of a lower level are ignored). Use {@link IdeLogLevel#TRACE} to capture all
+   *     log events.
+   */
+  public IdeLogListenerStringBuilder(StringBuilder builder, IdeLogLevel threshold) {
+
+    super();
+    this.builder = builder;
+    this.threshold = (threshold == null) ? IdeLogLevel.TRACE : threshold;
   }
 
   @Override
   public boolean onLog(IdeLogEntry entry) {
 
+    if (entry.level().ordinal() < this.threshold.ordinal()) {
+      return false;
+    }
     this.builder.append(entry.message()).append('\n');
     return false;
   }

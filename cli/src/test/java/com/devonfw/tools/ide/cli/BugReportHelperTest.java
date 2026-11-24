@@ -9,6 +9,7 @@ import com.devonfw.tools.ide.commandlet.TestCommandletManager;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.git.GitContextMock;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.util.PrivacyUtil;
 import com.devonfw.tools.ide.version.IdeVersion;
@@ -201,6 +202,42 @@ class BugReportHelperTest extends AbstractIdeContextTest {
     // assert
     assertThat(snippet).contains("You are online.\n");
     assertThat(snippet).contains("Your settings are not up-to-date, please run 'ide update'.\n");
+  }
+
+  /**
+   * Test that {@link BugReportHelper#createStatusSnippet} captures the status output at the console log-level only. The snippet must mirror what the user
+   * sees with {@code ide status}: log statements of a level not enabled for the console (e.g. DEBUG) must not be part of it, while the enabled ones stay.
+   */
+  @Test
+  void testCreateStatusSnippetOnlyCapturesConsoleLogLevels() {
+
+    // arrange (context with console log-level DEBUG: the branch detail is logged at DEBUG and thus enabled, everything at INFO stays enabled as well)
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false, null, IdeLogLevel.DEBUG);
+    context.getNetworkStatus().simulateOnline();
+    // act
+    String snippet = BugReportHelper.createStatusSnippet(context);
+
+    // assert (the debug log statement about the settings branch is captured, not just the console-only default of INFO)
+    assertThat(snippet).contains("Your settings branch is main\n");
+    assertThat(snippet).contains("You are online.\n");
+  }
+
+  /**
+   * Test that {@link BugReportHelper#createStatusSnippet} does not leak log statements that are below the console log-level (e.g. DEBUG when the console
+   * only shows INFO), the way {@code ide status} would show them.
+   */
+  @Test
+  void testCreateStatusSnippetDoesNotCaptureLogLevelsDisabledForConsole() {
+
+    // arrange (context with console log-level INFO: the branch detail is logged at DEBUG and must therefore not end up in the snippet)
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false, null, IdeLogLevel.INFO);
+    context.getNetworkStatus().simulateOnline();
+    // act
+    String snippet = BugReportHelper.createStatusSnippet(context);
+
+    // assert (debug log statements of the status commandlet are filtered out, enabled ones stay)
+    assertThat(snippet).doesNotContain("Your settings branch is");
+    assertThat(snippet).contains("You are online.\n");
   }
 
   /**

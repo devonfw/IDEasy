@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.commandlet.StatusCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeLogListenerStringBuilder;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.util.PrivacyUtil;
 
@@ -114,11 +115,39 @@ public final class BugReportHelper {
    * @param context the {@link IdeContext}.
    * @return a short status snippet for the bug report (version, OS, IDE paths, online and settings status). The snippet is the output of
    *     {@link StatusCommandlet} (the single source of truth for the {@code ide status} report), captured without leaking it into the console or the log
-   *     file, and masked with {@link PrivacyUtil} so that the generated report is safe to share publicly.
+   *     file. Only the log-levels enabled for the console are captured (debug and trace details are not part of the status report), and the snippet is
+   *     masked with {@link PrivacyUtil} so that the generated report is safe to share publicly.
    */
   public static String createStatusSnippet(IdeContext context) {
 
-    return sanitize(context.runWithLoggerRedirected(() -> context.getCommandletManager().getCommandlet(StatusCommandlet.class).run()));
+    IdeLogListenerStringBuilder listener = new IdeLogListenerStringBuilder(context.getLogLevelConsole());
+    context.runWithLoggerRedirected(() -> context.getCommandletManager().getCommandlet(StatusCommandlet.class).run(), listener);
+    return sanitize(listener.toString());
+  }
+
+  /**
+   * Sanitizes a value that is going to be published in the bug report (e.g. the issue title, the full stacktrace, or the status snippet) by masking any path
+   * it contains, unconditionally (a public issue must not leak paths even when the privacy mode is off). The masking is applied line by line so that a path
+   * at the end of a line cannot run into the content of the next line.
+   *
+   * @param value the value to sanitize; may be {@code null}.
+   * @return the sanitized value, or {@code null} if {@code value} is {@code null}.
+   */
+  private static String sanitize(String value) {
+
+    if (value == null) {
+      return null;
+    }
+    StringBuilder result = new StringBuilder(value.length());
+    boolean firstLine = true;
+    for (String line : value.split("\n", -1)) {
+      if (!firstLine) {
+        result.append('\n');
+      }
+      firstLine = false;
+      result.append(mask(line));
+    }
+    return result.toString();
   }
 
   /**
@@ -129,21 +158,6 @@ public final class BugReportHelper {
   private static String mask(String path) {
 
     return PrivacyUtil.removeSensitivePathInformation(path);
-  }
-
-  /**
-   * Sanitizes a value that is going to be published in the bug report (e.g. the issue title or the full stacktrace) by masking any path it contains,
-   * unconditionally (a public issue must not leak paths even when the privacy mode is off).
-   *
-   * @param value the value to sanitize; may be {@code null}.
-   * @return the sanitized value, or {@code null} if {@code value} is {@code null}.
-   */
-  private static String sanitize(String value) {
-
-    if (value == null) {
-      return null;
-    }
-    return mask(value);
   }
 
   /**
