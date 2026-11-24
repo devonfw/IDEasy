@@ -15,6 +15,7 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionSegment;
@@ -68,7 +69,13 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   protected void postInstall(ToolInstallRequest request) {
 
     super.postInstall(request);
-    Path pluginsPath = getPluginsInstallationPath();
+    ToolEditionAndVersion requested = request.getRequested();
+    VersionIdentifier version = (requested == null) ? null : requested.getResolvedVersion();
+    if ((version == null) || request.isExtraInstallation()) {
+      // the plugins belong to the main installation and an extra installation (software/extra) does not change it
+      version = getInstalledVersion();
+    }
+    Path pluginsPath = getPluginsInstallationPath(version);
     if (isPluginPurgeRequired(request)) {
       this.pluginManager.resetPlugins(request);
     } else if (!Files.isDirectory(pluginsPath)) {
@@ -103,16 +110,24 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   }
 
   /**
-   * @return the {@link Path} where the plugins of the installed version are located. Plugins are installed per version up to the
-   *     {@link #getIncompatibleVersionSegmentIndex() incompatible segment} (e.g. {@code plugins/intellij/2026.1} for IntelliJ 2026.1.4). This way, an update to
-   *     a compatible version keeps the plugins, while an update to an incompatible version installs the plugins into a new folder so that the folder of the
-   *     previous version does not have to be deleted while it may still be in use by a running IDE.
+   * @return the {@link #getPluginsInstallationPath(VersionIdentifier) plugins installation path} of the {@link #getInstalledVersion() installed version}.
    */
   @Override
   public Path getPluginsInstallationPath() {
 
+    return getPluginsInstallationPath(getInstalledVersion());
+  }
+
+  /**
+   * @param version the {@link VersionIdentifier version} of this tool or {@code null} if unknown.
+   * @return the {@link Path} where the plugins of the given version are located. Plugins are installed per version up to the
+   *     {@link #getIncompatibleVersionSegmentIndex() incompatible segment} (e.g. {@code plugins/intellij/2026.1} for IntelliJ 2026.1.4). This way, an update to
+   *     a compatible version keeps the plugins, while an update to an incompatible version installs the plugins into a new folder so that the folder of the
+   *     previous version does not have to be deleted while it may still be in use by a running IDE.
+   */
+  protected Path getPluginsInstallationPath(VersionIdentifier version) {
+
     Path toolPluginsPath = this.context.getPluginsPath().resolve(this.tool);
-    VersionIdentifier version = getInstalledVersion();
     if (version == null) {
       return toolPluginsPath;
     }

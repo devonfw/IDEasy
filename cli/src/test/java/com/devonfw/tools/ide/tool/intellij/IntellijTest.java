@@ -25,6 +25,7 @@ import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
@@ -133,6 +134,31 @@ class IntellijTest extends AbstractIdeContextTest {
     assertThat(commandlet.getPluginsInstallationPath()).isEqualTo(intellijPluginsPath.resolve("2023.3"));
     assertThat(intellijPluginsPath.resolve("2023.3")).exists();
     assertThat(obsoleteVersionPath).doesNotExist();
+  }
+
+  /**
+   * Tests that the plugins are installed into the folder of the version from the install request, even if the installed version was read and cached during
+   * the installation before the software link pointed to the new version (see #1548).
+   */
+  @Test
+  void testIntellijInstallUsesVersionFromRequestForPlugins() {
+
+    // arrange
+    Intellij commandlet = new Intellij(this.context) {
+      @Override
+      public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
+
+        // runs after the installation but before the software link is updated, so the cache now holds the outdated installed version
+        getInstalledVersion();
+        super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
+      }
+    };
+
+    // act
+    commandlet.install();
+
+    // assert
+    assertThat(this.context.getPluginsPath().resolve("intellij").resolve("2023.3")).isDirectory();
   }
 
   /**
