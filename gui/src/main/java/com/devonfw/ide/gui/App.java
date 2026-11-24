@@ -55,7 +55,34 @@ public class App extends Application {
   public void start(Stage primaryStage) {
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
       LOG.error("Uncaught exception in thread {}: {}", thread.getName(), throwable.getMessage(), throwable);
-      Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.toString()).showAndWait());
+      Platform.runLater(() -> new IdeDialog(IdeDialog.AlertType.ERROR, throwable.getMessage()).showAndWait());
+    });
+
+    this.primaryStage = primaryStage;
+
+    final MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager);
+    final MainWindowView mainWindow = new MainWindowView(mainWindowViewModel, guiStateManager);
+
+    //this.nlsService.addLocaleChangeListener(this::reloadMainView);
+
+    configureMainWindow(new Scene(mainWindow, MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT));
+
+    primaryStage.setOnCloseRequest(event -> {
+
+      LOG.info("Closing application");
+      if (!guiStateManager.getTaskManager().isTaskListEmpty()) {
+        IdeDialog closeConfirm = new IdeDialog(IdeDialog.AlertType.CONFIRMATION, "There are still running tasks. Are you sure you want to exit?",
+            ButtonType.CLOSE, ButtonType.CANCEL);
+        closeConfirm.showAndWait().ifPresent(response -> {
+          if (response == ButtonType.CLOSE) {
+            exitApplication();
+          } else {
+            event.consume();
+          }
+        });
+      } else {
+        exitApplication();
+      }
     });
     // JavaFX rethrows exceptions from start() only after the toolkit has shut down, so startup failures are reported here while a dialog can still be shown.
     try {
