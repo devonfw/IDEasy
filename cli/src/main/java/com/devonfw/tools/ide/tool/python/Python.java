@@ -20,6 +20,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.process.VariableScope;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolEdition;
@@ -192,7 +193,7 @@ public class Python extends AbstractLocalToolCommandlet {
       // running in global mode (no project) - there is no per-project virtual environment to point to
       return;
     }
-    environmentContext.withEnvVar("VIRTUAL_ENV", venvPath.toString());
+    environmentContext.withEnvVar("VIRTUAL_ENV", venvPath.toString(), VariableScope.LOCAL);
     environmentContext.withEnvVar("UV_PROJECT_ENVIRONMENT", venvPath.toString());
     environmentContext.withPathEntry(venvPath.resolve("bin"));
   }
