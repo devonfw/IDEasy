@@ -25,7 +25,7 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
   public static final VersionIdentifier LATEST = new VersionIdentifier(VersionSegment.of("*"));
 
   /** {@link VersionIdentifier} "*!" that will resolve to the latest snapshot. */
-  public static final VersionIdentifier LATEST_UNSTABLE = VersionIdentifier.of("*!");
+  public static final VersionIdentifier LATEST_UNSTABLE = VersionIdentifier.ofRequired("*!");
 
   /** The zero-based index of the major version segment (e.g. {@code 1} in {@code 1.90.0}). */
   public static final int MAJOR_SEGMENT = 0;
@@ -381,25 +381,66 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
   }
 
   /**
+   * Use this where a valid version is a hard requirement
+   *
    * @param version the {@link #toString() string representation} of the {@link VersionIdentifier} to parse.
-   * @return the parsed {@link VersionIdentifier}.
+   * @return the parsed {@link VersionIdentifier}, never {@code null}.
+   * @throws VersionParseException if the given value is {@code null} or cannot be parsed.
    */
   @JsonCreator
-  public static VersionIdentifier of(String version) {
+  public static VersionIdentifier ofRequired(String version) {
+
+    return of(version, true);
+  }
+
+  /**
+   * Use this for input where a bad entry should be skipped with a warning instead of aborting the run.
+   *
+   * @param version the {@link #toString() string representation} of the {@link VersionIdentifier} to parse, or {@code null}.
+   * @return the parsed {@link VersionIdentifier}, or {@code null} if the given value is {@code null} or cannot be parsed (a warning is logged in that case).
+   */
+  public static VersionIdentifier ofOptional(String version) {
+
+    return of(version, false);
+  }
+
+  private static VersionIdentifier of(String version, boolean required) {
 
     if (version == null) {
+      if (required) {
+        throw new VersionParseException("The version identifier must not be null.");
+      }
       return null;
     }
+
     version = version.trim();
+
     if (version.equals("latest") || version.equals("*")) {
       return VersionIdentifier.LATEST;
     }
-    assert !version.contains(" ") && !version.contains("\n") && !version.contains("\t") : version;
+
+    if (version.contains(" ") || version.contains("\n") || version.contains("\t")) {
+      return handleInvalidVersion(version, required);
+    }
+
     VersionSegment startSegment = VersionSegment.of(version);
     if (startSegment == null) {
-      return null;
+      return handleInvalidVersion(version, required);
     }
+
     return new VersionIdentifier(startSegment);
+  }
+
+  private static VersionIdentifier handleInvalidVersion(String version, boolean required) {
+
+    String message = "The value \"" + version + "\" does not seem to be a valid version identifier.";
+
+    if (required) {
+      throw new VersionParseException(message);
+    }
+
+    LOG.warn(message);
+    return null;
   }
 
   /**
