@@ -4,7 +4,6 @@ import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -81,14 +80,15 @@ public class GuiStateManager {
    * Creates the state manager for the given root directory using the supplied {@link NlsService} context.
    *
    * @param ideRoot the root directory of IDEasy. If <code>null</code>, the IDE_ROOT environment variable is used.
-   * @param nlsContext the {@link IdeContext} handed to the {@link NlsService}, or {@code null} to derive one from the GUI start context (production default).
-   *        Injecting an isolated context (for example an {@link com.devonfw.tools.ide.context.IdeTestContext}) keeps the GUI test independent from the real
-   *        user home and the {@code IDE_OPTIONS} environment variable.
+   * @param nlsContext the {@link IdeContext} handed to the {@link NlsService}, or {@code null} to derive one from the GUI start context (production
+   *     default). Injecting an isolated context (for example an {@link com.devonfw.tools.ide.context.IdeTestContext}) keeps the GUI test independent from the
+   *     real user home and the {@code IDE_OPTIONS} environment variable.
    */
   public GuiStateManager(String ideRoot, IdeContext nlsContext) {
 
     this.ideRootDir = Path.of(ideRoot != null ? ideRoot : System.getenv(IdeVariables.IDE_ROOT.getName()));
 
+    //test change
     //This specific ordering needs to be kept
     final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
     IdeLogLevel logLevel = IdeLogLevel.DEBUG;
