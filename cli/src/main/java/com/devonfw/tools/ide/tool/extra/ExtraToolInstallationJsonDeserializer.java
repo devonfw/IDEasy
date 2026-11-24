@@ -52,7 +52,7 @@ public class ExtraToolInstallationJsonDeserializer extends JsonObjectDeserialize
 
       Objects.requireNonNull(name);
       Objects.requireNonNull(this.version);
-      return new ExtraToolInstallation(name, VersionIdentifier.of(this.version), this.edition);
+      return new ExtraToolInstallation(name, VersionIdentifier.ofRequired(this.version), this.edition);
     }
   }
 }

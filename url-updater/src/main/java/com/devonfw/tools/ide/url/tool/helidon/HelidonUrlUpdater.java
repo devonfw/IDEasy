@@ -13,7 +13,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class HelidonUrlUpdater extends MavenBasedUrlUpdater {
 
   /** The minimum supported version: only the current (4.x) line is tracked. */
-  public static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("4.0.0");
+  public static final VersionIdentifier MIN_VERSION = VersionIdentifier.ofRequired("4.0.0");
 
   /**
    * The constructor.
@@ -56,7 +56,7 @@ public class HelidonUrlUpdater extends MavenBasedUrlUpdater {
   @Override
   public boolean isValidVersion(String version) {
 
-    VersionIdentifier artifactVersion = VersionIdentifier.of(version);
+    VersionIdentifier artifactVersion = VersionIdentifier.ofOptional(version);
     if (artifactVersion != null) {
       return artifactVersion.isGreaterOrEqual(MIN_VERSION);
     }

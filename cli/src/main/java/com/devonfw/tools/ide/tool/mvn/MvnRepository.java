@@ -392,7 +392,7 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
     int length = versionsChildren.getLength();
     List<VersionIdentifier> versionList = new ArrayList<>(length);
     for (int i = length - 1; i >= 0; i--) {
-      versionList.add(VersionIdentifier.of(versionsChildren.item(i).getTextContent()));
+      versionList.add(VersionIdentifier.ofRequired(versionsChildren.item(i).getTextContent()));
     }
     return versionList;
   }
@@ -408,7 +408,7 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
     String timestamp = getFirstChildElement(snapshot, "timestamp", source).getTextContent();
     String buildNumber = getFirstChildElement(snapshot, "buildNumber", source).getTextContent();
     String version = baseVersion.replace("-SNAPSHOT", "-" + timestamp + "-" + buildNumber);
-    return VersionIdentifier.of(version);
+    return VersionIdentifier.ofRequired(version);
   }
 
   @Override
