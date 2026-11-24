@@ -1,6 +1,7 @@
 package com.devonfw.ide.gui.core.factory;
 
 import java.util.Objects;
+
 import javafx.scene.control.TabPane;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
