@@ -15,8 +15,10 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitContextMock;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -67,6 +69,145 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     assertThat(javaClient).exists();
     assertThat(javaProcessEngine).exists();
     assertThat(mvnM4).exists();
+  }
+
+  /**
+   * The project has <code>IDE_TOOLS=java, mvn</code> and <code>mvn</code> depends on <code>java</code>, so <code>java</code> is both a top-level tool and a
+   * dependency (of both the regular and the extra <code>mvn</code>). Before <a href="https://github.com/devonfw/IDEasy/issues/945">#945</a> the CVE check for
+   * <code>java</code> ran once per reference, i.e. several times. Now it must run only once per unique tool/version per process.
+   */
+  /**
+   * An extra installation of a tool that has already been installed (and is thus tracked) during the same process must NOT be skipped: it is linked at its
+   * own extra tool path even though the tracked version is already present in the software repository.
+   */
+  @Test
+  void testRunPullSettingsDoesNotSkipExtraInstallationOfTrackedTool() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_UPDATE);
+    // the project version of java is 17.0.6 (JAVA_VERSION in ide.properties); the extra installation uses the very same version and edition
+    String extraTools = """
+        {
+          "java": {
+            "pinned": {
+              "version": "17.0.6"
+            }
+          }
+        }
+        """;
+    context.getFileAccess().writeFileContent(extraTools, context.getSettingsPath().resolve("ide-extra-tools.json"));
+    UpdateCommandlet uc = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
+
+    // act
+    uc.run();
+
+    // assert
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install extra version(s) of java'.");
+    assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
+    assertThat(context.getSoftwareExtraPath().resolve("java/pinned")).exists();
+  }
+
+  /**
+   * <code>java</code> 17.0.6 has a CVE and the only safe version available for the <code>java</code> edition is 21.0.9_10, so the CVE check bumps
+   * <code>java</code> to 21.0.9_10 when it is installed. Because <code>java</code> is both a top-level tool and a dependency of <code>mvn</code>, the CVE check
+   * must be offered only once per process: the skipped (dependency) install must be matched on the originally requested (pre-CVE) version, not on the version
+   * the CVE check resolved to. See <a href="https://github.com/devonfw/IDEasy/issues/945">#945</a>.
+   */
+  @Test
+  void testRunPullSettingsDoesNotReAskCveChoiceForSharedDependencyWhenVersionIsBumped() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_UPDATE);
+    // give the shared 'java' tool a CVE for 17.0.6; the only safe version available for the 'java' edition is 21.0.9_10, so the CVE check suggests 'latest'
+    String securityJson = """
+        {
+          "issues": [
+            {
+              "id": "CVE-TEST",
+              "severity": 9.0,
+              "versions": [
+                "[17.0.6]"
+              ]
+            }
+          ]
+        }
+        """;
+    context.getFileAccess().writeFileContent(securityJson, context.getUrlsPath().resolve("java").resolve("security.json"));
+    // answer 'latest' to the single CVE question for 'java' (current + nearest + latest are all 21.0.9_10)
+    context.setAnswers("latest");
+    UpdateCommandlet uc = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
+
+    // act
+    uc.run();
+
+    // assert
+    long cveQuestionCount = context.getTestStartContext().getEntries().stream()
+        .filter(e -> e.message().contains("Which version do you want to install?"))
+        .count();
+    assertThat(cveQuestionCount)
+        .as("the CVE choice must be asked exactly once per process, not once per reference to 'java'").isEqualTo(1);
+    assertThat(context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT).resolve("java").resolve("java").resolve("21.0.9_10"))
+        .as("the CVE check must have bumped 'java' to the safe version 21.0.9_10").exists();
+  }
+
+  /**
+   * When two tools both depend on <code>java</code> in a range that excludes the project's java version, <code>java</code> is installed as an additional
+   * (out-of-range) version and the CVE check runs for each dependent. That path bypasses
+   * {@link com.devonfw.tools.ide.tool.AbstractToolCommandlet#install(ToolInstallRequest)} (it goes straight to <code>installTool</code>), so the CVE check must
+   * still be deduplicated per process. See <a href="https://github.com/devonfw/IDEasy/issues/945">#945</a>.
+   */
+  @Test
+  void testRunPullSettingsDoesNotRunCveCheckTwiceForSharedOutOfRangeDependency() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_UPDATE);
+    // project java is 17.0.6; make 'mvn' and 'node' both depend on java in [18,) so 17.0.6 is out of range and java resolves to 21.0.9_10 for both.
+    // The extra installations are removed so that only the two out-of-range 'java' dependencies are exercised.
+    context.getFileAccess().writeFileContent("JAVA_VERSION=17.0.6\nMVN_VERSION=3.2.1\nIDE_TOOLS=mvn, node\n",
+        context.getSettingsPath().resolve("ide.properties"));
+    context.getFileAccess().writeFileContent("{}", context.getSettingsPath().resolve("ide-extra-tools.json"));
+    String javaDep = """
+        {
+          "[3.0,4.0)": [
+            { "tool": "java", "versionRange": "[18,)" }
+          ],
+          "[4.0,)": [
+            { "tool": "java", "versionRange": "[18,)" }
+          ]
+        }
+        """;
+    context.getFileAccess().writeFileContent(javaDep, context.getUrlsPath().resolve("mvn").resolve("mvn").resolve("dependencies.json"));
+    context.getFileAccess().writeFileContent(javaDep, context.getUrlsPath().resolve("node").resolve("node").resolve("dependencies.json"));
+    UpdateCommandlet uc = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
+
+    // act
+    uc.run();
+
+    // assert
+    long cveCheckCount = context.getTestStartContext().getEntries().stream()
+        .filter(e -> e.level() == IdeLogLevel.SUCCESS)
+        .filter(e -> e.message().contains("No CVEs found for version 21.0.9_10 of tool java"))
+        .count();
+    assertThat(cveCheckCount).as("the CVE check of the shared out-of-range 'java' must run once per process, not once per dependent").isEqualTo(1);
+  }
+
+  @Test
+  void testRunPullSettingsDoesNotRunCveCheckTwiceForSharedDependency() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_UPDATE);
+    UpdateCommandlet uc = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
+
+    // act
+    uc.run();
+
+    // assert
+    assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
+    long cveCheckCount = context.getTestStartContext().getEntries().stream()
+        .filter(e -> e.level() == IdeLogLevel.SUCCESS)
+        .filter(e -> e.message().contains("No CVEs found for version 17.0.6 of tool java"))
+        .count();
+    assertThat(cveCheckCount).as("CVE check for shared dependency 'java' must run exactly once per process").isEqualTo(1);
   }
 
   @ParameterizedTest

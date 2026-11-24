@@ -190,15 +190,15 @@ class UrlSecurityFileTest extends AbstractUrlModelTest {
     UrlSecurityFile empty = newEdition().getSecurityFile();
 
     // assert
-    assertThat(bounded.contains(VersionIdentifier.of("2.0"))).isTrue(); // inclusive lower bound
-    assertThat(bounded.contains(VersionIdentifier.of("2.5"))).isTrue(); // within range
-    assertThat(bounded.contains(VersionIdentifier.of("3.0"))).isFalse(); // exclusive upper bound
-    assertThat(bounded.contains(VersionIdentifier.of("1.0"))).isFalse(); // below range
-    assertThat(openStart.contains(VersionIdentifier.of("3.0"))).isTrue(); // inclusive upper bound
-    assertThat(openStart.contains(VersionIdentifier.of("4.0"))).isFalse(); // above range
-    assertThat(openEnd.contains(VersionIdentifier.of("1.0"))).isTrue(); // inclusive lower bound
-    assertThat(openEnd.contains(VersionIdentifier.of("99.0"))).isTrue(); // above (unbounded) range
-    assertThat(empty.contains(VersionIdentifier.of("2.5"))).isFalse(); // no security loaded
+    assertThat(bounded.contains(VersionIdentifier.ofRequired("2.0"))).isTrue(); // inclusive lower bound
+    assertThat(bounded.contains(VersionIdentifier.ofRequired("2.5"))).isTrue(); // within range
+    assertThat(bounded.contains(VersionIdentifier.ofRequired("3.0"))).isFalse(); // exclusive upper bound
+    assertThat(bounded.contains(VersionIdentifier.ofRequired("1.0"))).isFalse(); // below range
+    assertThat(openStart.contains(VersionIdentifier.ofRequired("3.0"))).isTrue(); // inclusive upper bound
+    assertThat(openStart.contains(VersionIdentifier.ofRequired("4.0"))).isFalse(); // above range
+    assertThat(openEnd.contains(VersionIdentifier.ofRequired("1.0"))).isTrue(); // inclusive lower bound
+    assertThat(openEnd.contains(VersionIdentifier.ofRequired("99.0"))).isTrue(); // above (unbounded) range
+    assertThat(empty.contains(VersionIdentifier.ofRequired("2.5"))).isFalse(); // no security loaded
   }
 
   /**
@@ -214,7 +214,7 @@ class UrlSecurityFileTest extends AbstractUrlModelTest {
     UrlEdition edition = context.getUrls().getEdition("intellij", "intellij");
     UrlSecurityFile file = edition.getParent().getSecurityFile();
     file.clearSecurityWarnings();
-    VersionIdentifier version = VersionIdentifier.of("2023.3.3");
+    VersionIdentifier version = VersionIdentifier.ofRequired("2023.3.3");
 
     // act: CVE spanning the oldest (2022.3) to the newest (2025.1.1.1) available version is ignored
     file.addCve(new Cve("CVE-ALL", 5.0, List.of(VersionRange.of("[2022.3,2025.1.1.1]"))));
