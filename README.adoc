@@ -77,17 +77,9 @@ See also our latest video https://vimeo.com/808368450/88d4af9d18[devon ide updat
 
 == Documentation
 
-* link:documentation/features.adoc[Features]
-* link:documentation/setup.adoc[Download & Setup]
-* link:documentation/usage.adoc[Usage]
-* link:documentation/configuration.adoc[Configuration]
-* link:documentation/structure.adoc[Structure]
-* link:documentation/cli.adoc[Command Line Interface]
-* link:documentation/variables.adoc[Variables]
-* link:documentation/settings.adoc[Settings]
-* link:documentation/advanced-tooling.adoc[Advanced-tooling]
-* link:documentation/[Documentation]
-* link:https://github.com/devonfw/IDEasy/discussions[FAQs]
+* link:documentation/setup.adoc[Install IDEasy]
+* link:documentation/project.adoc[Create a project]
+* link:documentation/README.adoc[Full documentation guide]
 
 == Contribution Guidelines
 
