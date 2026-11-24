@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class PycharmUrlUpdater extends IdeaBasedUrlUpdater {
 
   private static final String JSON_URL = "products?code=PCP%2CPCC&release.type=release";
-  private static final VersionIdentifier LAST_SEPARATE_VERSION = VersionIdentifier.of("2025.2");
+  private static final VersionIdentifier LAST_SEPARATE_VERSION = VersionIdentifier.ofRequired("2025.2");
   private static final List<String> EDITIONS = List.of("professional", "pycharm");
   protected static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
 
@@ -88,7 +88,7 @@ public class PycharmUrlUpdater extends IdeaBasedUrlUpdater {
    */
   private boolean isUnifiedRelease(IntellijJsonRelease release) {
 
-    return VersionIdentifier.of(release.version()).isGreater(LAST_SEPARATE_VERSION);
+    return VersionIdentifier.ofRequired(release.version()).isGreater(LAST_SEPARATE_VERSION);
   }
 
   @Override
