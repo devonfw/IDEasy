@@ -16,7 +16,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class PnpmUrlUpdater extends GithubUrlTagUpdater {
 
   /** The minimum version with the current (post v11) release asset naming; older releases used a different asset naming scheme. */
-  public static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("11.0.0");
+  public static final VersionIdentifier MIN_VERSION = VersionIdentifier.ofRequired("11.0.0");
 
   /**
    * The constructor.
@@ -64,7 +64,7 @@ public class PnpmUrlUpdater extends GithubUrlTagUpdater {
   @Override
   protected boolean isAcceptVersion(String version) {
 
-    VersionIdentifier vid = VersionIdentifier.of(version);
+    VersionIdentifier vid = VersionIdentifier.ofOptional(version);
     return (vid != null) && vid.isGreaterOrEqual(MIN_VERSION) && super.isAcceptVersion(version);
   }
 

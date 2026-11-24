@@ -824,23 +824,31 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
           modified = true;
         } else {
           if (!Objects.equals(code, errorStatus.getCode())) {
-            logger.warn("For tool {} and version {} the error status-code changed from {} to {} for URL {}.", tool, version, code, errorStatus.getCode(), url);
+            logger.warn("For tool {} and version {} the error status-code changed from {} to {} for URL {}.", tool, version, errorStatus.getCode(), code, url);
             modified = true;
           } else if (isErrorCodeForAutomaticUrlRemoval(code)) {
             boolean urlBroken;
-            Instant ts = successTimestamp;
-            if (ts == null) {
+            Instant ts;
+            boolean newErrorPhase;
+            if (errorTimestamp == null) {
+              newErrorPhase = true;
+            } else if (successTimestamp == null) {
+              newErrorPhase = false;
+            } else {
+              newErrorPhase = !DateTimeUtil.isAfter(errorTimestamp, successTimestamp);
+            }
+            if (newErrorPhase) {
+              // The previous error belongs to an earlier phase, so start measuring from this check.
+              modified = true;
+              ts = Instant.now();
+            } else {
               ts = errorTimestamp;
             }
-            if (ts == null) {
-              urlBroken = true; // this code should never be reached, but if it does something is very wrong
-            } else {
-              Duration errorDuration = Duration.between(ts, Instant.now());
-              // if more than this number of days the download URL is broken, we delete it
-              urlBroken = isGreaterThan(errorDuration, DAYS_UNTIL_DELETION_OF_BROKEN_URL);
-              if (!urlBroken) {
-                logger.info("Leaving broken URL since error could be temporary - error duration {} for URL {}", errorDuration, url);
-              }
+            Duration errorDuration = Duration.between(ts, Instant.now());
+            // if more than this number of days the download URL is broken, we delete it
+            urlBroken = isGreaterThan(errorDuration, DAYS_UNTIL_DELETION_OF_BROKEN_URL);
+            if (!urlBroken) {
+              logger.info("Leaving broken URL since error could be temporary - error duration {} for URL {}", errorDuration, url);
             }
             if (urlBroken) {
               removeUrl(url, downloadFile, tool, version, code, urlStatusFile, status);
