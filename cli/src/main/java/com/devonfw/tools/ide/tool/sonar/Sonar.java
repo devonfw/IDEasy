@@ -37,7 +37,7 @@ public class Sonar extends AbstractLocalToolCommandlet {
 
     super(context, "sonar", Set.of(Tag.CODE_QA));
 
-    this.command = add(new EnumProperty<>("", true, "command", SonarCommand.class));
+    this.command = add(new EnumProperty<>("", true, SonarCommand.class, "command"));
     add(this.arguments);
   }
 

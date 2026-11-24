@@ -24,6 +24,7 @@ import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.BuildTool;
+import com.devonfw.tools.ide.tool.agy.Agy;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
 import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
@@ -34,8 +35,10 @@ import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.docker.Docker;
 import com.devonfw.tools.ide.tool.dotnet.DotNet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
+import com.devonfw.tools.ide.tool.flutter.Flutter;
 import com.devonfw.tools.ide.tool.gcloganalyzer.GcLogAnalyzer;
 import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
+import com.devonfw.tools.ide.tool.gemini.Gemini;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.go.Go;
 import com.devonfw.tools.ide.tool.graalvm.GraalVm;
@@ -51,7 +54,9 @@ import com.devonfw.tools.ide.tool.just.Just;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.kubectl.KubeCtl;
+import com.devonfw.tools.ide.tool.kubelinter.KubeLinter;
 import com.devonfw.tools.ide.tool.lazydocker.LazyDocker;
+import com.devonfw.tools.ide.tool.mn.Micronaut;
 import com.devonfw.tools.ide.tool.msvc.Msvc;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.mvnd.Mvnd;
@@ -61,6 +66,7 @@ import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.obsidian.Obsidian;
 import com.devonfw.tools.ide.tool.oc.Oc;
+import com.devonfw.tools.ide.tool.ollama.Ollama;
 import com.devonfw.tools.ide.tool.pgadmin.PgAdmin;
 import com.devonfw.tools.ide.tool.pip.Pip;
 import com.devonfw.tools.ide.tool.pycharm.Pycharm;
@@ -69,6 +75,7 @@ import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.ruby.Ruby;
 import com.devonfw.tools.ide.tool.ruff.Ruff;
 import com.devonfw.tools.ide.tool.rust.Rust;
+import com.devonfw.tools.ide.tool.snyk.Snyk;
 import com.devonfw.tools.ide.tool.soapui.SoapUi;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.spring.Spring;
@@ -144,6 +151,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Ng(context));
     add(new Node(context));
     add(new Mvn(context));
+    add(new Micronaut(context));
     add(new Msvc(context));
     add(new RewriteCommandlet(context));
     add(new GcLogAnalyzer(context));
@@ -158,6 +166,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Kotlinc(context));
     add(new KotlincNative(context));
     add(new KubeCtl(context));
+    add(new KubeLinter(context));
     add(new Tomcat(context));
     add(new Task(context));
     add(new Vscode(context));
@@ -185,10 +194,12 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Pip(context));
     add(new Go(context));
     add(new Gui(context));
+    add(new Snyk(context));
     add(new SquirrelSql(context));
     add(new Spyder(context));
     add(new Nest(context));
     add(new Cdk(context));
+    add(new Agy(context));
     add(new Claude(context));
     add(new Mvnd(context));
     add(new Just(context));
@@ -196,6 +207,9 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Ruff(context));
     add(new CheckCommandlet(context));
     add(new Obsidian(context));
+    add(new Flutter(context));
+    add(new Gemini(context));
+    add(new Ollama(context));
   }
 
   /**
@@ -203,6 +217,7 @@ public class CommandletManagerImpl implements CommandletManager {
    */
   protected void add(AbstractCommandlet commandlet) {
 
+    commandlet.initialize();
     boolean hasRequiredProperty = false;
     List<Property<?>> properties = commandlet.getProperties();
     int propertyCount = properties.size();

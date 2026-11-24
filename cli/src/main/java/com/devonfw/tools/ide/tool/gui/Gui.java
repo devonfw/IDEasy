@@ -49,6 +49,14 @@ public class Gui extends AbstractCommandlet {
     return false;
   }
 
+  /**
+   * Explicit installation of Java 25 is intentional.
+   * <p>
+   * Ide-gui is compiled against Java 25 and JavaFX 25, and it is started via {@code exec-maven-plugin} with the {@code java} found on the PATH of the Maven
+   * process. The dependency {@code mvn -> java} declared in {@code mvn/mvn/dependencies.json} only requires {@code Java [17,)}, so it cannot guarantee the
+   * version the GUI needs.
+   * </p>
+   */
   @Override
   protected void doRun() {
 
@@ -63,19 +71,18 @@ public class Gui extends AbstractCommandlet {
 
     ToolInstallRequest javaToolInstallRequest = new ToolInstallRequest(mavenToolInstallRequest);
     javaToolInstallRequest.setRequested(
-        new ToolEditionAndVersion(VersionIdentifier.of("25.*"))
+        new ToolEditionAndVersion(VersionIdentifier.ofRequired("25.*"))
     );
 
     ToolInstallation mvnToolInstallation = mvn.installTool(mavenToolInstallRequest);
     ToolInstallation javaInstallation = java.installTool(javaToolInstallRequest);
 
     /*
-     * Register the freshly installed mvn on the IDEasy-managed PATH so the IDEasy-controlled maven (from the software
-     * repository) launches the GUI instead of any maven on the system PATH. installTool only installs into the software
-     * repository, so we register the bin directory here (install() would normally do this).
+     * Add the software-repository Maven bin directory only to this process, so this Maven launches the GUI instead of
+     * any Maven on the system PATH. installTool only installs into the software repository and does not register the
+     * tool. context.getPath().setPath(...) would change Maven for every later lookup in this IDEasy process.
      */
-    context.getPath().setPath(mvn.getName(), mvnToolInstallation.binDir());
-
+    processContext = processContext.withPathEntry(mvnToolInstallation.binDir());
     LOG.debug("Starting GUI via commandlet");
 
     Path installationPath = context.getIdeInstallationPath();
@@ -156,12 +163,11 @@ public class Gui extends AbstractCommandlet {
       """;
 
   /**
-   * The GUI is launched as a plain {@code java} process without a native app bundle. On macOS this makes the Dock and menu bar show the executable's
-   * filename "java" instead of "IDEasy" (see issue #2206). Merely renaming/symlinking the bare executable is not reliable: without a real bundle,
-   * LaunchServices may still fall back to the underlying JDK's own identity. Instead, we wrap the launch in a minimal {@code .app} bundle: a proper
-   * {@code Info.plist} declaring our own {@code CFBundleName}/{@code CFBundleIdentifier}, with {@code Contents/MacOS/IDEasy} as a symlink pointing
-   * directly at the real java executable (not a wrapper script - an intermediate {@code exec} would replace the process image and lose the bundle
-   * identity again).
+   * The GUI is launched as a plain {@code java} process without a native app bundle. On macOS this makes the Dock and menu bar show the executable's filename
+   * "java" instead of "IDEasy" (see issue #2206). Merely renaming/symlinking the bare executable is not reliable: without a real bundle, LaunchServices may
+   * still fall back to the underlying JDK's own identity. Instead, we wrap the launch in a minimal {@code .app} bundle: a proper {@code Info.plist} declaring
+   * our own {@code CFBundleName}/{@code CFBundleIdentifier}, with {@code Contents/MacOS/IDEasy} as a symlink pointing directly at the real java executable (not
+   * a wrapper script - an intermediate {@code exec} would replace the process image and lose the bundle identity again).
    *
    * @param javaInstallation the {@link ToolInstallation} of the java tool used to launch the GUI.
    * @return the executable to pass to Maven's {@code exec:exec} goal in order to launch the GUI.

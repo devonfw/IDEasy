@@ -17,6 +17,16 @@ public final class CliAbortException extends CliException {
     super("Aborted by end-user.", ProcessResult.ABORT);
   }
 
+  /**
+   * The constructor.
+   *
+   * @param message the {@link #getMessage() message} explaining why the process is aborted.
+   */
+  public CliAbortException(String message) {
+
+    super(message, ProcessResult.ABORT);
+  }
+
   @Override
   public boolean isForceRethrowInStep() {
 

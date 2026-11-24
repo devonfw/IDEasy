@@ -13,6 +13,17 @@ public class StringProperty extends Property<String> {
    *
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
+   */
+  public StringProperty(String name, boolean required) {
+
+    this(name, required, null);
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param name the {@link #getName() property name}.
+   * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
    */
   public StringProperty(String name, boolean required, String alias) {
