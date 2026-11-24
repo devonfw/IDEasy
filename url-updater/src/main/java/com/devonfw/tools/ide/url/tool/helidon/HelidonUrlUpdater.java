@@ -43,7 +43,7 @@ public class HelidonUrlUpdater extends MavenBasedUrlUpdater {
   }
 
   @Override
-  protected String getMavenArtifcatId() {
+  protected String getMavenArtifactId() {
 
     return "helidon-cli-impl";
   }
