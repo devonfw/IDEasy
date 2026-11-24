@@ -20,7 +20,7 @@ image::quality-status-images/issue-assignment.svg[Pie chart: assigned vs unassig
 image::quality-status-images/issue-types.svg[Pie chart: issue type distribution,width=100%]
 
 
-_Generated: 2026-11-16 14:30 UTC_
+_Generated: 2026-11-23 17:05 UTC_
 
 
 == Operating System Status Files
@@ -29,7 +29,7 @@ Issues are assigned to operating systems based on their labels:
 `windows`, `linux`, or `macOS`.
 
 Issues without an operating system label are treated as cross-platform.
-*A total of 197 cross-platform issues* are documented centrally in this document and are therefore not repeated in the operating system specific files.
+*A total of 208 cross-platform issues* are documented centrally in this document and are therefore not repeated in the operating system specific files.
 
 The detailed tool status is split into one generated file per operating system.
 
@@ -58,6 +58,75 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | Issue | Summary
 2+^a| [[cross-platform-0-10-days]] *0-10 days*
 
+| link:https://github.com/devonfw/IDEasy/issues/2923[#2923]
+| Give feedback from the terminal with ide feedback
+
+| link:https://github.com/devonfw/IDEasy/issues/2919[#2919]
+| python: only create the per-project .venv when IDEasy actually installs a packa…
+
+| link:https://github.com/devonfw/IDEasy/issues/2917[#2917]
+| Investigate incremental processing for GitHub-based URL updaters
+
+| link:https://github.com/devonfw/IDEasy/issues/2916[#2916]
+| Support pagination for GitHub-based URL updaters
+
+| link:https://github.com/devonfw/IDEasy/issues/2915[#2915]
+| Consider giving user-feedback from auto-completion
+
+| link:https://github.com/devonfw/IDEasy/issues/2914[#2914]
+| Consider defaulting path of repository properties to git project name
+
+| link:https://github.com/devonfw/IDEasy/issues/2913[#2913]
+| GUI should centrally manage dirty state of tab dialogs
+
+| link:https://github.com/devonfw/IDEasy/issues/2912[#2912]
+| GUI Tool Config is removing properties from settings
+
+| link:https://github.com/devonfw/IDEasy/issues/2910[#2910]
+| Adapt Mvn commandlet to instantiate settings.xml as normal template
+
+| link:https://github.com/devonfw/IDEasy/issues/2909[#2909]
+| Update settings.xml in ide-settings
+
+| link:https://github.com/devonfw/IDEasy/issues/2908[#2908]
+| Implement AskMvnSecretFunction
+
+| link:https://github.com/devonfw/IDEasy/issues/2907[#2907]
+| Create @ask-mvn-secret function
+
+| link:https://github.com/devonfw/IDEasy/issues/2903[#2903]
+| Enhance JSON merger to support configurable array merge strategies
+
+| link:https://github.com/devonfw/IDEasy/issues/2902[#2902]
+| Enhance integration-tests
+
+| link:https://github.com/devonfw/IDEasy/issues/2897[#2897]
+| [GUI] Add batch update functionality
+
+| link:https://github.com/devonfw/IDEasy/issues/2894[#2894]
+| Add user setup instructions if no project exists
+
+| link:https://github.com/devonfw/IDEasy/issues/2893[#2893]
+| Add project create process
+
+| link:https://github.com/devonfw/IDEasy/issues/2891[#2891]
+| Let tools control where their environment variables apply
+
+| link:https://github.com/devonfw/IDEasy/issues/2887[#2887]
+| Implement the button design system in the GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/2885[#2885]
+| Implement the color design system in the GUI
+
+| link:https://github.com/devonfw/IDEasy/issues/2884[#2884]
+| Add typography designs & rework existing typography
+
+| link:https://github.com/devonfw/IDEasy/issues/2883[#2883]
+| GUI Design System Implementation Epic
+
+| link:https://github.com/devonfw/IDEasy/issues/2881[#2881]
+| Isolate Corepack from the Corepack bundled with Node
+
 | link:https://github.com/devonfw/IDEasy/issues/2877[#2877]
 | Iterate all pages of the GitHub releases API in url-updaters
 
@@ -72,6 +141,8 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/2869[#2869]
 | Detect ecosystem and suggest according gitignores
+
+2+^a| [[cross-platform-11-30-days]] *11-30 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2867[#2867]
 | Implement IDEasy software upgrade in GUI (`ide upgrade`)
@@ -118,9 +189,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2821[#2821]
 | CLI parser: recognize declared options in the passthrough argument region
 
-| link:https://github.com/devonfw/IDEasy/issues/2820[#2820]
-| Add a dedicated IDE-usage docs page; keep cli.adoc generic
-
 | link:https://github.com/devonfw/IDEasy/issues/2819[#2819]
 | Consolidate the shared *PROPERTIES setup into IdeaBasedIdeToolCommandlet
 
@@ -147,8 +215,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/2809[#2809]
 | Copy labels from the linked issue to the pull request
-
-2+^a| [[cross-platform-11-30-days]] *11-30 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2807[#2807]
 | Preconfigure Python interpreter for PyCharm
@@ -222,6 +288,8 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2747[#2747]
 | Add linting rule for wrong logger usage
 
+2+^a| [[cross-platform-31-60-days]] *31-60 days*
+
 | link:https://github.com/devonfw/IDEasy/issues/2741[#2741]
 | Plugin installs bypass the ToolInstallRequest
 
@@ -248,8 +316,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/2703[#2703]
 | Update outdated truststore documentation
-
-2+^a| [[cross-platform-31-60-days]] *31-60 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2697[#2697]
 | Add Integration Tests for IDEasy Docker Sandbox Support
@@ -284,9 +350,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2686[#2686]
 | Add integration tests for version/edition getters, setters, check
 
-| link:https://github.com/devonfw/IDEasy/issues/2685[#2685]
-| Require integration tests in the PR template and read-only smoke tests
-
 | link:https://github.com/devonfw/IDEasy/issues/2682[#2682]
 | Integration test epic
 
@@ -294,7 +357,7 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | Replace console auto-show hack with GuiEventBus event
 
 | link:https://github.com/devonfw/IDEasy/issues/2667[#2667]
-| Reject AI attribution in commits with a commit-msg hook and a CI check
+| Reject AI authored commits with a commit hook and a CI check
 
 | link:https://github.com/devonfw/IDEasy/issues/2666[#2666]
 | Add subagents for test runs and convention checks
@@ -332,9 +395,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2591[#2591]
 | Share agent skills in the repository and close gaps in AGENTS.md
 
-| link:https://github.com/devonfw/IDEasy/issues/2588[#2588]
-| Gui commandlet manipulates the global SystemPath instead of the process environ…
-
 | link:https://github.com/devonfw/IDEasy/issues/2583[#2583]
 | Extract shared commandlet API into interface
 
@@ -344,14 +404,8 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2571[#2571]
 | ide vscode fails and leaves plugins that are never reinstalled when VSCode is u…
 
-| link:https://github.com/devonfw/IDEasy/issues/2561[#2561]
-| python in pristine software repo with per-project isolation
-
 | link:https://github.com/devonfw/IDEasy/issues/2552[#2552]
 | Add release support for npm
-
-| link:https://github.com/devonfw/IDEasy/issues/2551[#2551]
-| Add release support for Gradle
 
 | link:https://github.com/devonfw/IDEasy/issues/2550[#2550]
 | Add release support for remaining build tools
@@ -361,6 +415,8 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/2545[#2545]
 | Workspace configured twice
+
+2+^a| [[cross-platform-61-90-days]] *61-90 days*
 
 | link:https://github.com/devonfw/IDEasy/issues/2538[#2538]
 | Test the bugreport commandlet
@@ -389,9 +445,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2520[#2520]
 | Add commandlet for Dart SDK (`dart`)
 
-| link:https://github.com/devonfw/IDEasy/issues/2518[#2518]
-| Add commandlet for Snyk CLI (`snyk`)
-
 | link:https://github.com/devonfw/IDEasy/issues/2517[#2517]
 | Add commandlet for jq (`jq`)
 
@@ -407,22 +460,11 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2511[#2511]
 | Add commandlet for Helidon CLI (`helidon`)
 
-| link:https://github.com/devonfw/IDEasy/issues/2510[#2510]
-| Add commandlet for Micronaut CLI (`mn`)
-
 | link:https://github.com/devonfw/IDEasy/issues/2502[#2502]
 | Replace global IdeStartContext lookup with ScopedValue
 
-2+^a| [[cross-platform-61-90-days]] *61-90 days*
-
 | link:https://github.com/devonfw/IDEasy/issues/2485[#2485]
 | Improve styling of tabs
-
-| link:https://github.com/devonfw/IDEasy/issues/2484[#2484]
-| Tab Completion for `ide install python <version>` triggers uv installation/upda…
-
-| link:https://github.com/devonfw/IDEasy/issues/2482[#2482]
-| Improve CSS styling implementation of the UI
 
 | link:https://github.com/devonfw/IDEasy/issues/2478[#2478]
 | Move variable resolution out of RepositoryProperties into the transformation to…
@@ -463,6 +505,8 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2369[#2369]
 | Rework openrewrite
 
+2+^a| [[cross-platform-90plus-days]] *90+ days*
+
 | link:https://github.com/devonfw/IDEasy/issues/2364[#2364]
 | Error during installation of soapui
 
@@ -475,13 +519,8 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2343[#2343]
 | Design: Progress bars & steps
 
-2+^a| [[cross-platform-90plus-days]] *90+ days*
-
 | link:https://github.com/devonfw/IDEasy/issues/2327[#2327]
 | Gui project setup epic
-
-| link:https://github.com/devonfw/IDEasy/issues/2326[#2326]
-| Migrate project loading logic from gui based ProjectManager to cli-based IdeCon…
 
 | link:https://github.com/devonfw/IDEasy/issues/2314[#2314]
 | Implement the handling of Steps in the GUI.
@@ -513,9 +552,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 | link:https://github.com/devonfw/IDEasy/issues/2256[#2256]
 | Integrate SonarCloud analysis into GitHub workflows
 
-| link:https://github.com/devonfw/IDEasy/issues/2248[#2248]
-| Change TaskManager design.
-
 | link:https://github.com/devonfw/IDEasy/issues/2241[#2241]
 | Version selection support
 
@@ -545,9 +581,6 @@ image::quality-status-images/functional-labels.svg[Bar chart: most common functi
 
 | link:https://github.com/devonfw/IDEasy/issues/2096[#2096]
 | Add a commandlet execution user interface
-
-| link:https://github.com/devonfw/IDEasy/issues/2045[#2045]
-| Add tool selection and version/edition configuration via GUI
 
 | link:https://github.com/devonfw/IDEasy/issues/1996[#1996]
 | Revisit design for tools that do not install to software repository
