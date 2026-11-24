@@ -13,8 +13,8 @@ import javafx.collections.ObservableList;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.event.CommandletLaunchEvent;
-import com.devonfw.ide.gui.core.helper.FxHelper;
 import com.devonfw.ide.gui.core.factory.TabFactory;
+import com.devonfw.ide.gui.core.helper.FxHelper;
 import com.devonfw.ide.gui.core.progress.TaskListViewModel;
 import com.devonfw.ide.gui.core.progress.TaskViewModel;
 import com.devonfw.ide.gui.core.service.NlsService;
