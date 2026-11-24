@@ -97,8 +97,7 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
       try {
         fileAccess.delete(obsoletePlugins);
       } catch (RuntimeException e) {
-        LOG.warn("Could not delete obsolete plugins at {} as they may still be in use. They will be cleaned up on a later update.", obsoletePlugins);
-        LOG.debug("Deletion of obsolete plugins failed.", e);
+        LOG.warn("Could not delete obsolete plugins at {} as they may still be in use. They will be cleaned up on a later update.", obsoletePlugins, e);
       }
     }
   }
@@ -151,8 +150,7 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
     } catch (RuntimeException e) {
       // the plugins may still be in use by a running instance of the IDE that keeps the files locked (on Windows); they will be removed on a later
       // installation or update
-      LOG.warn("Could not delete all plugins at {} as they may still be in use. They will be cleaned up on a later update.", pluginsPath);
-      LOG.debug("Deletion of all plugins failed.", e);
+      LOG.warn("Could not delete all plugins at {} as they may still be in use. They will be cleaned up on a later update.", pluginsPath, e);
     }
   }
 }
