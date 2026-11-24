@@ -46,14 +46,14 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
   @Override
   public boolean installPlugin(ToolPluginDescriptor plugin, final Step step, ProcessContext pc) {
 
-    if (plugin.url() == null) {
-      // download from the marketplace directly as the IDE cannot install plugins while another instance is running (e.g. the old version on update)
-      return new IdeaPluginDownloader(this.context, this).installPlugin(plugin, step, pc);
-    }
+    // In case of plugins with a custom repo url
+    boolean customRepo = plugin.url() != null;
     List<String> args = new ArrayList<>();
     args.add("installPlugins");
     args.add(plugin.id().replace("+", " "));
-    args.add(plugin.url());
+    if (customRepo) {
+      args.add(plugin.url());
+    }
     ProcessResult result = runTool(pc, ProcessMode.DEFAULT, args);
     if (result.isSuccessful()) {
       step.success("Successfully installed plugin: {}", plugin.name());
