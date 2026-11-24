@@ -12,6 +12,8 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
+import com.devonfw.ide.gui.core.event.CommandletLaunchEvent;
+import com.devonfw.ide.gui.core.helper.FxHelper;
 import com.devonfw.ide.gui.core.factory.TabFactory;
 import com.devonfw.ide.gui.core.progress.TaskListViewModel;
 import com.devonfw.ide.gui.core.progress.TaskViewModel;
@@ -54,7 +56,9 @@ public class MainWindowViewModel {
 
     this.nlsService = Objects.requireNonNull(guiStateManager.getNlsService());
     this.tabFactory = Objects.requireNonNull(guiStateManager.getTabFactory());
-    this.tabFactory.setPreLaunchAction(() -> this.setConsoleVisible(true));
+    guiStateManager.getEventBus().addListener(
+        CommandletLaunchEvent.class,
+        _ -> FxHelper.runFxSafe(() -> setConsoleVisible(true)));
     this.workspaceSelected = Objects.requireNonNull(guiStateManager.workspaceSelectedProperty());
 
     this.tasks = Objects.requireNonNull(guiStateManager.getTaskListViewModel()).getTasks();
