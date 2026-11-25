@@ -1,11 +1,11 @@
 [
   {
-    "ref": "refs/tags/go1.25.7"
+    "name": "go1.25.7"
   },
   {
-    "ref": "refs/tags/go1.25.8"
+    "name": "go1.25.8"
   },
   {
-    "ref": "refs/tags/go1.25rc1"
+    "name": "go1.25rc1"
   }
 ]

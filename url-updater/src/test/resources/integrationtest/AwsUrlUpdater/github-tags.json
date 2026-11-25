@@ -1,6 +1,6 @@
 [
   {
-    "ref": "refs/tags/2.7.22",
+    "name": "2.7.22",
     "node_id": "MDM6UmVmNjc4MDc2NzpyZWZzL3RhZ3MvMi43LjIy",
     "url": "${testbaseurl}/repos/aws/aws-cli/git/refs/tags/2.7.22",
     "object": {
@@ -10,7 +10,7 @@
     }
   },
   {
-    "ref": "refs/tags/2.7.23",
+    "name": "2.7.23",
     "node_id": "MDM6UmVmNjc4MDc2NzpyZWZzL3RhZ3MvMi43LjIz",
     "url": "${testbaseurl}/repos/aws/aws-cli/git/refs/tags/2.7.23",
     "object": {
@@ -20,7 +20,7 @@
     }
   },
   {
-    "ref": "refs/tags/2.7.24",
+    "name": "2.7.24",
     "node_id": "MDM6UmVmNjc4MDc2NzpyZWZzL3RhZ3MvMi43LjI0",
     "url": "${testbaseurl}/repos/aws/aws-cli/git/refs/tags/2.7.24",
     "object": {

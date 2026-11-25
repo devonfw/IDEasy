@@ -56,7 +56,7 @@ class AwsGithubUrlTagUpdaterTest extends AbstractUrlUpdaterTest {
       assertUrlVersionOsX64(awsEditionDir.resolve(version));
     }
     verify(getRequestedFor(
-        urlEqualTo("/repos/aws/aws-cli/git/refs/tags?per_page=50&page=1")));
+        urlEqualTo("/repos/aws/aws-cli/tags?per_page=50&page=1")));
   }
 
 }

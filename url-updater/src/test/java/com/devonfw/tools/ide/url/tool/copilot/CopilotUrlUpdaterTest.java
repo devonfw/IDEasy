@@ -34,7 +34,7 @@ class CopilotUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testCopilotUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // arrange
-    stubFor(get(urlPathMatching("/repos/github/copilot-cli/git/refs/tags")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/github/copilot-cli/tags")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("CopilotUrlUpdater").resolve("copilot-tags.json"), wmRuntimeInfo))));
 
     stubFor(any(urlMatching("/github/copilot-cli/releases/download/.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));

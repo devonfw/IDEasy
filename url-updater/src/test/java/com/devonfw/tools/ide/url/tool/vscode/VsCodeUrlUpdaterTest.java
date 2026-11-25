@@ -31,7 +31,7 @@ class VsCodeUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testVsCodeUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // given
-    stubFor(get(urlPathMatching("/repos/microsoft/vscode/git/refs/tags")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/microsoft/vscode/tags")).willReturn(aResponse().withStatus(200)
         .withBody(Files.readAllBytes(PATH_INTEGRATION_TEST.resolve("VsCodeUrlUpdater").resolve("vscode-tags.json")))));
     stubFor(head(urlMatching("/.*/(linux-x64|darwin|win32-x64-archive)/stable")).willReturn(aResponse().withStatus(200)));
     stubFor(get(urlMatching("/.*/(linux-x64|darwin|win32-x64-archive)/stable")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));

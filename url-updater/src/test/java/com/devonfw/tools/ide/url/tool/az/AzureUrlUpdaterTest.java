@@ -31,7 +31,7 @@ class AzureUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testAzureUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // arrange
-    stubFor(get(urlPathMatching("/repos/Azure/azure-cli/git/refs/tags")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/Azure/azure-cli/tags")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("AzureUrlUpdater").resolve("azure-cli-tags.json"), wmRuntimeInfo))));
     stubFor(any(urlMatching("/msi/azure-cli-.*\\.msi")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
     stubFor(any(urlMatching("/Azure/azure-cli/releases/download/azure-cli-.*/azure-cli-.*-macos-.*\\.tar\\.gz"))

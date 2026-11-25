@@ -30,7 +30,7 @@ class SonarUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testSonarUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // arrange
-    stubFor(get(urlPathMatching("/repos/SonarSource/sonarqube/git/refs/tags")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/SonarSource/sonarqube/tags")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("SonarUrlUpdater").resolve("sonar-tags.json"), wmRuntimeInfo))));
     stubFor(any(urlMatching("/Distribution/sonarqube/sonarqube-.*\\.zip"))
         .willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));

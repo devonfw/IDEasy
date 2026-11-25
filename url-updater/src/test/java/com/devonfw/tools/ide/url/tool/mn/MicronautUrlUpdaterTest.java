@@ -33,7 +33,7 @@ class MicronautUrlUpdaterTest extends AbstractUrlUpdaterTest {
   void testMicronautUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
-    stubFor(get(urlPathMatching("/repos/micronaut-projects/micronaut-starter/git/refs/tags")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/micronaut-projects/micronaut-starter/tags")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("MicronautUrlUpdater").resolve("micronaut-tags.json"), wmRuntimeInfo))));
 
     stubFor(any(urlMatching("/micronaut-projects/micronaut-starter/releases/download/.*/micronaut-cli-.*\\.zip"))

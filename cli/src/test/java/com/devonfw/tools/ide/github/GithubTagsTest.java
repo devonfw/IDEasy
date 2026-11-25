@@ -15,8 +15,8 @@ class GithubTagsTest extends Assertions {
   void testAddAndRetrieveTags() {
     // arrange
     GithubTags tags = new GithubTags();
-    GithubTag tag1 = new GithubTag("refs/tags/v1.0.0");
-    GithubTag tag2 = new GithubTag("refs/tags/v2.0.0");
+    GithubTag tag1 = new GithubTag("v1.0.0");
+    GithubTag tag2 = new GithubTag("v2.0.0");
 
     // act
     tags.add(tag1);
