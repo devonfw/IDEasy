@@ -53,7 +53,7 @@ class GithubUrlTagUpdaterTest {
         wmRuntimeInfo.getHttpBaseUrl(),
         wmRuntimeInfo.getHttpBaseUrl());
 
-    String response = updater.getVersionResponse();
+    String response = updater.getVersionResponse(Set.of());
 
     assertThat(response).contains("\"name\":\"1.0.0\"");
     assertThat(response).contains("\"name\":\"1.0.49\"");
@@ -66,14 +66,65 @@ class GithubUrlTagUpdaterTest {
         urlEqualTo("/repos/acme/tool/tags?per_page=50&page=2")));
   }
 
+  @Test
+  void testGithubTagPaginationStopsAtKnownVersion(WireMockRuntimeInfo wmRuntimeInfo) {
+
+    StringBuilder firstPage = new StringBuilder("[");
+    for (int i = 0; i < 50; i++) {
+      if (i > 0) {
+        firstPage.append(",");
+      }
+      firstPage.append("{\"name\":\"3.0.").append(i).append("\"}");
+    }
+    firstPage.append("]");
+
+    StringBuilder secondPage = new StringBuilder("[");
+    for (int i = 0; i < 50; i++) {
+      if (i > 0) {
+        secondPage.append(",");
+      }
+      secondPage.append("{\"name\":\"2.0.").append(49 - i).append("\"}");
+    }
+    secondPage.append("]");
+
+    stubFor(get(urlEqualTo("/repos/acme/tool/tags?per_page=50&page=1"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withBody(firstPage.toString())));
+
+    stubFor(get(urlEqualTo("/repos/acme/tool/tags?per_page=50&page=2"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withBody(secondPage.toString())));
+
+    TestGithubUpdater updater = new TestGithubUpdater(
+        wmRuntimeInfo.getHttpBaseUrl(),
+        wmRuntimeInfo.getHttpBaseUrl());
+
+    String response = updater.getVersionResponse(Set.of("2.0.0"));
+
+    assertThat(response).contains("\"name\":\"3.0.0\"");
+    assertThat(response).contains("\"name\":\"2.0.1\"");
+    assertThat(response).contains("\"name\":\"2.0.0\"");
+
+    verify(getRequestedFor(
+        urlEqualTo("/repos/acme/tool/tags?per_page=50&page=1")));
+
+    verify(getRequestedFor(
+        urlEqualTo("/repos/acme/tool/tags?per_page=50&page=2")));
+
+    verify(0, getRequestedFor(
+        urlEqualTo("/repos/acme/tool/tags?per_page=50&page=3")));
+  }
+
   private static final class TestGithubUpdater extends GithubUrlTagUpdater {
 
     TestGithubUpdater(String downloadBaseUrl, String versionBaseUrl) {
       super(downloadBaseUrl, versionBaseUrl);
     }
 
-    String getVersionResponse() {
-      return doGetVersionResponseBodyAsString(doGetVersionUrl());
+    String getVersionResponse(Set<String> existingVersions) {
+      return doGetVersionResponseBodyAsString(doGetVersionUrl(), existingVersions);
     }
 
     @Override

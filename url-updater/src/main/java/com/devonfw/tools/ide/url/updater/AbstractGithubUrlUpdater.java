@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.url.updater;
 
+import java.util.Set;
+
 import com.devonfw.tools.ide.json.JsonMapping;
 import com.devonfw.tools.ide.json.JsonObject;
 import com.devonfw.tools.ide.json.JsonVersionItem;
@@ -103,13 +105,16 @@ public abstract class AbstractGithubUrlUpdater<J extends JsonObject, JVI extends
   }
 
   @Override
-  protected String doGetVersionResponseBodyAsString(String url) {
+  protected String doGetVersionResponseBodyAsString(String url, Set<String> existingVersions) {
 
     ArrayNode combinedResponse = MAPPER.createArrayNode();
     int page = 1;
     int resultCount;
 
+    boolean knownVersionFound;
+
     do {
+      knownVersionFound = false;
       String pageUrl = getGithubPageUrl(url, page);
       String response = super.doGetVersionResponseBodyAsString(pageUrl);
 
@@ -122,12 +127,22 @@ public abstract class AbstractGithubUrlUpdater<J extends JsonObject, JVI extends
         ArrayNode pageItems = (ArrayNode) pageResponse;
         resultCount = pageItems.size();
         combinedResponse.addAll(pageItems);
+        for (JsonNode item : pageItems) {
+          JsonNode nameNode = item.get("name");
+          if (nameNode != null) {
+            String version = mapVersion(nameNode.asText());
+            if ((version != null) && existingVersions.contains(version)) {
+              knownVersionFound = true;
+              break;
+            }
+          }
+        }
       } catch (Exception e) {
         throw new IllegalStateException("Failed to process GitHub API response from: " + pageUrl, e);
       }
 
       page++;
-    } while (resultCount == GITHUB_RESULTS_PER_PAGE);
+    } while ((resultCount == GITHUB_RESULTS_PER_PAGE) && !knownVersionFound);
 
     return combinedResponse.toString();
   }
