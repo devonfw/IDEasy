@@ -179,17 +179,23 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that the release fails gracefully if a build descriptor is found but its {@link com.devonfw.tools.ide.tool.BuildTool} does not support releasing
-   * (its {@link com.devonfw.tools.ide.tool.BuildTool#getProjectVersion(java.nio.file.Path) getProjectVersion} returns {@code null}), e.g. an npm project.
+   * Tests the release of an npm project. The {@code package.json} declares {@code "version": "1.0.0-SNAPSHOT"}.
    */
   @Test
-  void testReleaseWithUnsupportedBuildToolThrowsException() {
+  void testReleaseNpm() {
 
     IdeTestContext context = newReleaseContext(false);
-    context.setCwd(context.getWorkspacePath().resolve("npm"), context.getWorkspacePath().toString(), context.getIdeHome());
+    context.setAnswers("yes", "yes");
+    Path npmProject = context.getWorkspacePath().resolve("npm");
+    context.setCwd(npmProject, context.getWorkspacePath().toString(), context.getIdeHome());
     ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
 
-    CliException exception = assertThrows(CliException.class, releaseCommandlet::run);
-    assertThat(exception).hasMessageContaining("npm").hasMessageContaining("does not support releasing");
+    releaseCommandlet.run();
+
+    assertThat(context).log().hasEntries(
+        IdeLogEntry.ofInfo("npm --prefix " + npmProject + " version 1.0.0 --no-git-tag-version --allow-same-version"),
+        IdeLogEntry.ofInfo("npm publish"),
+        IdeLogEntry.ofInfo("npm --prefix " + npmProject + " version 1.0.1-SNAPSHOT --no-git-tag-version --allow-same-version"),
+        IdeLogEntry.ofInfo("Successfully released version 1.0.0."));
   }
 }
