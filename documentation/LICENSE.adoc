@@ -62,6 +62,8 @@ The column `inclusion` indicates the way the component is included:
 |https://docs.azul.com/gc-log-analyzer/[GC Log Analyzer]|Optional|https://opensource.org/license/BSD-3-clause[BSD 3-Clause]
 |https://github.com/github/copilot-cli[GitHub Copilot CLI]|Optional|https://github.com/github/copilot-cli/blob/main/LICENSE.md[Proprietary]
 |https://github.com/anthropics/claude-code/tree/main[Claude Code CLI]|Optional|https://github.com/anthropics/claude-code/blob/main/LICENSE.md[Proprietary]
+|https://dart.dev/[Dart]|Optional|https://github.com/dart-lang/sdk/blob/main/LICENSE[BSD 3-Clause License]
+|https://docs.snyk.io/snyk-cli[Snyk CLI]|Optional|https://github.com/snyk/cli/blob/main/LICENSE[Apache 2.0]
 |https://ollama.com/[Ollama]|Optional|https://github.com/ollama/ollama/blob/main/LICENSE[MIT]
 |https://code.visualstudio.com/[VS Code]|Optional|https://github.com/Microsoft/vscode/blob/master/LICENSE.txt[MIT] (https://code.visualstudio.com/License/[Terms])
 |https://vscodium.com/[VSCodium]|Optional|https://github.com/VSCodium/vscodium/blob/master/LICENSE[MIT]
@@ -104,6 +106,7 @@ The column `inclusion` indicates the way the component is included:
 |https://git-scm.com/[Git]|Optional|https://github.com/git/git/blob/master/COPYING[GPL 2.0]
 |https://github.com/cli/cli/[GitHubCLI]|Optional|https://github.com/cli/cli/blob/trunk/LICENSE[MIT]
 |https://quarkus.io/guides/cli-tooling[QuarkusCLI]|Optional|https://github.com/quarkusio/quarkus/blob/main/LICENSE.txt[Apache 2.0]
+|https://micronaut.io/[Micronaut CLI]|Optional|https://github.com/micronaut-projects/micronaut-starter/blob/master/LICENSE[Apache 2.0]
 |https://cloud.google.com/sdk/gcloud[GCloudCLI]|Optional|https://github.com/twistedpair/google-cloud-sdk/blob/master/google-cloud-sdk/LICENSE[Apache 2.0]
 |https://github.com/openrewrite/rewrite-maven-plugin[Openrewrite]|Optional|https://github.com/openrewrite/rewrite-maven-plugin/blob/main/LICENSE[Apache 2.0]
 |https://kotlinlang.org//[kotlin]|Optional|https://github.com/JetBrains/kotlin-web-site/blob/master/LICENSE[Apache 2.0]

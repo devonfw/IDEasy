@@ -21,6 +21,7 @@ import com.devonfw.tools.ide.context.CapturingProcessContextMock;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.io.WindowsSymlinkTestHelper;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsAppInstallation;
@@ -745,5 +746,24 @@ class GlobalToolCommandletTest extends AbstractIdeContextTest {
     assertThat(editionAndVersion).isNotNull();
     assertThat(editionAndVersion.edition()).isEqualTo("mytool-pro");
     assertThat(editionAndVersion.version()).isEqualTo(VersionIdentifier.ofRequired("9.9.9"));
+  }
+
+  /** Verifies that native package manager commands do not inherit {@code npm_config_prefix}. */
+  @Test
+  void testRunWithPackageManagerRemovesNpmConfigPrefix() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("npm_config_prefix", "/npm/prefix", true);
+    GlobalToolCommandlet commandlet = new GlobalToolCommandlet(context, TOOL_NAME, Set.of(Tag.DOCKER)) {
+      @Override
+      protected boolean isPackageManagerAvailable(NativePackageManager packageManager) {
+        return true;
+      }
+    };
+    PackageManagerCommand command = new PackageManagerCommand(NativePackageManager.APT, List.of("test -z \"$npm_config_prefix\""));
+
+    // act & assert (the command only succeeds if npm_config_prefix is not set)
+    assertThat(commandlet.runWithPackageManager(true, List.of(command), NativePackageAction.INSTALL)).isTrue();
   }
 }

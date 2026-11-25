@@ -122,6 +122,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
     for (String command : pmCommand.commands()) {
       ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(shell)
           .addArgs(shellOption, command).withExitCodeAcceptor(packageManager::isSuccessExitCode);
+      pc.removeEnvVar("npm_config_prefix");
       int exitCode = pc.run();
       if (!packageManager.isSuccessExitCode(exitCode)) {
         LOG.warn("{} command did not execute successfully", command);
