@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
 import com.devonfw.tools.ide.commandlet.TestCommandletManager;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.git.GitContextMock;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.util.PrivacyUtil;
 import com.devonfw.tools.ide.version.IdeVersion;
@@ -204,79 +204,40 @@ class BugReportHelperTest extends AbstractIdeContextTest {
     assertThat(snippet).contains("Your settings are not up-to-date, please run 'ide update'.\n");
   }
 
-  /** Test that a combined code and settings repository reports up-to-date when no settings update is available, mirroring {@code ide status}. */
+  /**
+   * Test that {@link BugReportHelper#createStatusSnippet} captures the status output at the console log-level only. The snippet must mirror what the user
+   * sees with {@code ide status}: log statements of a level not enabled for the console (e.g. DEBUG) must not be part of it, while the enabled ones stay.
+   */
   @Test
-  void testUpToDateSettingsStatusForCombinedCodeSettingsRepository() {
+  void testCreateStatusSnippetOnlyCapturesConsoleLogLevels() {
 
-    // arrange, a settings repository that is a combined code and settings repository
-    IdeTestContext context = new IdeTestContext(Path.of("/"), null) {
-      @Override
-      public Path getSettingsGitRepository() {
-
-        return Path.of("settings");
-      }
-
-      @Override
-      public boolean isCombinedCodeSettingsRepository() {
-
-        return true;
-      }
-    };
-    context.setGitContext(new GitContextMock(context) {
-      @Override
-      public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
-
-        return false;
-      }
-    });
+    // arrange (context with console log-level DEBUG: the branch detail is logged at DEBUG and thus enabled, everything at INFO stays enabled as well)
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false, null, IdeLogLevel.DEBUG);
     context.getNetworkStatus().simulateOnline();
-
     // act
-    IdeContext.SettingsUpdateState status = context.evaluateSettingsUpdateStatus();
     String snippet = BugReportHelper.createStatusSnippet(context);
 
-    // assert
-    assertThat(status).isEqualTo(IdeContext.SettingsUpdateState.UP_TO_DATE);
-    assertThat(context.getSettingsStatusLine()).isEqualTo("Your settings are up-to-date.");
-    assertThat(snippet).contains("Your settings are up-to-date.\n");
-    assertThat(snippet).doesNotContain("ide update");
+    // assert (the debug log statement about the settings branch is captured, not just the console-only default of INFO)
+    assertThat(snippet).contains("Your settings branch is main\n");
+    assertThat(snippet).contains("You are online.\n");
   }
 
-  /** Test that a combined code and settings repository suppresses the outdated warning, mirroring {@code ide status}. */
+  /**
+   * Test that {@link BugReportHelper#createStatusSnippet} does not leak log statements that are below the console log-level (e.g. DEBUG when the console
+   * only shows INFO), the way {@code ide status} would show them.
+   */
   @Test
-  void testNoOutdatedSettingsWarningForCombinedCodeSettingsRepository() {
+  void testCreateStatusSnippetDoesNotCaptureLogLevelsDisabledForConsole() {
 
-    // arrange
-    IdeTestContext context = new IdeTestContext(Path.of("/"), null) {
-      @Override
-      public Path getSettingsGitRepository() {
-
-        return Path.of("settings");
-      }
-
-      @Override
-      public boolean isCombinedCodeSettingsRepository() {
-
-        return true;
-      }
-    };
-    context.setGitContext(new GitContextMock(context) {
-      @Override
-      public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
-
-        return true;
-      }
-    });
+    // arrange (context with console log-level INFO: the branch detail is logged at DEBUG and must therefore not end up in the snippet)
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false, null, IdeLogLevel.INFO);
     context.getNetworkStatus().simulateOnline();
-
     // act
-    IdeContext.SettingsUpdateState status = context.evaluateSettingsUpdateStatus();
     String snippet = BugReportHelper.createStatusSnippet(context);
 
-    // assert
-    assertThat(status).isEqualTo(IdeContext.SettingsUpdateState.UNKNOWN);
-    assertThat(context.getSettingsStatusLine()).isEmpty();
-    assertThat(snippet).doesNotContain("Your settings are not up-to-date");
+    // assert (debug log statements of the status commandlet are filtered out, enabled ones stay)
+    assertThat(snippet).doesNotContain("Your settings branch is");
+    assertThat(snippet).contains("You are online.\n");
   }
 
   /**
