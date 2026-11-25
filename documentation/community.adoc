@@ -20,3 +20,8 @@ For concrete bugs or feature requests, you can create a https://github.com/devon
 in the IDEasy GitHub repository.
 
 Every contribution helps to improve IDEasy and is appreciated.
+For more information about contributing see the following sources:
+
+* https://github.com/devonfw/IDEasy/tree/main/documentation/contributing#readme[contributing documents]
+* https://github.com/devonfw/IDEasy?tab=contributing-ov-file[contributing guide]
+* https://github.com/devonfw/IDEasy?tab=coc-ov-file[code-of-conduct]
