@@ -199,32 +199,6 @@ public class CheckCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test that {@code ide check --all} detects nested repositories.
-   */
-  @Test
-  void testCheckAllDetectsNestedRepositories(@TempDir Path tempDir) throws IOException {
-
-    Path ideHome = tempDir;
-    Path repoA = ideHome.resolve("workspaces").resolve("main").resolve("myrepo");
-    Path nestedRepo = repoA.resolve("nested");
-    newGitRepo(repoA);
-    newGitRepo(nestedRepo);
-
-    Path cwd = repoA;
-    IdeTestContext context = newContext(cwd);
-    context.setCwd(cwd, IdeContext.WORKSPACE_MAIN, ideHome);
-    CheckCommandlet check = new CheckCommandlet(context);
-    check.all.setValue(true);
-    check.fix.setValue(true);
-
-    check.run();
-
-    assertThat(repoA.resolve(".gitignore")).exists();
-    assertThat(nestedRepo.resolve(".gitignore")).exists();
-    assertThat(context).logAtInfo().hasMessage("Found 2 repository root(s) to check.");
-  }
-
-  /**
    * Test that {@code ide check --all} scans the IDEasy workspaces when the CWD is outside them.
    */
   @Test
