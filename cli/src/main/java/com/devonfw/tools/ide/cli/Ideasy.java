@@ -1,8 +1,5 @@
 package com.devonfw.tools.ide.cli;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,19 +59,9 @@ public final class Ideasy {
       }
     } catch (Throwable error) {
       exitStatus = 255;
-      String title = error.getMessage();
-      if (title == null) {
-        title = error.getClass().getName();
-      } else {
-        title = error.getClass().getSimpleName() + ": " + title;
-      }
-      String message = "An unexpected error occurred!\n" //
-          + "We are sorry for the inconvenience.\n" //
-          + "Please check the error below, resolve it and try again.\n" //
-          + "If the error is not on your end (network connectivity, lack of permissions, etc.) please file a bug:\n" //
-          + "https://github.com/devonfw/IDEasy/issues/new?template=bug_report.yml&title="
-          + URLEncoder.encode(title, StandardCharsets.UTF_8);
-      LOG.error(message, error);
+      String title = BugReportHelper.createTitle(error);
+      LOG.error(BugReportHelper.createUnexpectedErrorMessage(title), error);
+      BugReportHelper.offerAfterError(this.context, error, args);
     }
     return exitStatus;
   }

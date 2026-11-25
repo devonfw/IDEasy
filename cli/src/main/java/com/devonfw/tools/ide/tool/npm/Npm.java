@@ -1,18 +1,30 @@
 package com.devonfw.tools.ide.tool.npm;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.json.JsonMapping;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.BuildTool;
 import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * {@link AbstractLocalToolCommandlet} for <a href="https://www.npmjs.org/">npm</a>.
@@ -25,9 +37,11 @@ import com.devonfw.tools.ide.tool.ToolInstallation;
  * itself on Windows); in addition {@link #setEnvironment} adds that folder to the PATH explicitly so that packages installed within the same IDEasy run are
  * already resolvable.
  */
-public class Npm extends AbstractLocalToolCommandlet {
+public class Npm extends AbstractLocalToolCommandlet implements BuildTool {
 
   private static final Logger LOG = LoggerFactory.getLogger(Npm.class);
+
+  private static final ObjectMapper MAPPER = JsonMapping.create();
 
   private static final String NPM_HOME_FOLDER = "npm";
 
@@ -47,6 +61,9 @@ public class Npm extends AbstractLocalToolCommandlet {
    * The folder name for the per-project global npm packages, located inside the {@link IdeContext#getSoftwarePath() software} folder.
    */
   public static final String NPM_GLOBAL_FOLDER = "node_modules";
+
+  /** The default value of the {@code NPM_RELEASE_OPTS} variable used to build and deploy a release. */
+  private static final String DEFAULT_RELEASE_OPTS = "publish";
 
   /**
    * The constructor.
@@ -79,7 +96,41 @@ public class Npm extends AbstractLocalToolCommandlet {
     if (Files.exists(buildDescriptor)) {
       return buildDescriptor;
     }
-    return super.findBuildDescriptor(directory);
+    return null;
+  }
+
+  @Override
+  public VersionIdentifier getProjectVersion(Path projectPath) {
+
+    Path packageJson = projectPath.resolve(PACKAGE_JSON);
+    JsonNode version;
+    try {
+      version = MAPPER.readTree(packageJson.toFile()).get("version");
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read " + packageJson, e);
+    }
+    if ((version == null) || !version.isTextual()) {
+      throw new CliException("Could not find 'version' in " + packageJson);
+    }
+    return VersionIdentifier.ofRequired(version.asText());
+  }
+
+  @Override
+  public void setProjectVersion(Path projectPath, VersionIdentifier version) {
+
+    runTool(List.of("--prefix", projectPath.toString(), "version", version.toString(), "--no-git-tag-version", "--allow-same-version"));
+  }
+
+  @Override
+  public ProcessResult buildAndDeploy(List<String> additionalArgs) {
+
+    String options = this.context.getVariables().get("NPM_RELEASE_OPTS");
+    if ((options == null) || options.isBlank()) {
+      options = DEFAULT_RELEASE_OPTS;
+    }
+    List<String> args = new ArrayList<>(List.of(options.split("\\s+")));
+    args.addAll(additionalArgs);
+    return runTool(ProcessMode.DEFAULT, null, ProcessErrorHandling.NONE, args);
   }
 
   /**
@@ -106,6 +157,21 @@ public class Npm extends AbstractLocalToolCommandlet {
     return softwarePath == null ? null : softwarePath.resolve(NPM_GLOBAL_FOLDER);
   }
 
+  /**
+   * @param context the {@link IdeContext}.
+   * @return the {@link Path} to the folder where npm places the launchers of global packages in the per-project global npm prefix (see
+   *     {@link #NPM_GLOBAL_FOLDER}), or {@code null} if not running inside a project. npm places them in the prefix root on Windows but in
+   *     {@code <prefix>/bin} on POSIX.
+   */
+  static Path getGlobalNpmBin(IdeContext context) {
+
+    Path npmGlobalPath = getGlobalNpmPrefix(context);
+    if (npmGlobalPath == null) {
+      return null;
+    }
+    return context.getSystemInfo().isWindows() ? npmGlobalPath : npmGlobalPath.resolve(IdeContext.FOLDER_BIN);
+  }
+
   @Override
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
 
@@ -123,8 +189,7 @@ public class Npm extends AbstractLocalToolCommandlet {
 
     // npm places the global shims in the prefix root on Windows but in <prefix>/bin on POSIX, so the PATH entry must
     // differ per platform - otherwise the globally installed packages (e.g. task, cdk) are not resolvable.
-    Path npmGlobalBin = this.context.getSystemInfo().isWindows() ? npmGlobalPath : npmGlobalPath.resolve(IdeContext.FOLDER_BIN);
-    environmentContext.withPathEntry(npmGlobalBin);
+    environmentContext.withPathEntry(getGlobalNpmBin(this.context));
   }
 
   /**

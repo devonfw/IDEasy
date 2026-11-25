@@ -1,33 +1,37 @@
 package com.devonfw.ide.gui.core.mainwindow;
 
-import java.util.List;
 import java.util.Objects;
 
-import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.factory.TabFactory;
-import com.devonfw.ide.gui.core.progress.ProgressBarTask;
+import com.devonfw.ide.gui.core.progress.TaskListViewModel;
+import com.devonfw.ide.gui.core.progress.TaskViewModel;
 import com.devonfw.ide.gui.core.service.NlsService;
 
 /**
- * View model of the main window. It holds the observable state behind the status bar (status text, progress and clickability) and the console visibility, and
- * reflects the task list held by the {@link GuiStateManager} onto the status bar.
+ * View model of the main window. It holds the observable state behind the status bar (status text, progress and clickability), the console visibility and the
+ * visibility of the welcome pane shown while no tab is open, and reflects the task list held by the {@link GuiStateManager} onto the status bar.
  */
 public class MainWindowViewModel {
 
-  private final GuiStateManager guiStateManager;
+  /** The running tasks. Reports additions, removals and progress changes of its items (see {@link TaskListViewModel}). */
+  private final ObservableList<TaskViewModel> tasks;
 
   private final NlsService nlsService;
 
   private final TabFactory tabFactory;
+
+  /** Flags whether a project and workspace are selected, as held by the {@link GuiStateManager}. */
+  private final BooleanProperty workspaceSelected;
 
   private final StringProperty statusText = new SimpleStringProperty();
 
@@ -39,6 +43,8 @@ public class MainWindowViewModel {
 
   private final BooleanProperty consoleVisible = new SimpleBooleanProperty(false);
 
+  private final BooleanProperty welcomePaneVisible = new SimpleBooleanProperty(true);
+
   /**
    * Initializes the view model and wires the task-list listener that drives the status bar.
    *
@@ -46,68 +52,36 @@ public class MainWindowViewModel {
    */
   public MainWindowViewModel(GuiStateManager guiStateManager) {
 
-    this.guiStateManager = Objects.requireNonNull(guiStateManager);
     this.nlsService = Objects.requireNonNull(guiStateManager.getNlsService());
     this.tabFactory = Objects.requireNonNull(guiStateManager.getTabFactory());
     this.tabFactory.setPreLaunchAction(() -> this.setConsoleVisible(true));
+    this.workspaceSelected = Objects.requireNonNull(guiStateManager.workspaceSelectedProperty());
 
-    this.statusText.set(this.nlsService.get("ideasy_ready_msg"));
-
-    setUpTaskListListener();
+    this.tasks = Objects.requireNonNull(guiStateManager.getTaskListViewModel()).getTasks();
+    this.tasks.addListener((InvalidationListener) _ -> updateStatus());
+    updateStatus();
   }
 
-  private void setUpTaskListListener() {
+  /**
+   * Reflects the tasks of the {@link TaskListViewModel} onto the status bar. Runs on the JavaFX thread.
+   */
+  private void updateStatus() {
 
-    ListChangeListener<ProgressBarTask> taskListChangeListener = change -> {
-      List<ProgressBarTask> tasks = this.guiStateManager.getTaskManager().getTasks();
-
-      while (change.next()) {
-        if (change.wasAdded()) {
-
-          for (ProgressBarTask progressTask : change.getAddedSubList()) {
-            progressTask.currentProgressProperty().addListener((_, _, _) ->
-                updateStatus(tasks)
-            );
-          }
-          updateStatus(tasks);
-        } else if (change.wasRemoved()) {
-
-          updateStatus(tasks);
-        } else if (change.wasUpdated()) {
-
-          updateStatus(tasks);
-        }
-      }
-    };
-    this.guiStateManager.getTaskManager().getTasks().addListener(taskListChangeListener);
-  }
-
-  private void updateStatus(List<ProgressBarTask> taskList) {
-
-    Platform.runLater(() -> {
-
-      if (taskList.size() > 1) {
-        this.statusText.set(taskList.size() + " tasks running...");
-        this.statusClickable.set(true);
-        this.statusProgressVisible.set(false);
-      } else if (taskList.size() == 1) {
-        ProgressBarTask task = taskList.getFirst();
-        this.statusText.set(String.format(
-            ProgressBarTask.TASK_DESCRIPTION_STRING_FORMAT,
-            task.getTitle(),
-            task.getCurrentProgress(),
-            task.getMaxSize(),
-            task.getUnitName())
-        );
-        this.statusClickable.set(false);
-        this.statusProgressVisible.set(true);
-        this.statusProgress.set((double) (task.getCurrentProgress()) / task.getMaxSize());
-      } else {
-        this.statusText.set(this.nlsService.get("ideasy_ready_msg"));
-        this.statusClickable.set(false);
-        this.statusProgressVisible.set(false);
-      }
-    });
+    if (this.tasks.size() > 1) {
+      this.statusText.set(this.tasks.size() + " " + this.nlsService.get("tasks_running"));
+      this.statusClickable.set(true);
+      this.statusProgressVisible.set(false);
+    } else if (this.tasks.size() == 1) {
+      TaskViewModel task = this.tasks.getFirst();
+      this.statusText.set(task.getDescription());
+      this.statusClickable.set(false);
+      this.statusProgressVisible.set(true);
+      this.statusProgress.set(task.getProgress());
+    } else {
+      this.statusText.set(this.nlsService.get("ideasy_ready_msg"));
+      this.statusClickable.set(false);
+      this.statusProgressVisible.set(false);
+    }
   }
 
   /**
@@ -160,9 +134,46 @@ public class MainWindowViewModel {
     this.consoleVisible.set(visible);
   }
 
+  /**
+   * @return the property flagging whether the welcome pane is visible, which is the case while no tab is open.
+   */
+  public BooleanProperty welcomePaneVisibleProperty() {
+
+    return this.welcomePaneVisible;
+  }
+
+  /**
+   * Updates the number of currently open tabs, showing the welcome pane when there are none.
+   *
+   * @param openTabCount the number of tabs currently open in the main window.
+   */
+  public void setOpenTabCount(int openTabCount) {
+
+    this.welcomePaneVisible.set(openTabCount == 0);
+  }
+
+  /**
+   * Opens (or focuses) the IDE launcher tab.
+   */
   public void openLauncherTab() {
 
     this.tabFactory.openLauncherTab();
+  }
+
+  /**
+   * Opens (or focuses) the tool configuration tab for the selected project and workspace.
+   */
+  public void openToolConfigTab() {
+
+    this.tabFactory.openToolConfigTab();
+  }
+
+  /**
+   * @return the property that is {@code true} once a project and workspace are selected.
+   */
+  public BooleanProperty workspaceSelectedProperty() {
+
+    return this.workspaceSelected;
   }
 
 }

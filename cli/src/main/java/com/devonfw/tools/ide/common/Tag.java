@@ -42,6 +42,9 @@ public final class Tag {
   /** {@link Tag} for Go. */
   public static final Tag GO = create("go", LANGUAGE);
 
+  /** {@link Tag} for Dart. */
+  public static final Tag DART = create("dart", LANGUAGE);
+
   /** {@link Tag} for Kotlin. */
   public static final Tag KOTLIN = create("kotlin", JVM);
 
@@ -139,6 +142,9 @@ public final class Tag {
 
   /** {@link Tag} for Ionic. */
   public static final Tag IONIC = create("ionic", CORDOVA, false);
+
+  /** {@link Tag} for Flutter (and its bundled Dart SDK). */
+  public static final Tag FLUTTER = create("flutter", FRAMEWORK, false);
 
   /** {@link #getParent() Parent} for quality-assurance. */
   public static final Tag QA = create("quality-assurance", ROOT, false, "qa", "quality");

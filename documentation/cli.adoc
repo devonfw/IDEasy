@@ -90,6 +90,8 @@ ide set-edition intellij ultimate
 ide set-version intellij 2025*
 ```
 
+To launch an IDE against a specific project folder instead of your managed link:workspaces.adoc[workspace] (via the `--project` option), or to learn about IDE workspaces, extra SDKs, and VM options, see the dedicated link:ide.adoc[IDE usage] page.
+
 === Local vs. global tool commandlets
 
 When we integrate tools in IDEasy we always try to follow the link:sandbox.adoc[sandbox principle].
