@@ -1,6 +1,8 @@
 ---
+name: sync-prs
 description: Sweep all open non-draft pull requests — bring each branch up to date with its base, re-home stale changelog entries into the current release section, and auto-resolve changelog-only conflicts
 model: opus
+disable-model-invocation: true
 ---
 
 The user asked to sync every open, non-draft pull request of the `devonfw/IDEasy` repository: bring
@@ -43,8 +45,8 @@ one. Get this wrong and you move entries into a shipped release.
   heading is added by the release manager in a dedicated commit (`Update CHANGELOG for release <v>`).
   Report the gap and skip all changelog re-homing this run.
 - Verify your local clone before any local git work: compare
-  `gh api repos/devonfw/IDEasy/commits/main --jq .sha` against `git rev-parse origin/main`. If they
-  differ, `git fetch origin main` first; if fetching is not possible, do NOT do local merges — limit
+  `gh api repos/devonfw/IDEasy/commits/main --jq .sha` against `git rev-parse upstream/main`. If they
+  differ, `git fetch upstream main` first; if fetching is not possible, do NOT do local merges — limit
   the run to read-only reporting plus `gh pr update-branch`, and say so.
 
 **Per PR — 1) bring the branch up to date with its base**
@@ -99,7 +101,8 @@ whose milestone said `2026.08.001` had its bullet parked under `== 2026.05.001`,
 
 - Determine EXACTLY which files conflict. GitHub does not list them, so reproduce the merge locally:
   1. `gh pr checkout <n>` (handles fork remotes and branch tracking).
-  2. `git fetch origin <baseRef>` then `git merge origin/<baseRef>` (do not commit yet).
+  2. `git fetch upstream <baseRef>` then `git merge upstream/<baseRef>` (do not commit yet; see the
+     remote convention in `AGENTS.md`, `origin` is the fork).
   3. `git diff --name-only --diff-filter=U` → the set of conflicted files.
 - **If the ONLY conflicted file is `CHANGELOG.adoc`:** resolve it, `git add CHANGELOG.adoc`, complete
   the merge, and `git push`.
