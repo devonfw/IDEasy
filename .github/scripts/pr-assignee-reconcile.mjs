@@ -399,16 +399,16 @@ mutation ($input: UpdateProjectV2ItemFieldValueInput!) {
  * @returns {Promise<ReviewRequestMap | null>}
  */
 async function readRequestedReviewers(repo, number) {
-  const response = await fetch(`${API}/repos/${repo}/pulls/${number}/requested_reviewers`, {
+  const res = await fetch(`${API}/repos/${repo}/pulls/${number}/requested_reviewers`, {
     method: 'GET',
     headers: headers(),
   });
   if (!res.ok) {
-    console.warn(`[reconcile]   ! could not read requested reviewers of ${repo}#${number} (HTTP ${response.status}); skipping the team review decision`,);
+    console.warn(`[reconcile]   ! could not read requested reviewers of ${repo}#${number} (HTTP ${res.status}); skipping the team review decision`);
     return null;
   }
 
-  const json = await response.json();
+  const json = await res.json();
   const requested = {};
 
   for (const user of json.users ?? []) {
@@ -417,20 +417,9 @@ async function readRequestedReviewers(repo, number) {
     }
   }
 
-  for (const team of json.requested_team_reviewers ?? []) {
+  for (const team of json.teams ?? []) {
     if (team?.slug) {
       requested[team.slug] = team.slug;
-    }
-  }
-
-  for (const slug of json.team_slugs ?? []) {
-    requested[slug] = slug;
-  }
-
-  // Excluded reviewers still count as requested.
-  if (json.requested_reviewers && typeof json.requested_reviewers === 'object') {
-    for (const key of Object.keys(json.requested_reviewers)) {
-      requested[key] = key;
     }
   }
 
@@ -443,11 +432,11 @@ async function readRequestedReviewers(repo, number) {
  * @returns {Promise<boolean>} true if successful
  */
 async function requestTeamReviewer(repo, number, team) {
-  const response = await rest('POST', `/repos/${repo}/pulls/${number}/requested_reviewers`, {
+  const res = await rest('POST', `/repos/${repo}/pulls/${number}/requested_reviewers`, {
     team_reviewers: [team],
   });
-  if (!response.ok) {
-    console.warn(`[reconcile]   ! could not request team "${team}" on ${repo}#${number} (HTTP ${response.status})`);
+  if (!res.ok) {
+    console.warn(`[reconcile]   ! could not request team "${team}" on ${repo}#${number} (HTTP ${res.status})`);
     return false;
   }
   return true;
@@ -481,7 +470,7 @@ async function main() {
   const finalReviewTeam = process.env.FINAL_REVIEW_TEAM || 'ide-writers';
   const dryRun = (process.env.DRY_RUN ?? 'true').toLowerCase() !== 'false';
 
-  const cfg = { teamReviewColumn, authorOnlyColumns, finalReviewColumn, finalReviewer };
+  const cfg = {teamReviewColumn, authorOnlyColumns, finalReviewColumn, finalReviewer, finalReviewTeam};
 
   console.log(`[reconcile] account=${login} board=#${boardNumber} "${title}" dryRun=${dryRun}`);
   console.log(

@@ -1,14 +1,7 @@
 // @ts-check
-import { test } from 'node:test';
+import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  classifyStatus,
-  computeTarget,
-  computeDiff,
-  COLUMNS,
-  parseBoardNumber,
-  resolveBoard,
-} from './reconcile-core.mjs';
+import {classifyStatus, COLUMNS, computeDiff, computeReviewRequest, computeTarget, parseBoardNumber, resolveBoard,} from './reconcile-core.mjs';
 
 // The board's real column names (matched against the Status field option names).
 const CFG = {
