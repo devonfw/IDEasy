@@ -32,6 +32,7 @@ import com.devonfw.tools.ide.tool.cdk.Cdk;
 import com.devonfw.tools.ide.tool.claude.Claude;
 import com.devonfw.tools.ide.tool.copilot.Copilot;
 import com.devonfw.tools.ide.tool.corepack.Corepack;
+import com.devonfw.tools.ide.tool.dart.Dart;
 import com.devonfw.tools.ide.tool.docker.Docker;
 import com.devonfw.tools.ide.tool.dotnet.DotNet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
@@ -75,6 +76,7 @@ import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.ruby.Ruby;
 import com.devonfw.tools.ide.tool.ruff.Ruff;
 import com.devonfw.tools.ide.tool.rust.Rust;
+import com.devonfw.tools.ide.tool.snyk.Snyk;
 import com.devonfw.tools.ide.tool.soapui.SoapUi;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.spring.Spring;
@@ -193,6 +195,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Pip(context));
     add(new Go(context));
     add(new Gui(context));
+    add(new Snyk(context));
     add(new SquirrelSql(context));
     add(new Spyder(context));
     add(new Nest(context));
@@ -206,6 +209,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new CheckCommandlet(context));
     add(new Obsidian(context));
     add(new Flutter(context));
+    add(new Dart(context));
     add(new Gemini(context));
     add(new Ollama(context));
   }
