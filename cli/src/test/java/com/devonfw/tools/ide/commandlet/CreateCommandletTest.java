@@ -56,8 +56,8 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   void testCreateCommandletRun() {
 
     // arrange
-    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("settings"));
-    context.setGitContext(gitContextImplMock);
+    FixtureGitContextMock gitContextMock = new FixtureGitContextMock(context, TEST_RESOURCES.resolve("settings"));
+    context.setGitContext(gitContextMock);
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
     cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);

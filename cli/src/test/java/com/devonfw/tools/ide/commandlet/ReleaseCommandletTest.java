@@ -12,7 +12,6 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.git.GitContextMock;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
-import com.devonfw.tools.ide.git.GitContextImplMock;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
