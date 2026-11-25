@@ -53,6 +53,13 @@ public class CheckCommandlet extends AbstractCommandlet {
   public final FlagProperty all;
 
   /**
+   * Checks the repository for issues.
+   */
+  private void checkRepository(Path path, List<CheckIssue> issues) {
+    checkGitIgnore(path, issues);
+  }
+
+  /**
    * The constructor.
    *
    * @param context the {@link IdeContext}.
@@ -83,7 +90,7 @@ public class CheckCommandlet extends AbstractCommandlet {
       List<Path> roots = findRepositoryRootsAll();
       LOG.info("Found {} repository root(s) to check.", roots.size());
       for (Path root : roots) {
-        checkGitIgnore(root, issues);
+        checkRepository(root, issues);
       }
     } else {
       Path repositoryRoot = findRepositoryRoot();
@@ -92,7 +99,7 @@ public class CheckCommandlet extends AbstractCommandlet {
         return;
       }
       LOG.info("Found repository root at {}.", repositoryRoot);
-      checkGitIgnore(repositoryRoot, issues);
+      checkRepository(repositoryRoot, issues);
     }
 
     report(issues);
@@ -130,7 +137,7 @@ public class CheckCommandlet extends AbstractCommandlet {
 
   /**
    * @param start the directory to scan.
-   * @return the repository roots found, excluding nested repositories.
+   * @return the repository roots found.
    */
   private List<Path> walkRoots(Path start) {
 
@@ -143,9 +150,12 @@ public class CheckCommandlet extends AbstractCommandlet {
         @Override
         public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
 
+          if (dir.getFileName().toString().startsWith(".")) {
+            return FileVisitResult.SKIP_SUBTREE;
+          }
           if (isRepositoryRoot(dir)) {
             roots.add(dir);
-            return FileVisitResult.CONTINUE;
+            return FileVisitResult.SKIP_SUBTREE;
           }
           return FileVisitResult.CONTINUE;
         }

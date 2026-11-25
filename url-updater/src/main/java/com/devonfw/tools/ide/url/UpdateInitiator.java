@@ -76,6 +76,5 @@ public class UpdateInitiator {
     }
 
     logger.info(urlFinalReport.toString());
-
   }
 }
