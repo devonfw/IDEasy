@@ -19,6 +19,7 @@ public class HelidonUrlUpdater extends MavenBasedUrlUpdater {
    * The constructor.
    */
   public HelidonUrlUpdater() {
+  
     super();
   }
 
@@ -31,14 +32,19 @@ public class HelidonUrlUpdater extends MavenBasedUrlUpdater {
   HelidonUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
     super(downloadBaseUrl, versionBaseUrl);
   }
-
+  HelidonUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
+  
+    super(downloadBaseUrl, versionBaseUrl);
+  }
   @Override
   public String getTool() {
+  
     return "helidon";
   }
 
   @Override
   protected String getMavenGroupIdPath() {
+  
     return "io/helidon/build-tools/cli";
   }
 
@@ -50,6 +56,7 @@ public class HelidonUrlUpdater extends MavenBasedUrlUpdater {
 
   @Override
   protected String getExtension() {
+  
     return ".zip";
   }
 
@@ -65,16 +72,19 @@ public class HelidonUrlUpdater extends MavenBasedUrlUpdater {
 
   @Override
   protected boolean isOsDependent() {
+  
     return false;
   }
 
   @Override
   public String getCpeVendor() {
+  
     return "oracle";
   }
 
   @Override
   public String getCpeProduct() {
+  
     return "helidon";
   }
 }
