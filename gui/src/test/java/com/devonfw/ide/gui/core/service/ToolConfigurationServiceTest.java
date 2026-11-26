@@ -300,7 +300,7 @@ class ToolConfigurationServiceTest extends AbstractIdeContextTest {
   }
 
   @Test
-  void testApplyAndSave_disabledToolRemovesExistingVersionLine(@TempDir Path tempDir) throws IOException {
+  void testApplyAndSave_disabledToolKeepsExistingVersionLine(@TempDir Path tempDir) throws IOException {
 
     // arrange – existing file already has a version entry for mvn
     IdeGuiContext guiContext = createGuiContext(tempDir, "IDE_TOOLS=mvn\nMVN_VERSION=3.8.0\n");
@@ -308,13 +308,13 @@ class ToolConfigurationServiceTest extends AbstractIdeContextTest {
     mvn.setEnabled(false);
     // act
     service.applyAndSave(List.of(mvn), guiContext);
-    // assert – the version line must be removed when the tool is disabled
+    // assert – disabling the tool does not remove its existing version
     String saved = readSettingsFile(tempDir);
-    assertThat(saved).doesNotContain("MVN_VERSION=");
+    assertThat(saved).contains("MVN_VERSION=3.8.0");
   }
 
   @Test
-  void testApplyAndSave_disabledToolRemovesExistingVersionAndEditionLines(@TempDir Path tempDir) throws IOException {
+  void testApplyAndSave_disabledToolKeepsExistingVersionAndEditionLines(@TempDir Path tempDir) throws IOException {
 
     // arrange – existing file already has version and edition entries for intellij
     IdeGuiContext guiContext = createGuiContext(tempDir, "IDE_TOOLS=intellij\nINTELLIJ_VERSION=2024.1\nINTELLIJ_EDITION=community\n");
@@ -322,10 +322,10 @@ class ToolConfigurationServiceTest extends AbstractIdeContextTest {
     intellij.setEnabled(false);
     // act
     service.applyAndSave(List.of(intellij), guiContext);
-    // assert – both the version and edition line must be removed when the tool is disabled
+    // assert – disabling the tool keeps its existing version and edition
     String saved = readSettingsFile(tempDir);
-    assertThat(saved).doesNotContain("INTELLIJ_VERSION=");
-    assertThat(saved).doesNotContain("INTELLIJ_EDITION=");
+    assertThat(saved).contains("INTELLIJ_VERSION=2024.1");
+    assertThat(saved).contains("INTELLIJ_EDITION=community");
     assertThat(saved).doesNotContain("IDE_TOOLS=intellij");
   }
 

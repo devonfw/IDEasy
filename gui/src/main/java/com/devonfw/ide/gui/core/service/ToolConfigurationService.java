@@ -162,11 +162,6 @@ public final class ToolConfigurationService {
         if (toolConfiguration.isSupportsEdition()) {
           settingsVars.set(editionVar, emptyToNull(toolConfiguration.getConfiguredEdition()), false);
         }
-      } else {
-        settingsVars.set(versionVar, null, false);
-        if (toolConfiguration.isSupportsEdition()) {
-          settingsVars.set(editionVar, null, false);
-        }
       }
     }
 
