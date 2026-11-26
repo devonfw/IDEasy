@@ -7,9 +7,9 @@ import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
- * Tests value auto-completion of a {@link PathProperty} for an empty value (the {@code --project=} form, issue #2822) where the path has no file name.
+ * Tests value auto-completion of a {@link FolderProperty} for an empty value (the {@code --project=} form, issue #2822) where the path has no file name.
  */
-class PathPropertyTest extends Assertions {
+class FolderPropertyTest extends Assertions {
 
   @Test
   void testCompleteValueWithEmptyValueCompletesFolder() {

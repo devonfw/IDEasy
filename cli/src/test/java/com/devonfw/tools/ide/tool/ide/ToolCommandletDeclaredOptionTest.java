@@ -36,7 +36,8 @@ class ToolCommandletDeclaredOptionTest extends AbstractIdeContextTest {
     CliArguments args = new CliArguments("intellij", "--project=" + external.toString());
     args.next(); // skip the start sentinel so the parser starts at the keyword, as Ideasy.run does
     context.apply(args, intellij);
-    // assert - the declared option was parsed natively, not swallowed into the passthrough arguments
+    // assert - the declared option was parsed natively and applied to the --project property, not swallowed into the passthrough arguments
+    assertThat(intellij.project.getValue()).isEqualTo(external);
     assertThat(intellij.getOpenPath()).isEqualTo(external);
     assertThat(intellij.arguments.asList()).doesNotContain("--project=" + external.toString());
     assertThat(intellij.arguments.asList()).doesNotContain("--project");
@@ -57,7 +58,8 @@ class ToolCommandletDeclaredOptionTest extends AbstractIdeContextTest {
     CliArguments args = new CliArguments("intellij", "--project");
     args.next();
     context.apply(args, intellij);
-    // assert - the bare flag selects the current working directory and was consumed, not passed to the IDE
+    // assert - the bare flag was applied to the --project property as the current working directory and consumed, not passed to the IDE
+    assertThat(intellij.project.getValue()).isEqualTo(context.getCwd());
     assertThat(intellij.getOpenPath()).isEqualTo(context.getCwd());
     assertThat(intellij.arguments.asList()).doesNotContain("--project");
   }
@@ -97,8 +99,10 @@ class ToolCommandletDeclaredOptionTest extends AbstractIdeContextTest {
     // act
     List<String> candidates = context.complete(args, new CompletionCandidateCollectorDefault(context), false)
         .stream().map(CompletionCandidate::text).toList();
-    // assert - the declared option is offered (it was previously swallowed by the passthrough and not completed)
-    assertThat(candidates).contains("--project");
+    // assert - the declared option is offered (it was previously swallowed by the passthrough and not completed).
+    // We only require a candidate starting with "--project" (not an exact match) so a future improvement of the
+    // auto-completion that appends the equals sign (e.g. "--project=") to guide the user does not turn this test red.
+    assertThat(candidates).anySatisfy(c -> assertThat(c).startsWith("--project"));
   }
 
   /**
