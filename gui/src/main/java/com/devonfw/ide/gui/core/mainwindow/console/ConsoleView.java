@@ -3,15 +3,25 @@ package com.devonfw.ide.gui.core.mainwindow.console;
 
 import java.text.MessageFormat;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+
+import com.devonfw.tools.ide.log.IdeLogLevel;
+
 import javafx.collections.ListChangeListener.Change;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
-import javafx.scene.text.Font;
+
+import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 
 import com.devonfw.ide.gui.core.service.NlsService;
@@ -93,64 +103,82 @@ public class ConsoleView {
   private static class LogEntryCell extends ListCell<IdeLogEntry> {
 
 
-    private final TextArea textArea;
-    public LogEntryCell(){
-      textArea = new TextArea();
-      textArea.setWrapText(true);
-      textArea.setEditable(false);
-      textArea.setFocusTraversable(false);
+    private static final List<String> LOG_LEVEL_STYLE_CLASSES =
+        Arrays.stream(IdeLogLevel.values()).map(LogEntryCell::toStyleClass).toList();
+    private final LogEntryTextArea textArea = new LogEntryTextArea();
+
+    private LogEntryCell() {
+      setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
     }
 
-    private static double computeTextHeight(String text, double width) {
 
-      Text helper = new Text(text);
-
-      helper.setFont(Font.font("Consolas", 11));
-      helper.setWrappingWidth(width);
-
-      return helper.getLayoutBounds().getHeight();
-    }
     @Override
     protected void updateItem(IdeLogEntry entry, boolean empty) {
-
+      this.textArea.getStyleClass().removeAll(LOG_LEVEL_STYLE_CLASSES);
       super.updateItem(entry, empty);
       if (empty || entry == null) {
-        textArea.clear();
+        this.textArea.clear();
         setGraphic(null);
       } else {
-        String text= entry.displayValue();
-        textArea.setText(text);
-        textArea.getStyleClass().removeIf(style ->
-            style.startsWith("log-entry"));
-
-        textArea.getStyleClass().add("log-entry");
-        textArea.getStyleClass().add(getStyleClassForEntry(entry));
-        textArea.setText(text);
-
-        textArea.applyCss();
-
-        double textHeight = computeTextHeight(text, textArea.getWidth());
-
-        textArea.setPrefHeight(textHeight + 11);
-
-
-        setGraphic(textArea);
+        this.textArea.setText(entry.displayValue());
+        if (entry.level() != null) {
+          this.textArea.getStyleClass().add(toStyleClass(entry.level()));
+        }
+        setGraphic(this.textArea);
       }
     }
 
-    private String getStyleClassForEntry(IdeLogEntry entry) {
+    private static String toStyleClass(IdeLogLevel level) {
 
-      if (entry.level() == null) {
-        return "log-entry-plain";
+      return level.name().toLowerCase(Locale.ROOT);
+    }
+  }
+
+  private static class LogEntryTextArea extends TextArea {
+    private final Text textMeasure = new Text();
+    private LogEntryTextArea() {
+      setWrapText(true);
+      setEditable(false);
+      setFocusTraversable(false);
+      setMinHeight(USE_PREF_SIZE);
+      getStyleClass().add("log-entry");
+    }
+    @Override
+    public Orientation getContentBias() {
+
+      return Orientation.HORIZONTAL;
+    }
+    @Override
+    protected double computePrefHeight(double width){
+      Region scrollPane = (Region) lookup(".scroll-pane");
+      Region content = (Region) lookup(".content");
+      Text text = (Text) lookup(".text");
+      if ((scrollPane == null) || (content == null) || (text == null)) {
+        return super.computePrefHeight(width);
       }
-      return switch (entry.level()) {
-        case ERROR -> "log-entry-error";
-        case WARNING -> "log-entry-warning";
-        case INFO -> "log-entry-info";
-        case DEBUG -> "log-entry-debug";
-        case TRACE -> "log-entry-trace";
-        default -> "log-entry-plain";
-      };
+      double wrappingWidth = 0; // without a given width the text is measured unwrapped
+      if (width >= 0) {
+        double horizontalInsets = snappedLeftInset() + snappedRightInset() + getHorizontalInsets(scrollPane) + getHorizontalInsets(content);
+        wrappingWidth = Math.max(width - horizontalInsets, 0);
+      }
+      this.textMeasure.setFont(text.getFont());
+      this.textMeasure.setBoundsType(text.getBoundsType());
+      this.textMeasure.setLineSpacing(text.getLineSpacing());
+      this.textMeasure.setText(getText());
+      this.textMeasure.setWrappingWidth(wrappingWidth);
+      double verticalInsets = snappedTopInset() + snappedBottomInset() + getVerticalInsets(scrollPane) + getVerticalInsets(content);
+      return snapSizeY(this.textMeasure.getLayoutBounds().getHeight() + verticalInsets);
+    }
+    private static double getHorizontalInsets(Region region) {
+
+      Insets insets = region.getInsets();
+      return region.snapSpaceX(insets.getLeft()) + region.snapSpaceX(insets.getRight());
+    }
+
+    private static double getVerticalInsets(Region region) {
+
+      Insets insets = region.getInsets();
+      return region.snapSpaceY(insets.getTop()) + region.snapSpaceY(insets.getBottom());
     }
   }
 }
