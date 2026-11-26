@@ -26,6 +26,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.context.TaskManager;
+import com.devonfw.ide.gui.core.event.CommandletLaunchEvent;
 import com.devonfw.ide.gui.core.helper.FxHelper;
 import com.devonfw.ide.gui.core.mainwindow.MainWindowView;
 import com.devonfw.ide.gui.core.mainwindow.MainWindowViewModel;
@@ -297,20 +298,23 @@ public class AppBaseTest extends UIBasedApplicationTest {
   //===Console panel tests===
 
   /**
-   * The pre-launch action registered on the TabFactory opens the console by calling {@code setConsoleVisible(true)} on the view model. Launching a commandlet
-   * for real would install an IDE, so this covers the mechanism that action drives rather than the launch itself.
+   * A commandlet launch event opens the console through the GUI event bus.
    */
   @Test
-  void testConsoleOpensWhenRequestedThroughTheViewModel() {
+  void testConsoleOpensOnCommandletLaunchEvent() {
 
     Divider mainPanelDivider = centerSplitPane.getDividers().getFirst();
     assertThat(mainPanelDivider.getPosition()).as("The console should start collapsed").isGreaterThan(0.99);
 
-    interact(() -> this.viewModel.setConsoleVisible(true));
+    this.guiStateManager.getEventBus().sendEvent(new CommandletLaunchEvent());
     waitForFxEvents();
 
-    assertThat(mainPanelDivider.getPosition()).as("Console panel should be extended when the view model requests it").isEqualTo(0.75, Offset.offset(0.01));
-    assertThat(consolePaneToggleButton.isSelected()).as("The toggle button should follow the view model").isTrue();
+    assertThat(mainPanelDivider.getPosition())
+        .as("Console panel should be extended when a commandlet launch event is sent")
+        .isEqualTo(0.75, Offset.offset(0.01));
+    assertThat(consolePaneToggleButton.isSelected())
+        .as("The toggle button should follow the view model")
+        .isTrue();
   }
 
   /**
