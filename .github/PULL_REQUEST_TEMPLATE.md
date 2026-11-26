@@ -20,6 +20,7 @@ Make sure everything is checked before merging this PR. For further info please 
 our [DoD](https://github.com/devonfw/IDEasy/blob/main/documentation/contributing/DoD.adoc).
 
 - [ ] When running `mvn clean test` locally all tests pass and build is successful
+- [ ] For commandlet changes you have added a relevant integration test under [cli/src/test/integration-tests](https://github.com/devonfw/IDEasy/tree/main/cli/src/test/integration-tests) and included how to run it under "Testing instructions"
 - [ ] PR title is of the form `#«issue-id»: «brief summary»` (e.g. `#921: fixed setup.bat` and not `feature/921 fixed setup.bat`).
   If no issue ID exists, title only.
 - [ ] PR top-level comment summarizes what has been done and contains link to addressed issue(s)
