@@ -183,6 +183,22 @@ public class PluginManager {
     deleteAllPluginMarkerFiles();
   }
 
+  /**
+   * Handles the plugins after the {@link PluginBasedCommandlet tool} itself has been installed: {@link #resetPlugins(ToolInstallRequest) resets} the installed
+   * plugins if {@link PluginBasedCommandlet#isPluginPurgeRequired(ToolInstallRequest) required} and then
+   * {@link PluginBasedCommandlet#installPlugins(Collection, ProcessContext) installs} the configured plugins. This is the shared plugin logic of the
+   * {@code postInstall} step of all plugin-capable tools.
+   *
+   * @param request the {@link ToolInstallRequest} of the tool installation.
+   */
+  public void postInstallPlugins(ToolInstallRequest request) {
+
+    if (this.tool.isPluginPurgeRequired(request)) {
+      resetPlugins(request);
+    }
+    this.tool.installPlugins(this.tool.getPlugins().getPlugins(), request.getProcessContext());
+  }
+
   private String describePurgeReason(ToolInstallRequest request) {
 
     if (this.tool.isForcePluginReinstall()) {

@@ -8,6 +8,8 @@ import java.util.Collection;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
@@ -32,7 +34,10 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
   /**
    * @return {@code true} if the reset and reinstallation of the plugins is forced for the current run via the {@code --force-plugin-reinstall} flag.
    */
-  boolean isForcePluginReinstall();
+  default boolean isForcePluginReinstall() {
+
+    return getForcePluginReinstall().isTrue();
+  }
 
   /**
    * Determines whether all installed plugins of this tool have to be purged (reset and reinstalled) as part of the installation. A purge is required if the
@@ -63,16 +68,6 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
   }
 
   /**
-   * @return the configured edition of the tool owning the plugins (see {@code AbstractToolCommandlet#getConfiguredEdition()}).
-   */
-  String getConfiguredEdition();
-
-  /**
-   * @return the installed edition of the tool owning the plugins or {@code null} if not installed (see {@code AbstractToolCommandlet#getInstalledEdition()}).
-   */
-  String getInstalledEdition();
-
-  /**
    * @return the {@link Path} to the folder with the plugin configuration files inside the settings. The default implementation is shared by all plugin-capable
    *     tools (see {@link AbstractPluginBasedCommandlet} and {@link com.devonfw.tools.ide.tool.pip.PipBasedIdeToolCommandlet}).
    */
@@ -84,7 +79,10 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
   /**
    * @return the {@link Path} where the plugins of this tool shall be installed.
    */
-  Path getPluginsInstallationPath();
+  default Path getPluginsInstallationPath() {
+
+    return getContext().getPluginsPath().resolve(getName());
+  }
 
   /**
    * @return {@code true} if the {@link ToolPluginDescriptor#url() plugin url} is needed, {@code false} otherwise. The default (no URL) is shared by all
@@ -93,6 +91,15 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
   default boolean isPluginUrlNeeded() {
 
     return false;
+  }
+
+  /**
+   * @return the {@link FlagProperty} backing the {@code --force-plugin-reinstall} flag. The default implementation resolves the flag from the
+   *     {@link #getOption(String) commandlet properties}.
+   */
+  default FlagProperty getForcePluginReinstall() {
+
+    return (FlagProperty) getOption("--force-plugin-reinstall");
   }
 
   /**
@@ -134,22 +141,36 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
   boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc);
 
   /**
-   * Ensures that the tool itself is installed and then installs the plugin.
+   * Ensures that the tool itself is installed and then installs the plugin. The default implementation is shared by all plugin-capable tools.
    *
    * @param plugin the {@link ToolPluginDescriptor} to install.
    * @param step the {@link Step} for the plugin installation.
    */
-  void installPlugin(ToolPluginDescriptor plugin, final Step step);
+  default void installPlugin(ToolPluginDescriptor plugin, final Step step) {
+
+    ProcessContext pc = getContext().newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
+    ToolInstallRequest request = new ToolInstallRequest(true);
+    request.setProcessContext(pc);
+    install(request);
+    installPlugin(plugin, step, pc);
+  }
 
   /**
-   * @param plugin the {@link ToolPluginDescriptor} to uninstall.
+   * @param plugin the {@link ToolPluginDescriptor plugin} to uninstall. The default implementation is shared by all plugin-capable tools.
    */
-  void uninstallPlugin(ToolPluginDescriptor plugin);
+  default void uninstallPlugin(ToolPluginDescriptor plugin) {
+
+    getPluginManager().uninstallPlugin(plugin);
+  }
 
   /**
-   * Uninstalls all currently installed plugins so that they can be installed again as configured in the project settings.
+   * Uninstalls all currently installed plugins so that they can be installed again as configured in the project settings. The default implementation is shared
+   * by all plugin-capable tools.
    */
-  void deleteAllPlugins();
+  default void deleteAllPlugins() {
+
+    getContext().getFileAccess().delete(getPluginsInstallationPath());
+  }
 
   /**
    * @param plugin the {@link ToolPluginDescriptor plugin} to search for.

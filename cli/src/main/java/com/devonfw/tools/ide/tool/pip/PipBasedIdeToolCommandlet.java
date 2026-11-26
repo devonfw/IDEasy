@@ -12,7 +12,6 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.FlagProperty;
@@ -39,9 +38,6 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
 
   private final PluginManager pluginManager;
 
-  /** {@link FlagProperty} to force the reset and reinstallation of plugins as configured in the project settings. */
-  public final FlagProperty forcePluginReinstall;
-
   /**
    * The constructor.
    *
@@ -53,16 +49,9 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     super(context, tool, tags);
     this.workspaceConfigurer = new IdeWorkspaceConfigurer(context, tool);
     this.pluginManager = new PluginManager(context, this);
-    this.forcePluginReinstall = add(new FlagProperty("--force-plugin-reinstall"));
-  }
-
-  /**
-   * @return {@code true} if the reset and reinstallation of the plugins is forced for the current run via the {@code --force-plugin-reinstall} flag.
-   */
-  @Override
-  public boolean isForcePluginReinstall() {
-
-    return this.forcePluginReinstall.isTrue();
+    // The flag is registered in the constructor (not in #initProperties) as commandlets may also be instantiated without going through the
+    // CommandletManager (e.g. in tests), which is the only caller of #initialize()
+    add(new FlagProperty("--force-plugin-reinstall"));
   }
 
   @Override
@@ -106,10 +95,7 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     super.postInstall(request);
 
     configureWorkspace();
-    if (isPluginPurgeRequired(request)) {
-      this.pluginManager.resetPlugins(request);
-    }
-    installPlugins(getPlugins().getPlugins(), request.getProcessContext());
+    this.pluginManager.postInstallPlugins(request);
   }
 
   @Override
@@ -122,16 +108,6 @@ public abstract class PipBasedIdeToolCommandlet extends PipBasedCommandlet imple
     result.log(IdeLogLevel.DEBUG, IdeLogLevel.ERROR);
     step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
     return false;
-  }
-
-  @Override
-  public void installPlugin(ToolPluginDescriptor plugin, final Step step) {
-
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
-    ToolInstallRequest request = new ToolInstallRequest(true);
-    request.setProcessContext(pc);
-    install(request);
-    installPlugin(plugin, step, pc);
   }
 
   @Override

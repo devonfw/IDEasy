@@ -18,7 +18,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.EnvironmentVariableCollectorContext;
 import com.devonfw.tools.ide.property.FlagProperty;
-import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 
 /**
  * {@link AbstractCommandlet} to print the environment variables.
@@ -145,7 +145,7 @@ public final class EnvironmentCommandlet extends AbstractCommandlet {
   private void printBashCompletions() {
 
     for (AbstractCommandlet commandlet : this.context.getCommandletManager().getCommandlets()) {
-      if (commandlet instanceof AbstractLocalToolCommandlet tool) {
+      if (commandlet instanceof LocalToolCommandlet tool) {
         try {
           if (tool.isInstalled()) {
             String bashCompletion = tool.getBashCompletion();

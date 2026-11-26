@@ -1,15 +1,12 @@
 package com.devonfw.tools.ide.tool.plugin;
 
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.FlagProperty;
-import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
 
@@ -20,9 +17,6 @@ import com.devonfw.tools.ide.tool.ToolInstallRequest;
 public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCommandlet implements PluginBasedCommandlet {
 
   private final PluginManager pluginManager;
-
-  /** {@link FlagProperty} to force the reset and reinstallation of plugins as configured in the project settings. */
-  public final FlagProperty forcePluginReinstall;
 
   /**
    * The constructor.
@@ -35,7 +29,9 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
 
     super(context, tool, tags);
     this.pluginManager = new PluginManager(context, this);
-    this.forcePluginReinstall = add(new FlagProperty("--force-plugin-reinstall"));
+    // The flag is registered in the constructor (not in #initProperties) as commandlets may also be instantiated without going through the
+    // CommandletManager (e.g. in tests), which is the only caller of #initialize()
+    add(new FlagProperty("--force-plugin-reinstall"));
   }
 
   /**
@@ -45,15 +41,6 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   public PluginManager getPluginManager() {
 
     return this.pluginManager;
-  }
-
-  /**
-   * @return {@code true} if the reset and reinstallation of the plugins is forced for the current run via the {@code --force-plugin-reinstall} flag.
-   */
-  @Override
-  public boolean isForcePluginReinstall() {
-
-    return this.forcePluginReinstall.isTrue();
   }
 
   @Override
@@ -81,31 +68,14 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
     return this.pluginManager.getExtraPlugins(plugins);
   }
 
+  /**
+   * Ensures that the {@link #getPluginsInstallationPath() plugins installation folder} owned by this tool exists before installing the plugins, as it may have
+   * been deleted by a {@link PluginManager#resetPlugins(ToolInstallRequest) reset} or not have been created yet.
+   */
   @Override
-  public Path getPluginsInstallationPath() {
+  public void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
 
-    return this.context.getPluginsPath().resolve(this.tool);
-  }
-
-  @Override
-  public void installPlugin(ToolPluginDescriptor plugin, final Step step) {
-
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
-    ToolInstallRequest request = new ToolInstallRequest(true);
-    request.setProcessContext(pc);
-    install(request);
-    installPlugin(plugin, step, pc);
-  }
-
-  @Override
-  public void uninstallPlugin(ToolPluginDescriptor plugin) {
-
-    this.pluginManager.uninstallPlugin(plugin);
-  }
-
-  @Override
-  public void deleteAllPlugins() {
-
-    this.context.getFileAccess().delete(getPluginsInstallationPath());
+    this.context.getFileAccess().mkdirs(getPluginsInstallationPath());
+    PluginBasedCommandlet.super.installPlugins(plugins, pc);
   }
 }
