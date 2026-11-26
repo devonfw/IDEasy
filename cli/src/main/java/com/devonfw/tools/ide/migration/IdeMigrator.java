@@ -11,7 +11,7 @@ import com.devonfw.tools.ide.migration.v2025.Mig202502001;
 import com.devonfw.tools.ide.migration.v2025.Mig202510001;
 import com.devonfw.tools.ide.migration.v2026.Mig202609002;
 import com.devonfw.tools.ide.migration.v2026.Mig202610001;
-import com.devonfw.tools.ide.migration.v2026.Mig202611001;
+import com.devonfw.tools.ide.migration.v2026.Mig202612001;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -39,7 +39,7 @@ public class IdeMigrator implements IdeMigration {
         new Mig202510001(),
         new Mig202609002(),
         new Mig202610001(),
-        new Mig202611001()
+        new Mig202612001()
     ));
   }
 

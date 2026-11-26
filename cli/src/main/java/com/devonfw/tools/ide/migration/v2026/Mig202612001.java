@@ -14,13 +14,13 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.migration.IdeVersionMigration;
 
 /**
- * Migration to 2026.11.001. Moves the metadata of the JetBrains based IDEs ({@code .«ide»/config}) out of each workspace into the dedicated
+ * Migration to 2026.12.001. Moves the metadata of the JetBrains based IDEs ({@code .«ide»/config}) out of each workspace into the dedicated
  * {@code $IDE_HOME/.ide/«ide»/«workspace»/config} folder and removes the generated properties files (e.g. {@code idea.properties}) that IDEasy now generates
  * outside of the workspace. See <a href="https://github.com/devonfw/IDEasy/issues/2531">#2531</a>.
  */
-public class Mig202611001 extends IdeVersionMigration {
+public class Mig202612001 extends IdeVersionMigration {
 
-  private static final Logger LOG = LoggerFactory.getLogger(Mig202611001.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Mig202612001.class);
 
   /** The name of the JetBrains IDEs mapped to the product prefix of their generated properties file. */
   private static final Map<String, String> JETBRAINS_IDES = Map.of("intellij", "idea", "android-studio", "studio", "pycharm", "pycharm");
@@ -30,9 +30,9 @@ public class Mig202611001 extends IdeVersionMigration {
   /**
    * The constructor.
    */
-  public Mig202611001() {
+  public Mig202612001() {
 
-    super("2026.11.001");
+    super("2026.12.001");
   }
 
   @Override
