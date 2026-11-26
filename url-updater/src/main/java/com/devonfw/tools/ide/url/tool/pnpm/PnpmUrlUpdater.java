@@ -64,6 +64,11 @@ public class PnpmUrlUpdater extends GithubUrlTagUpdater {
   @Override
   protected boolean isAcceptVersion(String version) {
 
+    if (!version.matches("\\d+\\.\\d+\\.\\d+")) {
+      // the pnpm repo is a monorepo with thousands of git tags that are not pnpm CLI releases (e.g. "package-requester/2.0.0-0"), so only plain
+      // "major.minor.patch" versions are accepted
+      return false;
+    }
     VersionIdentifier vid = VersionIdentifier.ofOptional(version);
     return (vid != null) && vid.isGreaterOrEqual(MIN_VERSION) && super.isAcceptVersion(version);
   }

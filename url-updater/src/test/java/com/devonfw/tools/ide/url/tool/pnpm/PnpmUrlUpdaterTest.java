@@ -62,5 +62,33 @@ public class PnpmUrlUpdaterTest extends AbstractUrlUpdaterTest {
     assertThat(pnpmDir.resolve("10.34.7")).doesNotExist();
     assertThat(pnpmDir.resolve("8.6.0")).doesNotExist();
     assertThat(pnpmDir.resolve("12.13.0-alpha.1")).doesNotExist();
+
+    // the pnpm repo is a monorepo with thousands of git tags that are not pnpm CLI releases (e.g. "package-requester/2.0.0");
+    // these would produce 404 download URLs (https://github.com/pnpm/pnpm/releases/download/vpackage-requester/2.0.0/...) and must be filtered out
+    assertThat(pnpmDir.resolve("package-requester")).doesNotExist();
+    assertThat(pnpmDir.resolve("@pnpm")).doesNotExist();
+    assertThat(pnpmDir.resolve("config")).doesNotExist();
+  }
+
+  /**
+   * Verifies that the monorepo git tags of the pnpm repository (which are not pnpm CLI releases) are filtered out by
+   * {@link PnpmUrlUpdater#mapVersion(String)}. If one of these tags were accepted it would leak through as a version and produce a download URL such as
+   * <a href="https://github.com/pnpm/pnpm/releases/download/vpackage-requester/2.0.0/pnpm-linux-x64.tar.gz">...</a> that results in a 404 (see issue #2640).
+   *
+   * @param wmRuntimeInfo the {@link WireMockRuntimeInfo}.
+   */
+  @Test
+  void testMonorepoTagsAreFiltered(WireMockRuntimeInfo wmRuntimeInfo) {
+
+    PnpmUrlUpdater updater = new PnpmUrlUpdater(wmRuntimeInfo.getHttpBaseUrl(), wmRuntimeInfo.getHttpBaseUrl());
+
+    // real pnpm CLI releases are plain "major.minor.patch" tags (with a "v" prefix) and are kept
+    assertThat(updater.mapVersion("v12.12.1")).isEqualTo("12.12.1");
+    assertThat(updater.mapVersion("v11.0.0")).isEqualTo("11.0.0");
+
+    // monorepo tags that are not pnpm CLI releases must be filtered out (map to null)
+    assertThat(updater.mapVersion("package-requester/2.0.0")).isNull();
+    assertThat(updater.mapVersion("@pnpm/headless@0.6.2")).isNull();
+    assertThat(updater.mapVersion("config/1.0.0")).isNull();
   }
 }
