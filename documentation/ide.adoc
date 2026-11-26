@@ -84,9 +84,13 @@ Use the IDE-specific variable (e.g. `INTELLIJ_VM_ARGS`) to configure a single ID
 
 === Properties
 
-For some IDEs (IntelliJ, Android Studio, PyCharm) IDEasy exports an IDE-specific properties environment variable — `IDEA_PROPERTIES`, `STUDIO_PROPERTIES`, or `PYCHARM_PROPERTIES` — that points at the properties file of the folder the IDE is opening (e.g. the opened folder's `idea.properties`).
-This is the same folder the IDE is launched with, whether that is your managed link:workspaces.adoc[workspace] or an external folder opened via the `--project` option described above.
-So when you open an external project, the IDE reads that project's own properties file instead of your workspace's.
+For the JetBrains IDEs (IntelliJ, Android Studio, PyCharm) IDEasy exports an IDE-specific properties environment variable — `IDEA_PROPERTIES`, `STUDIO_PROPERTIES`, or `PYCHARM_PROPERTIES` — this variable points at the sandboxed properties file that IDEasy provides to the IDEs in each workspace.
+
+For the default launch on your managed link:workspaces.adoc[workspace], IDEasy dynamically generates that properties file (e.g. `idea.properties`) in the IDE-specific metadata folder under `$IDE_HOME/.ide/«ide»/«workspace»` — the same folder the `.vmoptions` file is written to — and points the environment variable at it.
+The generated file carries the IDEasy-managed settings of the IDE, e.g. the path of its config directory (`idea.config.path`).
+
+When you open an external folder via the `--project` option, IDEasy does not generate a properties file.
+Instead, the variable points at the properties file of the opened folder (e.g. that folder's `idea.properties`), so the IDE reads the external project's own properties file.
 
 NOTE: The properties filename follows the IDE, e.g. `idea.properties`, `studio.properties`, or `pycharm.properties`.
 The `«IDE»_OPTIONS` and `«IDE»_VM_ARGS` variables, in contrast, apply globally when launching the IDE and are not tied to a specific opened folder.
