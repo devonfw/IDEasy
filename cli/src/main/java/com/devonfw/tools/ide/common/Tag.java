@@ -42,6 +42,9 @@ public final class Tag {
   /** {@link Tag} for Go. */
   public static final Tag GO = create("go", LANGUAGE);
 
+  /** {@link Tag} for Dart. */
+  public static final Tag DART = create("dart", LANGUAGE);
+
   /** {@link Tag} for Kotlin. */
   public static final Tag KOTLIN = create("kotlin", JVM);
 

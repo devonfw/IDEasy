@@ -163,6 +163,10 @@ public interface IdeVariables {
    * registering it would only add it to the known-variable lookup without any resolution or export behavior.
    */
   VariableDefinitionString GUI_LANGUAGE = new VariableDefinitionString("GUI_LANGUAGE");
+   * {@link VariableDefinition} to relocate the per-project python virtual environment (see {@code Python}) from its default location inside {@code IDE_HOME}
+   * to a specific location chosen by the user (e.g. a python module). While not set (the default) the virtual environment is created inside {@code IDE_HOME}.
+   */
+  VariableDefinitionString PYTHON_VENV_DIR = new VariableDefinitionString("PYTHON_VENV_DIR", null, c -> null);
 
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, USER, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, HTTP_VERSIONS,
@@ -171,7 +175,7 @@ public interface IdeVariables {
       GRADLE_USER_HOME,
       YARN_BUILD_OPTS, JASYPT_OPTS,
       MAVEN_ARGS, INTELLIJ_VM_ARGS, ANDROID_STUDIO_VM_ARGS, PYCHARM_VM_ARGS,
-      UV_CACHE_DIR,
+      UV_CACHE_DIR, PYTHON_VENV_DIR,
       PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED, PREFERRED_GIT_PROTOCOL);
 
   /**

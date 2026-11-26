@@ -1,7 +1,6 @@
 package com.devonfw.ide.gui.core.mainwindow.navigation;
 
 import java.io.FileNotFoundException;
-import java.nio.file.NotDirectoryException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -12,7 +11,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.Alert.AlertType;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
-import com.devonfw.ide.gui.core.context.ProjectManager;
 import com.devonfw.ide.gui.core.helper.combobox.ComboBoxViewModel;
 import com.devonfw.ide.gui.core.modal.IdeDialog;
 import com.devonfw.ide.gui.core.service.NlsService;
@@ -33,14 +31,11 @@ public class NavigationPanelViewModel {
 
   private final GuiStateManager guiStateManager;
 
-  private final ProjectManager projectManager;
-
   private final NlsService nlsService;
 
   public NavigationPanelViewModel(GuiStateManager guiStateManager) {
 
     this.guiStateManager = guiStateManager;
-    this.projectManager = guiStateManager.getProjectManager();
     this.nlsService = guiStateManager.getNlsService();
 
     initProjectsComboBox();
@@ -49,7 +44,7 @@ public class NavigationPanelViewModel {
 
   private void initProjectsComboBox() {
     this.projectsViewModel.getItems().clear();
-    this.projectsViewModel.getItems().addAll(this.projectManager.getProjectNames());
+    this.projectsViewModel.getItems().addAll(this.guiStateManager.getProjectNames());
   }
 
   public void populateWorkspaceComboBox() {
@@ -68,11 +63,7 @@ public class NavigationPanelViewModel {
 
   private List<String> loadWorkspaces(String project) {
 
-    try {
-      return this.projectManager.getWorkspaceNames(project);
-    } catch (NotDirectoryException e) {
-      throw new RuntimeException(e);
-    }
+    return this.guiStateManager.getWorkspaceNames(project);
   }
 
   private void initLanguageComboBox() {
