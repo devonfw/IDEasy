@@ -31,7 +31,6 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
    * @param versionBaseUrl mock url used for version base.
    */
   public MavenBasedUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
-  
     super(downloadBaseUrl, versionBaseUrl);
   }
 
