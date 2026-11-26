@@ -3,6 +3,7 @@ package com.devonfw.ide.gui.core.context;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javafx.beans.property.BooleanProperty;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.factory.TabFactory;
+import com.devonfw.ide.gui.core.progress.TaskListViewModel;
 import com.devonfw.ide.gui.core.service.CommandletService;
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.ide.gui.core.service.ToolConfigurationService;
@@ -51,9 +53,9 @@ public class GuiStateManager {
 
   private final IdeStartContextImpl startContext;
 
-  private final ProjectManager projectManager;
-
   private final TaskManager taskManager;
+
+  private final TaskListViewModel taskListViewModel;
 
   private final GuiEventBus eventBus;
 
@@ -81,22 +83,32 @@ public class GuiStateManager {
    * Creates the state manager for the given root directory using the supplied {@link NlsService} context.
    *
    * @param ideRoot the root directory of IDEasy. If <code>null</code>, the IDE_ROOT environment variable is used.
-   * @param nlsContext the {@link IdeContext} handed to the {@link NlsService}, or {@code null} to derive one from the GUI start context (production default).
-   *        Injecting an isolated context (for example an {@link com.devonfw.tools.ide.context.IdeTestContext}) keeps the GUI test independent from the real
-   *        user home and the {@code IDE_OPTIONS} environment variable.
+   * @param nlsContext the {@link IdeContext} handed to the {@link NlsService}, or {@code null} to derive one from the GUI start context (production
+   *     default). Injecting an isolated context (for example an {@link com.devonfw.tools.ide.context.IdeTestContext}) keeps the GUI test independent from the
+   *     real user home and the {@code IDE_OPTIONS} environment variable.
    */
   public GuiStateManager(String ideRoot, IdeContext nlsContext) {
 
-    this.ideRootDir = Path.of(ideRoot != null ? ideRoot : System.getenv(IdeVariables.IDE_ROOT.getName()));
+    String root = ideRoot != null ? ideRoot : System.getenv(IdeVariables.IDE_ROOT.getName());
+    if (root == null) {
+      throw new IllegalArgumentException("Root directory is null");
+    }
+
+    this.ideRootDir = Path.of(root);
+    if (!Files.exists(this.ideRootDir)) {
+      throw new IllegalArgumentException("Root directory does not exist");
+    } else if (!Files.isDirectory(this.ideRootDir)) {
+      throw new IllegalArgumentException("Root directory is not a directory");
+    }
 
     //This specific ordering needs to be kept
     final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
     IdeLogLevel logLevel = IdeLogLevel.DEBUG;
     startContext = new IdeStartContextImpl(logLevel, buffer);
 
-    this.projectManager = new ProjectManager(ideRootDir);
-    this.taskManager = new TaskManager();
     this.eventBus = new GuiEventBus();
+    this.taskManager = new TaskManager(eventBus);
+    this.taskListViewModel = new TaskListViewModel(taskManager, eventBus);
     // inject an application-level context so NlsService never has to create one itself; binding the default to startContext keeps the GUI logging context
     IdeContext resolvedNlsContext = (nlsContext != null) ? nlsContext : new IdeContextConsole(startContext);
     this.nlsService = new NlsService(resolvedNlsContext, null);
@@ -143,11 +155,29 @@ public class GuiStateManager {
   }
 
   /**
-   * @return instance of {@link ProjectManager}
+   * @return the names of all IDEasy projects in the {@link #getIdeRootDir() IDE_ROOT}, using the core {@link IdeContext#findProjects(Path)} discovery logic.
    */
-  public ProjectManager getProjectManager() {
+  public List<String> getProjectNames() {
 
-    return projectManager;
+    return IdeContext.findProjects(ideRootDir)
+        .stream()
+        .map(Path::getFileName)
+        .map(Path::toString)
+        .toList();
+  }
+
+  /**
+   * @param projectName the name of the project whose workspaces to list.
+   * @return the workspace names of the given project.
+   */
+  public List<String> getWorkspaceNames(String projectName) {
+
+    Path workspacesDir = ideRootDir.resolve(projectName);
+    return IdeContext.findWorkspaces(workspacesDir)
+        .stream()
+        .map(Path::getFileName)
+        .map(Path::toString)
+        .toList();
   }
 
   /**
@@ -212,6 +242,14 @@ public class GuiStateManager {
   public TaskManager getTaskManager() {
 
     return taskManager;
+  }
+
+  /**
+   * @return the {@link TaskListViewModel} mirroring the {@link #getTaskManager() task manager} onto the JavaFX thread for all UI components displaying tasks.
+   */
+  public TaskListViewModel getTaskListViewModel() {
+
+    return taskListViewModel;
   }
 
   /**
