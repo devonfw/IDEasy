@@ -4,6 +4,7 @@ import static com.devonfw.tools.ide.version.VersionIdentifier.MINOR_SEGMENT;
 
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Set;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -110,6 +111,16 @@ public interface PluginBasedCommandlet extends LocalToolCommandlet {
   default ToolPluginDescriptor getPlugin(String key) {
 
     return getPluginManager().getPlugin(key);
+  }
+
+  /**
+   * @param plugins the configured {@link ToolPluginDescriptor plugins} used to detect undefined entries.
+   * @return the {@link Set} of plugin names to additionally install, taken from the tool-specific {@code «TOOL»_EXTRA_PLUGINS} variable (see
+   *     {@link PluginManager#getExtraPlugins(Collection)}). The default implementation is shared by all plugin-capable tools.
+   */
+  default Set<String> getExtraPlugins(Collection<ToolPluginDescriptor> plugins) {
+
+    return getPluginManager().getExtraPlugins(plugins);
   }
 
   /**

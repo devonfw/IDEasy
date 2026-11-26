@@ -1,23 +1,32 @@
 package com.devonfw.tools.ide.tool.plugin;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
 import com.devonfw.tools.ide.tool.ToolInstallRequest;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.version.VersionSegment;
 
 /**
  * Base class for {@link AbstractLocalToolCommandlet}s that support plugins. It can automatically install configured plugins for the tool managed by this
  * commandlet.
  */
 public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCommandlet implements PluginBasedCommandlet {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractPluginBasedCommandlet.class);
 
   private final PluginManager pluginManager;
 
@@ -60,31 +69,75 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   protected void postInstall(ToolInstallRequest request) {
 
     super.postInstall(request);
+    ToolEditionAndVersion requested = request.getRequested();
+    VersionIdentifier version = (requested == null) ? null : requested.getResolvedVersion();
+    if ((version == null) || request.isExtraInstallation()) {
+      // the plugins belong to the main installation and an extra installation (software/extra) does not change it
+      version = getInstalledVersion();
+    }
+    Path pluginsPath = getPluginsInstallationPath(version);
     if (isPluginPurgeRequired(request)) {
       this.pluginManager.resetPlugins(request);
+    } else if (!Files.isDirectory(pluginsPath)) {
+      // marker files are stale if their plugins folder is missing (e.g. plugins installed by an older IDEasy release directly into plugins/«tool»)
+      this.pluginManager.deleteAllPluginMarkerFiles();
     }
-    this.context.getFileAccess().mkdirs(getPluginsInstallationPath());
+    this.context.getFileAccess().mkdirs(pluginsPath);
     installPlugins(getPlugins().getPlugins(), request.getProcessContext());
+    deleteObsoletePlugins(pluginsPath);
   }
 
   /**
-   * @param plugins the configured {@link ToolPluginDescriptor plugins} used to detect undefined entries.
-   * @return the {@link Set} of {@link ToolPluginDescriptor#name() plugin names} configured in the tool-specific {@code «TOOL»_EXTRA_PLUGINS} variable (e.g.
-   *     {@code VSCODE_EXTRA_PLUGINS=copilot,docker}). This allows a user to permanently opt-in to plugins that are not
-   *     {@link ToolPluginDescriptor#active() active} in the project settings, without modifying the shared settings and without losing them when plugins are
-   *     purged and reinstalled on IDE upgrade. Values refer to the {@link ToolPluginDescriptor#name() name} of the plugin (the filename of its
-   *     {@code .properties} file) and not to the {@link ToolPluginDescriptor#id() id}. Names that do not resolve to a configured plugin are logged as a warning
-   *     and skipped so that a single stale entry cannot break the entire installation.
+   * Deletes the plugins of other (previously installed) versions of this tool. As these may still be in use by a running instance of the IDE that keeps files
+   * locked (on Windows), this is only done on a best-effort basis and will be retried on the next installation or update.
+   *
+   * @param pluginsPath the {@link #getPluginsInstallationPath() plugins installation path} of the current version to keep.
    */
-  protected Set<String> getExtraPlugins(Collection<ToolPluginDescriptor> plugins) {
+  private void deleteObsoletePlugins(Path pluginsPath) {
 
-    return this.pluginManager.getExtraPlugins(plugins);
+    Path toolPluginsPath = this.context.getPluginsPath().resolve(this.tool);
+    if (pluginsPath.equals(toolPluginsPath)) {
+      return; // version unknown, so we cannot tell which plugins are obsolete
+    }
+    FileAccess fileAccess = this.context.getFileAccess();
+    for (Path obsoletePlugins : fileAccess.listChildren(toolPluginsPath, path -> !path.equals(pluginsPath))) {
+      try {
+        fileAccess.delete(obsoletePlugins);
+      } catch (RuntimeException e) {
+        LOG.warn("Could not delete obsolete plugins at {} as they may still be in use. They will be cleaned up on a later update.", obsoletePlugins, e);
+      }
+    }
   }
 
+  /**
+   * @return the {@link #getPluginsInstallationPath(VersionIdentifier) plugins installation path} of the {@link #getInstalledVersion() installed version}.
+   */
   @Override
   public Path getPluginsInstallationPath() {
 
-    return this.context.getPluginsPath().resolve(this.tool);
+    return getPluginsInstallationPath(getInstalledVersion());
+  }
+
+  /**
+   * @param version the {@link VersionIdentifier version} of this tool or {@code null} if unknown.
+   * @return the {@link Path} where the plugins of the given version are located. Plugins are installed per version up to the
+   *     {@link #getIncompatibleVersionSegmentIndex() incompatible segment} (e.g. {@code plugins/intellij/2026.1} for IntelliJ 2026.1.4). This way, an update to
+   *     a compatible version keeps the plugins, while an update to an incompatible version installs the plugins into a new folder so that the folder of the
+   *     previous version does not have to be deleted while it may still be in use by a running IDE.
+   */
+  protected Path getPluginsInstallationPath(VersionIdentifier version) {
+
+    Path toolPluginsPath = this.context.getPluginsPath().resolve(this.tool);
+    if (version == null) {
+      return toolPluginsPath;
+    }
+    StringBuilder pluginsVersion = new StringBuilder();
+    VersionSegment segment = version.getStart();
+    for (int i = 0; (segment != null) && (i <= getIncompatibleVersionSegmentIndex()); i++) {
+      pluginsVersion.append(segment);
+      segment = segment.getNextOrNull();
+    }
+    return toolPluginsPath.resolve(pluginsVersion.toString());
   }
 
   @Override
@@ -106,6 +159,13 @@ public abstract class AbstractPluginBasedCommandlet extends AbstractLocalToolCom
   @Override
   public void deleteAllPlugins() {
 
-    this.context.getFileAccess().delete(getPluginsInstallationPath());
+    Path pluginsPath = getPluginsInstallationPath();
+    try {
+      this.context.getFileAccess().delete(pluginsPath);
+    } catch (RuntimeException e) {
+      // the plugins may still be in use by a running instance of the IDE that keeps the files locked (on Windows); they will be removed on a later
+      // installation or update
+      LOG.warn("Could not delete all plugins at {} as they may still be in use. They will be cleaned up on a later update.", pluginsPath, e);
+    }
   }
 }

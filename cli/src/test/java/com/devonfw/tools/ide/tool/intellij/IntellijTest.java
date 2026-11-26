@@ -1,11 +1,16 @@
 package com.devonfw.tools.ide.tool.intellij;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -20,6 +25,7 @@ import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ToolEdition;
 import com.devonfw.tools.ide.tool.ToolEditionAndVersion;
@@ -60,6 +66,99 @@ class IntellijTest extends AbstractIdeContextTest {
     //if tool already installed
     commandlet.install();
     assertThat(this.context).logAtDebug().hasMessageContaining("Version 2023.3.3 of tool intellij is already installed");
+  }
+
+  /**
+   * Tests that installing a new version of {@link Intellij} does not fail if the plugins of the previous version are still locked by the running IDE on
+   * Windows (see #1548) and that they get cleaned up once they are no longer locked.
+   *
+   * @throws IOException on error.
+   */
+  @Test
+  @EnabledOnOs(OS.WINDOWS)
+  void testIntellijInstallWhilePluginsOfPreviousVersionAreLocked() throws IOException {
+
+    // arrange
+    this.context.setSystemInfo(SystemInfoMock.of("windows"));
+    Intellij commandlet = new Intellij(this.context);
+    Path oldPluginsPath = this.context.getPluginsPath().resolve("intellij").resolve("2023.2");
+    Path lockedFile = oldPluginsPath.resolve("github-copilot-intellij").resolve("copilot-language-server.exe");
+    this.context.getFileAccess().mkdirs(lockedFile.getParent());
+    this.context.getFileAccess().touch(lockedFile);
+
+    // act
+    try (InputStream in = new FileInputStream(lockedFile.toFile())) { // java.io keeps the file locked against deletion on Windows
+      commandlet.install();
+    }
+
+    // assert
+    checkInstallation(this.context);
+    assertThat(commandlet.getPluginsInstallationPath()).isEqualTo(this.context.getPluginsPath().resolve("intellij").resolve("2023.3"));
+    assertThat(this.context).logAtWarning().hasMessage("Could not delete obsolete plugins at " + oldPluginsPath
+        + " as they may still be in use. They will be cleaned up on a later update.");
+
+    // act
+    commandlet.install();
+
+    // assert
+    assertThat(oldPluginsPath).doesNotExist();
+  }
+
+  /**
+   * Tests that the plugins are installed into a version-specific folder and that the plugins of a previously installed (now obsolete) version are cleaned up
+   * once the new version is installed (see #1548). Unlike {@link #testIntellijInstallWhilePluginsOfPreviousVersionAreLocked()} this runs on every OS, so the
+   * per-version plugin handling is also covered by the CI build (ubuntu-latest).
+   *
+   * @param os the OS to use.
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  void testIntellijInstallsPluginsPerVersionAndCleansUpObsoleteVersion(String os) {
+
+    // arrange
+    this.context.setSystemInfo(SystemInfoMock.of(os));
+    Intellij commandlet = new Intellij(this.context);
+    commandlet.install(); // installs 2023.3.3, so the plugins go into plugins/intellij/2023.3
+
+    // simulate plugins of a previous (now obsolete) version still present on disk
+    Path intellijPluginsPath = this.context.getPluginsPath().resolve("intellij");
+    Path obsoleteVersionPath = intellijPluginsPath.resolve("2023.2");
+    Path obsoletePlugin = obsoleteVersionPath.resolve("some-plugin");
+    this.context.getFileAccess().mkdirs(obsoletePlugin);
+    this.context.getFileAccess().touch(obsoletePlugin.resolve("plugin.jar"));
+
+    // act
+    commandlet.install();
+
+    // assert - the current version keeps its per-version plugin folder and the obsolete one is removed
+    assertThat(commandlet.getPluginsInstallationPath()).isEqualTo(intellijPluginsPath.resolve("2023.3"));
+    assertThat(intellijPluginsPath.resolve("2023.3")).exists();
+    assertThat(obsoleteVersionPath).doesNotExist();
+  }
+
+  /**
+   * Tests that the plugins are installed into the folder of the version from the install request, even if the installed version was read and cached during
+   * the installation before the software link pointed to the new version (see #1548).
+   */
+  @Test
+  void testIntellijInstallUsesVersionFromRequestForPlugins() {
+
+    // arrange
+    Intellij commandlet = new Intellij(this.context) {
+      @Override
+      public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
+
+        // runs after the installation but before the software link is updated, so the cache now holds the outdated installed version
+        getInstalledVersion();
+        super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
+      }
+    };
+
+    // act
+    commandlet.install();
+
+    // assert
+    assertThat(this.context.getPluginsPath().resolve("intellij").resolve("2023.3")).isDirectory();
   }
 
   /**
@@ -470,7 +569,7 @@ class IntellijTest extends AbstractIdeContextTest {
             -XX:ReservedCodeCacheSize=256m
             -ea
             -Dsun.io.useCanonCaches=true
-            """);
+            -Didea.plugins.path=""" + context.getPluginsPath().resolve("intellij").resolve("2023.3").toAbsolutePath());
   }
 
   /**
