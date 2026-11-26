@@ -536,6 +536,66 @@ else
 fi
 
 echo
+echo "Testing completion argument quoting in ${FUNCTIONS_FILE}"
+
+# an "ideasy" stub that records the exact arguments it receives for "-q complete" so a test can
+# verify that an argument containing a space is passed through intact instead of being word-split.
+COMPLETE_STUB="$(mktemp -d)"
+COMPLETE_ARGS_FILE="${COMPLETE_STUB}/args"
+cat > "${COMPLETE_STUB}/ideasy" <<'EOS'
+#!/usr/bin/env bash
+if [ "${1:-}" = "-q" ] && [ "${2:-}" = "complete" ]; then
+  shift 2
+  printf '%s\n' "$@" > "${COMPLETE_ARGS_FILE}"
+  echo "X"
+  exit 0
+fi
+exit 0
+EOS
+chmod +x "${COMPLETE_STUB}/ideasy"
+trap 'rm -rf "${STUB_DIR}" "${ICD_ROOT}" "${TITLE_ROOT}" "${COMPLETE_STUB}"' EXIT
+
+# runCompletion <empty|filled> : sources the functions file in a fresh shell, sets COMP_WORDS with an
+# argument that contains a space ("My Project"), and runs _ide_completion. <empty> exercises the branch
+# where the current word is empty, <filled> the branch where it is not.
+runCompletion() {
+  local current_word_mode="$1"
+  FUNCTIONS_FILE="${FUNCTIONS_FILE}" STUB_DIR="${COMPLETE_STUB}" COMPLETE_ARGS_FILE="${COMPLETE_ARGS_FILE}" \
+  CURRENT_WORD_MODE="${current_word_mode}" \
+    bash --noprofile --norc -c '
+      export PATH="${STUB_DIR}:${PATH}"
+      source "${FUNCTIONS_FILE}" >/dev/null 2>&1
+      if [ "${CURRENT_WORD_MODE}" = "empty" ]; then
+        COMP_WORDS=("ide" "create" "My Project" "")
+        COMP_CWORD=3
+      else
+        COMP_WORDS=("ide" "create" "My Project")
+        COMP_CWORD=2
+      fi
+      _ide_completion
+    '
+}
+
+# checkCompletionQuoting <description> <empty|filled>
+checkCompletionQuoting() {
+  local description="$1" current_word_mode="$2"
+  total=$((total + 1))
+  : > "${COMPLETE_ARGS_FILE}"
+  runCompletion "${current_word_mode}" >/dev/null 2>&1
+  if grep -qx "My Project" "${COMPLETE_ARGS_FILE}"; then
+    doSuccess "PASSED: ${description}"
+  else
+    local recorded
+    recorded="$(tr '\n' ' ' < "${COMPLETE_ARGS_FILE}")"
+    doError "FAILED: ${description} - the space-containing argument was word-split; recorded args: '${recorded}'"
+    failed=$((failed + 1))
+  fi
+}
+
+checkCompletionQuoting "a COMP_WORDS argument with a space is passed intact (current word filled)" filled
+checkCompletionQuoting "a COMP_WORDS argument with a space is passed intact (current word empty)" empty
+
+echo
 if [ "${failed}" = 0 ]; then
   doSuccess "All ${total} tests passed."
   exit 0
