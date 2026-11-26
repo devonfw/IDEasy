@@ -1,0 +1,10 @@
+{
+  /*
+   * Keep the configured JDK in sync
+   * with the IDEasy Java installation.
+   */
+  "java.jdt.ls.java.home": "${IDE_HOME}/software/java",
+  // enable automatic formatting
+  //test
+  "editor.formatOnSave": true
+}
