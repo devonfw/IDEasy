@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -30,7 +31,7 @@ class SnykUrlUpdaterTest extends AbstractUrlUpdaterTest {
   void testSnykUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
-    stubFor(get(urlMatching("/repos/snyk/cli/releases")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/snyk/cli/releases")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("SnykUrlUpdater").resolve("snyk-releases.json"), wmRuntimeInfo))));
 
     stubFor(any(urlMatching("/snyk/cli/releases/download/v.*"))

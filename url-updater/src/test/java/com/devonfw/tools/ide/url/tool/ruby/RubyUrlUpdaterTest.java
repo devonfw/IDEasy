@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -35,7 +36,7 @@ class RubyUrlUpdaterTest extends AbstractUrlUpdaterTest {
   void testRubyUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // arrange
-    stubFor(get(urlMatching("/repos/oneclick/rubyinstaller2/releases"))
+    stubFor(get(urlPathMatching("/repos/oneclick/rubyinstaller2/releases"))
         .willReturn(aResponse()
             .withStatus(200)
             .withBody(readAndResolve(

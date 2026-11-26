@@ -7,6 +7,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import java.io.IOException;
@@ -37,7 +38,7 @@ class RubyJdxUrlUpdaterTest extends AbstractUrlUpdaterTest {
   void testRubyJdxUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // arrange
-    stubFor(get(urlMatching("/repos/jdx/ruby/releases"))
+    stubFor(get(urlPathMatching("/repos/jdx/ruby/releases"))
         .willReturn(aResponse()
             .withStatus(200)
             .withBody(readAndResolve(

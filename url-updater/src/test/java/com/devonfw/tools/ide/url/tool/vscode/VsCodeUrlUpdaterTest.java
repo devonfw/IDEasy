@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -30,7 +31,7 @@ class VsCodeUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testVsCodeUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // given
-    stubFor(get(urlMatching("/repos/microsoft/vscode/git/refs/tags")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/microsoft/vscode/tags")).willReturn(aResponse().withStatus(200)
         .withBody(Files.readAllBytes(PATH_INTEGRATION_TEST.resolve("VsCodeUrlUpdater").resolve("vscode-tags.json")))));
     stubFor(head(urlMatching("/.*/(linux-x64|darwin|win32-x64-archive)/stable")).willReturn(aResponse().withStatus(200)));
     stubFor(get(urlMatching("/.*/(linux-x64|darwin|win32-x64-archive)/stable")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));

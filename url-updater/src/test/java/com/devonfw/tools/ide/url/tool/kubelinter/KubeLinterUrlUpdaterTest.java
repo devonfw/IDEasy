@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.nio.file.Path;
 
@@ -29,7 +30,7 @@ class KubeLinterUrlUpdaterTest extends AbstractUrlUpdaterTest {
   void testKubeLinterUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
-    stubFor(get(urlMatching("/repos/stackrox/kube-linter/releases")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/stackrox/kube-linter/releases")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("KubeLinterUrlUpdater").resolve("kube-linter-releases.json"), wmRuntimeInfo))));
 
     stubFor(any(urlMatching("/stackrox/kube-linter/releases/download/[^/]*/kube-linter.*"))

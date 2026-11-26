@@ -39,7 +39,7 @@ public abstract class GithubUrlTagUpdater extends AbstractGithubUrlUpdater<Githu
   @Override
   protected String doGetVersionUrl() {
 
-    return getVersionBaseUrl() + getGithubRepositoryPath() + "/git/refs/tags";
+    return getVersionBaseUrl() + getGithubRepositoryPath() + "/tags";
 
   }
 

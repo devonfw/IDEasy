@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -30,7 +31,7 @@ class VsCodiumUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testVsCodiumUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // given
-    stubFor(get(urlMatching("/repos/VSCodium/vscodium/releases")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/VSCodium/vscodium/releases")).willReturn(aResponse().withStatus(200)
         .withBody(Files.readAllBytes(PATH_INTEGRATION_TEST.resolve("VsCodiumUrlUpdater").resolve("vscodium-releases.json")))));
     stubFor(head(urlMatching("/.*/VSCodium-(linux|darwin|win32)-(x64|arm64)-.*\\.(tar\\.gz|zip)")).willReturn(aResponse().withStatus(200)));
     stubFor(get(urlMatching("/.*/VSCodium-(linux|darwin|win32)-(x64|arm64)-.*\\.(tar\\.gz|zip)")).willReturn(
