@@ -18,6 +18,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2875[#2875]: Keep the current working directory in the git-bash window title when the shell is not initialised with IDEasy, instead of showing only `ideasy`
 * https://github.com/devonfw/IDEasy/issues/2518[#2518]: Add Snyk CLI commandlet
 * https://github.com/devonfw/IDEasy/issues/2544[#2544]: Remove npm_config_prefix from native package manager commands
+* https://github.com/devonfw/IDEasy/issues/1214[#1214]: Preserve line endings when upgrading repository settings
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/54?closed=1[milestone 2026.12.001].
 
@@ -60,7 +61,6 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2514[#2514]: Add commandlet for Ollama CLI
 * https://github.com/devonfw/IDEasy/issues/2705[#2705]: Obsidian not working as proxy commandlet
 * https://github.com/devonfw/IDEasy/issues/2440[#2440]: Show a welcome pane in the GUI when no tab is open
-* https://github.com/devonfw/IDEasy/issues/1214[#1214]: Preserve line endings when upgrading repository settings
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/52?closed=1[milestone 2026.11.002].
 
