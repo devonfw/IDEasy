@@ -1,7 +1,12 @@
 package com.devonfw.tools.ide.url.updater;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+import com.devonfw.tools.ide.json.JsonMapping;
 import com.devonfw.tools.ide.json.JsonVersionItem;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
@@ -9,14 +14,18 @@ import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.tool.intellij.IntellijJsonDownloadsItem;
 import com.devonfw.tools.ide.url.tool.intellij.IntellijJsonObject;
 import com.devonfw.tools.ide.url.tool.intellij.IntellijJsonRelease;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * {@link JsonUrlUpdater} for packages from the intelliJ IDEA registry.
+ * {@link JsonUrlUpdater} for JetBrains IDEs
  */
 public abstract class IdeaBasedUrlUpdater extends JsonUrlUpdater<IntellijJsonObject, IntellijJsonRelease> {
 
   protected static final String DOWNLOAD_BASE_URL = "undefined-taken-from-JSON";
   protected static final String VERSION_BASE_URL = "https://data.services.jetbrains.com";
+
+  private static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
 
   /**
    * Constructor for IdeaBasedUrlUpdater with defaults for download- and version base url.
@@ -35,6 +44,34 @@ public abstract class IdeaBasedUrlUpdater extends JsonUrlUpdater<IntellijJsonObj
   }
 
   @Override
+  protected IntellijJsonObject getJsonObjectFromResponse(String response, String edition) throws JsonProcessingException {
+
+    IntellijJsonObject[] jsonObjects = MAPPER.readValue(response, IntellijJsonObject[].class);
+    return mergeReleases(jsonObjects);
+  }
+
+  /**
+   * The JetBrains registry returns one {@link IntellijJsonObject} per former edition, so we merge the releases of all of them (deduplicated by version) into a
+   * single object.
+   *
+   * @param jsonObjects the {@link IntellijJsonObject}s parsed from the response, one for each former edition.
+   * @return a single {@link IntellijJsonObject} holding the merged releases.
+   */
+  private IntellijJsonObject mergeReleases(IntellijJsonObject[] jsonObjects) {
+
+    List<IntellijJsonRelease> mergedReleases = new ArrayList<>();
+    Set<String> mergedVersions = new HashSet<>();
+    for (IntellijJsonObject jsonObject : jsonObjects) {
+      for (IntellijJsonRelease release : jsonObject.releases()) {
+        if (mergedVersions.add(release.version())) {
+          mergedReleases.add(release);
+        }
+      }
+    }
+    return new IntellijJsonObject(mergedReleases);
+  }
+
+  @Override
   protected Collection<IntellijJsonRelease> getVersionItems(IntellijJsonObject jsonObject) {
 
     return jsonObject.releases();
@@ -45,6 +82,11 @@ public abstract class IdeaBasedUrlUpdater extends JsonUrlUpdater<IntellijJsonObj
   protected Class<IntellijJsonObject> getJsonObjectType() {
 
     return IntellijJsonObject.class;
+  }
+
+  @Override
+  public String getCpeVendor() {
+    return "jetbrains";
   }
 
   /**
