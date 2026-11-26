@@ -67,7 +67,14 @@
 //
 // Exit codes: 0 ok (incl. dry run), 1 config/runtime error, 2 API error.
 
-import {COLUMNS, computeDiff, computeReviewRequest, computeTarget, parseBoardNumber, resolveBoard,} from './reconcile-core.mjs';
+import {
+  COLUMNS,
+  computeDiff,
+  computeReviewRequest,
+  computeTarget,
+  parseBoardNumber,
+  resolveBoard,
+} from './reconcile-core.mjs';
 
 const API = 'https://api.github.com';
 
