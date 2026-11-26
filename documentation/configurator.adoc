@@ -78,6 +78,10 @@ link:https://github.com/devonfw/IDEasy/tree/main/cli/src/main/java/com/devonfw/t
 The optional 2nd argument is `unix` (the default, slashes) or `native` (backslashes on Windows).
 * `@ask-variable` and `@ask-secret` ask the user for the value of a variable (in plain text, respectively with masked input) unless it is already defined.
 The optional further arguments are the question, the configuration location to persist to (`settings`, `workspace`, `conf` or `home`, default `conf`, `@ask-variable` only) and a default value (`null` for none).
+* `@ask-mvn-secret` works like `@ask-secret` but encrypts the entered value with `mvn --encrypt-password` and resolves to the encrypted value only, so it can be used e.g. for a password in the maven `settings.xml`.
+It installs maven and creates the `settings-security.xml` with the master password if not yet present.
+The value is never persisted and an empty value is not encrypted.
+If the variable is already defined, its value is encrypted as well, so the result is never the plain text.
 * `@if-windows`, `@if-mac`, `@if-linux` and `@if-unix` insert their single argument only if the current operating system matches and otherwise resolve to the empty string, e.g. to select an OS specific value inline: `$[IDE_HOME]/software/mvn/bin/mvn@if-windows('.bat')@if-unix('.sh')`.
 
 A function that is not registered by `IDEasy` is passed through entirely untouched.

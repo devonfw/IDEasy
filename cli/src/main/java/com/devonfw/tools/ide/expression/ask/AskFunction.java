@@ -28,7 +28,7 @@ import com.devonfw.tools.ide.property.StringProperty;
  * <p>
  * <b>Note:</b> a value entered for {@code @ask-secret} is masked while typing. It is
  * <em>not persisted</em>, so the user is asked again on every run; persisting the plain text to an {@code ide.properties}
- * would just cache the secret on disk. Encryption is a separate story and out of scope here.
+ * would just cache the secret on disk. To get the value encrypted by maven instead, use {@code @ask-mvn-secret} ({@link AskMvnSecretFunction}).
  */
 public abstract class AskFunction extends AbstractExpressionFunction {
 
@@ -64,7 +64,7 @@ public abstract class AskFunction extends AbstractExpressionFunction {
     if (!varName.isEmpty()) {
       String value = context.getVariable(varName);
       if (value != null) {
-        return value;
+        return convert(value, context);
       }
     }
     String result = ask(context);
@@ -74,7 +74,17 @@ public abstract class AskFunction extends AbstractExpressionFunction {
       EnvironmentVariablesType locationArg = this.location.getValueOrDefault(EnvironmentVariablesType.CONF);
       context.setVariable(varName, result, locationArg);
     }
-    return result;
+    return convert(result, context);
+  }
+
+  /**
+   * @param value the value entered by the user (or the default value) or the value of the already defined variable, may be empty.
+   * @param context the {@link ExpressionContext}.
+   * @return the final result of this function. By default, the given {@code value} as is.
+   */
+  protected String convert(String value, ExpressionContext context) {
+
+    return value;
   }
 
   /**

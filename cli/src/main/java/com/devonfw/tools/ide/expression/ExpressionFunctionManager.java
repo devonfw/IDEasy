@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.expression;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.devonfw.tools.ide.expression.ask.AskMvnSecretFunction;
 import com.devonfw.tools.ide.expression.ask.AskSecretFunction;
 import com.devonfw.tools.ide.expression.ask.AskVariableFunction;
 import com.devonfw.tools.ide.expression.os.IfLinuxFunction;
@@ -66,6 +67,7 @@ public class ExpressionFunctionManager {
     manager.register(new PathFunction());
     manager.register(new AskVariableFunction());
     manager.register(new AskSecretFunction());
+    manager.register(new AskMvnSecretFunction());
     manager.register(new IfLinuxFunction());
     manager.register(new IfMacFunction());
     manager.register(new IfUnixFunction());

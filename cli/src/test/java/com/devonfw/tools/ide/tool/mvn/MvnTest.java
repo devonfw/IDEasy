@@ -108,7 +108,7 @@ class MvnTest extends AbstractIdeContextTest {
 
     Path settingsFile = context.getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
     assertThat(settingsFile).exists();
-    assertFileContent(settingsFile, List.of("${env.M2_REPO}", IdeContext.FOLDER_REPOSITORY, "testLogin", "testPassword"));
+    assertFileContent(settingsFile, List.of("${env.M2_REPO}", IdeContext.FOLDER_REPOSITORY, "{testLogin}", "{testPassword}"));
 
     Path settingsSecurityFile = context.getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_SECURITY_FILE);
     assertThat(settingsSecurityFile).exists();

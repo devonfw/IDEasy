@@ -185,6 +185,19 @@ public class Mvn extends MavenCommandlet implements BuildTool {
     return encryptedPassword;
   }
 
+  /**
+   * Encrypts the given secret with maven. Installs maven and creates the {@link #SETTINGS_SECURITY_FILE} with the master password if not yet present.
+   *
+   * @param secret the plain text secret (e.g. a password) to encrypt.
+   * @return the encrypted secret that can be used e.g. in the {@link #SETTINGS_FILE}.
+   */
+  public String encryptPassword(String secret) {
+
+    install();
+    createSettingsSecurityFile(getMavenConfFolder(false).resolve(SETTINGS_SECURITY_FILE));
+    return retrievePassword("--encrypt-password", secret);
+  }
+
   private String retrievePassword(String option, String input) {
 
     ProcessResult result;
