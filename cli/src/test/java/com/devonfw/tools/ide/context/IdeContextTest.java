@@ -13,6 +13,8 @@ import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -280,6 +282,45 @@ public class IdeContextTest extends AbstractIdeContextTest {
         .hasMessage("A proper bash executable was found in your PATH environment variable at: " + bashExePath);
 
     assertThat(bash).isEqualTo(bashExePath);
+  }
+
+  /**
+   * Tests that a missing bash on a fresh Windows machine is only logged on debug level, as every caller of {@code findBash()} reports it in its own context if
+   * it is relevant.
+   */
+  @Test
+  void testFindBashDoesNotSpamLogOnFreshWindowsMachine() {
+
+    // arrange
+    IdeTestContext context = newWindowsContextWithoutGitAndBash();
+
+    // act
+    Path bash = context.findBash();
+
+    // assert
+    assertThat(bash).isNull();
+    assertThat(context).logAtDebug().hasMessageContaining("No bash executable could be found on your system.");
+    assertThat(context).logAtInfo().hasNoMessageContaining("bash");
+    assertThat(context).logAtWarning().hasNoMessageContaining("bash");
+    assertThat(context).logAtError().hasNoMessageContaining("bash");
+  }
+
+  /**
+   * Tests that {@link GitContextImpl#findGit()} returns {@code null} instead of failing on a fresh Windows machine where neither Git nor bash is available
+   * yet.
+   */
+  @Test
+  void testFindGitReturnsNullOnFreshWindowsMachineWithoutGitAndBash() {
+
+    // arrange
+    IdeTestContext context = newWindowsContextWithoutGitAndBash();
+    GitContext gitContext = new GitContextImpl(context);
+
+    // act
+    Path gitPath = gitContext.findGit();
+
+    // assert
+    assertThat(gitPath).isNull();
   }
 
   @Test

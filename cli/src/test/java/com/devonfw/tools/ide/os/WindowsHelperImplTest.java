@@ -119,6 +119,7 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
         if (args.length >= 2 && args[0].equalsIgnoreCase("query") && args[1].endsWith("\\Uninstall\\TestApp")) {
           return List.of(
               "HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\TestApp",
+              "    DisplayName    REG_SZ    TestApp",
               "    DisplayVersion    REG_SZ    2.0.0",
               "    InstallLocation    REG_SZ    C:\\Program Files\\TestApp"
           );
@@ -228,6 +229,7 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
         if (args.length >= 2 && args[0].equalsIgnoreCase("query")) {
           return List.of(
               "HKEY_LOCAL_MACHINE\\...\\Uninstall\\TestApp",
+              "    DisplayName    REG_SZ    TestApp",
               "    DisplayVersion    REG_SZ    ",
               "    DisplayIcon    REG_SZ    "
           );
@@ -398,5 +400,164 @@ class WindowsHelperImplTest extends AbstractIdeContextTest {
     WindowsAppInstallation inst = helper.getAppInstallationFromRegistry("pgAdmin");
 
     assertThat(inst).isNotNull();
+  }
+
+  /**
+   * Tests that a registry search result with a different DisplayName is ignored.
+   */
+  @Test
+  void testGetAppInstallationFromRegistryIgnoresNonMatchingDisplayName() {
+    AbstractIdeTestContext context = new IdeTestContext();
+    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
+      @Override
+      protected List<String> runReg(String... args) {
+        if (args.length >= 5 && "/f".equalsIgnoreCase(args[3])) {
+          return List.of(
+              "HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\GitLFS",
+              "    DisplayName    REG_SZ    GitHub Desktop");
+        }
+
+        if (args.length >= 2
+            && args[0].equalsIgnoreCase("query")
+            && args[1].endsWith("\\Uninstall\\GitLFS")) {
+          return List.of(
+              "HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\GitLFS",
+              "    DisplayName    REG_SZ    GitHub Desktop");
+        }
+
+        return List.of();
+      }
+    };
+
+    WindowsAppInstallation installation =
+        helper.getAppInstallationFromRegistry("Git");
+
+    assertThat(installation).isNull();
+  }
+
+  /**
+   * Tests that a DisplayName containing the application name followed by a suffix is accepted.
+   */
+  @Test
+  void testGetAppInstallationFromRegistryMatchesDisplayNameWithSuffix() {
+    AbstractIdeTestContext context = new IdeTestContext();
+    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
+      @Override
+      protected List<String> runReg(String... args) {
+        if (args.length >= 5 && "/f".equalsIgnoreCase(args[3])) {
+          return List.of(
+              "HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\Git",
+              "    DisplayName    REG_SZ    Git version 2.55.0");
+        }
+
+        if (args.length >= 2
+            && args[0].equalsIgnoreCase("query")
+            && args[1].endsWith("\\Uninstall\\Git")) {
+          return List.of(
+              "HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\Git",
+              "    DisplayName    REG_SZ    Git version 2.55.0",
+              "    DisplayVersion    REG_SZ    2.55.0");
+        }
+
+        return List.of();
+      }
+    };
+
+    WindowsAppInstallation installation =
+        helper.getAppInstallationFromRegistry("Git");
+
+    assertThat(installation).isNotNull();
+    assertThat(installation.version()).isEqualTo("2.55.0");
+  }
+
+  /**
+   * Tests that registry lookup continues with the next registry base path if a query fails.
+   */
+  @Test
+  void testGetAppInstallationFromRegistryContinuesAfterRegistryQueryFailure() {
+    AbstractIdeTestContext context = new IdeTestContext();
+
+    WindowsHelperImpl helper = new WindowsHelperImpl(context) {
+      private int searchCount;
+
+      @Override
+      protected List<String> runReg(String... args) {
+        if (args.length >= 5 && "/f".equalsIgnoreCase(args[3])) {
+          this.searchCount++;
+
+          if (this.searchCount == 1) {
+            return null;
+          }
+
+          return List.of(
+              "HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\TestApp",
+              "    DisplayName    REG_SZ    TestApp");
+        }
+
+        if (args.length >= 2 && args[0].equalsIgnoreCase("query")) {
+          return List.of(
+              "HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Uninstall\\TestApp",
+              "    DisplayName    REG_SZ    TestApp",
+              "    DisplayVersion    REG_SZ    1.0");
+        }
+
+        return List.of();
+      }
+    };
+
+    WindowsAppInstallation installation =
+        helper.getAppInstallationFromRegistry("TestApp");
+
+    assertThat(installation).isNotNull();
+    assertThat(installation.version()).isEqualTo("1.0");
+  }
+
+  /**
+   * Tests that DisplayNames only containing the application name inside another word (e.g. "TortoiseGit" or "GitHub Desktop" for "Git") are ignored.
+   */
+  @Test
+  void testFindUninstallKeyIgnoresDisplayNameContainingAppNameInOtherWord() {
+
+    final String tortoiseKey = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\TortoiseGit";
+    final String githubKey = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\GitHubDesktop";
+    WindowsHelperImpl helper = helperWithKeys("Git", tortoiseKey, "TortoiseGit 2.15.0.0 (64 bit)", githubKey, "GitHub Desktop");
+
+    assertThat(helper.getAppInstallationFromRegistry("Git")).isNull();
+  }
+
+  /**
+   * Tests that an exact DisplayName match in a later registry base path wins over a DisplayName with suffix in an earlier one (e.g. Git installed per user
+   * next to a system-wide "Git LFS version 3.4.0").
+   */
+  @Test
+  void testFindUninstallKeyPrefersExactDisplayNameAcrossRegistryBasePaths() {
+
+    final String lfsKey = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Git LFS_is1";
+    final String gitKey = "HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Git_is1";
+    WindowsHelperImpl helper = new WindowsHelperImpl(new IdeTestContext()) {
+      @Override
+      protected List<String> runReg(String... args) {
+        if (args.length >= 5 && "/f".equalsIgnoreCase(args[3])) {
+          if (args[1].startsWith("HKLM\\SOFTWARE\\Microsoft")) {
+            return List.of("", lfsKey, "    DisplayName    REG_SZ    Git LFS version 3.4.0", "");
+          } else if (args[1].startsWith("HKCU")) {
+            return List.of("", gitKey, "    DisplayName    REG_SZ    Git", "");
+          }
+          return List.of();
+        }
+        if (args[1].equals(gitKey)) {
+          return List.of(gitKey, "    DisplayName    REG_SZ    Git", "    DisplayVersion    REG_SZ    2.56.0");
+        }
+        if (args[1].equals(lfsKey)) {
+          return List.of(lfsKey, "    DisplayName    REG_SZ    Git LFS version 3.4.0", "    DisplayVersion    REG_SZ    3.4.0");
+        }
+        return List.of();
+      }
+    };
+
+    WindowsAppInstallation inst = helper.getAppInstallationFromRegistry("Git");
+
+    assertThat(inst).isNotNull();
+    assertThat(inst.version()).isEqualTo("2.56.0");
   }
 }

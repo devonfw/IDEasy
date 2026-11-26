@@ -3,6 +3,10 @@ package com.devonfw.tools.ide.tool;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
+
+import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.os.SystemInfo;
 
 /**
  * Represents an OS native package manager used for managing software packages.
@@ -30,9 +34,17 @@ public enum NativePackageManager {
   BREW("brew", "install", "uninstall", "@", "", false),
 
   /** <a href="https://brew.sh/">Homebrew</a> cask installation, used for macOS GUI applications distributed as *.app bundles. */
-  BREW_CASK("brew", "install --cask", "uninstall --cask", "@", "", false);
+  BREW_CASK("brew", "install --cask", "uninstall --cask", "@", "", false),
+
+  /** <a href="https://github.com/microsoft/winget-cli">WinGet</a> is the package manager of Windows. */
+  WINGET("winget", "install --exact --source winget", "uninstall --exact --source winget", " --version ", "", false);
+
+  /** The characters allowed in a version (including Debian epochs like {@code 1:2.43.0-1ubuntu7}). */
+  private static final Pattern SAFE_VERSION = Pattern.compile("[A-Za-z0-9._+~:-]+");
 
   private static final String DPKG_STATUS_INSTALLED = "installed";
+  /** The exit code of {@link #WINGET} if the latest version is already installed (APPINSTALLER_CLI_ERROR_UPDATE_NOT_APPLICABLE). */
+  private static final int WINGET_NO_APPLICABLE_UPDATE = 0x8A15002B;
   private static final String SUDO = "sudo";
 
   private final String binaryName;
@@ -89,12 +101,52 @@ public enum NativePackageManager {
   }
 
   /**
-   * @return {@code true} if commands of this {@link NativePackageManager} need to be run with {@code sudo} (root permissions),
-   * {@code false} otherwise (e.g. for {@link #YAY} and {@link #BREW}/{@link #BREW_CASK} that must never be run as root).
+   * @return {@code true} if commands of this {@link NativePackageManager} need to be run with {@code sudo} (root permissions), {@code false} otherwise (e.g.
+   *     for {@link #YAY} and {@link #BREW}/{@link #BREW_CASK} that must never be run as root).
    */
   public boolean isNeedSudo() {
 
     return this.needSudo;
+  }
+
+  /**
+   * @return {@code true} if commands of this {@link NativePackageManager} need to be run with bash, {@code false} if they are run with cmd (e.g. for
+   *     {@link #WINGET} that is used to install Git and hence bash on Windows).
+   */
+  public boolean isRunWithBash() {
+
+    return this != WINGET;
+  }
+
+  /**
+   * @param systemInfo the {@link SystemInfo} of the current system.
+   * @return {@code true} if this {@link NativePackageManager} may be used on the given system, {@code false} otherwise. {@link #WINGET} is only used on Windows
+   *     and the other package managers never on Windows (e.g. apt from WSL found on the PATH).
+   */
+  public boolean isSupportedOn(SystemInfo systemInfo) {
+
+    if (this == WINGET) {
+      return systemInfo.isWindows();
+    }
+    return !systemInfo.isWindows();
+  }
+
+  /**
+   * @return {@code true} if links to the binary of this {@link NativePackageManager} shall be followed to check that it exists, {@code false} otherwise (e.g.
+   *     for {@link #WINGET} that is an app execution alias that exists but cannot be followed).
+   */
+  public boolean isFollowLinks() {
+
+    return this != WINGET;
+  }
+
+  /**
+   * @param exitCode the exit code of a command of this {@link NativePackageManager}.
+   * @return {@code true} if the given {@code exitCode} indicates success, {@code false} otherwise.
+   */
+  public boolean isSuccessExitCode(int exitCode) {
+
+    return (exitCode == 0) || ((this == WINGET) && (exitCode == WINGET_NO_APPLICABLE_UPDATE));
   }
 
   /**
@@ -108,6 +160,10 @@ public enum NativePackageManager {
   public String getPackageSpec(String pkg, String version) {
     if ((version == null) || version.isBlank() || (this.versionSeparator == null)) {
       return pkg;
+    }
+    if (!SAFE_VERSION.matcher(version).matches()) {
+      // the version is part of a command line run via bash or cmd, so it must not contain any shell syntax
+      throw new CliException("Invalid version '" + version + "' for package " + pkg + ".");
     }
     String spec = pkg + this.versionSeparator + version + this.versionWildCard;
     if (this.versionWildCard.isEmpty()) {
@@ -127,6 +183,7 @@ public enum NativePackageManager {
       case PACMAN, YAY -> List.of("pacman", "-Q");
       case BREW -> List.of(getBinaryName(), "list", "--versions");
       case BREW_CASK -> List.of(getBinaryName(), "list", "--cask", "--versions");
+      case WINGET -> throw new UnsupportedOperationException("On Windows the installed version is determined from the registry.");
     });
     command.add(pkg);
     return command;

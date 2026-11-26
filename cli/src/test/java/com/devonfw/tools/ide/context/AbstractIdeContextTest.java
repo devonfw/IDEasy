@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import org.assertj.core.api.Assertions;
@@ -19,6 +20,7 @@ import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl.ProgressEvent;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.tool.repository.ToolRepositoryMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
@@ -159,6 +161,24 @@ public abstract class AbstractIdeContextTest extends Assertions {
   protected static IdeTestContext newContext(Path projectPath) {
 
     return new IdeTestContext(projectPath, null);
+  }
+
+  /**
+   * @return an {@link IdeTestContext} (Windows x64) where neither git nor bash can be found, independent of the PATH of the machine running the test.
+   */
+  protected static IdeTestContext newWindowsContextWithoutGitAndBash() {
+
+    IdeTestContext supportContext = newContext("find-bash-git", "project/workspaces", true);
+    Path home = supportContext.getUserHome();
+    FileAccess fileAccess = supportContext.getFileAccess();
+    Path environmentFile = home.resolve("environment.properties");
+    Properties properties = fileAccess.readProperties(environmentFile);
+    properties.put("PATH", home.resolve("notexisting").toAbsolutePath().toString());
+    properties.remove("BASH_PATH");
+    fileAccess.writeProperties(properties, environmentFile);
+    IdeTestContext context = new IdeTestContext(home, IdeLogLevel.DEBUG, null);
+    context.setSystemInfo(SystemInfoMock.WINDOWS_X64);
+    return context;
   }
 
   protected static IdeTestContextAssertion assertThat(IdeTestContext context) {

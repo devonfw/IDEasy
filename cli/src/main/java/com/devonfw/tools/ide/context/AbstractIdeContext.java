@@ -1476,7 +1476,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
             verifyIdeMinVersion(false);
           }
           Path settingsRepository = getSettingsGitRepository();
-          if (settingsRepository != null) {
+          if ((settingsRepository != null) && (getGitContext().findGit() != null)) {
             if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) || (
                 getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(
                     settingsRepository, getSettingsCommitIdPath()))) {
@@ -1812,7 +1812,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
     }
     if (bashPath == null) {
-      LOG.error("No bash executable could be found on your system.");
+      LOG.debug("No bash executable could be found on your system.");
     } else {
       this.bash = bashPath;
     }
@@ -1865,7 +1865,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       Path bashPath = getPath().findBinary(plainBash, pathsToIgnore);
       bash = bashPath.toAbsolutePath();
       if (bashPath.equals(plainBash)) {
-        LOG.warn("No usable bash executable was found in your PATH environment variable!");
+        LOG.debug("No usable bash executable was found in your PATH environment variable!");
         bash = null;
       } else {
         if (Files.exists(bashPath)) {
@@ -1911,7 +1911,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
             return null;
           }
         } else {
-          LOG.info("No bash executable could be found in the Windows registry.");
+          LOG.debug("No bash executable could be found in the Windows registry.");
         }
       }
     }
@@ -2005,5 +2005,4 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   public String getDefaultWindowsGitPath() {
     return DEFAULT_WINDOWS_GIT_PATH;
   }
-
 }

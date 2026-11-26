@@ -142,15 +142,15 @@ public class WindowsHelperImpl implements WindowsHelper {
 
   private String findUninstallKey(String appName) {
 
+    // reg also matches on any other value (e.g. comments or paths of unrelated apps), so we only accept a key whose DisplayName matches.
+    // An exact match in any registry base path wins over a DisplayName with suffix (e.g. "Obsidian Web" next to "Obsidian").
+    String firstWithSuffix = null;
     for (String registryBasePath : REGISTRY_BASE_PATHS) {
       List<String> out = runReg("query", registryBasePath, "/s", "/f", appName);
       if (out == null) {
         continue;
       }
-      // reg also matches on any other value (e.g. comments or paths of unrelated apps), so we only accept a key whose DisplayName matches.
-      // An exact match wins over a key whose DisplayName only contains the app name (e.g. "Obsidian Web" next to "Obsidian").
       String key = null;
-      String firstContaining = null;
       for (String line : out) {
         String trimmed = line.trim();
         if (trimmed.startsWith("HKEY_")) {
@@ -158,20 +158,30 @@ public class WindowsHelperImpl implements WindowsHelper {
         } else if ((key != null) && line.startsWith("    " + DISPLAY_NAME + " ")) {
           String displayName = retrieveRegString(DISPLAY_NAME, List.of(line));
           if (displayName != null) {
-            if (displayName.trim().equalsIgnoreCase(appName)) {
-              return key; // exact registry path (key) for tool
-            }
-            if ((firstContaining == null) && displayName.toLowerCase(Locale.ROOT).contains(appName.toLowerCase(Locale.ROOT))) {
-              firstContaining = key;
+            displayName = displayName.trim();
+            if (displayName.equalsIgnoreCase(appName)) {
+              return key;
+            } else if ((firstWithSuffix == null) && hasAppNameWithSuffix(displayName, appName)) {
+              firstWithSuffix = key;
             }
           }
         }
       }
-      if (firstContaining != null) {
-        return firstContaining;
-      }
     }
-    return null;
+    return firstWithSuffix;
+  }
+
+  /**
+   * Checks whether a Windows application display name starts with the requested application name followed by a suffix. A display name that only contains the
+   * application name inside another word does not match.
+   *
+   * @param displayName the application's display name from the Windows registry.
+   * @param appName the application name to match.
+   * @return {@code true} if the display name is the application name followed by a suffix, {@code false} otherwise.
+   */
+  private static boolean hasAppNameWithSuffix(String displayName, String appName) {
+
+    return displayName.toLowerCase(Locale.ROOT).startsWith(appName.toLowerCase(Locale.ROOT) + " ");
   }
 
   /**
