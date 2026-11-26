@@ -1,14 +1,7 @@
 // @ts-check
-import { test } from 'node:test';
+import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  classifyStatus,
-  computeTarget,
-  computeDiff,
-  COLUMNS,
-  parseBoardNumber,
-  resolveBoard,
-} from './reconcile-core.mjs';
+import {classifyStatus, COLUMNS, computeDiff, computeReviewRequest, computeTarget, parseBoardNumber, resolveBoard,} from './reconcile-core.mjs';
 
 // The board's real column names (matched against the Status field option names).
 const CFG = {
@@ -16,6 +9,7 @@ const CFG = {
   authorOnlyColumns: ['🏗 In progress'],
   finalReviewColumn: '👀 In review',
   finalReviewer: 'hohwille',
+  finalReviewTeam: 'ide-writers',
 };
 
 // pr helper: `reviewer` is the current "Team Reviewer" field value (a login or '').
@@ -190,6 +184,64 @@ test('computeDiff: null target removes everyone (defensive)', () => {
   const d = computeDiff(['a', 'b'], null);
   assert.deepEqual(d.toRemove, ['a', 'b']);
   assert.deepEqual(d.toAdd, []);
+});
+
+// Final review team request tests.
+test('computeReviewRequest: nothing requested -> request the team', () => {
+  const result = computeReviewRequest(
+      pr({author: 'author', assignees: ['finalReviewer', 'author']}),
+      CFG);
+  assert.deepEqual(result, {team: 'ide-writers', request: true});
+});
+
+test('computeReviewRequest: the team is already a requested reviewer -> do not request the team', () => {
+  const result = computeReviewRequest(
+      pr({
+        author: 'author',
+        assignees: ['finalReviewer', 'author'],
+        requestedReviewers: {'ide-writers': null}
+      }),
+      CFG);
+  assert.deepEqual(result, {team: 'ide-writers', request: false});
+});
+
+test('computeReviewRequest: a requested individual who is NOT the team reviewer -> do not request the team', () => {
+  const result = computeReviewRequest(
+      pr({
+        author: 'author',
+        assignees: ['finalReviewer', 'teamReviewer', 'author'],
+        reviewer: 'teamReviewer',
+        requestedReviewers: {otherReviewer: null}
+      }),
+      CFG);
+  assert.deepEqual(result, {team: 'ide-writers', request: false});
+});
+
+test('computeReviewRequest: ONLY the team reviewer (field value) requested -> request the team', () => {
+  const result = computeReviewRequest(
+      pr({
+        author: 'author',
+        assignees: ['finalReviewer', 'teamReviewer', 'author'],
+        reviewer: 'teamReviewer',
+        requestedReviewers: {teamReviewer: null}
+      }),
+      CFG);
+  assert.deepEqual(result, {team: 'ide-writers', request: true});
+});
+
+test('computeReviewRequest: team reviewer plus another requested -> do not request the team', () => {
+  const result = computeReviewRequest(
+      pr({
+        author: 'author',
+        assignees: ['finalReviewer', 'teamReviewer', 'author'],
+        reviewer: 'teamReviewer',
+        requestedReviewers: {
+          teamReviewer: null,
+          otherReviewer: null
+        }
+      }),
+      CFG);
+  assert.deepEqual(result, {team: 'ide-writers', request: false});
 });
 
 test('parseBoardNumber: accepts a positive integer', () => {

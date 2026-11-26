@@ -20,6 +20,8 @@
 //   - Columns that are neither (e.g. New / Research / Refinement / Done) are
 //     left untouched so the bot never fights the team's other conventions.
 //
+// Request the final review team unless an independent team member is already
+// requested. The designated team reviewer does not count.
 // This file has no I/O so the rules can be unit tested in isolation.
 
 export const COLUMNS = Object.freeze({
@@ -169,6 +171,28 @@ export function computeDiff(currentAssignees, targets) {
   const toRemove = currentAssignees.filter((login) => !wanted.includes(login));
   const toAdd = wanted.filter((login) => !currentAssignees.includes(login));
   return { toAdd, toRemove, changed: toAdd.length > 0 || toRemove.length > 0 };
+}
+
+/**
+ * Determines whether the final review team should be requested.
+ *
+ * @param {{ reviewer?: string, requestedReviewers?: { [loginOrTeam: string]: string | null } }} pr
+ * @param {{ finalReviewTeam: string }} cfg
+ * @returns {{ team: string, request: boolean }}
+ */
+export function computeReviewRequest(pr, cfg) {
+  const team = cfg.finalReviewTeam;
+  const requested = pr.requestedReviewers ?? {};
+
+  if (Object.hasOwn(requested, team)) {
+    return {team, request: false};
+  }
+
+  // The designated team reviewer does not count as an independent reviewer.
+  const teamReviewer = (pr.reviewer ?? '').trim();
+  const covered = Object.keys(requested).some((login) => login !== teamReviewer);
+
+  return {team, request: !covered};
 }
 
 /** Number of the IDEasy board (github.com/orgs/devonfw/projects/5). */

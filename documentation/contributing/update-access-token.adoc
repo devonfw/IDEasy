@@ -27,7 +27,7 @@ Click on `Generate new token` to create a new token.
 +
 image::../images/AccessToken2.png["New fine-grained personal access token"]
 . In `Repository permissions` select `Read and write` for `Contents` and `Pull requests` (and `Metadata`).
-The `Pull requests` permission is required by `.github/workflows/pr-assignee-reconcile.yml`: it changes the assignees of PRs (REST API), otherwise every assignee change fails with a 403 that is only logged.
+The `Pull requests` permission is required by `.github/workflows/pr-assignee-reconcile.yml`: it changes the assignees of PRs (REST API) and requests the `ide-writers` team as a reviewer when a PR reaches "In review"; otherwise those calls fail with a 403 that is only logged.
 +
 image::../images/AccessToken3.png["Repository permissions"]
 . Select the ``Organizations tab`` to configure the required organization permissions.
