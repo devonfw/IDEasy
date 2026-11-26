@@ -15,6 +15,5 @@ set "ts=%date:/=-%_%time::=-%"
 set "ts=!ts:,=-!"
 
 "%INSTALL_FOLDER%\bin\ideasy.exe" -ftb --no-colors install > "%USERPROFILE%\.ide\logs\install-!ts!.log" 2>&1
-set "exitCode=!ERRORLEVEL!"
 
 exit /b %ERRORLEVEL%
