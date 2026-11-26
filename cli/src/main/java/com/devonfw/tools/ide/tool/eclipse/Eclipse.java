@@ -45,6 +45,14 @@ public class Eclipse extends AbstractIdeToolCommandlet {
   }
 
   @Override
+  protected boolean isSupportProjectProperty() {
+
+    // Eclipse does not support the --project option - it always opens the managed workspace and its own workspace concept already
+    // allows mounting any directory into it.
+    return false;
+  }
+
+  @Override
   protected void configureToolBinary(ProcessContext pc, ProcessMode processMode) {
 
     if (!processMode.isBackground() && this.context.getSystemInfo().isWindows()) {

@@ -52,7 +52,7 @@ public class FlutterUrlUpdater extends AbstractUrlUpdater {
    * {@link VersionIdentifier} because of their leading {@code v} (a letter sorts above any digit). Skipping everything below {@code 3.0.0} therefore both
    * drops the ancient releases and stops a plain {@code ide install flutter} from resolving to a 2018 release via {@code resolveVersionPattern}.
    */
-  private static final VersionIdentifier MIN_VERSION = VersionIdentifier.of("3.0.0");
+  private static final VersionIdentifier MIN_VERSION = VersionIdentifier.ofRequired("3.0.0");
 
   /**
    * The constructor.
@@ -163,7 +163,7 @@ public class FlutterUrlUpdater extends AbstractUrlUpdater {
     if (normalized == null) {
       return null;
     }
-    VersionIdentifier versionIdentifier = VersionIdentifier.of(normalized);
+    VersionIdentifier versionIdentifier = VersionIdentifier.ofRequired(normalized);
     return ((versionIdentifier == null) || versionIdentifier.compareVersion(MIN_VERSION).isLess()) ? null : normalized;
   }
 

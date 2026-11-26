@@ -33,7 +33,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Intellij.class);
 
-  private static final VersionIdentifier INTELLIJ_LAST_SEPARATE_VERSION = VersionIdentifier.of("2025.2.6.1");
+  private static final VersionIdentifier INTELLIJ_LAST_SEPARATE_VERSION = VersionIdentifier.ofRequired("2025.2.6.1");
 
   private static final String IDEA = "idea";
 
@@ -90,7 +90,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
       VersionIdentifier version;
       if (requested.getVersion() != null) {
-        version = VersionIdentifier.of(requested.getVersion().toString());
+        version = VersionIdentifier.ofRequired(requested.getVersion().toString());
       } else {
         version = getConfiguredVersion();
       }

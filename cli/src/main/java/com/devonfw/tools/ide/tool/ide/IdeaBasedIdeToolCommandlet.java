@@ -144,7 +144,7 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
   @Override
   public ProcessResult runTool(ProcessContext pc, ProcessMode processMode, List<String> args) {
     if (!args.contains("installPlugins")) {
-      args.add(this.context.getWorkspacePath().toString());
+      args.add(getOpenPath().toString());
     }
 
     String variableName = getName().toUpperCase(Locale.ROOT).replace("-", "_") + VM_ARGS_ENV_SUFFIX;
@@ -259,8 +259,12 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean additionalInstallation) {
     super.setEnvironment(environmentContext, toolInstallation, additionalInstallation);
 
+    // an explicit --project launch opens an external folder that IDEasy must not write into, so instead of the generated configuration file
+    // point at the opened folder's own configuration file (see {@link #getOpenPath()}); without the flag the generated file is used
+    Path propertiesFilePath = (this.project.getValue() != null) ? getOpenPath().resolve(getConfigurationFileName()) : getConfigurationFilePath();
+
     String pathVariableKey = getIdeProductPrefix().toUpperCase(Locale.ROOT) + PROPERTIES_ENV_SUFFIX;
-    environmentContext.withEnvVar(pathVariableKey, getConfigurationFilePath().toString());
+    environmentContext.withEnvVar(pathVariableKey, propertiesFilePath.toString());
   }
 
   /**
@@ -274,7 +278,8 @@ public class IdeaBasedIdeToolCommandlet extends AbstractIdeToolCommandlet {
   /**
    * @return the {@link Path} to the generated IDE configuration file (e.g. {@code idea.properties}). It is kept out of the workspace in
    *     {@link #getIdeMetadataPath()} (see #2531), consistent with the generated {@code .vmoptions} file, and is passed to the IDE via the
-   *     {@code «PREFIX»_PROPERTIES} environment variable.
+   *     {@code «PREFIX»_PROPERTIES} environment variable for the default launch; a launch with an explicit {@code --project} folder points at the
+   *     opened folder's own configuration file instead (see {@link #setEnvironment(EnvironmentContext, ToolInstallation, boolean)}).
    */
   protected Path getConfigurationFilePath() {
 

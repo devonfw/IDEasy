@@ -117,6 +117,8 @@ class PycharmTest extends AbstractIdeContextTest {
     commandlet.run();
 
     assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: ActivePlugin");
+    assertThat(context).logAtSuccess().hasNoMessageContaining("Successfully ended step 'Install plugin ActivePlugin");
+    assertThat(context).log().hasMessage("Start: Install plugin ActivePlugin (1/1)");
 
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
@@ -128,7 +130,7 @@ class PycharmTest extends AbstractIdeContextTest {
     // act
     commandlet.run();
     // assert
-    assertThat(context).logAtDebug().hasNoMessage("Successfully installed plugin: ActivePlugin");
+    assertThat(context).log().hasNoMessageContaining("Install plugin ActivePlugin");
   }
 
   /**
@@ -194,7 +196,7 @@ class PycharmTest extends AbstractIdeContextTest {
     // arrange
     Pycharm commandlet = new Pycharm(this.context);
     Path dummy = this.context.getSoftwarePath().resolve("pycharm");
-    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.of("2024.3.5"), false);
+    ToolInstallation installation = new ToolInstallation(dummy, dummy, dummy, VersionIdentifier.ofRequired("2024.3.5"), false);
     RecordingEnvironmentContext environmentContext = new RecordingEnvironmentContext();
 
     // act
