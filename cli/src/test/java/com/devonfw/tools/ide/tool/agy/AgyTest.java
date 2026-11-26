@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.agy;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -63,6 +64,22 @@ class AgyTest extends AbstractIdeContextTest {
     Path antigravityHome = this.home.resolve(Agy.HOME_ANTIGRAVITY_CLI_LOCATION);
     assertThat(this.isLink(antigravityHome)).as(antigravityHome.toString()).isTrue();
     assertThat(this.getFileAccess().toRealPath(antigravityHome)).isEqualTo(this.getFileAccess().toRealPath(this.agy.getAgyConfigDir()));
+  }
+
+  /**
+   * Test {@link Agy#linkHomeConfigDir()} creates the link with an absolute target, because the user home and the project may reside on different drives (e.g.
+   * {@code C:} vs. {@code D:} on Windows) where no relative path can be computed.
+   */
+  @Test
+  void testLinkHomeConfigDirCreatesAbsoluteLink() throws IOException {
+    // act
+    this.agy.linkHomeConfigDir();
+    // assert
+    Path antigravityHome = this.home.resolve(Agy.HOME_ANTIGRAVITY_CLI_LOCATION);
+    // a Windows junction (fallback without symlink privileges) is always absolute, so only a real symbolic link needs to be checked
+    if (Files.isSymbolicLink(antigravityHome)) {
+      assertThat(Files.readSymbolicLink(antigravityHome)).isAbsolute();
+    }
   }
 
   /**
