@@ -11,7 +11,7 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
-import com.devonfw.tools.ide.git.GitContextImplMock;
+import com.devonfw.tools.ide.git.GitContextMock;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -28,7 +28,7 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
   private IdeTestContext newReleaseContext(boolean untrackedFiles) {
 
     IdeTestContext context = newContext(PROJECT_RELEASE);
-    GitContextImplMock gitContext = new GitContextImplMock(context, context.getWorkspacePath().resolve("mvn"));
+    GitContextMock gitContext = new GitContextMock(context);
     gitContext.setSimulateUntrackedFiles(untrackedFiles);
     context.setGitContext(gitContext);
     context.setCwd(context.getWorkspacePath().resolve("mvn"), context.getWorkspacePath().toString(), context.getIdeHome());
@@ -109,7 +109,7 @@ class ReleaseCommandletTest extends AbstractIdeContextTest {
 
     IdeTestContext context = newContext("yarn", wireMockRuntimeInfo);
     Path yarnProject = context.getWorkspacePath().resolve("release");
-    context.setGitContext(new GitContextImplMock(context, yarnProject));
+    context.setGitContext(new GitContextMock(context));
     context.setCwd(yarnProject, context.getWorkspacePath().toString(), context.getIdeHome());
     context.setAnswers("yes", "yes");
     ReleaseCommandlet releaseCommandlet = context.getCommandletManager().getCommandlet(ReleaseCommandlet.class);
