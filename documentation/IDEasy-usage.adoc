@@ -36,6 +36,8 @@ include::tmp.adoc[leveloffset=3]
 
 include::urls.adoc[leveloffset=3]
 
+include::ide.adoc[leveloffset=3]
+
 include::repository.adoc[leveloffset=2]
 
 include::plugin.adoc[leveloffset=2]
@@ -47,5 +49,7 @@ include::configurator.adoc[leveloffset=2]
 include::cygwin.adoc[leveloffset=2]
 
 include::sandbox.adoc[leveloffset=2]
+
+include::docker-sandbox.adoc[leveloffset=2]
 
 include::proxy-support.adoc[leveloffset=2]
