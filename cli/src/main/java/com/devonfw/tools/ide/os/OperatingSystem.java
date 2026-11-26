@@ -63,38 +63,4 @@ public enum OperatingSystem {
     }
   }
 
-  /**
-   * @param suffix the file extension.
-   * @return {@code true} if the given {@code suffix} is an executable file extension of this {@link OperatingSystem}, {@code false} otherwise.
-   */
-  public boolean isExecutable(String suffix) {
-
-    if (suffix == null) {
-      return false;
-    }
-    if (suffix.startsWith(".")) {
-      suffix = suffix.substring(1);
-    }
-    if (this == WINDOWS) {
-      if (suffix.equals("exe")) {
-        return true;
-      } else if (suffix.equals("msi")) {
-        return true;
-      } else if (suffix.equals("cmd")) {
-        return true;
-      } else if (suffix.equals("bat")) {
-        return true;
-      } else if (suffix.equals("ps1")) {
-        return true;
-      }
-    } else {
-      if (suffix.equals("sh")) {
-        return true;
-      } else if ((this == MAC) && suffix.equals("pkg")) {
-        return true;
-      }
-    }
-    return false;
-  }
-
 }
