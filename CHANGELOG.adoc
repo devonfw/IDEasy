@@ -14,6 +14,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2875[#2875]: Keep the current working directory in the git-bash window title when the shell is not initialised with IDEasy, instead of showing only `ideasy`
 * https://github.com/devonfw/IDEasy/issues/2518[#2518]: Add Snyk CLI commandlet
 * https://github.com/devonfw/IDEasy/issues/2544[#2544]: Remove npm_config_prefix from native package manager commands
+* https://github.com/devonfw/IDEasy/issues/2538[#2538]: Resolve Maven configuration folder by layout so `M2_REPO` is `$IDE_HOME/conf/mvn/repository` from the start of `ide create` / `ide update`
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/54?closed=1[milestone 2026.12.001].
 
@@ -49,7 +50,6 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2373[#2373]: GlobalToolCommandlet: determine the edition together with the version for native package manager installs (Linux/macOS)
 * https://github.com/devonfw/IDEasy/issues/2725[#2725]: Consider robustness for VersionIdentifier parsing
 * https://github.com/devonfw/IDEasy/issues/2519[#2519]: Add Flutter SDK commandlet
-* https://github.com/devonfw/IDEasy/issues/2538[#2538]: Resolve Maven configuration folder by layout so `M2_REPO` is `$IDE_HOME/conf/mvn/repository` from the start of `ide create` / `ide update`
 * https://github.com/devonfw/IDEasy/issues/2325[#2325]: Made Desktop and Start Menu shortcut creation configurable in the Windows MSI installer
 * https://github.com/devonfw/IDEasy/issues/2553[#2553]: Add release support for yarn
 * https://github.com/devonfw/IDEasy/issues/2515[#2515]: Add commandlet for KubeLinter (kube-linter)
