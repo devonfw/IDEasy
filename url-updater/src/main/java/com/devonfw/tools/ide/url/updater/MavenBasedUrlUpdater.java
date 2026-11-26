@@ -24,9 +24,19 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
     super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
   }
 
+  /**
+   * The constructor used for testing, allowing the download and version base URLs to be injected.
+   *
+   * @param downloadBaseUrl mock url used for download base.
+   * @param versionBaseUrl mock url used for version base.
+   */
+  public MavenBasedUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
+    super(downloadBaseUrl, versionBaseUrl);
+  }
+
   private String getDownloadArtifactUrl() {
 
-    return getDownloadBaseUrl() + "/" + getMavenGroupIdPath() + "/" + getMavenArtifcatId() + "/";
+    return getDownloadBaseUrl() + "/" + getMavenGroupIdPath() + "/" + getMavenArtifactId() + "/";
   }
 
   /**
@@ -37,7 +47,7 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
   /**
    * @return the maven artifactId.
    */
-  protected abstract String getMavenArtifcatId();
+  protected abstract String getMavenArtifactId();
 
   /**
    * @return the artifact extension including the dot (e.g. ".jar").
@@ -57,7 +67,7 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
   protected void addVersion(UrlVersion urlVersion) {
 
     String version = urlVersion.getName();
-    String url = getDownloadArtifactUrl() + version + "/" + getMavenArtifcatId() + "-" + version + getExtension();
+    String url = getDownloadArtifactUrl() + version + "/" + getMavenArtifactId() + "-" + version + getExtension();
     doAddVersion(urlVersion, url);
   }
 
