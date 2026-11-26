@@ -13,6 +13,5 @@ set "ts=%date:/=-%_%time::=-%"
 set "ts=!ts:,=-!"
 
 "%INSTALL_FOLDER%\bin\ideasy.exe" -ft --no-colors uninstall > "%USERPROFILE%\.ide\logs\uninstall-!ts!.log" 2>&1
-set "exitCode=!ERRORLEVEL!"
 
 exit /b %ERRORLEVEL%
