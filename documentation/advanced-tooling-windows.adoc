@@ -64,7 +64,7 @@ IDEasy therefore replaces this with a title that tells you which project, worksp
 * `ideasy>«project»>«workspace»>«repository»` when you are inside a repository (e.g. `ideasy>devonfw>main>IDEasy`)
 * `ideasy>«project»>«workspace»` when you are inside a workspace but outside any repository
 * `ideasy>«project»` when you are inside an IDEasy project but outside any workspace
-* `ideasy` when you are outside of any IDEasy project
+* `«current-directory»` when your shell is not initialised with IDEasy, so the current working directory stays visible instead of just `ideasy`
 
 Workspace and repository are derived from your current directory, so the title also follows a plain `cd` and not only `ide` or `icd`.
 As with `icd -r`, hidden folders are not considered to be repositories, and for a nested repository such as `backend/core` the top-level folder is shown to keep the title short.

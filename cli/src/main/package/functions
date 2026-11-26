@@ -255,6 +255,22 @@ function npm() {
   fi
 }
 
+function python() {
+  if [ -n "${IDE_HOME}" ]; then
+    ide python "$@"
+  else
+    command python "$@"
+  fi
+}
+
+function pip() {
+  if [ -n "${IDE_HOME}" ]; then
+    ide pip "$@"
+  else
+    command pip "$@"
+  fi
+}
+
 _ide_create_project()
 {
   local found_create=false
@@ -430,9 +446,10 @@ _icd_completion()
   COMPREPLY=( $(compgen -W "-p --project -w --workspace -r --repository -h --help" -- "${cur}") )
 }
 
-# writes the terminal title for the current directory as "ideasy", "ideasy>«project»",
-# "ideasy>«project»>«workspace»" or "ideasy>«project»>«workspace»>«repository»", so that terminal tabs and
-# windows can be told apart.
+# writes the terminal title for the current directory. If IDEasy is not initialized (no IDE_HOME) the CWD is
+# shown so that installing IDEasy does not hide the current working directory (see #2875). Otherwise the title
+# is "ideasy>«project»", "ideasy>«project»>«workspace»" or "ideasy>«project»>«workspace»>«repository»", so that
+# terminal tabs and windows can be told apart.
 # The workspace and repository are derived from PWD and not from the WORKSPACE variable, since the latter
 # always defaults to "main" even outside of any workspace or IDEasy project. Like "icd -r", hidden folders are
 # not considered to be repositories. For a nested repository such as "backend/core" the top-level folder is
@@ -440,10 +457,9 @@ _icd_completion()
 _ide_title()
 {
   local _exit_code=$?
-  local title="ideasy"
   local workspace repository _ide_path_segment_result
   if [ -n "${IDE_HOME:-}" ]; then
-    title="${title}>${IDE_HOME##*/}"
+    local title="ideasy>${IDE_HOME##*/}"
     _ide_path_segment "${PWD}" "${IDE_HOME}/workspaces"
     workspace="${_ide_path_segment_result}"
     if [ -n "${workspace}" ]; then
@@ -454,6 +470,8 @@ _ide_title()
         title="${title}>${repository}"
       fi
     fi
+  else
+    local title="${PWD}"
   fi
   printf '\033]0;%s\007' "${title}"
   return "${_exit_code}"
