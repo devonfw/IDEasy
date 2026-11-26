@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.process.EnvironmentContext;
@@ -21,9 +22,10 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Tests the {@code «IDE»_PROPERTIES} environment variables ({@code IDEA_PROPERTIES}, {@code STUDIO_PROPERTIES}, {@code PYCHARM_PROPERTIES}) of
- * {@link AbstractIdeToolCommandlet}: they point at the {@link AbstractIdeToolCommandlet#getOpenPath() folder being opened} rather than unconditionally at the
- * managed workspace. The {@code --project} flag is remembered on the commandlet before the ensure-install step runs {@code setEnvironment}
- * (see {@link AbstractIdeToolCommandlet#extractProjectOption}), so {@code getOpenPath()} is already the correct folder in both the shell-env and launch phases.
+ * {@link AbstractIdeToolCommandlet}: by default they point at the IDEasy-generated configuration file kept out of the workspace (see #2531), while an
+ * explicit {@code --project} flag makes them point at the {@link AbstractIdeToolCommandlet#getOpenPath() opened folder's} own configuration file
+ * instead. The {@code --project} flag is remembered on the commandlet before the ensure-install step runs {@code setEnvironment}, so
+ * {@code getOpenPath()} is already the correct folder in both the shell-env and launch phases.
  */
 class IdeaBasedIdeToolCommandletTest extends AbstractIdeContextTest {
 
@@ -32,11 +34,11 @@ class IdeaBasedIdeToolCommandletTest extends AbstractIdeContextTest {
   private static final ToolInstallation INSTALLATION = new ToolInstallation(DUMMY, DUMMY, DUMMY, VersionIdentifier.LATEST, false);
 
   /**
-   * Tests that by default (no {@code --project} flag) {@code IDEA_PROPERTIES} points at the managed workspace's {@code idea.properties} (regression
-   * guard: default behavior is unchanged).
+   * Tests that by default (no {@code --project} flag) {@code IDEA_PROPERTIES} points at the IDEasy-generated {@code idea.properties} file that is kept
+   * out of the workspace (see #2531).
    */
   @Test
-  void testIdeaPropertiesDefaultIsWorkspacePath() {
+  void testIdeaPropertiesDefaultIsGeneratedConfigurationFile() {
 
     // arrange
     IdeTestContext context = newContext("intellij");
@@ -45,7 +47,9 @@ class IdeaBasedIdeToolCommandletTest extends AbstractIdeContextTest {
     // act
     intellij.setEnvironment(env, INSTALLATION, false);
     // assert
-    assertThat(env.set.get("IDEA_PROPERTIES")).isEqualTo(context.getWorkspacePath().resolve("idea.properties").toString());
+    Path ideaProperties = context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("intellij")
+        .resolve(context.getWorkspaceName()).resolve("idea.properties");
+    assertThat(env.set.get("IDEA_PROPERTIES")).isEqualTo(ideaProperties.toString());
   }
 
   /**

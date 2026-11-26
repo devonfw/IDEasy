@@ -58,8 +58,8 @@ public class IdeWorkspaceConfigurer {
    *
    * <p>
    * The registered template path must be relative to the IDE workspace root. During workspace synchronization, the generic extra-SDK handling in
-   * {@link #synchronizeExtraToolInstallations()} uses this mapping to locate the corresponding template file in the settings repository and merge it into the
-   * current workspace.
+   * {@link #synchronizeExtraToolInstallations(Path, Map)} uses this mapping to locate the corresponding template file in the settings repository and merge it
+   * into the current workspace (honoring the {@link IdeToolCommandlet#getWorkspaceRedirects(Path) workspace redirects}).
    * </p>
    *
    * @param sdk the name of the extra SDK/tool as configured in {@code ide-extra-tools.json}.
@@ -96,7 +96,7 @@ public class IdeWorkspaceConfigurer {
     errors = mergeWorkspace(this.context.getSettingsPath(), workspaceFolder, redirects, errors);
     errors = mergeWorkspace(this.context.getConfPath(), workspaceFolder, redirects, errors);
 
-    synchronizeExtraToolInstallations();
+    synchronizeExtraToolInstallations(workspaceFolder, redirects);
 
     if (errors == 0) {
       step.success();
@@ -129,7 +129,7 @@ public class IdeWorkspaceConfigurer {
     return errors + this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), workspaceFolder, redirects);
   }
 
-  private void synchronizeExtraToolInstallations() {
+  private void synchronizeExtraToolInstallations(Path workspaceFolder, Map<Path, Path> redirects) {
 
     ExtraTools extraTools = ExtraToolsMapper.get().loadJsonFromFolder(this.context.getSettingsPath());
     if (extraTools == null) {
@@ -142,14 +142,31 @@ public class IdeWorkspaceConfigurer {
         continue;
       }
       List<ExtraToolInstallation> extraInstallations = extraTools.getExtraInstallations(sdk);
-      synchronizeExtraToolInstallation(sdk, templatePaths, extraInstallations);
+      synchronizeExtraToolInstallation(sdk, templatePaths, extraInstallations, workspaceFolder, redirects);
     }
   }
 
-  private void synchronizeExtraToolInstallation(String sdk, Set<Path> templatePaths, List<ExtraToolInstallation> extraInstallations) {
+  /**
+   * @param workspaceFolder the {@link IdeContext#getWorkspacePath() workspace folder}.
+   * @param relativePath the workspace-relative {@link Path} of a template (e.g. {@code .intellij/config/options/jdk.table.xml}).
+   * @param redirects the workspace-internal redirects (see {@link IdeToolCommandlet#getWorkspaceRedirects(Path)}).
+   * @return the {@link Path} where to merge the template to, honoring the {@code redirects} like the workspace merger does.
+   */
+  private static Path resolveWorkspaceFile(Path workspaceFolder, Path relativePath, Map<Path, Path> redirects) {
+
+    Path target = workspaceFolder;
+    for (Path segment : relativePath) {
+      target = target.resolve(segment.toString());
+      target = redirects.getOrDefault(target, target);
+    }
+    return target;
+  }
+
+  private void synchronizeExtraToolInstallation(String sdk, Set<Path> templatePaths, List<ExtraToolInstallation> extraInstallations, Path workspaceFolder,
+      Map<Path, Path> redirects) {
 
     for (Path templatePath : templatePaths) {
-      Path workspaceFile = this.context.getWorkspacePath().resolve(templatePath);
+      Path workspaceFile = resolveWorkspaceFile(workspaceFolder, templatePath, redirects);
       Path templateFile = this.context.getSettingsPath().resolve(this.toolName).resolve(IdeContext.FOLDER_WORKSPACE)
           .resolve(IdeContext.FOLDER_REPOSITORY)
           .resolve(templatePath);
