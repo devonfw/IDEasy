@@ -1,8 +1,7 @@
 {
   "resources": {
     "includes": [
-      {"pattern": "nls/.*"},
-      {"pattern": "refactor/openrewrite.json"}
+      {"pattern": "nls/.*"}
     ]
   },
   "bundles": [
