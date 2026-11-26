@@ -2,12 +2,9 @@ package com.devonfw.ide.gui.core.mainwindow.console;
 
 
 import java.text.MessageFormat;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-
-import com.devonfw.tools.ide.log.IdeLogLevel;
 
 import javafx.collections.ListChangeListener.Change;
 import javafx.fxml.FXML;
@@ -20,12 +17,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
-
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
  * View of the console
