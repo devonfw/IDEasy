@@ -74,6 +74,6 @@ public class JustTest extends AbstractIdeContextTest {
     VersionIdentifier installedVersion = commandlet.getInstalledVersion();
 
     // assert
-    assertThat(installedVersion).isEqualTo(VersionIdentifier.of("1.37.0"));
+    assertThat(installedVersion).isEqualTo(VersionIdentifier.ofRequired("1.37.0"));
   }
 }

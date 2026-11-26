@@ -156,9 +156,9 @@ class PypiObjectJsonTest extends Assertions {
 
     // assert
     assertThat(pypiObject.releases()).containsExactly(
-        VersionIdentifier.of("0.2"),
-        VersionIdentifier.of("10.0.1"),
-        VersionIdentifier.of("25.3")
+        VersionIdentifier.ofRequired("0.2"),
+        VersionIdentifier.ofRequired("10.0.1"),
+        VersionIdentifier.ofRequired("25.3")
     );
 
     // act

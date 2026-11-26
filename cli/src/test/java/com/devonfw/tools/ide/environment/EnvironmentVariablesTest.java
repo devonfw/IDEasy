@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.environment;
 
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -192,12 +191,12 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
     EnvironmentVariables variables = context.getVariables();
 
     // act
+    String plainVariable = variables.resolve("$[TEST_ARGS4]", "test", true);
     String askExpression = variables.resolve("@ask-variable('TEST_ARGS4')", "test", false);
-    String plainVariable = variables.resolve("$[TEST_ARGS4]", "test", false);
 
     // assert
+    assertThat(plainVariable).isEqualTo(" settings4");
     assertThat(askExpression).isEqualTo(plainVariable);
-    assertThat(askExpression).endsWith(" settings4");
   }
 
   /**
@@ -262,7 +261,6 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
    * Test that an already defined secret variable does not show up in log output either, although the user is not asked for it. Since @ask-secret is not
    * persisted, a stored secret is here defined directly in conf/ide.properties.
    */
-  @Disabled("Fails until #2718 is fixed: EnvironmentVariablesMap logs the value of every variable it reads at trace level.")
   @Test
   void testAlreadyDefinedSecretIsNotLoggedInLogOutput() {
 
@@ -304,9 +302,9 @@ class EnvironmentVariablesTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test of {@link EnvironmentVariables#inverseResolve(String, Object)} that variables which resolve to an empty value (e.g.
-   * {@link IdeVariables#HTTP_VERSIONS} when not configured) are skipped instead of being substituted. Replacing an empty
-   * value with a variable expression used to corrupt the value by inserting the expression between every character.
+   * Test of {@link EnvironmentVariables#inverseResolve(String, Object)} that variables which resolve to an empty value (e.g. {@link IdeVariables#HTTP_VERSIONS}
+   * when not configured) are skipped instead of being substituted. Replacing an empty value with a variable expression used to corrupt the value by inserting
+   * the expression between every character.
    */
   @Test
   void testInverseResolveSkipsVariablesResolvedToEmptyValue() {
