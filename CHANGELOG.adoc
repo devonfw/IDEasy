@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1167[#1167]: Automatic project import for vs code
 * https://github.com/devonfw/IDEasy/issues/2820[#2820]: Add a dedicated IDE-usage docs page, keep cli.adoc generic
 * https://github.com/devonfw/IDEasy/issues/2552[#2552]: Add release support for npm
 * https://github.com/devonfw/IDEasy/issues/2520[#2520]: Add Dart SDK commandlet
