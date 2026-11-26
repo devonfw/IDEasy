@@ -396,6 +396,27 @@ function pip {
     & $pipCommand.Source @args
 }
 
+function corepack {
+    if (-not [string]::IsNullOrEmpty($env:IDE_HOME)) {
+        ide corepack @args
+        return
+    }
+
+    # "corepack" is now a PowerShell function, so explicitly search for
+    # the external command to avoid recursively calling this function.
+    $corepackCommand = Get-Command corepack `
+        -CommandType Application, ExternalScript `
+        -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+
+    if ($null -eq $corepackCommand) {
+        Write-Error "The command 'corepack' could not be found."
+        return
+    }
+
+    & $corepackCommand.Source @args
+}
+
 function _ide_completion {
     $registerCommand = Get-Command Register-ArgumentCompleter -ErrorAction SilentlyContinue
 
