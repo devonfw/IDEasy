@@ -23,7 +23,7 @@ public class JasyptUrlUpdater extends MavenBasedUrlUpdater {
   }
 
   @Override
-  protected String getMavenArtifcatId() {
+  protected String getMavenArtifactId() {
 
     return "jasypt";
   }
