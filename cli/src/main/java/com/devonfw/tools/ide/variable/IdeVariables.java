@@ -158,7 +158,13 @@ public interface IdeVariables {
       c -> c.getIdePath() == null ? null : c.getIdePath().resolve(IdeContext.FOLDER_SOFTWARE).resolve("uv"), true, true);
 
   /**
-   * {@link VariableDefinition} to relocate the per-project python virtual environment (see {@code Python}) from its default location inside {@code IDE_HOME}
+   * {@link VariableDefinition} for the GUI language selected in the GUI, written by the GUI as the {@code GUI_LANGUAGE} user variable and read by
+   * {@code ide gui} to launch the JVM with the corresponding locale. Deliberately kept out of {@link #VARIABLES}: it has no default value and is not
+   * exported/forced, so registering it would only add it to the known-variable lookup without any resolution or export behavior.
+   */
+  VariableDefinitionString GUI_LANGUAGE = new VariableDefinitionString("GUI_LANGUAGE");
+  /**
+   * {@link VariableDefinition} to relocate the per-project python virtual environment (see {@code Python }) from its default location inside {@code IDE_HOME}
    * to a specific location chosen by the user (e.g. a python module). While not set (the default) the virtual environment is created inside {@code IDE_HOME}.
    */
   VariableDefinitionString PYTHON_VENV_DIR = new VariableDefinitionString("PYTHON_VENV_DIR", null, c -> null);
