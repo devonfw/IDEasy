@@ -1,8 +1,18 @@
 package com.devonfw.tools.ide.commandlet.check;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +25,8 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.property.FlagProperty;
 
 /**
- * {@link AbstractCommandlet} to check the current repository for best-practices, starting from the current working directory (CWD).
+ * {@link AbstractCommandlet} to check the repository for best-practices. By default this starts from the current working directory (CWD) and checks the single
+ * repository it belongs to. With the {@code --all} flag all repositories found in all workspaces are checked instead.
  */
 public class CheckCommandlet extends AbstractCommandlet {
 
@@ -37,6 +48,18 @@ public class CheckCommandlet extends AbstractCommandlet {
   public final FlagProperty fix;
 
   /**
+   * Flag to check all repositories found in all workspaces instead of only the repository of the current working directory.
+   */
+  public final FlagProperty all;
+
+  /**
+   * Checks the repository for issues.
+   */
+  private void checkRepository(Path path, List<CheckIssue> issues) {
+    checkGitIgnore(path, issues);
+  }
+
+  /**
    * The constructor.
    *
    * @param context the {@link IdeContext}.
@@ -45,7 +68,7 @@ public class CheckCommandlet extends AbstractCommandlet {
     super(context);
     addKeyword(getName());
     this.fix = add(new FlagProperty("--fix"));
-
+    this.all = add(new FlagProperty("--all"));
   }
 
   @Override
@@ -63,21 +86,93 @@ public class CheckCommandlet extends AbstractCommandlet {
   protected void doRun() {
 
     List<CheckIssue> issues = new ArrayList<>();
-
-    Path repositoryRoot = findRepositoryRoot();
-    if (repositoryRoot == null) {
-      LOG.warn("This does not seem to be a git repository (no .git folder found in {} or any parent directory).", this.context.getCwd());
-      return;
+    if (this.all.isTrue()) {
+      List<Path> roots = findRepositoryRootsAll();
+      LOG.info("Found {} repository root(s) to check.", roots.size());
+      for (Path root : roots) {
+        checkRepository(root, issues);
+      }
+    } else {
+      Path repositoryRoot = findRepositoryRoot();
+      if (repositoryRoot == null) {
+        LOG.warn("This does not seem to be a git repository (no .git folder found in {} or any parent directory).", this.context.getCwd());
+        return;
+      }
+      LOG.info("Found repository root at {}.", repositoryRoot);
+      checkRepository(repositoryRoot, issues);
     }
 
-    LOG.info("Found repository root at {}.", repositoryRoot);
-    checkGitIgnore(repositoryRoot, issues);
     report(issues);
   }
 
   private Path findRepositoryRoot() {
     GitContext gitContext = this.context.getGitContext();
     return gitContext.findRepositoryRoot(this.context.getCwd());
+  }
+
+  /**
+   * @return all repository roots found in the workspaces and below the current working directory
+   */
+  private List<Path> findRepositoryRootsAll() {
+
+    Set<Path> baseDirs = new LinkedHashSet<>();
+    Path workspacesBasePath = this.context.getWorkspacesBasePath();
+    if (workspacesBasePath != null) {
+      baseDirs.add(workspacesBasePath);
+    } else {
+      baseDirs.add(this.context.getCwd());
+    }
+
+    Set<Path> seen = new LinkedHashSet<>();
+    List<Path> roots = new ArrayList<>();
+    for (Path baseDir : baseDirs) {
+      for (Path root : walkRoots(baseDir)) {
+        if (seen.add(this.context.getFileAccess().toRealPath(root))) {
+          roots.add(root);
+        }
+      }
+    }
+    return roots;
+  }
+
+  /**
+   * @param start the directory to scan.
+   * @return the repository roots found.
+   */
+  private List<Path> walkRoots(Path start) {
+
+    if (start == null) {
+      return List.of();
+    }
+    List<Path> roots = new ArrayList<>();
+    try {
+      Files.walkFileTree(start, EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+
+          if (dir.getFileName().toString().startsWith(".")) {
+            return FileVisitResult.SKIP_SUBTREE;
+          }
+          if (isRepositoryRoot(dir)) {
+            roots.add(dir);
+            return FileVisitResult.SKIP_SUBTREE;
+          }
+          return FileVisitResult.CONTINUE;
+        }
+      });
+    } catch (IOException e) {
+      throw new UncheckedIOException("Failed to scan for repositories in " + start, e);
+    }
+    return roots;
+  }
+
+  /**
+   * @param dir the directory to check.
+   * @return {@code true} if the directory is a repository root.
+   */
+  private boolean isRepositoryRoot(Path dir) {
+
+    return this.context.getGitContext().isGitRepo(dir);
   }
 
   private void checkGitIgnore(Path repositoryRoot, List<CheckIssue> issues) {
