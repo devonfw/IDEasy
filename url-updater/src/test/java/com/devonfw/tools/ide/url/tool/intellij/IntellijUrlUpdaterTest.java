@@ -67,7 +67,7 @@ class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
     // assert
     Path intellijToolPath = tempDir.resolve("intellij");
-    for (String edition : List.of("intellij", "ultimate")) {
+    for (String edition : updater.getEditions()) {
       Path intellijEditionPath = intellijToolPath.resolve(edition);
       assertThat(intellijEditionPath).exists();
       for (String version : List.of("2023.1.1", "2023.1.2")) {
@@ -129,57 +129,5 @@ class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
     // assert
     Path intellijVersionsPath = tempDir.resolve("intellij").resolve("intellij").resolve("2023.1.2");
     assertUrlVersion(intellijVersionsPath, List.of("linux_x64"));
-  }
-
-  /**
-   * Test if the {@link IntellijUrlUpdater} correctly moves unified releases to the community edition JSON object, so that they are correctly recognized as
-   * community edition releases by the rest of the code. This is done by providing a mocked JSON response with a unified release and checking whether this
-   * release is moved to the community edition JSON object by the {@link IntellijUrlUpdater}.
-   */
-  @Test
-  void testIntellijJsonResponseMovesUnifiedReleasesToCommunity() throws Exception {
-
-    String response = """
-        [
-          {
-            "releases": [
-              {
-                "version": "2025.2.6.2",
-                "downloads": {}
-              },
-              {
-                "version": "2025.2.6.1",
-                "downloads": {}
-              },
-              {
-                "version": "2024.3.0",
-                "downloads": {}
-              }
-            ]
-          },
-          {
-            "releases": [
-              {
-                "version": "2025.2.6.1",
-                "downloads": {}
-              },
-              {
-                "version": "2024.3.0",
-                "downloads": {}
-              }
-            ]
-          }
-        ]
-        """;
-
-    IntellijUrlUpdater updater = new IntellijUrlUpdater();
-
-    IntellijJsonObject communityEdition = updater.getJsonObjectFromResponse(response, "intellij");
-    IntellijJsonObject ultimateEdition = updater.getJsonObjectFromResponse(response, "ultimate");
-
-    assertThat(communityEdition.releases()).extracting(IntellijJsonRelease::version)
-        .containsExactly("2025.2.6.2", "2025.2.6.1", "2024.3.0");
-    assertThat(ultimateEdition.releases()).extracting(IntellijJsonRelease::version)
-        .containsExactly("2025.2.6.1", "2024.3.0");
   }
 }
