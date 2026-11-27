@@ -763,7 +763,7 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
 
     setEnvironment(environmentContext, toolInstallation, request.isAdditionalInstallation());
   }
-  
+
   /**
    * Method to set environment variables for the process context.
    *
