@@ -1,0 +1,50 @@
+[
+  {
+    "url": "${testbaseurl}/repos/JetBrains/kotlin/releases/123456",
+    "assets_url": "${testbaseurl}/repos/JetBrains/kotlin/releases/123456/assets",
+    "upload_url": "${testbaseurl}/repos/JetBrains/kotlin/releases/123456/assets{?name,label}",
+    "html_url": "${testbaseurl}/JetBrains/kotlin/releases/tag/v2.4.21",
+    "id": 123456,
+    "tag_name": "v2.4.21",
+    "target_commitish": "main",
+    "name": "Kotlin 2.4.21",
+    "draft": false,
+    "prerelease": false,
+    "created_at": "2026-04-01T12:00:00Z",
+    "published_at": "2026-04-01T12:09:00Z",
+    "assets": [],
+    "body": "Kotlin 2.4.21"
+  },
+  {
+    "url": "${testbaseurl}/repos/JetBrains/kotlin/releases/123457",
+    "assets_url": "${testbaseurl}/repos/JetBrains/kotlin/releases/123457/assets",
+    "upload_url": "${testbaseurl}/repos/JetBrains/kotlin/releases/123457/assets{?name,label}",
+    "html_url": "${testbaseurl}/JetBrains/kotlin/releases/tag/v2.5.0-Beta2",
+    "id": 123457,
+    "tag_name": "v2.5.0-Beta2",
+    "target_commitish": "main",
+    "name": "Kotlin 2.5.0-Beta2",
+    "draft": false,
+    "prerelease": true,
+    "created_at": "2026-04-10T12:00:00Z",
+    "published_at": "2026-04-10T12:09:00Z",
+    "assets": [],
+    "body": "Kotlin 2.5.0-Beta2"
+  },
+  {
+    "url": "${testbaseurl}/repos/JetBrains/kotlin/releases/123458",
+    "assets_url": "${testbaseurl}/repos/JetBrains/kotlin/releases/123458/assets",
+    "upload_url": "${testbaseurl}/repos/JetBrains/kotlin/releases/123458/assets{?name,label}",
+    "html_url": "${testbaseurl}/JetBrains/kotlin/releases/tag/v1.9.25",
+    "id": 123458,
+    "tag_name": "v1.9.25",
+    "target_commitish": "main",
+    "name": "Kotlin 1.9.25",
+    "draft": false,
+    "prerelease": false,
+    "created_at": "2024-05-15T12:00:00Z",
+    "published_at": "2024-05-15T12:09:00Z",
+    "assets": [],
+    "body": "Kotlin 1.9.25"
+  }
+]

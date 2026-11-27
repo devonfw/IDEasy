@@ -1,26 +1,42 @@
 package com.devonfw.tools.ide.url.tool.kotlinc;
 
-import java.util.regex.Pattern;
-
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
+import com.devonfw.tools.ide.url.updater.GithubUrlReleaseUpdater;
 
 /**
- * {@link WebsiteUrlUpdater} for Kotlin.
+ * {@link GithubUrlReleaseUpdater} for kotlinc.
  */
-// TODO refactor me to GithubUrlUpdater
-public class KotlincUrlUpdater extends WebsiteUrlUpdater {
-
-  private static final String DOWNLOAD_BASE_URL = "https://github.com";
-  private static final String VERSION_BASE_URL = "https://api.github.com";
-
-  private static final Pattern VERSION_PATTERN = Pattern.compile("[0-9]+\\.[0-9]+\\.[0-9]+");
+public class KotlincUrlUpdater extends GithubUrlReleaseUpdater {
 
   /**
    * The Constructor.
    */
   public KotlincUrlUpdater() {
-    super(DOWNLOAD_BASE_URL, VERSION_BASE_URL);
+
+    super();
+  }
+
+  /**
+   * Package-private constructor used for testing {@link KotlincUrlUpdater}.
+   *
+   * @param downloadBaseUrl mock url used for download base.
+   * @param versionBaseUrl mock url used for version base.
+   */
+  KotlincUrlUpdater(String downloadBaseUrl, String versionBaseUrl) {
+
+    super(downloadBaseUrl, versionBaseUrl);
+  }
+
+  @Override
+  protected String getGithubOrganization() {
+
+    return "JetBrains";
+  }
+
+  @Override
+  protected String getGithubRepository() {
+
+    return "kotlin";
   }
 
   @Override
@@ -30,22 +46,15 @@ public class KotlincUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
+  protected String getVersionPrefixToRemove() {
+
+    return "Kotlin ";
+  }
+
+  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    doAddVersion(urlVersion,
-        getDownloadBaseUrl() + "/JetBrains/kotlin/releases/download/v${version}/kotlin-compiler-${version}.zip");
-  }
-
-  @Override
-  protected String getVersionUrl() {
-
-    return getVersionBaseUrl() + "/repos/JetBrains/kotlin/releases";
-  }
-
-  @Override
-  protected Pattern getVersionPattern() {
-
-    return VERSION_PATTERN;
+    doAddVersion(urlVersion, getGithubReleaseDownloadBaseUrl() + "/v${version}/kotlin-compiler-${version}.zip");
   }
 
   @Override
