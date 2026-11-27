@@ -200,7 +200,7 @@ public class RepositoryCommandlet extends AbstractCommandlet {
           if (success) {
             firstRepository = repositoryPath;
             if (newRepository) {
-              getCommandlet(CheckCommandlet.class).checkRepository(repositoryPath, false);
+              this.context.newStep("Check repository...").run(() -> getCommandlet(CheckCommandlet.class).checkRepository(repositoryPath, false));
             }
             buildRepository(config, repositoryPath);
             importRepository(config, repositoryPath, config.id());

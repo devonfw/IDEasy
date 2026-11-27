@@ -62,8 +62,6 @@ public class CheckCommandlet extends AbstractCommandlet {
   @Override
   protected void doRun() {
 
-    List<CheckIssue> issues = new ArrayList<>();
-
     Path repositoryRoot = findRepositoryRoot();
     if (repositoryRoot == null) {
       LOG.warn("This does not seem to be a git repository (no .git folder found in {} or any parent directory).", this.context.getCwd());
