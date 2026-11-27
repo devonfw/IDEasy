@@ -18,6 +18,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2045[#2045]: Add tool selection and version or edition configuration to GUI
 * https://github.com/devonfw/IDEasy/issues/2875[#2875]: Keep the current working directory in the git-bash window title when the shell is not initialised with IDEasy, instead of showing only `ideasy`
 * https://github.com/devonfw/IDEasy/issues/2518[#2518]: Add Snyk CLI commandlet
+* https://github.com/devonfw/IDEasy/issues/2876[#2876]: Show the IDEasy project, workspace and repository as a grey annotation in the git-bash prompt while inside a workspace
 * https://github.com/devonfw/IDEasy/issues/2544[#2544]: Remove npm_config_prefix from native package manager commands
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/54?closed=1[milestone 2026.12.001].
