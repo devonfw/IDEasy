@@ -103,8 +103,10 @@ public class GuiStateManager {
 
     //This specific ordering needs to be kept
     final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
-    IdeLogLevel logLevel = IdeLogLevel.DEBUG;
+    IdeLogLevel logLevel = IdeLogLevel.INFO;
     startContext = new IdeStartContextImpl(logLevel, buffer);
+    // a startup failure is logged by the uncaught-exception handler installed in App.start(), so the buffer must be flushed and disabled here
+    startContext.activateLogging();
 
     this.eventBus = new GuiEventBus();
     this.taskManager = new TaskManager(eventBus);
