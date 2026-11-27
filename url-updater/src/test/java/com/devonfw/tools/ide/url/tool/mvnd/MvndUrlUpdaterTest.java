@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -36,7 +37,7 @@ class MvndUrlUpdaterTest extends AbstractUrlUpdaterTest {
   void testMvndJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // arrange
-    stubFor(get(urlMatching("/repos/apache/maven-mvnd/releases")).willReturn(
+    stubFor(get(urlPathMatching("/repos/apache/maven-mvnd/releases")).willReturn(
         aResponse().withStatus(200).withBody(getJsonBody(wmRuntimeInfo))));
 
     stubFor(any(urlMatching("/maven/mvnd/.*\\.zip")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
@@ -62,7 +63,7 @@ class MvndUrlUpdaterTest extends AbstractUrlUpdaterTest {
   void testMvndJsonUrlUpdaterFilterOldVersions(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // arrange
-    stubFor(get(urlMatching("/repos/apache/maven-mvnd/releases")).willReturn(
+    stubFor(get(urlPathMatching("/repos/apache/maven-mvnd/releases")).willReturn(
         aResponse().withStatus(200).withBody(getJsonBody(wmRuntimeInfo))));
 
     stubFor(any(urlMatching("/maven/mvnd/.*\\.zip")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
@@ -89,7 +90,7 @@ class MvndUrlUpdaterTest extends AbstractUrlUpdaterTest {
   void testMvndJsonUrlUpdaterAcceptsReleaseCandidate(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // arrange
-    stubFor(get(urlMatching("/repos/apache/maven-mvnd/releases")).willReturn(
+    stubFor(get(urlPathMatching("/repos/apache/maven-mvnd/releases")).willReturn(
         aResponse().withStatus(200).withBody(getJsonBody(wmRuntimeInfo))));
 
     stubFor(any(urlMatching("/maven/mvnd/.*\\.zip")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));

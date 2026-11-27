@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -32,7 +33,7 @@ public class ScalaCliUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testScalaCliUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
     // arrange
-    stubFor(get(urlMatching("/repos/VirtusLab/scala-cli/releases"))
+    stubFor(get(urlPathMatching("/repos/VirtusLab/scala-cli/releases"))
         .willReturn(aResponse()
             .withStatus(200)
             .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("ScalaCliUrlUpdater")

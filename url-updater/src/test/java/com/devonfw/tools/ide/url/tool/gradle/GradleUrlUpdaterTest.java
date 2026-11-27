@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -32,7 +33,7 @@ class GradleUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testGradleUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // arrange
-    stubFor(get(urlMatching("/repos/gradle/gradle/releases")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/gradle/gradle/releases")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("GradleUrlUpdater").resolve("gradle-releases.json"), wmRuntimeInfo))));
 
     stubFor(any(urlMatching("/distributions/gradle.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));

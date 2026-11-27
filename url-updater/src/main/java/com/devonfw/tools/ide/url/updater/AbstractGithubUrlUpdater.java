@@ -1,12 +1,20 @@
 package com.devonfw.tools.ide.url.updater;
 
+import java.util.Set;
+
+import com.devonfw.tools.ide.json.JsonMapping;
 import com.devonfw.tools.ide.json.JsonObject;
 import com.devonfw.tools.ide.json.JsonVersionItem;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 /**
  * {@link JsonUrlUpdater} for GitHub projects.
  */
 public abstract class AbstractGithubUrlUpdater<J extends JsonObject, JVI extends JsonVersionItem> extends JsonUrlUpdater<J, JVI> {
+
+  private static final ObjectMapper MAPPER = JsonMapping.createWithReflectionSupportForUrlUpdaters();
 
   /**
    * The default GitHub base url.
@@ -14,6 +22,11 @@ public abstract class AbstractGithubUrlUpdater<J extends JsonObject, JVI extends
   protected static final String GITHUB_BASE_URL = "https://github.com";
 
   protected static final String GITHUB_VERSION_URL = "https://api.github.com/repos/";
+
+  /**
+   * Number of results requested per GitHub API page.
+   */
+  protected static final int GITHUB_RESULTS_PER_PAGE = 50;
 
   /**
    * Constructor with defaults for download- and version base url.
@@ -89,5 +102,69 @@ public abstract class AbstractGithubUrlUpdater<J extends JsonObject, JVI extends
   protected String createGithubReleaseDownloadUrl(String releaseTag, String assetName) {
 
     return getGithubReleaseDownloadBaseUrl() + "/" + releaseTag + "/" + assetName;
+  }
+
+  /**
+   * @return {@code true} if pagination can safely stop after an already known version was found.
+   */
+  protected boolean canStopAtKnownVersion() {
+
+    return true;
+  }
+
+  @Override
+  protected String doGetVersionResponseBodyAsString(String url, Set<String> existingVersions) {
+
+    ArrayNode combinedResponse = MAPPER.createArrayNode();
+    int page = 1;
+    int resultCount;
+
+    boolean knownVersionFound;
+
+    do {
+      knownVersionFound = false;
+      String pageUrl = getGithubPageUrl(url, page);
+      String response = super.doGetVersionResponseBodyAsString(pageUrl);
+
+      try {
+        JsonNode pageResponse = MAPPER.readTree(response);
+        if (!pageResponse.isArray()) {
+          throw new IllegalStateException("Expected GitHub API response to be a JSON array: " + pageUrl);
+        }
+
+        ArrayNode pageItems = (ArrayNode) pageResponse;
+        resultCount = pageItems.size();
+        combinedResponse.addAll(pageItems);
+        for (JsonNode item : pageItems) {
+          JsonNode nameNode = item.get("name");
+          if (nameNode != null) {
+            String version = mapVersion(nameNode.asText());
+            if ((version != null) && existingVersions.contains(version)) {
+              knownVersionFound = true;
+              break;
+            }
+          }
+        }
+      } catch (Exception e) {
+        throw new IllegalStateException("Failed to process GitHub API response from: " + pageUrl, e);
+      }
+
+      page++;
+    } while ((resultCount == GITHUB_RESULTS_PER_PAGE) && (!knownVersionFound || !canStopAtKnownVersion()));
+
+    return combinedResponse.toString();
+  }
+
+  /**
+   * Adds GitHub pagination parameters to the given URL.
+   *
+   * @param url the GitHub API URL.
+   * @param page the page number.
+   * @return the URL including pagination parameters.
+   */
+  protected String getGithubPageUrl(String url, int page) {
+
+    String separator = url.contains("?") ? "&" : "?";
+    return url + separator + "per_page=" + GITHUB_RESULTS_PER_PAGE + "&page=" + page;
   }
 }

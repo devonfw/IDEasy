@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -29,7 +30,7 @@ public class UvUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testUvUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // arrange
-    stubFor(get(urlMatching("/repos/astral-sh/uv/git/refs/tags")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/astral-sh/uv/tags")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("UvUrlUpdater").resolve("uv-tags.json"), wmRuntimeInfo))));
     stubFor(
         any(urlMatching("/astral-sh/uv/releases/download/.*/uv-(aarch64|x86_64)-(unknown-linux-gnu|pc-windows-msvc|apple-darwin)\\.(zip|tar\\.gz)")).willReturn(

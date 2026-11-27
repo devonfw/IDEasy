@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -33,7 +34,7 @@ class ClaudeUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   void testClaudeUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // arrange
-    stubFor(get(urlMatching("/repos/anthropics/claude-code/releases")).willReturn(aResponse().withStatus(200)
+    stubFor(get(urlPathMatching("/repos/anthropics/claude-code/releases")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("ClaudeUrlUpdater").resolve("claude-releases.json"), wmRuntimeInfo))));
 
     stubFor(any(urlMatching("/anthropics/claude-code/releases/download/.*")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));

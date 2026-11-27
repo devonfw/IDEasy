@@ -49,7 +49,13 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
     UrlTool tool = urlRepository.getOrCreateChild(getTool());
     String url = doGetVersionUrl();
     try {
-      String response = doGetResponseBodyAsString(url);
+      Set<String> existingVersions = new HashSet<>();
+      for (String edition : getEditions()) {
+        UrlEdition urlEdition = tool.getOrCreateChild(edition);
+        urlEdition.load(false);
+        existingVersions.addAll(urlEdition.getChildNames());
+      }
+      String response = doGetVersionResponseBodyAsString(url, existingVersions);
       for (String edition : getEditions()) {
         J jsonObj = getJsonObjectFromResponse(response, edition);
         if (jsonObj != null) {
@@ -75,6 +81,29 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
    * @return the URL of the JSON API to get the versions from.
    */
   protected abstract String doGetVersionUrl();
+
+  /**
+   * Retrieves the response body containing the available versions.
+   *
+   * @param url the version API URL.
+   * @return the response body.
+   */
+  protected String doGetVersionResponseBodyAsString(String url) {
+
+    return doGetResponseBodyAsString(url);
+  }
+
+  /**
+   * Retrieves the response body containing the available versions.
+   *
+   * @param url the version API URL.
+   * @param existingVersions versions already available in the URL repository.
+   * @return the response body.
+   */
+  protected String doGetVersionResponseBodyAsString(String url, Set<String> existingVersions) {
+
+    return doGetVersionResponseBodyAsString(url);
+  }
 
   /**
    * @return the {@link Class} reflecting the Java object the JSON shall be mapped to.
