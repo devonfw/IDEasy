@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.commandlet.AbstractCommandlet;
+import com.devonfw.tools.ide.commandlet.check.CheckCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitUrl;
@@ -91,8 +92,8 @@ public class RepositoryCommandlet extends AbstractCommandlet {
 
   /**
    * Like {@link #prepareActiveRepository(Path, boolean)} but ignores a single invalid repository instead of aborting the setup of all others. Resolving a
-   * property value may fail for a malformed expression, and one broken file in the repositories folder must not prevent every other repository from being
-   * set up. Only used when iterating all repositories - if the user explicitly requested a single repository, the failure is reported instead. A
+   * property value may fail for a malformed expression, and one broken file in the repositories folder must not prevent every other repository from being set
+   * up. Only used when iterating all repositories - if the user explicitly requested a single repository, the failure is reported instead. A
    * {@link CliAbortException} is still propagated as the {@link Step} always re-throws it.
    *
    * @param repositoryFile the {@link Path} to the repository properties file.
@@ -194,9 +195,13 @@ public class RepositoryCommandlet extends AbstractCommandlet {
       if (createRepository) {
         if (firstRepository == null) {
           GitUrl gitUrl = config.asGitUrl();
+          boolean newRepository = !this.context.getGitContext().isGitRepo(repositoryPath);
           boolean success = cloneOrPullRepository(repositoryPath, gitUrl, repositoryCreatedStatusFile);
           if (success) {
             firstRepository = repositoryPath;
+            if (newRepository) {
+              this.context.newStep("Check repository...").run(() -> getCommandlet(CheckCommandlet.class).checkRepository(repositoryPath, false));
+            }
             buildRepository(config, repositoryPath);
             importRepository(config, repositoryPath, config.id());
           }

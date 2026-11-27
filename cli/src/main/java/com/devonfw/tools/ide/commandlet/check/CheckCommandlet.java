@@ -62,8 +62,6 @@ public class CheckCommandlet extends AbstractCommandlet {
   @Override
   protected void doRun() {
 
-    List<CheckIssue> issues = new ArrayList<>();
-
     Path repositoryRoot = findRepositoryRoot();
     if (repositoryRoot == null) {
       LOG.warn("This does not seem to be a git repository (no .git folder found in {} or any parent directory).", this.context.getCwd());
@@ -71,8 +69,20 @@ public class CheckCommandlet extends AbstractCommandlet {
     }
 
     LOG.info("Found repository root at {}.", repositoryRoot);
+    checkRepository(repositoryRoot, true);
+  }
+
+  /**
+   * Checks the given repository root.
+   *
+   * @param repositoryRoot the root of the repository to check.
+   * @param failIfIssues {@code true} to fail if issues are found, {@code false} to only log them.
+   */
+  public void checkRepository(Path repositoryRoot, boolean failIfIssues) {
+
+    List<CheckIssue> issues = new ArrayList<>();
     checkGitIgnore(repositoryRoot, issues);
-    report(issues);
+    report(issues, failIfIssues);
   }
 
   private Path findRepositoryRoot() {
@@ -106,7 +116,7 @@ public class CheckCommandlet extends AbstractCommandlet {
     return lines.stream().anyMatch(line -> line.strip().equals(rule));
   }
 
-  private void report(List<CheckIssue> issues) {
+  private void report(List<CheckIssue> issues, boolean failIfIssues) {
 
     if (issues.isEmpty()) {
       IdeLogLevel.SUCCESS.log(LOG, "No issues found.");
@@ -117,7 +127,7 @@ public class CheckCommandlet extends AbstractCommandlet {
 
     boolean open = false;
     for (CheckIssue issue : issues) {
-      if (this.fix.isTrue() && issue.isFixable()) {
+      if (failIfIssues && this.fix.isTrue() && issue.isFixable()) {
         if (issue.fix(this.context)) {
           IdeLogLevel.SUCCESS.log(LOG, "Fixed: {}", issue);
           continue;
@@ -130,7 +140,7 @@ public class CheckCommandlet extends AbstractCommandlet {
       }
     }
 
-    if (open) {
+    if (open && failIfIssues) {
       throw new CliException("ide check found issues - see issues above.", 1);
     }
   }
