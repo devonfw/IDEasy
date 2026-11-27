@@ -1,0 +1,23 @@
+:toc:
+toc::[]
+
+= Bug Reporting
+
+If you find a bug in IDEasy, please report it by creating a https://github.com/devonfw/IDEasy/issues[Bug report]
+in the IDEasy GitHub repository, by creating a `new issue`.
+
+Before creating the new https://github.com/devonfw/IDEasy/issues[Bug report], check whether the problem has already been reported.
+When reporting a bug, provide enough information to reproduce and understand the problem, such as:
+
+* A title what the bug is about
+* A clear description of the actual behaviour.
+* Steps to reproduce the issue.
+* The expected behavior.
+* The IDEasy status.
+
+Additional information that can be provided are:
+
+* Related or dependent issues
+* Comments / hints that helps to understand or fix the bug easier
+
+Providing detailed information helps to investigate and resolve the issue more efficiently.
