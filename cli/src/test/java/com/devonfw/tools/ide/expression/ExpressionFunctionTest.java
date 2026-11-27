@@ -431,4 +431,78 @@ class ExpressionFunctionTest extends AbstractIdeContextTest {
     assertThat(secretContext).log().hasNoMessageContaining("dummy-secret-value");
   }
 
+  /**
+   * Test that {@code @ask-mvn-secret} asks with masked input and returns only the secret encrypted by maven, never the plain text.
+   */
+  @Test
+  void testAskMvnSecretReturnsEncryptedValue() {
+
+    // arrange
+    IdeTestContext context = newContext("mvn");
+    // 1st answer is the secret, the others are for the maven settings.xml template that is created when maven gets installed implicitly
+    context.setAnswers("my-plain-secret", "testLogin", "testPassword");
+
+    // act
+    String result = context.getVariables().resolve("@ask-mvn-secret('MAVEN_REPO_PASSWORD', 'Please enter the repository password:')", "test", false);
+
+    // assert
+    assertThat(result).isEqualTo("{my-plain-secret}");
+    assertThat(context.getSecretLineCount()).isEqualTo(1);
+    assertThat(context).log().hasEntries(new IdeLogEntry(IdeLogLevel.INTERACTION, "Please enter the repository password:", true));
+  }
+
+  /**
+   * Test that {@code @ask-mvn-secret} also encrypts an already defined variable instead of returning its plain text value.
+   */
+  @Test
+  void testAskMvnSecretEncryptsDefinedVariable() {
+
+    // arrange
+    IdeTestContext context = newContext("mvn");
+    context.getVariables().getByType(EnvironmentVariablesType.CONF).set("MAVEN_REPO_PASSWORD", "my-plain-secret");
+    // no answer for the secret, only for the maven settings.xml template that is created when maven gets installed implicitly
+    context.setAnswers("testLogin", "testPassword");
+
+    // act
+    String result = context.getVariables().resolve("@ask-mvn-secret('MAVEN_REPO_PASSWORD')", "test", false);
+
+    // assert
+    assertThat(result).isEqualTo("{my-plain-secret}");
+  }
+
+  /**
+   * Test that the value entered for {@code @ask-mvn-secret} is never persisted, neither as plain text nor encrypted.
+   */
+  @Test
+  void testAskMvnSecretIsNotPersisted() {
+
+    // arrange
+    IdeTestContext context = newContext("mvn");
+    context.setAnswers("my-plain-secret", "testLogin", "testPassword");
+    EnvironmentVariables variables = context.getVariables();
+
+    // act
+    variables.resolve("@ask-mvn-secret('MAVEN_REPO_PASSWORD')", "test", false);
+
+    // assert
+    assertThat(variables.getByType(EnvironmentVariablesType.CONF).getFlat("MAVEN_REPO_PASSWORD")).isNull();
+  }
+
+  /**
+   * Test that {@code @ask-mvn-secret} does not need maven for an empty secret.
+   */
+  @Test
+  void testAskMvnSecretEmptyValueIsNotEncrypted() {
+
+    // arrange
+    IdeTestContext context = newContext("mvn");
+    context.setAnswers("");
+
+    // act
+    String result = context.getVariables().resolve("@ask-mvn-secret('MAVEN_REPO_PASSWORD', 'Password (may be empty):', 'conf', '')", "test", false);
+
+    // assert
+    assertThat(result).isEmpty();
+  }
+
 }

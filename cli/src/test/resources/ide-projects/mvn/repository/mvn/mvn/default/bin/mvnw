@@ -3,7 +3,7 @@
 if [ "$1" == "--encrypt-master-password" ]; then
     echo "masterPassword"
 elif [ "$1" == "--encrypt-password" ]; then
-    echo "$2"
+    echo "{$2}"
 else
     echo "mvnw $*"
 fi
