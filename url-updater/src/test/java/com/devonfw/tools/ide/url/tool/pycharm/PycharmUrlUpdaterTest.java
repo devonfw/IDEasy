@@ -69,7 +69,7 @@ class PycharmUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
     // assert
     Path pycharmToolDir = tempDir.resolve("pycharm");
-    for (String edition : List.of("pycharm", "professional")) {
+    for (String edition : updater.getEditions()) {
       Path editionDir = pycharmToolDir.resolve(edition);
       assertThat(editionDir).exists();
       for (String version : List.of(VERSION_2024_3_4, VERSION_2024_3_5)) {
@@ -134,4 +134,5 @@ class PycharmUrlUpdaterTest extends AbstractUrlUpdaterTest {
     // assert
     assertUrlVersionFile(pycharmVersionsPath, "linux_x64");
   }
+
 }
