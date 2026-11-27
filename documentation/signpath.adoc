@@ -6,13 +6,14 @@ Our Windows release artifacts (the `ideasy.exe` native image and the MSI install
 with https://www.signpath.io[SignPath] as part of our GitHub Actions release process.
 This guide documents how the signing is wired up in our workflows, what has to be configured on the
 SignPath side, and how to troubleshoot signing failures so a release can be unblocked quickly.
-See also link:github-release.adoc[Building IDEasy Releases] for the overall release process.
+See also link:contributing/github-release.adoc[Building IDEasy Releases] for the overall release process.
 
 == How it works
 
 The signing is done by the https://github.com/signpath/github-action-submit-signing-request[SignPath
-GitHub Action] (`signpath/github-action-submit-signing-request@v3`) in the
-`build-natives` job of our release workflows:
+GitHub Action] (`signpath/github-action-submit-signing-request@v3`) in the `build-natives` job of the
+shared https://github.com/devonfw/IDEasy/blob/main/.github/workflows/build-natives.yml[build-natives]
+reusable workflow, which is called by both of our release workflows:
 
 * https://github.com/devonfw/IDEasy/blob/main/.github/workflows/release.yml[release.yml] (official release)
 * https://github.com/devonfw/IDEasy/blob/main/.github/workflows/nightly-build.yml[nightly-build.yml] (SNAPSHOT)
@@ -30,7 +31,7 @@ NOTE: We use `@v3`. Version `@v2` talks to SignPath's now-deprecated
 `Error: Invalid URL for GitHub API.` and was what blocked our releases in #2864. The `@v3` action
 migrates to the maintained Pipeline Connector; its inputs and outputs are identical to `@v2`, so the
 migration is a version bump with no workflow changes.
-The exact sequence in `release.yml` (Windows matrix leg) is:
+The exact sequence in the shared `build-natives` workflow (Windows matrix leg) is:
 
 . Build the native image (`mvn -Pnative package`) producing `cli/target/ideasy.exe`.
 . *Upload unsigned exe*: `actions/upload-artifact@v7` with `id: upload-exe`, artifact name `exe-unsigned`.
@@ -45,7 +46,7 @@ signed even when IDEasy is installed without the MSI (see #2808).
 the MSI: `Upload unsigned MSI` (`id: upload-msi`, name `msi-unsigned`) → `Sign MSI`
 (`output-artifact-directory: 'windows-installer/signed'`) → `Upload MSI` from the `signed` folder.
 
-A concrete example of the SignPath action usage as found in `release.yml`:
+A concrete example of the SignPath action usage as found in the shared `build-natives` workflow:
 
 ----
 - name: Sign exe
@@ -182,8 +183,9 @@ Connector] that the `@v3` action uses.
 
 Fix:
 
-. Make sure both SignPath steps in `release.yml` and `nightly-build.yml` use
-`signpath/github-action-submit-signing-request@v3` (this is what the #2864 change does).
+. Make sure the SignPath steps in the shared `build-natives` workflow (called by `release.yml` and
+`nightly-build.yml`) use `signpath/github-action-submit-signing-request@v3`
+(this is what the #2864 change does).
 . Verify by triggering the `nightly-build` workflow and checking that `Sign exe` / `Sign MSI`
 complete (see <<Verifying that signing works>>).
 . Re-run the `release` workflow. If the error still occurs on `@v3`, it is now a SignPath-side

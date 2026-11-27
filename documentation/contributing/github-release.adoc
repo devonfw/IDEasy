@@ -12,7 +12,7 @@ Usage is very simple:
 
 * Every night a SNAPSHOT release is build and deployed for internal developers and retesting of bugfixes.
 This process if fully automated.
-See link:setup.adoc#testing-snapshot-releases[testing-snapshot-releases] for details.
+See link:../setup.adoc#testing-snapshot-releases[testing-snapshot-releases] for details.
 * When all is prepared for the next release, we run the https://github.com/devonfw/IDEasy/actions/workflows/release.yml[release] workflow.
 With according permissions, you will see a gray `Run workflow` button that opens an overlay with a green `Run workflow` button that you need to press (correct branch `main` is preselected).
 That is all you need to create a new release.
@@ -50,6 +50,8 @@ Here we consider fundamental things such as https://www.java.com[Java], https://
 * Since GraalVM does not support cross-platform compilation, we need to run such build on a (virtual) machine operated by the according OS.
 * The awesome github platform supports arbitrary operating systems and architectures to run builds on from github actions.
 * Therefore we run a job (`build-natives`) using a `strategy` with `matrix.os` configured to all the operating systems and architectures we support.
+This job is defined once in the shared https://github.com/devonfw/IDEasy/blob/main/.github/workflows/build-natives.yml[build-natives] reusable workflow and is called by both `release.yml` and `nightly-build.yml`, so the two pipelines no longer duplicate this logic (see #2257).
+Each caller passes the version(s) it wants baked in and the SignPath signing policy as inputs.
 The configured values are container image names that match to a specific platform but are a little cryptic.
 You can find a list of these container images https://github.com/actions/runner-images?tab=readme-ov-file#available-images[here].
 * This will spawn a build for each configured OS in a container on the according OS and architecture.
@@ -92,9 +94,9 @@ Therefore, the proper container image name from the `matrix.os` (see above) has 
 
 === SignPath
 
-* Our Windows release artifacts (the `ideasy.exe` native image and the MSI installer) are code-signed with https://www.signpath.io[SignPath] via the https://github.com/signpath/github-action-submit-signing-request[SignPath GitHub Action] in the `build-natives` job of `release.yml` and `nightly-build.yml`.
+* Our Windows release artifacts (the `ideasy.exe` native image and the MSI installer) are code-signed with https://www.signpath.io[SignPath] via the https://github.com/signpath/github-action-submit-signing-request[SignPath GitHub Action] in the `build-natives` job of the shared https://github.com/devonfw/IDEasy/blob/main/.github/workflows/build-natives.yml[build-natives] reusable workflow that both `release.yml` and `nightly-build.yml` call.
 The unsigned exe/MSI is uploaded as a GitHub artifact first, and the action submits a signing request to the SignPath connector that downloads and signs it; the signed artifact replaces the unsigned one before it is packaged.
-* For details on how the signing is wired up, which objects have to exist on the SignPath side, how to verify that signing works and how to troubleshoot failures (incl. the `Error: Invalid URL for GitHub API.` error from #2864), see the link:signpath.adoc[Code Signing with SignPath] guide.
+* For details on how the signing is wired up, which objects have to exist on the SignPath side, how to verify that signing works and how to troubleshoot failures (incl. the `Error: Invalid URL for GitHub API.` error from #2864), see the link:../signpath.adoc[Code Signing with SignPath] guide.
 
 === Workflows
 
@@ -102,6 +104,9 @@ And finally we put it all togehter as github action workflow:
 
 * https://github.com/devonfw/IDEasy/blob/main/.github/workflows/release.yml[release.yml] is the workflow for an official release.
 * https://github.com/devonfw/IDEasy/blob/main/.github/workflows/nightly-build.yml[nightly-build.yml] is the workflow for a SNAPSHOT release.
+* https://github.com/devonfw/IDEasy/blob/main/.github/workflows/build-natives.yml[build-natives.yml] is a reusable workflow (`workflow_call`) that holds the shared `build-natives` job.
+Both `release.yml` and `nightly-build.yml` call it with `secrets: inherit`, so the native-image build/sign/package logic exists exactly once.
+The caller's `resolve-version` job still runs in each pipeline (each one resolves a different version), and the caller's final `release`/`deploy` job stays in the pipeline.
 * For the nightly-build we use a trick to skip the build if no changes happened to our git in the last 24h to avoid waste:
 We created another https://github.com/devonfw/IDEasy/blob/main/.github/workflows/check-for-updates.yml[check-for-updates.yml] workflow that runs every night and checks for such updates.
 Only if recent changes where pushed to git on `main`, the `nightly-build` job is triggered and otherwise the build ends without any further action.
@@ -113,6 +118,40 @@ Manual execution via `workflow_dispatch` remains supported.
 Both `release` and `nightly-build` workflow use the `workflow_dispatch` trigger allowing them to be run manually as described above.
 However, the `nightly-build` is typically only triggered from `check-for-updates` workflow automatically.
 But for testing some change with GraalVM specific behaviour during the day, we sometimes also trigger the `nightly-build` workflow manually.
+
+=== Workflow dependency graph
+
+The release and nightly pipelines are wired together across *different* workflow files, and the wiring relies on two different identifiers that are easy to break by accident:
+
+* `check-for-updates.yml` dispatches `nightly-build.yml` **by file name** (the path of the workflow it triggers).
+* `integration-tests.yml` runs on `workflow_run` keyed to the **name** of the nightly workflow (`Nightly Build (SNAPSHOT release)`), not its file name.
+
+So the nightly chain `check-for-updates → nightly-build → integration-tests` holds together through two distinct identifiers that must both be kept in sync:
+
+[cols="2,1,3",options="header"]
+|===
+
+|Link |Identifier used |Must stay the same if...
+|`check-for-updates` → `nightly-build` |the workflow **file name** `nightly-build.yml` |renaming the `nightly-build.yml` file
+|`nightly-build` → `integration-tests` |the workflow **name** `Nightly Build (SNAPSHOT release)` |changing the `name:` of `nightly-build.yml`
+
+|===
+
+If either identifier changes, the downstream link silently stops working (the nightly stops being dispatched, or the integration tests stop being triggered) without any error in the workflow that was renamed. Therefore any future rename of the nightly workflow must update **both** callers atomically in the same change.
+This is why the refactoring in #2257 intentionally kept the `nightly-build.yml` file name and the `name: Nightly Build (SNAPSHOT release)` unchanged while extracting the shared `build-natives` job into its own reusable workflow.
+
+=== Release prerequisites and other dependencies
+
+Before a release can be run, the following must be in place (documented in more detail in the sections above):
+
+* The official release artifacts are code-signed with https://www.signpath.io[SignPath].
+The SignPath objects (organization, project, signing policies, artifact configurations) and the `SIGNPATH_API_TOKEN` secret have to exist - see the link:../signpath.adoc[Code Signing with SignPath] guide, which also documents how to verify that a signing policy signs green *without* doing a real release.
+* The release workflow reads its version from https://github.com/devonfw/IDEasy/blob/main/.mvn/maven.config[maven.config] (the `-Drevision` value).
+* Publishing the Homebrew formula is part of the `release` workflow (the `publish-homebrew` job).
+It is a separate https://github.com/devonfw/homebrew-IDEasy[homebrew-IDEasy] tap that hosts the formula and the scripts that render it.
+If the formula cannot be published, the release fails so the problem is visible right in the release run.
+
+To iterate on a workflow change locally before triggering a real GitHub run, see link:workflow-testing.adoc[running GitHub Actions locally with `act`].
 
 
 
