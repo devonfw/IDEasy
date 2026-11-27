@@ -154,8 +154,7 @@ public abstract class GlobalToolCommandlet extends AbstractToolCommandlet {
         VersionIdentifier installedVersion = getInstalledVersion();
         Path rootDir = getInstallationPath(getConfiguredEdition(), installedVersion);
 
-        return createToolInstallation(rootDir, installedVersion, newInstallation, request.getProcessContext(),
-            request.isAdditionalInstallation());
+        return createToolInstallation(rootDir, installedVersion, newInstallation, request);
       }
     }
 

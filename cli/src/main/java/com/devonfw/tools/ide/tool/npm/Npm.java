@@ -23,6 +23,7 @@ import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.process.VariableScope;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.BuildTool;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -198,11 +199,27 @@ public class Npm extends AbstractLocalToolCommandlet implements BuildTool {
     if (npmGlobalPath == null) {
       return;
     }
-    environmentContext.withEnvVar(NPM_CONFIG_PREFIX, npmGlobalPath.toString(), VariableScope.LOCAL);
+    if (environmentContext instanceof ProcessContext) {
+      environmentContext.removeEnvVar(NPM_CONFIG_PREFIX);
+    } else {
+      environmentContext.withEnvVar(NPM_CONFIG_PREFIX, npmGlobalPath.toString(), VariableScope.EXPORT);
+    }
 
     // npm places the global shims in the prefix root on Windows but in <prefix>/bin on POSIX, so the PATH entry must
     // differ per platform - otherwise the globally installed packages (e.g. task, cdk) are not resolvable.
     environmentContext.withPathEntry(getGlobalNpmBin(this.context));
+  }
+
+  @Override
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation,
+      ToolInstallRequest request) {
+
+    super.setEnvironment(environmentContext, toolInstallation, request);
+
+    Path npmGlobalPath = getGlobalNpmPrefix(this.context);
+    if (npmGlobalPath != null) {
+      environmentContext.withEnvVar(NPM_CONFIG_PREFIX, npmGlobalPath.toString(), VariableScope.EXPORT);
+    }
   }
 
   /**

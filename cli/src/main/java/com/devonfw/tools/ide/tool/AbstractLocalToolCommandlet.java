@@ -215,13 +215,13 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
           assert resolvedVersion.equals(getInstalledVersion(installationPath)) :
               "Found version " + getInstalledVersion(installationPath) + " in " + toolVersionFile + " but expected " + resolvedVersion;
           LOG.debug("Version {} of tool {} is already installed at {}", resolvedVersion, toolEdition, installationPath);
-          return createToolInstallation(installationPath, resolvedVersion, false, processContext, additionalInstallation);
+          return createToolInstallation(installationPath, resolvedVersion, false, request);
         }
       } else {
         // Makes sure that IDEasy will not delete itself
         if (this.tool.equals(IdeasyCommandlet.TOOL_NAME)) {
           LOG.warn("Your IDEasy installation is missing the version file at {}", toolVersionFile);
-          return createToolInstallation(installationPath, resolvedVersion, false, processContext, additionalInstallation);
+          return createToolInstallation(installationPath, resolvedVersion, false, request);
         } else if (!isIgnoreMissingSoftwareVersionFile()) {
           LOG.warn("Deleting corrupted installation at {}", installationPath);
           fileAccess.delete(installationPath);
@@ -253,7 +253,7 @@ public abstract class AbstractLocalToolCommandlet extends AbstractToolCommandlet
         throw e;
       }
     }
-    return createToolInstallation(installationPath, actualInstalledVersion, true, processContext, additionalInstallation);
+    return createToolInstallation(installationPath, actualInstalledVersion, true, request);
   }
 
   /**

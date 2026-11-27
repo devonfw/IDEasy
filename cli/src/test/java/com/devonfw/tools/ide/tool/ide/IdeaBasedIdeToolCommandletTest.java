@@ -10,9 +10,11 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.VariableScope;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
@@ -22,8 +24,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 /**
  * Tests the {@code «IDE»_PROPERTIES} environment variables ({@code IDEA_PROPERTIES}, {@code STUDIO_PROPERTIES}, {@code PYCHARM_PROPERTIES}) of
  * {@link AbstractIdeToolCommandlet}: they point at the {@link AbstractIdeToolCommandlet#getOpenPath() folder being opened} rather than unconditionally at the
- * managed workspace. The {@code --project} flag is remembered on the commandlet before the ensure-install step runs {@code setEnvironment}
- * (see {@link AbstractIdeToolCommandlet#extractProjectOption}), so {@code getOpenPath()} is already the correct folder in both the shell-env and launch phases.
+ * managed workspace. The {@code --project} flag is remembered on the commandlet before the ensure-install step runs {@code setEnvironment} (see
+ * {@link AbstractIdeToolCommandlet#extractProjectOption}), so {@code getOpenPath()} is already the correct folder in both the shell-env and launch phases.
  */
 class IdeaBasedIdeToolCommandletTest extends AbstractIdeContextTest {
 
@@ -32,8 +34,8 @@ class IdeaBasedIdeToolCommandletTest extends AbstractIdeContextTest {
   private static final ToolInstallation INSTALLATION = new ToolInstallation(DUMMY, DUMMY, DUMMY, VersionIdentifier.LATEST, false);
 
   /**
-   * Tests that by default (no {@code --project} flag) {@code IDEA_PROPERTIES} points at the managed workspace's {@code idea.properties} (regression
-   * guard: default behavior is unchanged).
+   * Tests that by default (no {@code --project} flag) {@code IDEA_PROPERTIES} points at the managed workspace's {@code idea.properties} (regression guard:
+   * default behavior is unchanged).
    */
   @Test
   void testIdeaPropertiesDefaultIsWorkspacePath() {
@@ -49,8 +51,8 @@ class IdeaBasedIdeToolCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests that with an explicit {@code --project} folder the IDE-specific {@code *_PROPERTIES} env var (IDEA / STUDIO / PYCHARM) points at the opened
-   * folder's properties file instead of the managed workspace.
+   * Tests that with an explicit {@code --project} folder the IDE-specific {@code *_PROPERTIES} env var (IDEA / STUDIO / PYCHARM) points at the opened folder's
+   * properties file instead of the managed workspace.
    *
    * @param ide the commandlet name to test.
    * @param commandletName the {@code ide} commandlet name used to build the context.
@@ -95,9 +97,9 @@ class IdeaBasedIdeToolCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Tests the "two-phase agreement" end-to-end: a real {@code ide intellij --project=<path>} launch must pass the launched IDE an {@code IDEA_PROPERTIES}
-   * environment variable pointing at the opened folder's {@code idea.properties} (the same folder the IDE is told to open). The IntelliJ mock binary
-   * captures the {@code IDEA_PROPERTIES} env var it is launched with (see {@code ideaprops}), so we assert both the launch args and the env var point at the
-   * same external folder - proving the {@code setEnvironment} (shell env) and {@code runTool} (launch) phases agree.
+   * environment variable pointing at the opened folder's {@code idea.properties} (the same folder the IDE is told to open). The IntelliJ mock binary captures
+   * the {@code IDEA_PROPERTIES} env var it is launched with (see {@code ideaprops}), so we assert both the launch args and the env var point at the same
+   * external folder - proving the {@code setEnvironment} (shell env) and {@code runTool} (launch) phases agree.
    */
   @Test
   void testExternalLaunchPassesIdeaPropertiesOfOpenFolder() {
@@ -128,7 +130,7 @@ class IdeaBasedIdeToolCommandletTest extends AbstractIdeContextTest {
     private final Map<String, String> set = new HashMap<>();
 
     @Override
-    public EnvironmentContext withEnvVar(String key, String value) {
+    public EnvironmentContext withEnvVar(String key, String value, VariableScope scope) {
       this.set.put(key, value);
       return this;
     }

@@ -269,6 +269,8 @@ class ProcessContextImplTest extends AbstractIdeContextTest {
     // act
     this.processContextUnderTest.withEnvVar("TEST_VAR", "test-value", VariableScope.LOCAL);
 
+    assertThat(env).doesNotContainKey("TEST_VAR");
+
     // assert
     assertThat(env).doesNotContainKey("TEST_VAR");
   }

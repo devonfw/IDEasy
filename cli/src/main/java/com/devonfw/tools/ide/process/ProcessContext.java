@@ -113,7 +113,9 @@ public interface ProcessContext extends EnvironmentContext {
   }
 
   @Override
-  ProcessContext withEnvVar(String key, String value);
+  default ProcessContext withEnvVar(String key, String value) {
+    return withEnvVar(key, value, VariableScope.EXPORT);
+  }
 
   @Override
   ProcessContext withEnvVar(String key, String value, VariableScope scope);

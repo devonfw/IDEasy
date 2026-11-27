@@ -31,8 +31,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 /**
  * {@link GlobalToolCommandlet} for <a href="https://obsidian.md/">Obsidian</a>.
  * <p>
- * On Windows the downloaded installer is started. On macOS the *.app bundle is taken out of the DMG image and persisted in the Applications folder of
- * the user. On Linux the tar.gz archive is extracted and persisted in {@code ~/.local/share/obsidian}.
+ * On Windows the downloaded installer is started. On macOS the *.app bundle is taken out of the DMG image and persisted in the Applications folder of the user.
+ * On Linux the tar.gz archive is extracted and persisted in {@code ~/.local/share/obsidian}.
  */
 public class Obsidian extends GlobalToolCommandlet {
 
@@ -92,7 +92,7 @@ public class Obsidian extends GlobalToolCommandlet {
     if (step != null) {
       step.success(true);
     }
-    return createToolInstallation(installationPath, resolvedVersion, true, request.getProcessContext(), request.isAdditionalInstallation());
+    return createToolInstallation(installationPath, resolvedVersion, true, request);
   }
 
   private Path installMacAppBundle(Path download) {

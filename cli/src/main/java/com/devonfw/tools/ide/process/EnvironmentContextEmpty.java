@@ -14,8 +14,7 @@ class EnvironmentContextEmpty implements EnvironmentContext {
   }
 
   @Override
-  public EnvironmentContext withEnvVar(String key, String value) {
-
+  public EnvironmentContext withEnvVar(String key, String value, VariableScope scope) {
     return this;
   }
 

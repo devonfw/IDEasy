@@ -652,6 +652,18 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
     return createToolInstallation(installationPath, installedVersion, false, environmentContext, extraInstallation);
   }
 
+  protected ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier version, boolean newInstallation,
+      ToolInstallRequest request) {
+
+    Path linkDir = rootDir;
+    Path binDir = rootDir;
+    if (rootDir != null) {
+      linkDir = getMacOsHelper().findLinkDir(rootDir, getBinaryName());
+      binDir = this.context.getFileAccess().getBinPath(linkDir);
+    }
+    return createToolInstallation(rootDir, linkDir, binDir, version, newInstallation, request);
+  }
+
   /**
    * @param rootDir the {@link ToolInstallation#rootDir() top-level installation directory}.
    * @param version the installed {@link VersionIdentifier}.
@@ -672,6 +684,15 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
       binDir = this.context.getFileAccess().getBinPath(linkDir);
     }
     return createToolInstallation(rootDir, linkDir, binDir, version, newInstallation, environmentContext, additionalInstallation);
+  }
+
+  protected ToolInstallation createToolInstallation(Path rootDir, Path linkDir, Path binDir, VersionIdentifier version,
+      boolean newInstallation, ToolInstallRequest request) {
+
+    invalidateInstalledEditionAndVersion();
+    ToolInstallation toolInstallation = new ToolInstallation(rootDir, linkDir, binDir, version, newInstallation);
+    setEnvironment(request.getProcessContext(), toolInstallation, request);
+    return toolInstallation;
   }
 
   /**
@@ -737,6 +758,12 @@ public abstract class AbstractToolCommandlet extends AbstractCommandlet implemen
     return toolInstallation.linkDir();
   }
 
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation,
+      ToolInstallRequest request) {
+
+    setEnvironment(environmentContext, toolInstallation, request.isAdditionalInstallation());
+  }
+  
   /**
    * Method to set environment variables for the process context.
    *
