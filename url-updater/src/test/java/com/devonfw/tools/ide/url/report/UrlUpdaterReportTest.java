@@ -221,6 +221,27 @@ class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
     assertThat(errorRateWithoutNullVer).isEqualTo(50.0);
   }
 
+  /**
+   * Test that the Markdown report is sorted by the highest error rate
+   */
+  @Test
+  void testMarkdownReportIsSortedByVerificationErrorRate() {
+
+    // assign
+    UrlFinalReport finalReport = new UrlFinalReport();
+    finalReport.addUrlUpdaterReport(new UrlUpdaterReport("additionLeader", "edition", 0, 8, 18, 2));
+    finalReport.addUrlUpdaterReport(new UrlUpdaterReport("verificationLeader", "edition", 9, 1, 7, 3));
+
+    // act
+    String markdown = finalReport.toMarkdown();
+
+    // assert
+    assertThat(markdown).contains("| verificationLeader/edition | 9/1 | 10.00% | 7/3 | 30.00% |");
+    assertThat(markdown).contains("| additionLeader/edition | 0/8 | 0.00% | 18/2 | 10.00% |");
+    assertThat(markdown.indexOf("| verificationLeader/edition |"))
+        .isLessThan(markdown.indexOf("| additionLeader/edition |"));
+  }
+
   // some utils
   private void stubSuccessfulUrlRequest() {
 
