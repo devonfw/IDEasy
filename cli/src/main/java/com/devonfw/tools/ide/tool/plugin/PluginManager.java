@@ -179,8 +179,13 @@ public class PluginManager {
    */
   public void resetPlugins(ToolInstallRequest request) {
     LOG.info("Resetting all installed plugins of {} ({}).", this.tool.getName(), describePurgeReason(request));
-    this.tool.deleteAllPlugins();
-    deleteAllPluginMarkerFiles();
+    try {
+      this.tool.deleteAllPlugins();
+    } finally {
+      // also if deleting the plugins fails half way (e.g. files locked by a running instance on Windows), the markers have to be gone so that the plugins
+      // get reinstalled on the next run
+      deleteAllPluginMarkerFiles();
+    }
   }
 
   private String describePurgeReason(ToolInstallRequest request) {
