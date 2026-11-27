@@ -11,9 +11,7 @@ public class CliArguments implements Iterator<CliArgument> {
 
   private CliArgument currentArg;
 
-  private boolean endOptions;
-
-  private boolean splitShortOpts;
+  private OptionPhase phase;
 
   /** If true, do not discard the special end-of-options token "--" but keep it as current argument. */
   private boolean preserveEndOptionsToken;
@@ -35,74 +33,64 @@ public class CliArguments implements Iterator<CliArgument> {
    */
   public CliArguments(CliArgument arg) {
 
-    this(arg, false, true);
+    this(arg, OptionPhase.OPTIONS);
   }
 
-  CliArguments(CliArgument arg, boolean endOpts, boolean splitShortOpts) {
+  CliArguments(CliArgument arg, OptionPhase phase) {
+
+    this(arg, phase, false);
+  }
+
+  CliArguments(CliArgument arg, OptionPhase phase, boolean preserveEndOptionsToken) {
 
     super();
     this.initialArgument = arg;
-    this.endOptions = endOpts;
-    this.splitShortOpts = splitShortOpts;
-    this.preserveEndOptionsToken = false;
-    setCurrent(arg);
-  }
-
-  CliArguments(CliArgument arg, boolean endOpts, boolean splitShortOpts, boolean preserveEndOptionsToken) {
-
-    super();
-    this.initialArgument = arg;
-    this.endOptions = endOpts;
-    this.splitShortOpts = splitShortOpts;
+    this.phase = phase;
     this.preserveEndOptionsToken = preserveEndOptionsToken;
     setCurrent(arg);
   }
 
   /**
-   * Marks the end of the options so no further {@link CliArgument#getNext(boolean) option splitting} will be performed.
-   *
-   * @see #stopSplitShortOptions()
+   * Marks the end of the options: no further option splitting, but declared options are still matched ({@link OptionPhase#PASSTHROUGH}).
    */
   public void endOptions() {
 
-    this.endOptions = true;
-    this.splitShortOpts = false;
+    this.phase = OptionPhase.PASSTHROUGH;
   }
 
   /**
-   * Stops splitting of short options.
-   *
-   * @see CliArgument#getNext(boolean)
-   * @see #endOptions()
+   * Marks the end of the options caused by a literal {@link CliArgument#isEndOptions() "--"} token: no further option matching and no option splitting.
    */
-  public void stopSplitShortOptions() {
+  public void endOptionsByToken() {
 
-    this.splitShortOpts = false;
-  }
-
-  /**
-   * @return {@code true} if short options (e.g. "-bdf") should not be split (e.g. into "-b -d -f" for "--batch --debug --force"), {@code false} otherwise.
-   */
-  public boolean isSplitShortOpts() {
-
-    return splitShortOpts;
+    this.phase = OptionPhase.AFTER_TOKEN;
   }
 
   /**
    * @return {@code true} if the options have ended, {@code false} otherwise.
-   * @see CliArgument#isEndOptions()
-   * @see com.devonfw.tools.ide.property.Property#isEndOptions()
-   * @see #endOptions()
+   * @see OptionPhase#isOptionsEnded()
    */
   public boolean isEndOptions() {
 
-    return this.endOptions;
+    return this.phase.isOptionsEnded();
+  }
+
+  /** @return {@code true} if a declared option may still be matched (the options were not ended by a literal {@code "--"}). */
+  public boolean matchesDeclaredOptions() {
+
+    return this.phase.matchesDeclaredOptions();
+  }
+
+  /** @return {@code true} if combined short options (e.g. "-bdf") are still to be split. */
+  public boolean splitsShortOptions() {
+
+    return this.phase.splitsShortOptions();
   }
 
   private void setCurrent(CliArgument arg) {
 
     if (arg.isEndOptions()) {
-      endOptions();
+      endOptionsByToken();
       if (this.preserveEndOptionsToken) {
         this.currentArg = arg;
       } else {
@@ -164,7 +152,7 @@ public class CliArguments implements Iterator<CliArgument> {
   public CliArgument next() {
 
     if (!this.currentArg.isEnd()) {
-      setCurrent(this.currentArg.getNext(this.splitShortOpts));
+      setCurrent(this.currentArg.getNext(this.phase.splitsShortOptions()));
     }
     return this.currentArg;
   }
@@ -173,7 +161,7 @@ public class CliArguments implements Iterator<CliArgument> {
    * @return a copy of this {@link CliArguments} to fork a CLI matching of auto-completion.
    */
   public CliArguments copy() {
-    return new CliArguments(this.currentArg, this.endOptions, this.splitShortOpts, this.preserveEndOptionsToken);
+    return new CliArguments(this.currentArg, this.phase, this.preserveEndOptionsToken);
   }
 
   @Override

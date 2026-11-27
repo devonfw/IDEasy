@@ -251,7 +251,7 @@ public final class ShellCommandlet extends AbstractCommandlet {
               ((BooleanProperty) property).setValue(Boolean.TRUE);
             } else {
               currentProperty = property;
-              if (property.isEndOptions()) {
+              if (property.takesOverTrailingArgs()) {
                 endOpts = true;
               }
               throw new UnsupportedOperationException("not implemented");
