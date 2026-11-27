@@ -68,6 +68,16 @@ public class RubyUrlUpdater extends GithubUrlReleaseUpdater {
     return "RubyInstaller-";
   }
 
+  /**
+   * @return {@code true} because RubyInstaller publishes its releases with the GitHub {@code prerelease} flag set, so they must not be dropped by the generic
+   *     pre-release filter inherited from {@link GithubUrlReleaseUpdater}.
+   */
+  @Override
+  protected boolean acceptPreReleases() {
+
+    return true;
+  }
+
 
   @Override
   public String getCpeVendor() {

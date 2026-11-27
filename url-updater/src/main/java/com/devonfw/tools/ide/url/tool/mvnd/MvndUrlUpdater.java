@@ -56,6 +56,12 @@ public class MvndUrlUpdater extends GithubUrlReleaseUpdater {
   }
 
   @Override
+  protected boolean acceptPreReleases() {
+
+    return true;
+  }
+
+  @Override
   public String mapVersion(String version) {
 
     String mappedVersion = super.mapVersion(version);
