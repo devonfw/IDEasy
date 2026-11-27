@@ -137,7 +137,7 @@ public class Obsidian extends GlobalToolCommandlet {
 
   private VersionIdentifier getMacInstalledVersion() {
 
-    Path appBundle = findMacApplicationBundle();
+    Path appBundle = findMacApplicationBundle(this.tool);
     if (appBundle == null) {
       return null;
     }
