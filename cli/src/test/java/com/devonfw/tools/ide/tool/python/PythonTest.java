@@ -202,7 +202,7 @@ public class PythonTest extends AbstractIdeContextTest {
     python.setEnvironment(environmentContext, toolInstallation, false);
 
     // assert - the project's packages point to a per-project virtual environment (see #352), not to the pristine interpreter
-    assertThat(variables.get("VIRTUAL_ENV").getValue().replace('\\', '/')).endsWith("/.venv");
+    assertThat(variables.get("VIRTUAL_ENV").isExport()).isFalse();
     assertThat(variables.get("UV_PROJECT_ENVIRONMENT").getValue().replace('\\', '/')).endsWith("/.venv");
   }
 

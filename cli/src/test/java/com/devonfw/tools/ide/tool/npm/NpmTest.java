@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.tool.npm;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +14,9 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.VariableScope;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.claude.RecordingEnvironmentContext;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -114,6 +120,46 @@ class NpmTest extends AbstractIdeContextTest {
     // assert
     Path npmGlobalPath = context.getSoftwarePath().resolve(Npm.NPM_GLOBAL_FOLDER);
     assertThat(environmentContext.set).containsEntry("npm_config_prefix", npmGlobalPath.toString());
+    assertThat(environmentContext.scopes)
+        .containsEntry("npm_config_prefix", VariableScope.EXPORT);
+  }
+
+  @Test
+  void testSetEnvironmentRestoresGlobalPrefixForNpmRequest() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_NPM, null, true);
+    Npm commandlet = new Npm(context);
+    context.getFileAccess().mkdirs(context.getSoftwarePath().resolve("npm"));
+    ToolInstallation installation = new ToolInstallation(context.getSoftwarePath(), context.getSoftwarePath(),
+        context.getSoftwarePath(), VersionIdentifier.ofRequired("9.9.2"), false);
+    ProcessContext processContext = mock(ProcessContext.class);
+    ToolInstallRequest request = new ToolInstallRequest(false);
+
+    // act
+    commandlet.setEnvironment(processContext, installation, request);
+
+    // assert
+    Path npmGlobalPath = context.getSoftwarePath().resolve(Npm.NPM_GLOBAL_FOLDER);
+    verify(processContext).withEnvVar(Npm.NPM_CONFIG_PREFIX, npmGlobalPath.toString(), VariableScope.EXPORT);
+  }
+
+  @Test
+  void testSetEnvironmentRemovesGlobalPrefixFromProcessContext() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_NPM, null, true);
+    Npm commandlet = new Npm(context);
+    context.getFileAccess().mkdirs(context.getSoftwarePath().resolve("npm"));
+    ToolInstallation installation = new ToolInstallation(context.getSoftwarePath(), context.getSoftwarePath(),
+        context.getSoftwarePath(), VersionIdentifier.ofRequired("9.9.2"), false);
+    ProcessContext processContext = mock(ProcessContext.class);
+
+    // act
+    commandlet.setEnvironment(processContext, installation, false);
+
+    // assert
+    verify(processContext).removeEnvVar(Npm.NPM_CONFIG_PREFIX);
   }
 
   /**

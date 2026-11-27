@@ -16,11 +16,14 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.json.JsonMapping;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.process.VariableScope;
 import com.devonfw.tools.ide.tool.AbstractLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.BuildTool;
+import com.devonfw.tools.ide.tool.ToolInstallRequest;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -62,6 +65,7 @@ public class Npm extends AbstractLocalToolCommandlet implements BuildTool {
    */
   public static final String NPM_GLOBAL_FOLDER = "node_modules";
 
+  static final String NPM_CONFIG_PREFIX = "npm_config_prefix";
   /** The default value of the {@code NPM_RELEASE_OPTS} variable used to build and deploy a release. */
   private static final String DEFAULT_RELEASE_OPTS = "publish";
 
@@ -160,8 +164,8 @@ public class Npm extends AbstractLocalToolCommandlet implements BuildTool {
   /**
    * @param context the {@link IdeContext}.
    * @return the {@link Path} to the folder where npm places the launchers of global packages in the per-project global npm prefix (see
-   *     {@link #NPM_GLOBAL_FOLDER}), or {@code null} if not running inside a project. npm places them in the prefix root on Windows but in
-   *     {@code <prefix>/bin} on POSIX.
+   *     {@link #NPM_GLOBAL_FOLDER}), or {@code null} if not running inside a project. npm places them in the prefix root on Windows but in {@code <prefix>/bin}
+   *     on POSIX.
    */
   static Path getGlobalNpmBin(IdeContext context) {
 
@@ -170,6 +174,16 @@ public class Npm extends AbstractLocalToolCommandlet implements BuildTool {
       return null;
     }
     return context.getSystemInfo().isWindows() ? npmGlobalPath : npmGlobalPath.resolve(IdeContext.FOLDER_BIN);
+  }
+
+  @Override
+  protected void configureToolBinary(ProcessContext processContext, ProcessMode processMode) {
+
+    Path npmGlobalPath = getGlobalNpmPrefix(this.context);
+    if (npmGlobalPath != null) {
+      processContext.withEnvVar(NPM_CONFIG_PREFIX, npmGlobalPath.toString());
+    }
+    super.configureToolBinary(processContext, processMode);
   }
 
   @Override
@@ -185,11 +199,27 @@ public class Npm extends AbstractLocalToolCommandlet implements BuildTool {
     if (npmGlobalPath == null) {
       return;
     }
-    environmentContext.withEnvVar("npm_config_prefix", npmGlobalPath.toString());
+    if (environmentContext instanceof ProcessContext) {
+      environmentContext.removeEnvVar(NPM_CONFIG_PREFIX);
+    } else {
+      environmentContext.withEnvVar(NPM_CONFIG_PREFIX, npmGlobalPath.toString(), VariableScope.EXPORT);
+    }
 
     // npm places the global shims in the prefix root on Windows but in <prefix>/bin on POSIX, so the PATH entry must
     // differ per platform - otherwise the globally installed packages (e.g. task, cdk) are not resolvable.
     environmentContext.withPathEntry(getGlobalNpmBin(this.context));
+  }
+
+  @Override
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation,
+      ToolInstallRequest request) {
+
+    super.setEnvironment(environmentContext, toolInstallation, request);
+
+    Path npmGlobalPath = getGlobalNpmPrefix(this.context);
+    if (npmGlobalPath != null) {
+      environmentContext.withEnvVar(NPM_CONFIG_PREFIX, npmGlobalPath.toString(), VariableScope.EXPORT);
+    }
   }
 
   /**

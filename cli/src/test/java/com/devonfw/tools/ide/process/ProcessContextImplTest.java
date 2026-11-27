@@ -246,6 +246,36 @@ class ProcessContextImplTest extends AbstractIdeContextTest {
   }
 
   @Test
+  void exportEnvVarShouldBeAddedToProcessEnvironment() {
+
+    // arrange
+    java.util.Map<String, String> env = new java.util.HashMap<>();
+    when(this.mockProcessBuilder.environment()).thenReturn(env);
+
+    // act
+    this.processContextUnderTest.withEnvVar("TEST_VAR", "test-value", VariableScope.EXPORT);
+
+    // assert
+    assertThat(env).containsEntry("TEST_VAR", "test-value");
+  }
+
+  @Test
+  void localEnvVarShouldNotBeAddedToProcessEnvironment() {
+
+    // arrange
+    java.util.Map<String, String> env = new java.util.HashMap<>();
+    when(this.mockProcessBuilder.environment()).thenReturn(env);
+
+    // act
+    this.processContextUnderTest.withEnvVar("TEST_VAR", "test-value", VariableScope.LOCAL);
+
+    assertThat(env).doesNotContainKey("TEST_VAR");
+
+    // assert
+    assertThat(env).doesNotContainKey("TEST_VAR");
+  }
+
+  @Test
   void removeEnvVarShouldRemoveVariableFromProcessEnvironment() {
 
     // arrange
