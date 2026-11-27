@@ -67,7 +67,7 @@ class GithubUrlTagUpdaterTest {
   }
 
   @Test
-  void testGithubTagPaginationStopsAtKnownVersion(WireMockRuntimeInfo wmRuntimeInfo) {
+  void testGithubTagPaginationContinuesAtKnownVersion(WireMockRuntimeInfo wmRuntimeInfo) {
 
     StringBuilder firstPage = new StringBuilder("[");
     for (int i = 0; i < 50; i++) {
@@ -86,6 +86,13 @@ class GithubUrlTagUpdaterTest {
       secondPage.append("{\"name\":\"2.0.").append(49 - i).append("\"}");
     }
     secondPage.append("]");
+    String thirdPage = """
+        [
+          {
+            "name": "4.0.0"
+          }
+        ]
+        """;
 
     stubFor(get(urlEqualTo("/repos/acme/tool/tags?per_page=50&page=1"))
         .willReturn(aResponse()
@@ -97,12 +104,18 @@ class GithubUrlTagUpdaterTest {
             .withStatus(200)
             .withBody(secondPage.toString())));
 
+    stubFor(get(urlEqualTo("/repos/acme/tool/tags?per_page=50&page=3"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withBody(thirdPage)));
+
     TestGithubUpdater updater = new TestGithubUpdater(
         wmRuntimeInfo.getHttpBaseUrl(),
         wmRuntimeInfo.getHttpBaseUrl());
 
     String response = updater.getVersionResponse(Set.of("2.0.0"));
 
+    assertThat(response).contains("\"name\":\"4.0.0\"");
     assertThat(response).contains("\"name\":\"3.0.0\"");
     assertThat(response).contains("\"name\":\"2.0.1\"");
     assertThat(response).contains("\"name\":\"2.0.0\"");
@@ -113,7 +126,7 @@ class GithubUrlTagUpdaterTest {
     verify(getRequestedFor(
         urlEqualTo("/repos/acme/tool/tags?per_page=50&page=2")));
 
-    verify(0, getRequestedFor(
+    verify(getRequestedFor(
         urlEqualTo("/repos/acme/tool/tags?per_page=50&page=3")));
   }
 

@@ -104,6 +104,14 @@ public abstract class AbstractGithubUrlUpdater<J extends JsonObject, JVI extends
     return getGithubReleaseDownloadBaseUrl() + "/" + releaseTag + "/" + assetName;
   }
 
+  /**
+   * @return {@code true} if pagination can safely stop after an already known version was found.
+   */
+  protected boolean canStopAtKnownVersion() {
+
+    return true;
+  }
+
   @Override
   protected String doGetVersionResponseBodyAsString(String url, Set<String> existingVersions) {
 
@@ -142,7 +150,7 @@ public abstract class AbstractGithubUrlUpdater<J extends JsonObject, JVI extends
       }
 
       page++;
-    } while ((resultCount == GITHUB_RESULTS_PER_PAGE) && !knownVersionFound);
+    } while ((resultCount == GITHUB_RESULTS_PER_PAGE) && (!knownVersionFound || !canStopAtKnownVersion()));
 
     return combinedResponse.toString();
   }

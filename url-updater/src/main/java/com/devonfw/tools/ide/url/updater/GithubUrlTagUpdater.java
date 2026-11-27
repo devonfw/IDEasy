@@ -44,6 +44,12 @@ public abstract class GithubUrlTagUpdater extends AbstractGithubUrlUpdater<Githu
   }
 
   @Override
+  protected boolean canStopAtKnownVersion() {
+
+    return false;
+  }
+
+  @Override
   protected Class<GithubTags> getJsonObjectType() {
 
     return GithubTags.class;
