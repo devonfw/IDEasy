@@ -57,8 +57,8 @@ The `--project` option is ignored for Eclipse.
 
 === Visual Studio Code
 
-VS Code keeps using the user-data directory or profile associated with the current IDEasy workspace (`--user-data-dir` or `--profile`).
-The profile is not derived from the folder opened via `--project`, so opening a different project reuses the existing IDEasy-managed VS Code configuration.
+VS Code keeps using the user-data directory associated with the current IDEasy workspace (`--user-data-dir`).
+The user-data directory is not derived from the folder opened via `--project`, so opening a different project reuses the existing IDEasy-managed VS Code configuration.
 
 == IDE start scripts
 

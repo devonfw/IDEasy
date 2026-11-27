@@ -146,13 +146,6 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for support of overriding the default pycharm jvm options. */
   VariableDefinitionString PYCHARM_VM_ARGS = new VariableDefinitionString("PYCHARM_VM_ARGS", null);
 
-  /**
-   * {@link VariableDefinition} to enable the isolation of VSCode via {@code --profile} instead of {@code --user-data-dir}. This is a feature toggle: while
-   * disabled (default) the legacy behaviour with {@code --user-data-dir} is used. See issue #2058 for details.
-   */
-  VariableDefinitionBoolean VSCODE_PROFILE_ENABLED = new VariableDefinitionBoolean("VSCODE_PROFILE_ENABLED", null,
-      c -> Boolean.FALSE);
-
   /** {@link VariableDefinition} for the uv redirected cache directory */
   VariableDefinitionPath UV_CACHE_DIR = new VariableDefinitionPath("UV_CACHE_DIR", null,
       c -> c.getIdePath() == null ? null : c.getIdePath().resolve(IdeContext.FOLDER_SOFTWARE).resolve("uv"), true, true);

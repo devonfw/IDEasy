@@ -23,7 +23,6 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.AbstractToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.AbstractIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
-import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * {@link AbstractToolCommandlet} for <a href="https://code.visualstudio.com/">vscode</a>.
@@ -85,14 +84,6 @@ public class Vscode extends AbstractIdeToolCommandlet {
       step.error("Failed to install plugin: {}", plugin.name());
     }
     return false;
-  }
-
-  /**
-   * @return the name of the VSCode profile used to isolate settings, extension state and authentication per IDEasy project and workspace.
-   */
-  private String getProfileName() {
-
-    return "ideasy-" + this.context.getProjectName() + "-" + this.context.getWorkspaceName();
   }
 
   /**
@@ -169,15 +160,8 @@ public class Vscode extends AbstractIdeToolCommandlet {
       pc.withEnvVar("DONT_PROMPT_WSL_INSTALL", "1");
     }
     pc.addArg("--new-window");
-    if (Boolean.TRUE.equals(IdeVariables.VSCODE_PROFILE_ENABLED.get(this.context))) {
-      // Use a named profile (not --user-data-dir) so VS Code keeps its IPC lock at the default location.
-      // This lets the OS-level vscode:// protocol handler (OAuth callbacks e.g. GitHub/Copilot) find the
-      // already-running IDEasy window. Each project and workspace gets its own profile for isolated auth and settings.
-      pc.addArg("--profile=" + getProfileName());
-    } else {
-      pc.addArg("--user-data-dir=" + getUserDataPath());
-      pc.addArg("--shared-data-dir=" + getSharedDataPath());
-    }
+    pc.addArg("--user-data-dir=" + getUserDataPath());
+    pc.addArg("--shared-data-dir=" + getSharedDataPath());
     Path vsCodeExtensionFolder = this.context.getIdeHome().resolve("plugins/vscode");
     pc.addArg("--extensions-dir=" + vsCodeExtensionFolder);
     pc.addArg(getOpenPath());
