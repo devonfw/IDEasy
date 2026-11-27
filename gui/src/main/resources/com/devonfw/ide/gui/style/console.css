@@ -38,31 +38,33 @@
   -fx-font-size: 10;
   -fx-text-fill: #666666;
 }
-.base-style{
+.log-entry {
   -fx-font-family: 'Consolas', monospace;
   -fx-font-size: 11;
 }
-.error-style{
+
+.log-entry.error {
   -fx-text-fill: #cc0000;
+  -fx-control-inner-background: #fff0e0;
 }
-.warning-style{
+
+.log-entry.warning {
   -fx-text-fill: #cc8800;
+  -fx-control-inner-background: #fff8e0;
 }
-.info-style{
+
+.log-entry.info {
   -fx-text-fill: #000000;
 }
-.debug-style{
+
+.log-entry.debug {
   -fx-text-fill: #666666;
 }
-.trace-style{
+
+.log-entry.trace {
   -fx-text-fill: #888888;
 }
-.plain-style{
+
+.log-entry.plain {
   -fx-text-fill: #333333;
-}
-.error-bg{
-  -fx-background-color: #fff0f0;
-}
-.warning-bg{
-  -fx-background-color: #fff8e0;
 }

@@ -1,17 +1,28 @@
 package com.devonfw.ide.gui.core.mainwindow.console;
 
+
 import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 
 import javafx.collections.ListChangeListener.Change;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.Region;
+import javafx.scene.text.Text;
 
 import com.devonfw.ide.gui.core.service.NlsService;
 import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
  * View of the console
@@ -88,39 +99,83 @@ public class ConsoleView {
    */
   private static class LogEntryCell extends ListCell<IdeLogEntry> {
 
+
+    private static final List<String> LOG_LEVEL_STYLE_CLASSES =
+        Arrays.stream(IdeLogLevel.values()).map(LogEntryCell::toStyleClass).toList();
+    private final LogEntryTextArea textArea = new LogEntryTextArea();
+
+    private LogEntryCell() {
+      setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+    }
+
+
     @Override
     protected void updateItem(IdeLogEntry entry, boolean empty) {
-
+      this.textArea.getStyleClass().removeAll(LOG_LEVEL_STYLE_CLASSES);
       super.updateItem(entry, empty);
-
-      getStyleClass().removeAll(
-          "base-style",
-          "error-style",
-          "warning-style",
-          "info-style",
-          "debug-style",
-          "trace-style",
-          "plain-style",
-          "error-bg",
-          "warning-bg");
-
       if (empty || entry == null) {
-        setText(null);
-        return;
+        this.textArea.clear();
+        setGraphic(null);
+      } else {
+        this.textArea.setText(entry.displayValue());
+        if (entry.level() != null) {
+          this.textArea.getStyleClass().add(toStyleClass(entry.level()));
+        }
+        setGraphic(this.textArea);
       }
+    }
 
-      setText(entry.displayValue());
+    private static String toStyleClass(IdeLogLevel level) {
 
-      getStyleClass().add("base-style");
+      return level.name().toLowerCase(Locale.ROOT);
+    }
+  }
 
-      switch (entry.level()) {
-        case ERROR -> getStyleClass().addAll("error-style", "error-bg");
-        case WARNING -> getStyleClass().addAll("warning-style", "warning-bg");
-        case INFO -> getStyleClass().add("info-style");
-        case DEBUG -> getStyleClass().add("debug-style");
-        case TRACE -> getStyleClass().add("trace-style");
-        default -> getStyleClass().add("plain-style");
+  private static class LogEntryTextArea extends TextArea {
+    private final Text textMeasure = new Text();
+    private LogEntryTextArea() {
+      setWrapText(true);
+      setEditable(false);
+      setFocusTraversable(false);
+      setMinHeight(USE_PREF_SIZE);
+      getStyleClass().add("log-entry");
+    }
+    @Override
+    public Orientation getContentBias() {
+
+      return Orientation.HORIZONTAL;
+    }
+    @Override
+    protected double computePrefHeight(double width){
+      Region scrollPane = (Region) lookup(".scroll-pane");
+      Region content = (Region) lookup(".content");
+      Text text = (Text) lookup(".text");
+      if ((scrollPane == null) || (content == null) || (text == null)) {
+        return super.computePrefHeight(width);
       }
+      double wrappingWidth = 0; // without a given width the text is measured unwrapped
+      if (width >= 0) {
+        double horizontalInsets = snappedLeftInset() + snappedRightInset() + getHorizontalInsets(scrollPane) + getHorizontalInsets(content);
+        wrappingWidth = Math.max(width - horizontalInsets, 0);
+      }
+      this.textMeasure.setFont(text.getFont());
+      this.textMeasure.setBoundsType(text.getBoundsType());
+      this.textMeasure.setLineSpacing(text.getLineSpacing());
+      this.textMeasure.setText(getText());
+      this.textMeasure.setWrappingWidth(wrappingWidth);
+      double verticalInsets = snappedTopInset() + snappedBottomInset() + getVerticalInsets(scrollPane) + getVerticalInsets(content);
+      return snapSizeY(this.textMeasure.getLayoutBounds().getHeight() + verticalInsets);
+    }
+    private static double getHorizontalInsets(Region region) {
+
+      Insets insets = region.getInsets();
+      return region.snapSpaceX(insets.getLeft()) + region.snapSpaceX(insets.getRight());
+    }
+
+    private static double getVerticalInsets(Region region) {
+
+      Insets insets = region.getInsets();
+      return region.snapSpaceY(insets.getTop()) + region.snapSpaceY(insets.getBottom());
     }
   }
 }
