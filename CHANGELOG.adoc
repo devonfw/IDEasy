@@ -19,6 +19,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/2875[#2875]: Keep the current working directory in the git-bash window title when the shell is not initialised with IDEasy, instead of showing only `ideasy`
 * https://github.com/devonfw/IDEasy/issues/2518[#2518]: Add Snyk CLI commandlet
 * https://github.com/devonfw/IDEasy/issues/2544[#2544]: Remove npm_config_prefix from native package manager commands
+* https://github.com/devonfw/IDEasy/issues/2827[#2827]: Run the CVE check and install of a shared dependency at most once per tool version in ide update
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/54?closed=1[milestone 2026.12.001].
 
