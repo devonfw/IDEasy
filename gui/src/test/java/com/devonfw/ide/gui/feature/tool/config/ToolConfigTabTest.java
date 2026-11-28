@@ -12,18 +12,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.stage.Stage;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.testfx.util.WaitForAsyncUtils;
 
 import com.devonfw.ide.gui.UIBasedApplicationTest;
 import com.devonfw.ide.gui.core.context.GuiStateManager;
-import com.devonfw.ide.gui.core.event.TabChangeEvent;
-import com.devonfw.ide.gui.core.mainwindow.MainWindowViewModel;
 import com.devonfw.ide.gui.core.model.ToolConfiguration;
 
 /**
@@ -38,8 +34,6 @@ class ToolConfigTabTest extends UIBasedApplicationTest {
 
   private Stage stage;
 
-  private final List<Tab> emittedTabs = new ArrayList<>();
-
   @Override
   public void start(Stage stage) {
 
@@ -53,7 +47,7 @@ class ToolConfigTabTest extends UIBasedApplicationTest {
     List<ToolConfigViewModel> viewModels = new ArrayList<>();
     interact(() -> {
       ToolConfigTab toolConfigTab = new ToolConfigTab(new GuiStateManager(this.ideRoot.toString()));
-      Tab tab = toolConfigTab.createTabChangeEvent().tab();
+      Tab tab = toolConfigTab.createTab();
       this.stage.setScene(new Scene((Parent) tab.getContent(), 800, 600));
       viewModels.add(toolConfigTab.getViewModel());
     });
@@ -67,34 +61,6 @@ class ToolConfigTabTest extends UIBasedApplicationTest {
     tool.setConfiguredVersion("1.0.0");
     tool.setAvailableVersions(List.of("1.0.0", "2.0.0"));
     return tool;
-  }
-
-  /**
-   * Opening the tool config tab twice must publish the same, closable tab.
-   */
-  @Test
-  @Disabled("The TabFactory no longer caches the tab. Re-enable once the generic handling of already open tabs is implemented, see #2837.")
-  void testOpeningTwiceReusesTheSameTab() {
-
-    interact(() -> {
-      GuiStateManager guiStateManager = new GuiStateManager(this.ideRoot.toString());
-      // like the main window: show the published tab in a tab pane unless it is already there
-      TabPane tabPane = new TabPane();
-      guiStateManager.getEventBus().addListener(TabChangeEvent.class, event -> {
-        this.emittedTabs.add(event.tab());
-        if (!tabPane.getTabs().contains(event.tab())) {
-          tabPane.getTabs().add(event.tab());
-        }
-      });
-      MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(guiStateManager);
-      mainWindowViewModel.openToolConfigTab();
-      mainWindowViewModel.openToolConfigTab();
-    });
-
-    assertThat(this.emittedTabs).hasSize(2);
-    assertThat(this.emittedTabs.get(1)).isSameAs(this.emittedTabs.getFirst());
-    assertThat(this.emittedTabs.getFirst().getUserData()).isEqualTo("tab.tool_config");
-    assertThat(this.emittedTabs.getFirst().isClosable()).isTrue();
   }
 
   /**
