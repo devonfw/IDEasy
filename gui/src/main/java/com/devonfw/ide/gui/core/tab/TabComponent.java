@@ -3,7 +3,6 @@ package com.devonfw.ide.gui.core.tab;
 import javafx.scene.control.Tab;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
-import com.devonfw.ide.gui.core.event.TabChangeEvent;
 import com.devonfw.ide.gui.core.service.CommandletService;
 import com.devonfw.ide.gui.core.service.NlsService;
 
@@ -16,7 +15,6 @@ public abstract class TabComponent<T extends TabViewModel> {
   protected final CommandletService commandletService;
   protected final NlsService nlsService;
 
-  protected Tab tab;
   protected TabView view;
   protected T viewModel;
 
@@ -34,11 +32,9 @@ public abstract class TabComponent<T extends TabViewModel> {
   /**
    * Creates the tab's view and its view model.
    *
-   * @return the created view.
+   * @return the tab containing the new view.
    */
-  public abstract TabView createTab();
-
-  public abstract TabChangeEvent createTabChangeEvent();
+  public abstract Tab createTab();
 
   /**
    * @return the localization key used as the title (and identity) of this tab.

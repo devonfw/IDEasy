@@ -31,7 +31,7 @@ The GUI is organized around a small set of roles. Each has a single responsibili
 |Role|Responsibility
 
 |*Factory*
-|Creates ViewModels and Views while holding the services needed to build them. E.g. `TabFactory` creates the tabs of the main window. Created by the `GuiStateManager`.
+|`GuiStateManager` provides the `TabFactory`, which creates a `TabComponent` for each request to open a tab.
 
 |*Service*
 |Encapsulates business logic and access to data/functionality, independently of the UI. E.g. `CommandletService` runs commandlets in the selected context; `NlsService` handles localization. Created by the `GuiStateManager`.
@@ -51,7 +51,7 @@ Note: the term *Model* in MVVM refers to the observable application state. In pr
 The main window is organized into tabs (e.g. the IDE launcher).
 Each tab is a self-contained `TabComponent` that bundles everything belonging to that tab: its title key, its ViewModel (extends `TabViewModel`), its View (extends `TabView`), the JavaFX `Tab` tying them together, and the lifecycle hooks around opening, closing and focusing.
 
-Therefore the `TabFactory` does *not* need to know any concrete ViewModel or View — it only opens `TabComponent`s and sends the resulting `Tab`s as events to the `MainWindowView`.
+The `TabFactory` sends the requested `TabComponent` to the `MainWindowView`. The window selects an open tab with the same title key. When opening a new tab, the window asks the component to create it and stores its title key in `Tab.userData`.
 This follows the *Tell, Don't Ask* principle: the caller tells the factory to open a component instead of asking it for its title key and assembling the parts itself.
 
 Consequently, to add a tab you create a new class extending `TabComponent` (see link:ui-contribution-process.adoc[Contributing to the IDEasy GUI] for the steps).
@@ -118,7 +118,7 @@ All packages live below `com.devonfw.ide.gui`:
 * `core` — cross-cutting code shared by all features:
 ** `context` — the observable application state (the Model): project/workspace selection, task management, and the `IdeGuiContext`.
 ** `event` — the `GuiEventBus` and its events (e.g. `TabChangeEvent`).
-** `factory` — factories that create Views/ViewModels (e.g. `TabFactory` for the tabs of the main window).
+** `factory` — `TabFactory` publishes requests to open tabs in the main window.
 ** `helper` — reusable JavaFX helpers, e.g. `FxHelper` (FXML loading, FX-thread-safe execution) and `ComboBoxViewModel`.
 ** `mainwindow` — the main window including the `console` and `navigation` panels.
 ** `modal` — dialogs (e.g. `IdeDialog`).

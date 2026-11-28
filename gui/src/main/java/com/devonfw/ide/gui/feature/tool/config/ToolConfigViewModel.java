@@ -50,8 +50,8 @@ public class ToolConfigViewModel extends TabViewModel {
     super(guiStateManager);
     this.toolConfigurationService = guiStateManager.getToolConfigurationService();
     this.saveDisabled.bind(Bindings.isNotEmpty(this.invalidTools).or(this.saved));
-    this.guiStateManager.addGuiContextChangeListener(this.contextChangeListener);
     load();
+    this.guiStateManager.addGuiContextChangeListener(this.contextChangeListener);
   }
 
   @Override

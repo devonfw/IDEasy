@@ -3,7 +3,11 @@ package com.devonfw.ide.gui;
 import static org.testfx.assertions.api.Assertions.assertThat;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import javafx.scene.Scene;
@@ -13,24 +17,30 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.SplitPane.Divider;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
+import org.assertj.core.api.Assertions;
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.testfx.util.WaitForAsyncUtils;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.context.TaskManager;
+import com.devonfw.ide.gui.core.event.TabChangeEvent;
 import com.devonfw.ide.gui.core.helper.FxHelper;
 import com.devonfw.ide.gui.core.mainwindow.MainWindowView;
 import com.devonfw.ide.gui.core.mainwindow.MainWindowViewModel;
 import com.devonfw.ide.gui.core.progress.ProgressBarTask;
 import com.devonfw.ide.gui.core.progress.taskwindow.TaskOverviewWindow;
+import com.devonfw.ide.gui.core.tab.TabComponent;
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
 
@@ -357,6 +367,46 @@ public class AppBaseTest extends UIBasedApplicationTest {
         new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, null, 1, false, false, false, false, false, false, false, false, false, false, null));
   }
 
+  @Test
+  void testReopeningTabsFocusesTheOriginalTab() {
+
+    interact(this.viewModel::openLauncherTab);
+    Tab launcher = this.tabPane.getSelectionModel().getSelectedItem();
+    interact(this.viewModel::openToolConfigTab);
+    Tab tools = this.tabPane.getSelectionModel().getSelectedItem();
+    assertThat(tools.getUserData()).isEqualTo("tab.tool_config");
+    assertThat(tools.isClosable()).isTrue();
+
+    List<TabComponent<?>> reopenRequests = new ArrayList<>();
+    this.guiStateManager.getEventBus().addListener(TabChangeEvent.class, event -> reopenRequests.add(event.component()));
+    interact(this.viewModel::openLauncherTab);
+    assertThat(this.tabPane.getSelectionModel().getSelectedItem()).isSameAs(launcher);
+    interact(this.viewModel::openToolConfigTab);
+    assertThat(this.tabPane.getSelectionModel().getSelectedItem()).isSameAs(tools);
+    assertThat(this.tabPane.getTabs()).containsExactly(launcher, tools);
+    assertThat(reopenRequests).hasSize(2).allSatisfy(component -> assertThat(component.getViewModel()).isNull());
+  }
+
+  @Test
+  void testOpeningToolConfigReportsInvalidSettings() throws IOException {
+
+    Path settings = this.guiStateManager.getIdeRootDir().resolve("project-1/settings/ide.properties");
+    Files.writeString(settings, "IDE_TOOLS=${PROJECT_TOOLS}\nPROJECT_TOOLS=${IDE_TOOLS}\n");
+    interact(() -> {
+      this.selectedProject.getSelectionModel().select("project-1");
+      this.selectedWorkspace.getSelectionModel().select("main");
+      Button configureTools = FxHelper.lookup(this.mainWindow, "#openToolConfigButton");
+      configureTools.fire();
+    });
+
+    Assertions.assertThatThrownBy(WaitForAsyncUtils::checkException).rootCause()
+        .isInstanceOf(CliException.class).hasMessageContaining("IDE_TOOLS");
+    assertThat(this.tabPane.getTabs()).isEmpty();
+
+    interact(() -> this.selectedWorkspace.getSelectionModel().select("foo-test-1"));
+    Assertions.assertThatCode(WaitForAsyncUtils::checkException).doesNotThrowAnyException();
+  }
+
   //===Welcome pane tests===
 
   /**
@@ -410,7 +460,11 @@ public class AppBaseTest extends UIBasedApplicationTest {
     waitForFxEvents();
 
     assertThat(tabPane.getTabs()).as("The welcome button should open exactly one tab").hasSize(1);
-    assertThat(tabPane.getTabs().getFirst().getUserData()).as("The opened tab should be the IDE launcher").isEqualTo("tab.ide_launcher");
+    Tab launcher = tabPane.getTabs().getFirst();
+    assertThat(launcher.getUserData()).as("The opened tab should be the IDE launcher").isEqualTo("tab.ide_launcher");
+    assertThat(launcher.getText()).isNotEqualTo(launcher.getUserData());
+    assertThat(launcher.getContent()).isNotNull();
+    assertThat(launcher.isClosable()).isTrue();
     assertThat(welcomePane.isVisible()).as("The welcome pane should be hidden again once a tab is open").isFalse();
 
   }

@@ -5,6 +5,7 @@ import java.util.Objects;
 import javafx.scene.control.TabPane;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
+import com.devonfw.ide.gui.core.event.TabChangeEvent;
 import com.devonfw.ide.gui.core.service.CommandletService;
 import com.devonfw.ide.gui.core.tab.TabComponent;
 import com.devonfw.ide.gui.feature.ide.launcher.IdeLauncherTab;
@@ -13,8 +14,7 @@ import com.devonfw.ide.gui.feature.tool.config.ToolConfigTab;
 import io.github.mmm.event.EventBus;
 
 /**
- * Creates the tabs of the main window's {@link TabPane}. It keeps at most one tab open per title key, so re-activating a tab focuses the existing one instead
- * of creating a duplicate. The managing part is to be removed in the future.
+ * Sends requests to open tabs in the main window's {@link TabPane}.
  */
 public class TabFactory {
 
@@ -59,8 +59,8 @@ public class TabFactory {
     open(new ToolConfigTab(this.guiStateManager));
   }
 
-  private void open(TabComponent tabComponent) {
-    this.eventBus.sendEvent(tabComponent.createTabChangeEvent());
+  private void open(TabComponent<?> tabComponent) {
+    this.eventBus.sendEvent(new TabChangeEvent(tabComponent));
   }
 
 }

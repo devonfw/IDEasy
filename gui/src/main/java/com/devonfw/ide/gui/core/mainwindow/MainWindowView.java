@@ -3,6 +3,7 @@ package com.devonfw.ide.gui.core.mainwindow;
 import java.io.IOException;
 import java.util.Objects;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
@@ -25,13 +26,13 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.ide.gui.core.context.GuiStateManager;
 import com.devonfw.ide.gui.core.event.GuiEventBus;
 import com.devonfw.ide.gui.core.event.TabChangeEvent;
-import com.devonfw.ide.gui.core.helper.FxHelper;
 import com.devonfw.ide.gui.core.mainwindow.console.ConsoleView;
 import com.devonfw.ide.gui.core.mainwindow.console.ConsoleViewModel;
 import com.devonfw.ide.gui.core.mainwindow.navigation.NavigationPanelView;
 import com.devonfw.ide.gui.core.mainwindow.navigation.NavigationPanelViewModel;
 import com.devonfw.ide.gui.core.progress.taskwindow.TaskOverviewWindow;
 import com.devonfw.ide.gui.core.service.NlsService;
+import com.devonfw.ide.gui.core.tab.TabComponent;
 
 /**
  * View of the main window. It renders what the {@link MainWindowViewModel} exposes and translates user gestures back onto it; all selection state, status
@@ -130,7 +131,8 @@ public class MainWindowView extends BorderPane {
     final NavigationPanelViewModel navigationPanelViewModel = new NavigationPanelViewModel(this.guiStateManager);
     setLeft(new NavigationPanelView(navigationPanelViewModel, this.nlsService));
 
-    this.eventBus.addListener(TabChangeEvent.class, e -> FxHelper.runFxSafe(() -> handleTab(e.tab())));
+    // Dispatch outside the event bus so tab initialization errors reach the application's JavaFX exception handler.
+    this.eventBus.addListener(TabChangeEvent.class, e -> Platform.runLater(() -> handleTab(e.component())));
 
     this.centerDivider = this.centerSplitPane.getDividers().getFirst();
 
@@ -140,11 +142,18 @@ public class MainWindowView extends BorderPane {
 
   }
 
-  private void handleTab(Tab tab) {
+  private void handleTab(TabComponent<?> component) {
 
-    if (!this.tabPane.getTabs().contains(tab)) {
-      this.tabPane.getTabs().add(tab);
+    String titleKey = component.getTabTitleKey();
+    for (Tab tab : this.tabPane.getTabs()) {
+      if (titleKey.equals(tab.getUserData())) {
+        this.tabPane.getSelectionModel().select(tab);
+        return;
+      }
     }
+    Tab tab = component.createTab();
+    tab.setUserData(titleKey);
+    this.tabPane.getTabs().add(tab);
     this.tabPane.getSelectionModel().select(tab);
   }
 

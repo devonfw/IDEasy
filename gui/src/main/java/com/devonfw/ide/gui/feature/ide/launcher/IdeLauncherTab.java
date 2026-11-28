@@ -3,7 +3,6 @@ package com.devonfw.ide.gui.feature.ide.launcher;
 import javafx.scene.control.Tab;
 
 import com.devonfw.ide.gui.core.context.GuiStateManager;
-import com.devonfw.ide.gui.core.event.TabChangeEvent;
 import com.devonfw.ide.gui.core.tab.TabComponent;
 import com.devonfw.ide.gui.core.tab.TabView;
 
@@ -24,19 +23,10 @@ public class IdeLauncherTab extends TabComponent<IdeLauncherViewModel> {
   }
 
   @Override
-  public TabView createTab() {
+  public Tab createTab() {
     this.viewModel = new IdeLauncherViewModel(this.guiStateManager);
     this.view = new IdeLauncherView(this.viewModel, this.nlsService);
-    this.tab = new Tab(this.nlsService.get(tabTitleKey), this.view);
-    this.tab.setUserData(tabTitleKey);
-
-    return this.view;
-  }
-
-  @Override
-  public TabChangeEvent createTabChangeEvent() {
-    createTab();
-    return new TabChangeEvent(this.tab);
+    return new Tab(this.nlsService.get(tabTitleKey), this.view);
   }
 
   @Override

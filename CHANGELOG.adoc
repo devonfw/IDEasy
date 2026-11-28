@@ -8,6 +8,7 @@ Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/2806[#2806]: Pycharm is missing versions newer than 2025.3
 * https://github.com/devonfw/IDEasy/issues/2820[#2820]: Add a dedicated IDE-usage docs page, keep cli.adoc generic
+* https://github.com/devonfw/IDEasy/issues/2837[#2837]: GUI: generic handling of already open tabs
 * https://github.com/devonfw/IDEasy/issues/2552[#2552]: Add release support for npm
 * https://github.com/devonfw/IDEasy/issues/2520[#2520]: Add Dart SDK commandlet
 * https://github.com/devonfw/IDEasy/issues/2484[#2484]: Tab completion for ide install python <version> triggers uv installation/update
