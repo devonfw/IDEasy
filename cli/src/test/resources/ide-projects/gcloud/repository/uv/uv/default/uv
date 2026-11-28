@@ -1,0 +1,33 @@
+#!/bin/bash
+if [ "$1" = "python" ] && [ "$2" = "list" ]; then
+  echo '[{"version": "3.14.6", "implementation": "cpython"}, {"version": "3.12.12", "implementation": "cpython"}, {"version": "7.3.17", "implementation": "pypy"}]'
+  exit 0
+fi
+echo "uv $*"
+cd "$(dirname "$0")/../../../../../.." || exit 1
+pwd
+TOOLS_DB="project/software/.uv-installed-tools"
+normalize_path() { printf '%s' "$1" | tr '\\' '/'; }
+if [ "$1" = "python" ] && [ "$2" = "install" ] && [ "$3" = "--install-dir" ]; then
+  install_dir=$(normalize_path "$4")
+  cp -a repository/python/python/default "$install_dir/cpython-$5-macos-x86_64-none"
+elif [ "$1" = "pip" ] && [ "$2" = "install" ]; then
+  cp repository/pip/pip/default/bin/pip project/software/python/bin
+elif [ "$1" = "venv" ] && [ "$2" = "--python" ]; then
+  cp -a repository/python/python/default project/software/.venv
+elif [ "$1" = "venv" ] && [ "$3" = "--python" ]; then
+  venv_dir=$(normalize_path "$2")
+  interpreter_dir=$(normalize_path "$4")
+  mkdir -p "$venv_dir" && cp -a "$interpreter_dir/bin" "$venv_dir/"
+elif [ "$1" = "tool" ] && [ "$2" = "install" ]; then
+  echo "${!#}" >> "$TOOLS_DB"
+elif [ "$1" = "tool" ] && [ "$2" = "list" ]; then
+  if [ -f "$TOOLS_DB" ]; then
+    while IFS= read -r spec; do
+      name="${spec%@*}"
+      version="${spec#*@}"
+      echo "$name v$version"
+      echo "- ${name}"
+    done < "$TOOLS_DB"
+  fi
+fi
